@@ -1,0 +1,32 @@
+[
+  {
+    "id": "liability-1",
+    "name": "Mortgage - Primary Residence",
+    "type": "Loans",
+    "balance": 450000,
+    "interestRate": 3.5,
+    "monthlyPayment": 2100,
+    "dueDate": "2024-12-01T00:00:00.000Z",
+    "institution": "Chase"
+  },
+  {
+    "id": "liability-2",
+    "name": "Chase Sapphire Reserve",
+    "type": "Credit Cards",
+    "balance": 5200,
+    "interestRate": 22.99,
+    "dueDate": "2024-12-15T00:00:00.000Z",
+    "institution": "Chase"
+  },
+  {
+    "id": "liability-3",
+    "name": "Student Loan",
+    "type": "Loans",
+    "balance": 28000,
+    "interestRate": 4.5,
+    "monthlyPayment": 350,
+    "dueDate": "2024-12-10T00:00:00.000Z",
+    "institution": "Federal Student Aid"
+  }
+]
+

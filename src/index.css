@@ -1,0 +1,104 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Coinbase-inspired Light Theme Tokens */
+    --color-primary-blue: #0052FF;
+    --color-bg-default: #FFFFFF;
+    --color-bg-alt: #EEF0F3;
+    --color-text-primary: #0A0B0D;
+    --color-text-muted: #5B616E;
+    --color-border-default: #DCDFE4;
+    --color-success: #098566; /* Adjusted for WCAG AA: 4.61:1 contrast on white */
+    --color-error: #d13b4f; /* Adjusted for WCAG AA: 4.72:1 contrast on white */
+    
+    /* Shadow tokens */
+    --shadow-md: 0 6px 18px rgba(10, 11, 13, 0.06);
+    --shadow-lg: 0 10px 28px rgba(10, 11, 13, 0.08);
+    
+    /* Radius tokens */
+    --radius-sm: 8px;
+    --radius-lg: 16px;
+    
+    /* Font size */
+    --font-size-base: 16px;
+    
+    /* Legacy HSL mappings for compatibility with existing Tailwind classes */
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 217 91% 60%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 217 91% 60%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    /* Coinbase-inspired Dark Theme Tokens */
+    --color-primary-blue: #2b71d8; /* Adjusted for WCAG AA: 4.71:1 contrast with white text */
+    --color-bg-default: #0A0B0D;
+    --color-bg-alt: #1A1C1F;
+    --color-text-primary: #FFFFFF;
+    --color-text-muted: #8B92A3;
+    --color-border-default: #2A2D35;
+    --color-success: #0ECD9D; /* 9.60:1 contrast on dark background - excellent */
+    --color-error: #F6465D; /* 5.58:1 contrast on dark background - excellent */
+    
+    /* Legacy HSL mappings for dark mode */
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 217 91% 70%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 217 91% 70%;
+  }
+}
+
+@layer base {
+  :root {
+    --font-family-sans: "Rethink Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  }
+  
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-family-sans);
+    font-size: var(--font-size-base);
+  }
+}
+
+/* Skip to content link for accessibility */
+.skip-to-content {
+  @apply sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary focus:text-primary-foreground focus:rounded-md;
+}
+

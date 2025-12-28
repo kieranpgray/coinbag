@@ -1,0 +1,33 @@
+[
+  {
+    "id": "account-1",
+    "institution": "Chase",
+    "accountName": "Chase Total Checking",
+    "balance": 15250,
+    "availableBalance": 15250,
+    "accountType": "Checking",
+    "lastUpdated": "2024-11-01T10:30:00.000Z",
+    "hidden": false
+  },
+  {
+    "id": "account-2",
+    "institution": "Chase",
+    "accountName": "Chase Savings",
+    "balance": 45000,
+    "availableBalance": 45000,
+    "accountType": "Savings",
+    "lastUpdated": "2024-11-01T10:30:00.000Z",
+    "hidden": false
+  },
+  {
+    "id": "account-3",
+    "institution": "Vanguard",
+    "accountName": "401(k) Retirement Account",
+    "balance": 185000,
+    "availableBalance": 185000,
+    "accountType": "Investment",
+    "lastUpdated": "2024-11-01T16:00:00.000Z",
+    "hidden": false
+  }
+]
+

@@ -1,0 +1,132 @@
+import { useQueryClient } from '@tanstack/react-query';
+import { useAuth } from '@clerk/clerk-react';
+import { createAssetsRepository } from '@/data/assets/repo';
+import { createLiabilitiesRepository } from '@/data/liabilities/repo';
+import { createSubscriptionsRepository } from '@/data/subscriptions/repo';
+import { createIncomeRepository } from '@/data/income/repo';
+import { createAccountsRepository } from '@/data/accounts/repo';
+import { createCategoriesRepository } from '@/data/categories/repo';
+
+/**
+ * Hook to prefetch route data on navigation link hover
+ * This dramatically improves perceived page load time by loading data before user clicks
+ */
+export function usePrefetchRoute() {
+  const queryClient = useQueryClient();
+  const { getToken } = useAuth();
+
+  const prefetchAssets = () => {
+    if (!getToken) return;
+    // Skip if data is already cached and fresh
+    const cached = queryClient.getQueryData(['assets']);
+    if (cached) return;
+    
+    const repository = createAssetsRepository();
+    queryClient.prefetchQuery({
+      queryKey: ['assets'],
+      queryFn: async () => {
+        const result = await repository.list(getToken);
+        if (result.error) throw result.error;
+        return result.data;
+      },
+      staleTime: 1000 * 60 * 5, // 5 minutes
+    });
+  };
+
+  const prefetchLiabilities = () => {
+    if (!getToken) return;
+    // Skip if data is already cached and fresh
+    const cached = queryClient.getQueryData(['liabilities']);
+    if (cached) return;
+    
+    const repository = createLiabilitiesRepository();
+    queryClient.prefetchQuery({
+      queryKey: ['liabilities'],
+      queryFn: async () => {
+        const result = await repository.list(getToken);
+        if (result.error) throw result.error;
+        return result.data;
+      },
+      staleTime: 1000 * 60 * 5, // 5 minutes
+    });
+  };
+
+  const prefetchSubscriptions = () => {
+    if (!getToken) return;
+    // Skip if data is already cached and fresh
+    const cachedSubs = queryClient.getQueryData(['subscriptions']);
+    const cachedCats = queryClient.getQueryData(['categories']);
+    
+    if (!cachedSubs) {
+      const repository = createSubscriptionsRepository();
+      queryClient.prefetchQuery({
+        queryKey: ['subscriptions'],
+        queryFn: async () => {
+          const result = await repository.list(getToken);
+          if (result.error) throw result.error;
+          return result.data;
+        },
+        staleTime: 1000 * 60 * 5, // 5 minutes
+      });
+    }
+    
+    // Also prefetch categories since subscriptions page uses them
+    if (!cachedCats) {
+      const categoriesRepo = createCategoriesRepository();
+      queryClient.prefetchQuery({
+        queryKey: ['categories'],
+        queryFn: async () => {
+          const result = await categoriesRepo.list(getToken);
+          if (result.error) throw result.error;
+          return result.data;
+        },
+        staleTime: 1000 * 60 * 5, // 5 minutes
+      });
+    }
+  };
+
+  const prefetchIncome = () => {
+    if (!getToken) return;
+    // Skip if data is already cached and fresh
+    const cached = queryClient.getQueryData(['incomes']);
+    if (cached) return;
+    
+    const repository = createIncomeRepository();
+    queryClient.prefetchQuery({
+      queryKey: ['incomes'],
+      queryFn: async () => {
+        const result = await repository.list(getToken);
+        if (result.error) throw result.error;
+        return result.data;
+      },
+      staleTime: 1000 * 60 * 5, // 5 minutes
+    });
+  };
+
+  const prefetchAccounts = () => {
+    if (!getToken) return;
+    // Skip if data is already cached and fresh
+    const cached = queryClient.getQueryData(['accounts']);
+    if (cached) return;
+    
+    const repository = createAccountsRepository();
+    queryClient.prefetchQuery({
+      queryKey: ['accounts'],
+      queryFn: async () => {
+        const result = await repository.list(getToken);
+        if (result.error) throw result.error;
+        return result.data;
+      },
+      staleTime: 1000 * 60 * 5, // 5 minutes
+    });
+  };
+
+  return {
+    prefetchAssets,
+    prefetchLiabilities,
+    prefetchSubscriptions,
+    prefetchIncome,
+    prefetchAccounts,
+  };
+}
+

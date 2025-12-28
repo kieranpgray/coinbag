@@ -1,0 +1,21 @@
+[
+  {
+    "id": "user-1",
+    "firstName": "John",
+    "lastName": "Doe",
+    "email": "john.doe@example.com",
+    "phoneNumber": null,
+    "privacyMode": false,
+    "darkMode": false,
+    "taxRate": 20,
+    "emailNotifications": {
+      "portfolioSummary": true,
+      "spendingAlerts": true,
+      "stockPriceAlerts": true,
+      "featureAnnouncements": false,
+      "marketingPromotions": false
+    },
+    "mfaEnabled": false
+  }
+]
+

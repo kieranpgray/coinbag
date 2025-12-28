@@ -1,0 +1,45 @@
+[
+  {
+    "id": "asset-1",
+    "name": "Primary Residence",
+    "type": "Real Estate",
+    "value": 750000,
+    "change1D": 0.2,
+    "change1W": 0.5,
+    "dateAdded": "2020-01-15T00:00:00.000Z",
+    "institution": "Local Real Estate",
+    "notes": "Primary home located in suburban area"
+  },
+  {
+    "id": "asset-2",
+    "name": "S&P 500 Index Fund",
+    "type": "Investments",
+    "value": 250000,
+    "change1D": 1.2,
+    "change1W": -0.8,
+    "dateAdded": "2019-06-20T00:00:00.000Z",
+    "institution": "Vanguard"
+  },
+  {
+    "id": "asset-3",
+    "name": "Bitcoin Holdings",
+    "type": "Crypto",
+    "value": 50000,
+    "change1D": -2.5,
+    "change1W": 5.3,
+    "dateAdded": "2021-03-10T00:00:00.000Z",
+    "institution": "Coinbase"
+  },
+  {
+    "id": "asset-4",
+    "name": "2022 Tesla Model 3",
+    "type": "Vehicles",
+    "value": 35000,
+    "change1D": -0.5,
+    "change1W": -1.2,
+    "dateAdded": "2022-05-12T00:00:00.000Z",
+    "institution": "Tesla",
+    "notes": "Fully paid off vehicle"
+  }
+]
+

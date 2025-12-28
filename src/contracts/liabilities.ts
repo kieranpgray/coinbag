@@ -1,0 +1,180 @@
+import { z } from 'zod';
+
+/**
+ * Liability contracts - Zod-first schemas for type-safe API communication
+ * These schemas define the contract between frontend and backend for liability data.
+ */
+
+// Validation limits
+const VALIDATION_LIMITS = {
+  name: { min: 1, max: 100 },
+  balance: { max: 99999999.99 }, // Matches numeric(10,2)
+  interestRate: { max: 100 }, // Percentage 0-100
+  monthlyPayment: { max: 99999999.99 }, // Matches numeric(10,2)
+  institution: { max: 100 },
+} as const;
+
+// Liability type enum
+const liabilityTypeSchema = z.enum(['Loans', 'Credit Cards', 'Other'], {
+  errorMap: () => ({ message: 'Invalid liability type' }),
+});
+
+// Base liability name validation
+const liabilityNameSchema = z.string()
+  .min(VALIDATION_LIMITS.name.min, `Name must be at least ${VALIDATION_LIMITS.name.min} character`)
+  .max(VALIDATION_LIMITS.name.max, `Name must be less than ${VALIDATION_LIMITS.name.max} characters`)
+  .trim()
+  .refine(name => name.length > 0 && !/^\s*$/.test(name), "Name can't be empty.");
+
+// Balance validation (must be positive and within database precision limits)
+const balanceSchema = z.number()
+  .min(0, 'Balance must be positive')
+  .max(VALIDATION_LIMITS.balance.max, `Balance cannot exceed ${VALIDATION_LIMITS.balance.max}`)
+  .refine(value => /^\d+(\.\d{1,2})?$/.test(value.toFixed(2)), 'Balance can have at most 2 decimal places');
+
+// Interest rate validation (percentage 0-100)
+const interestRateSchema = z.number()
+  .min(0, 'Interest rate must be positive')
+  .max(VALIDATION_LIMITS.interestRate.max, `Interest rate cannot exceed ${VALIDATION_LIMITS.interestRate.max}%`)
+  .refine(value => /^\d+(\.\d{1,2})?$/.test(value.toFixed(2)), 'Interest rate can have at most 2 decimal places')
+  .optional();
+
+// Monthly payment validation
+const monthlyPaymentSchema = z.number()
+  .min(0, 'Monthly payment must be positive')
+  .max(VALIDATION_LIMITS.monthlyPayment.max, `Monthly payment cannot exceed ${VALIDATION_LIMITS.monthlyPayment.max}`)
+  .refine(value => /^\d+(\.\d{1,2})?$/.test(value.toFixed(2)), 'Monthly payment can have at most 2 decimal places')
+  .optional();
+
+// Date validation (ISO date string in YYYY-MM-DD format)
+const dueDateSchema = z.string()
+  .transform((val) => {
+    // If it's an ISO datetime string, extract just the date part (YYYY-MM-DD)
+    if (val.includes('T')) {
+      return val.split('T')[0];
+    }
+    return val;
+  })
+  .refine(
+    (date) => /^\d{4}-\d{2}-\d{2}$/.test(date),
+    'Date must be in YYYY-MM-DD format'
+  )
+  .refine(
+    (date) => {
+      const parsed = Date.parse(date);
+      if (isNaN(parsed)) return false;
+      const [year, month, day] = date.split('-').map(Number);
+      const dateObj = new Date(year, month - 1, day);
+      return (
+        dateObj.getFullYear() === year &&
+        dateObj.getMonth() === month - 1 &&
+        dateObj.getDate() === day
+      );
+    },
+    'Date must be a valid calendar date'
+  )
+  .optional();
+
+// API request schemas
+export const liabilityCreateSchema = z.object({
+  name: liabilityNameSchema,
+  type: liabilityTypeSchema,
+  balance: balanceSchema,
+  interestRate: interestRateSchema,
+  monthlyPayment: monthlyPaymentSchema,
+  dueDate: dueDateSchema,
+  institution: z.string()
+    .max(VALIDATION_LIMITS.institution.max, `Institution name must be less than ${VALIDATION_LIMITS.institution.max} characters`)
+    .trim()
+    .optional()
+    .transform(e => e === '' ? undefined : e), // Convert empty string to undefined
+});
+
+export const liabilityUpdateSchema = z.object({
+  name: liabilityNameSchema.optional(),
+  type: liabilityTypeSchema.optional(),
+  balance: balanceSchema.optional(),
+  interestRate: interestRateSchema,
+  monthlyPayment: monthlyPaymentSchema,
+  dueDate: dueDateSchema,
+  institution: z.string()
+    .max(VALIDATION_LIMITS.institution.max, `Institution name must be less than ${VALIDATION_LIMITS.institution.max} characters`)
+    .trim()
+    .optional()
+    .transform(e => e === '' ? null : e), // Convert empty string to null for DB
+});
+
+// Helper to handle nullable numbers from database (transform null to undefined)
+const nullableNumberSchema = z.number()
+  .nullable()
+  .optional()
+  .transform(val => val === null ? undefined : val);
+
+// Helper to handle nullable strings from database (transform null to undefined)
+const nullableStringSchema = z.string()
+  .nullable()
+  .optional()
+  .transform(val => val === null ? undefined : val);
+
+// Helper to handle datetime strings from Supabase
+const datetimeSchema = z.string()
+  .refine(
+    (val) => {
+      if (val.includes('T') && val.includes('Z')) return true;
+      if (val.includes('T')) return true;
+      const parsed = Date.parse(val);
+      return !isNaN(parsed);
+    },
+    'Invalid datetime format'
+  );
+
+// API response schemas
+export const liabilityEntitySchema = z.object({
+  id: z.string().uuid('Invalid liability ID format'),
+  userId: z.string().min(1, 'User ID is required'),
+  name: liabilityNameSchema,
+  type: liabilityTypeSchema,
+  balance: balanceSchema,
+  interestRate: nullableNumberSchema,
+  monthlyPayment: nullableNumberSchema,
+  dueDate: z.string()
+    .transform((val) => {
+      if (val.includes('T')) {
+        return val.split('T')[0];
+      }
+      return val;
+    })
+    .refine(
+      (date) => /^\d{4}-\d{2}-\d{2}$/.test(date),
+      'Date must be in YYYY-MM-DD format'
+    )
+    .nullable()
+    .optional()
+    .transform(val => val === null ? undefined : val),
+  institution: nullableStringSchema,
+  createdAt: datetimeSchema,
+  updatedAt: datetimeSchema,
+});
+
+export const liabilityListSchema = z.array(liabilityEntitySchema);
+
+// Type exports for convenience
+export type LiabilityCreate = z.infer<typeof liabilityCreateSchema>;
+export type LiabilityUpdate = z.infer<typeof liabilityUpdateSchema>;
+export type LiabilityEntity = z.infer<typeof liabilityEntitySchema>;
+export type LiabilityError = {
+  error: string;
+  code: string;
+  details?: unknown;
+};
+
+// Error codes that can be returned by the liabilities API
+export const LIABILITY_ERROR_CODES = {
+  VALIDATION_ERROR: 'VALIDATION_ERROR',
+  NOT_FOUND: 'NOT_FOUND',
+  DUPLICATE_ENTRY: 'DUPLICATE_ENTRY',
+  PERMISSION_DENIED: 'PERMISSION_DENIED',
+  AUTH_EXPIRED: 'AUTH_EXPIRED',
+  UNKNOWN_ERROR: 'UNKNOWN_ERROR',
+} as const;
+
