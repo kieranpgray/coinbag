@@ -80,6 +80,57 @@ export function DashboardPage() {
   const isLoading = dashboardLoading || marketLoading;
   const hasError = dashboardError || marketError;
 
+  // Extract dataSources safely (hooks must be called unconditionally)
+  const dataSources = dashboardData?.dataSources ?? {
+    accountsCount: 0,
+    assetsCount: 0,
+    liabilitiesCount: 0,
+    subscriptionsCount: 0,
+    transactionsCount: 0,
+    incomeCount: 0,
+    holdingsCount: 0,
+  };
+
+  // Memoize expensive calculations to prevent unnecessary recalculations on re-renders
+  // These hooks must be called unconditionally before any early returns
+  const assets = dashboardData?.assets ?? [];
+  const liabilities = dashboardData?.liabilities ?? [];
+  
+  const assetBreakdown = useMemo(
+    () => calculateAssetBreakdown(assets),
+    [assets]
+  );
+  
+  const liabilityBreakdown = useMemo(
+    () => calculateLiabilityBreakdown(liabilities),
+    [liabilities]
+  );
+  
+  const totalAssets = useMemo(
+    () => assets.reduce((sum, asset) => sum + asset.value, 0),
+    [assets]
+  );
+  
+  const totalLiabilities = useMemo(
+    () => liabilities.reduce((sum, liability) => sum + liability.balance, 0),
+    [liabilities]
+  );
+
+  // Memoize empty state flags to prevent recalculation
+  const hasAssets = useMemo(() => dataSources.assetsCount > 0, [dataSources.assetsCount]);
+  const hasLiabilities = useMemo(() => dataSources.liabilitiesCount > 0, [dataSources.liabilitiesCount]);
+  const hasHoldings = useMemo(() => dataSources.holdingsCount > 0, [dataSources.holdingsCount]);
+  
+  // Check for cash: either accounts OR cash assets
+  const hasCashAssets = useMemo(
+    () => assets.some(a => a.type === 'Cash'),
+    [assets]
+  );
+  const hasAccounts = useMemo(() => dataSources.accountsCount > 0, [dataSources.accountsCount]);
+  const hasCash = useMemo(() => hasAccounts || hasCashAssets, [hasAccounts, hasCashAssets]);
+  const hasSubscriptions = useMemo(() => dataSources.subscriptionsCount > 0, [dataSources.subscriptionsCount]);
+  const hasIncome = useMemo(() => dataSources.incomeCount > 0, [dataSources.incomeCount]);
+
   const handleRetry = () => {
     if (dashboardError) refetchDashboard();
     if (marketError) refetchMarket();
@@ -142,7 +193,6 @@ export function DashboardPage() {
   // State A: ALL meaningful data sources are zero → show dashboard-level empty state only
   // State B: ANY source exists → render full grid with tiles
   // State C: all core sources exist OR setupProgress=100% → same as B, but all core tiles populated
-  const { dataSources } = dashboardData;
   const hasAnyDataSource = 
     dataSources.accountsCount > 0 ||
     dataSources.assetsCount > 0 ||
@@ -201,42 +251,6 @@ export function DashboardPage() {
       </div>
     );
   }
-
-  // Memoize expensive calculations to prevent unnecessary recalculations on re-renders
-  const assetBreakdown = useMemo(
-    () => calculateAssetBreakdown(dashboardData.assets),
-    [dashboardData.assets]
-  );
-  
-  const liabilityBreakdown = useMemo(
-    () => calculateLiabilityBreakdown(dashboardData.liabilities),
-    [dashboardData.liabilities]
-  );
-  
-  const totalAssets = useMemo(
-    () => dashboardData.assets.reduce((sum, asset) => sum + asset.value, 0),
-    [dashboardData.assets]
-  );
-  
-  const totalLiabilities = useMemo(
-    () => dashboardData.liabilities.reduce((sum, liability) => sum + liability.balance, 0),
-    [dashboardData.liabilities]
-  );
-
-  // Memoize empty state flags to prevent recalculation
-  const hasAssets = useMemo(() => dataSources.assetsCount > 0, [dataSources.assetsCount]);
-  const hasLiabilities = useMemo(() => dataSources.liabilitiesCount > 0, [dataSources.liabilitiesCount]);
-  const hasHoldings = useMemo(() => dataSources.holdingsCount > 0, [dataSources.holdingsCount]);
-  
-  // Check for cash: either accounts OR cash assets
-  const hasCashAssets = useMemo(
-    () => dashboardData.assets.some(a => a.type === 'Cash'),
-    [dashboardData.assets]
-  );
-  const hasAccounts = useMemo(() => dataSources.accountsCount > 0, [dataSources.accountsCount]);
-  const hasCash = useMemo(() => hasAccounts || hasCashAssets, [hasAccounts, hasCashAssets]);
-  const hasSubscriptions = useMemo(() => dataSources.subscriptionsCount > 0, [dataSources.subscriptionsCount]);
-  const hasIncome = useMemo(() => dataSources.incomeCount > 0, [dataSources.incomeCount]);
 
   return (
     <div className="space-y-6">
