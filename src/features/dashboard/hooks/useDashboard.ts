@@ -53,8 +53,8 @@ export function useDashboard() {
           {
             assetsCount: data.assets?.length || 0,
             liabilitiesCount: data.liabilities?.length || 0,
-            accountsCount: data.accounts?.length || 0,
-            subscriptionsCount: data.subscriptions?.length || 0,
+            accountsCount: 'accounts' in data && Array.isArray(data.accounts) ? data.accounts.length : 0,
+            subscriptionsCount: 'subscriptions' in data && Array.isArray(data.subscriptions) ? data.subscriptions.length : 0,
           },
           correlationId || undefined
         );

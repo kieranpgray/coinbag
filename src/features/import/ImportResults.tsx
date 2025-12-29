@@ -1,7 +1,6 @@
 import { CheckCircle2, XCircle, AlertTriangle, Download } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import type { ImportResult } from './types';
 import * as XLSX from 'xlsx';
 

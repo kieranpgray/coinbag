@@ -260,6 +260,8 @@ export interface DashboardData {
   adjustedNetWorth: number;
   assets: Asset[];
   liabilities: Liability[];
+  accounts: Account[];
+  subscriptions: Subscription[];
   expenseBreakdown: ExpenseBreakdown[];
   incomeBreakdown: IncomeBreakdown[];
   setupProgress: number;

@@ -39,20 +39,26 @@ const amountSchema = z.number()
 const nextPaymentDateSchema = z.string()
   .transform((val) => {
     // If it's an ISO datetime string, extract just the date part (YYYY-MM-DD)
-    if (val.includes('T')) {
+    if (typeof val === 'string' && val.includes('T')) {
       return val.split('T')[0];
     }
     return val;
   })
   .refine(
-    (date) => /^\d{4}-\d{2}-\d{2}$/.test(date),
+    (date): date is string => typeof date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(date),
     'Date must be in YYYY-MM-DD format'
   )
   .refine(
     (date) => {
+      if (typeof date !== 'string') return false;
       const parsed = Date.parse(date);
       if (isNaN(parsed)) return false;
-      const [year, month, day] = date.split('-').map(Number);
+      const parts = date.split('-');
+      if (parts.length !== 3) return false;
+      const year = Number(parts[0]);
+      const month = Number(parts[1]);
+      const day = Number(parts[2]);
+      if (!year || !month || !day) return false;
       const dateObj = new Date(year, month - 1, day);
       return (
         dateObj.getFullYear() === year &&
@@ -116,17 +122,23 @@ export const incomeEntitySchema = z.object({
   source: incomeSourceSchema,
   amount: amountSchema,
   frequency: incomeFrequencySchema,
-  nextPaymentDate: z.string()
-    .transform((val) => {
-      if (val.includes('T')) {
-        return val.split('T')[0];
+  nextPaymentDate: z.preprocess(
+    (val) => {
+      if (val === undefined || val === null) {
+        return new Date().toISOString().split('T')[0];
       }
-      return val;
-    })
-    .refine(
-      (date) => /^\d{4}-\d{2}-\d{2}$/.test(date),
-      'Date must be in YYYY-MM-DD format'
-    ),
+      const str = String(val);
+      if (str.includes('T')) {
+        return str.split('T')[0];
+      }
+      return str;
+    },
+    z.string()
+      .refine(
+        (date) => /^\d{4}-\d{2}-\d{2}$/.test(date),
+        'Date must be in YYYY-MM-DD format'
+      )
+  ),
   notes: nullableStringSchema,
   createdAt: datetimeSchema,
   updatedAt: datetimeSchema,

@@ -4,21 +4,21 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PrivacyWrapper } from '@/components/shared/PrivacyWrapper';
 import { Link } from 'react-router-dom';
-import type { IncomeBreakdown } from '@/types/domain';
+import type { IncomeBreakdown as IncomeBreakdownType } from '@/types/domain';
 
-interface IncomeBreakdownProps {
-  breakdown: IncomeBreakdown[];
+interface IncomeBreakdownComponentProps {
+  breakdown: IncomeBreakdownType[];
   totalAmount: number;
   isLoading?: boolean;
   isEmpty?: boolean;
 }
 
-export const IncomeBreakdown = memo(function IncomeBreakdown({
+export const IncomeBreakdown = memo(function IncomeBreakdownComponent({
   breakdown,
   totalAmount,
   isLoading,
   isEmpty,
-}: IncomeBreakdownProps) {
+}: IncomeBreakdownComponentProps) {
   if (isLoading) {
     return (
       <Card>
@@ -63,7 +63,7 @@ export const IncomeBreakdown = memo(function IncomeBreakdown({
           <p className="text-sm text-muted-foreground">Monthly recurring income</p>
         </div>
         <div className="space-y-3">
-          {breakdown.map((item) => (
+          {breakdown.map((item: IncomeBreakdownType) => (
             <div key={item.category}>
               <div className="flex justify-between mb-1">
                 <span className="text-sm font-medium">{item.category}</span>

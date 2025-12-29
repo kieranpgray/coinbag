@@ -6,6 +6,7 @@ import type {
   ImportProgress,
   BatchResult,
   RowError,
+  EntityType,
 } from './types';
 import { ImportValidation } from './ImportValidation';
 import { parseExcelFile, validateExcelFile } from '@/lib/excel/excelParser';
@@ -21,7 +22,7 @@ import { assetCreateSchema } from '@/contracts/assets';
 import { liabilityCreateSchema } from '@/contracts/liabilities';
 import { subscriptionCreateSchema } from '@/contracts/subscriptionsOrExpenses';
 import { incomeCreateSchema } from '@/contracts/income';
-import type { Category } from '@/types/domain';
+import type { Asset, Income } from '@/types/domain';
 
 const BATCH_SIZE = 10;
 
@@ -233,8 +234,8 @@ export class ImportService {
 
       // Helper to create progress callback with overall tracking
       const createProgressCallback = (
-        entityType: string,
-        entityTotal: number,
+        _entityType: string,
+        _entityTotal: number,
         entityOffset: number
       ) => {
         return (progress: ImportProgress) => {
@@ -259,7 +260,6 @@ export class ImportService {
 
       let categoryMap = new Map<string, string>();
       if (categoryNames.length > 0) {
-        const uniqueCategoryCount = new Set(categoryNames.map((n) => n.trim())).size;
         categoryMap = await this.resolveCategories(
           categoryNames,
           (current, total) => {
@@ -491,7 +491,15 @@ export class ImportService {
 
     return this.importBatch(
       validData,
-      (item) => assetsRepo.create(item.data, this.getToken),
+      (item) => {
+        // Ensure dateAdded is present (schema validation guarantees it)
+        const dateAddedValue = item.data.dateAdded;
+        const assetData = {
+          ...item.data,
+          dateAdded: (typeof dateAddedValue === 'string' && dateAddedValue ? dateAddedValue : new Date().toISOString().split('T')[0]),
+        } as Omit<Asset, 'id'>;
+        return assetsRepo.create(assetData, this.getToken);
+      },
       'importing-assets',
       'assets',
       options
@@ -576,7 +584,7 @@ export class ImportService {
             fields: validation.error.errors.map((err) => ({
               field: err.path.join('.'),
               message: err.message,
-              value: err.input,
+              value: String(err.path?.[0] || 'unknown'),
             })),
             rawData: row.data,
           });
@@ -628,7 +636,15 @@ export class ImportService {
 
     return this.importBatch(
       validData,
-      (item) => incomeRepo.create(item.data, this.getToken),
+      (item) => {
+        // Ensure nextPaymentDate is present (schema validation guarantees it)
+        const nextPaymentDateValue = item.data.nextPaymentDate;
+        const incomeData = {
+          ...item.data,
+          nextPaymentDate: (typeof nextPaymentDateValue === 'string' && nextPaymentDateValue ? nextPaymentDateValue : new Date().toISOString().split('T')[0]),
+        } as Omit<Income, 'id'>;
+        return incomeRepo.create(incomeData, this.getToken);
+      },
       'importing-income',
       'income',
       options
@@ -660,34 +676,37 @@ export class ImportService {
       // Process results
       batchResults.forEach((result, index) => {
         const item = batch[index];
+        if (!item) return;
         if (result.status === 'fulfilled') {
           if (result.value.data) {
             results.successes.push({
-              item,
+              item: item as T,
               data: result.value.data,
             });
           } else if (result.value.error) {
             // Enhance error with row number if available
+            const rowNumber = 'rowNumber' in item ? item.rowNumber : undefined;
             const enhancedError = {
               ...result.value.error,
-              error: item.rowNumber
-                ? `Row ${item.rowNumber}: ${result.value.error.error}`
+              error: rowNumber
+                ? `Row ${rowNumber}: ${result.value.error.error}`
                 : result.value.error.error,
             };
             results.errors.push({
-              item,
+              item: item as T,
               error: enhancedError,
             });
           }
         } else {
+          const rowNumber = 'rowNumber' in item ? item.rowNumber : undefined;
           const enhancedError = {
-            error: item.rowNumber
-              ? `Row ${item.rowNumber}: ${result.reason?.message || 'Unknown error'}`
+            error: rowNumber
+              ? `Row ${rowNumber}: ${result.reason?.message || 'Unknown error'}`
               : result.reason?.message || 'Unknown error',
             code: 'UNKNOWN_ERROR' as const,
           };
           results.errors.push({
-            item,
+            item: item as T,
             error: enhancedError,
           });
         }

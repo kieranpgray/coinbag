@@ -7,7 +7,12 @@
  * 3. Environment variable allowlist (VITE_ADMIN_USER_IDS)
  */
 
-import type { User } from '@clerk/clerk-react';
+// User type from Clerk - using the user object from useUser hook
+type User = {
+  id: string;
+  publicMetadata?: Record<string, unknown>;
+  organizationMemberships?: Array<{ role: string }>;
+} | null | undefined;
 
 /**
  * Check if a user is an admin
@@ -27,7 +32,7 @@ export function isAdmin(user: User | null | undefined): boolean {
   // Method 2: Check organization memberships for admin role
   if (user.organizationMemberships) {
     const hasAdminRole = user.organizationMemberships.some(
-      (membership) => membership.role === 'org:admin' || membership.role === 'admin'
+      (membership: { role: string }) => membership.role === 'org:admin' || membership.role === 'admin'
     );
     if (hasAdminRole) {
       return true;
@@ -37,7 +42,7 @@ export function isAdmin(user: User | null | undefined): boolean {
   // Method 3: Check environment variable allowlist
   const adminUserIds = import.meta.env.VITE_ADMIN_USER_IDS;
   if (adminUserIds && user.id) {
-    const allowedIds = adminUserIds.split(',').map((id) => id.trim());
+    const allowedIds = String(adminUserIds).split(',').map((id: string) => id.trim());
     if (allowedIds.includes(user.id)) {
       return true;
     }

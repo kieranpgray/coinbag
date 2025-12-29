@@ -29,10 +29,20 @@ export class SupabaseAssetsRepository implements AssetsRepository {
     // Convert dateAdded to YYYY-MM-DD format if it's in ISO format
     // Supabase may return dates as ISO strings (e.g., "2024-01-01T00:00:00.000Z")
     // but the contract expects YYYY-MM-DD format
-    let dateAdded = entity.dateAdded;
-    if (dateAdded.includes('T')) {
-      // ISO format detected, extract YYYY-MM-DD part
-      dateAdded = dateAdded.split('T')[0];
+    const entityDateAdded = entity.dateAdded;
+    const defaultDate = new Date().toISOString().split('T')[0] || '2000-01-01';
+    let dateAdded: string = defaultDate;
+    if (entityDateAdded !== undefined && entityDateAdded !== null && typeof entityDateAdded === 'string') {
+      if (entityDateAdded.includes('T')) {
+        // ISO format detected, extract YYYY-MM-DD part
+        const parts = entityDateAdded.split('T');
+        const extracted = parts[0];
+        if (extracted && extracted.length > 0) {
+          dateAdded = extracted;
+        }
+      } else {
+        dateAdded = entityDateAdded;
+      }
     }
     
     return {

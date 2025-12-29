@@ -92,8 +92,9 @@ export function FileUpload({
       }
 
       const files = Array.from(e.dataTransfer.files);
-      if (files.length > 0) {
-        handleFile(files[0]);
+      const file = files[0];
+      if (file) {
+        handleFile(file as File);
       }
     },
     [disabled, handleFile]
@@ -103,7 +104,10 @@ export function FileUpload({
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const files = e.target.files;
       if (files && files.length > 0) {
-        handleFile(files[0]);
+        const file = files[0];
+        if (file) {
+          handleFile(file as File);
+        }
       }
     },
     [handleFile]

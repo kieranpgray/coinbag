@@ -12,11 +12,19 @@ const liabilitySchema = z.object({
   type: z.enum(['Loans', 'Credit Cards', 'Other']),
   balance: z.number().min(0, 'Balance must be positive'),
   interestRate: z.preprocess(
-    (val) => (val === '' || Number.isNaN(val) ? undefined : val),
+    (val) => {
+      if (val === '' || val === null || val === undefined) return undefined;
+      const num = typeof val === 'number' ? val : Number(val);
+      return Number.isNaN(num) ? undefined : num;
+    },
     z.number().min(0).max(100).optional()
   ),
   monthlyPayment: z.preprocess(
-    (val) => (val === '' || Number.isNaN(val) ? undefined : val),
+    (val) => {
+      if (val === '' || val === null || val === undefined) return undefined;
+      const num = typeof val === 'number' ? val : Number(val);
+      return Number.isNaN(num) ? undefined : num;
+    },
     z.number().min(0).optional()
   ),
   dueDate: z.string().min(1, 'Due date is required'),
@@ -45,7 +53,7 @@ export function LiabilityForm({
     watch,
     formState: { errors },
   } = useForm<LiabilityFormData>({
-    resolver: zodResolver(liabilitySchema),
+    resolver: zodResolver(liabilitySchema) as any,
     defaultValues: liability
       ? {
           name: liability.name,
@@ -65,20 +73,20 @@ export function LiabilityForm({
   const selectedType = watch('type') || 'Loans'; // Ensure always defined for controlled Select
   const isLoan = selectedType === 'Loans';
 
-  const onSubmitForm = (data: LiabilityFormData) => {
+  const onSubmitForm = (formData: LiabilityFormData) => {
     onSubmit({
-      name: data.name,
-      type: data.type,
-      balance: data.balance,
-      interestRate: data.interestRate,
-      monthlyPayment: isLoan ? data.monthlyPayment : undefined,
-      dueDate: new Date(data.dueDate).toISOString(),
-      institution: data.institution,
+      name: formData.name,
+      type: formData.type,
+      balance: formData.balance,
+      interestRate: formData.interestRate,
+      monthlyPayment: isLoan ? formData.monthlyPayment : undefined,
+      dueDate: new Date(formData.dueDate).toISOString(),
+      institution: formData.institution,
     });
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmitForm)} className="space-y-4">
+    <form onSubmit={handleSubmit(onSubmitForm as any)} className="space-y-4">
       <div className="space-y-2">
         <Label htmlFor="name">
           Name <span className="text-destructive">*</span>

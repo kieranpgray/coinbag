@@ -28,9 +28,19 @@ export class SupabaseIncomeRepository implements IncomeRepository {
    */
   private mapEntityToIncome(entity: z.infer<typeof incomeEntitySchema>): Income {
     // Convert nextPaymentDate to YYYY-MM-DD format if it's in ISO format
-    let nextPaymentDate = entity.nextPaymentDate;
-    if (nextPaymentDate.includes('T')) {
-      nextPaymentDate = nextPaymentDate.split('T')[0];
+    const entityNextPaymentDate = entity.nextPaymentDate;
+    const defaultDate = new Date().toISOString().split('T')[0] || '2000-01-01';
+    let nextPaymentDate: string = defaultDate;
+    if (entityNextPaymentDate !== undefined && entityNextPaymentDate !== null && typeof entityNextPaymentDate === 'string') {
+      if (entityNextPaymentDate.includes('T')) {
+        const parts = entityNextPaymentDate.split('T');
+        const extracted = parts[0];
+        if (extracted && extracted.length > 0) {
+          nextPaymentDate = extracted;
+        }
+      } else {
+        nextPaymentDate = entityNextPaymentDate;
+      }
     }
     
     return {

@@ -82,9 +82,10 @@ export function useKonamiCode(): boolean {
     if (isActivated) {
       const timer = setTimeout(() => {
         setIsActivated(false);
-      }, 100);
+      }, 1000);
       return () => clearTimeout(timer);
     }
+    return undefined;
   }, [isActivated]);
 
   return isActivated;

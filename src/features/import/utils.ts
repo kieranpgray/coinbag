@@ -36,9 +36,11 @@ export function parseDate(dateStr: string | number | Date): string | null {
 
   // Try MM/DD/YYYY
   const mmddyyyy = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(str);
-  if (mmddyyyy) {
-    const [, month, day, year] = mmddyyyy;
-    const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+  if (mmddyyyy && mmddyyyy[1] && mmddyyyy[2] && mmddyyyy[3]) {
+    const month = String(mmddyyyy[1]);
+    const day = String(mmddyyyy[2]);
+    const year = String(mmddyyyy[3]);
+    const date = new Date(parseInt(year, 10), parseInt(month, 10) - 1, parseInt(day, 10));
     if (!isNaN(date.getTime())) {
       return formatDate(date);
     }
@@ -46,9 +48,11 @@ export function parseDate(dateStr: string | number | Date): string | null {
 
   // Try DD/MM/YYYY
   const ddmmyyyy = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(str);
-  if (ddmmyyyy) {
-    const [, day, month, year] = ddmmyyyy;
-    const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+  if (ddmmyyyy && ddmmyyyy[1] && ddmmyyyy[2] && ddmmyyyy[3]) {
+    const day = String(ddmmyyyy[1]);
+    const month = String(ddmmyyyy[2]);
+    const year = String(ddmmyyyy[3]);
+    const date = new Date(parseInt(year, 10), parseInt(month, 10) - 1, parseInt(day, 10));
     if (!isNaN(date.getTime())) {
       return formatDate(date);
     }

@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { useAuth } from '@clerk/clerk-react';
 import { useQueryClient } from '@tanstack/react-query';
-import { Download, Upload, Loader2 } from 'lucide-react';
+import { Download, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -10,7 +10,6 @@ import { ImportPreview } from './ImportPreview';
 import { ImportResults, generateErrorReport } from './ImportResults';
 import { ImportService } from './ImportService';
 import { generateImportTemplate } from '@/lib/excel/templateGenerator';
-import { useImportPreview } from './hooks/useImportPreview';
 import { useImportProgress } from './hooks/useImportProgress';
 import type { ParsedImportData, ValidationResult, ImportResult } from './types';
 import { useAccounts } from '@/features/accounts/hooks';
@@ -25,15 +24,14 @@ export function ImportPage() {
   const { getToken } = useAuth();
   const queryClient = useQueryClient();
   const [step, setStep] = useState<ImportStep>('upload');
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [parsedData, setParsedData] = useState<ParsedImportData | null>(null);
   const [validation, setValidation] = useState<ValidationResult | null>(null);
   const [importResult, setImportResult] = useState<ImportResult | null>(null);
   const [skipDuplicates, setSkipDuplicates] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
 
-  const { progress, isImporting, startImport, updateProgress, finishImport, reset: resetProgress } = useImportProgress();
+  const { progress, startImport, updateProgress, finishImport, reset: resetProgress } = useImportProgress();
+  const [isParsing, setIsParsing] = useState(false);
 
   // Fetch existing data for duplicate detection
   const { data: existingAccounts = [] } = useAccounts();
@@ -62,9 +60,8 @@ export function ImportPage() {
 
   const handleFileSelect = useCallback(
     async (file: File) => {
-      setSelectedFile(file);
       setError(null);
-      setIsLoading(true);
+      setIsParsing(true);
 
       try {
         // Parse file
@@ -86,7 +83,7 @@ export function ImportPage() {
         setError(err instanceof Error ? err.message : 'Failed to parse file');
         setStep('upload');
       } finally {
-        setIsLoading(false);
+        setIsParsing(false);
       }
     },
     [importService, existingAccounts, existingAssets, existingLiabilities, existingSubscriptions, existingIncome]
@@ -127,13 +124,12 @@ export function ImportPage() {
       setStep('preview');
     } finally {
       finishImport();
-      setIsLoading(false);
+      setIsParsing(false);
     }
   }, [parsedData, validation, skipDuplicates, importService, startImport, updateProgress, finishImport, queryClient]);
 
   const handleCancel = useCallback(() => {
     setStep('upload');
-    setSelectedFile(null);
     setParsedData(null);
     setValidation(null);
     setError(null);
@@ -142,7 +138,6 @@ export function ImportPage() {
 
   const handleImportMore = useCallback(() => {
     setStep('upload');
-    setSelectedFile(null);
     setParsedData(null);
     setValidation(null);
     setImportResult(null);
@@ -207,9 +202,9 @@ export function ImportPage() {
               maxSize={10 * 1024 * 1024}
               onFileSelect={handleFileSelect}
               onError={setError}
-              disabled={isLoading}
+              disabled={isParsing}
             />
-            {isLoading && (
+            {isParsing && (
               <div className="mt-4 flex items-center gap-2">
                 <Loader2 className="h-4 w-4 animate-spin" />
                 <span className="text-sm text-muted-foreground">Parsing file...</span>

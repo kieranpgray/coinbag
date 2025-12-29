@@ -243,7 +243,7 @@ export const DashboardCalculations = {
     },
     // Complex cache key for all parameters
     (assets, liabilities, accounts, subscriptions, incomes) =>
-      `${assets.map(a => `${a.id}-${a.value}`).sort().join('|')}|${liabilities.map(l => `${l.id}-${l.balance}`).sort().join('|')}|${accounts.map(a => `${a.id}-${a.balance}`).sort().join('|')}|${subscriptions.map(s => `${s.id}-${s.amount}`).sort().join('|')}|${incomes.map(i => `${i.id}-${i.amount}`).sort().join('|')}`
+      `${assets.map(a => `${a.id}-${a.value}`).sort().join('|')}|${liabilities.map(l => `${l.id}-${l.balance}`).sort().join('|')}|${accounts.map(a => `${a.id}-${a.balance}`).sort().join('|')}|${subscriptions.map(s => `${s.id}-${s.amount}`).sort().join('|')}|${(incomes || []).map(i => `${i.id}-${i.amount}`).sort().join('|')}`
   ),
 
   /**

@@ -274,7 +274,7 @@ function normalizeRowData(
         break;
       case 'date':
         {
-          const parsed = parseDate(value);
+          const parsed = parseDate(value as string | number | Date);
           normalized[normalizedKey] = parsed || undefined;
         }
         break;

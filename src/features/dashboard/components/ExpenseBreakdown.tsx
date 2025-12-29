@@ -5,26 +5,26 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { PrivacyWrapper } from '@/components/shared/PrivacyWrapper';
 import { Link } from 'react-router-dom';
 import { useCategories } from '@/features/categories/hooks';
-import type { ExpenseBreakdown } from '@/types/domain';
+import type { ExpenseBreakdown as ExpenseBreakdownType } from '@/types/domain';
 
-interface ExpenseBreakdownProps {
-  breakdown: ExpenseBreakdown[];
+interface ExpenseBreakdownComponentProps {
+  breakdown: ExpenseBreakdownType[];
   totalAmount: number;
   isLoading?: boolean;
   isEmpty?: boolean;
 }
 
-export const ExpenseBreakdown = memo(function ExpenseBreakdown({
+export const ExpenseBreakdown = memo(function ExpenseBreakdownComponent({
   breakdown,
   totalAmount,
   isLoading,
   isEmpty,
-}: ExpenseBreakdownProps) {
+}: ExpenseBreakdownComponentProps) {
   const { data: categories = [] } = useCategories();
   const categoryNameById = new Map(categories.map((c) => [c.id, c.name]));
 
   // Resolve category IDs to names
-  const breakdownWithNames = breakdown.map((item) => ({
+  const breakdownWithNames = breakdown.map((item: ExpenseBreakdownType) => ({
     ...item,
     categoryId: item.category, // Preserve original ID for key
     categoryName: categoryNameById.get(item.category) || 'Uncategorized',
@@ -79,7 +79,7 @@ export const ExpenseBreakdown = memo(function ExpenseBreakdown({
           <p className="text-sm text-muted-foreground">Monthly recurring expenses</p>
         </div>
         <div className="space-y-3">
-          {breakdownWithNames.map((item) => (
+          {breakdownWithNames.map((item: typeof breakdownWithNames[0]) => (
             <div key={item.categoryId}>
               <div className="flex justify-between mb-1">
                 <span className="text-sm font-medium">{item.categoryName}</span>

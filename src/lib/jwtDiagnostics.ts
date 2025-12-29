@@ -17,8 +17,19 @@ export function decodeJwtPayload(token: string): { sub?: string; exp?: number; i
       return null;
     }
     const payload = parts[1];
-    const decoded = JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/')));
-    return decoded;
+    if (!payload) {
+      return null;
+    }
+    try {
+      const decodedPayload = JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/')));
+      if (!decodedPayload || typeof decodedPayload !== 'object') {
+        return null;
+      }
+      const decoded = decodedPayload as Record<string, unknown>;
+      return decoded as { sub?: string; exp?: number; iat?: number; [key: string]: unknown };
+    } catch {
+      return null;
+    }
   } catch (error) {
     logger.warn('JWT:DIAGNOSTICS', 'Failed to decode JWT payload', { error: error instanceof Error ? error.message : String(error) }, getCorrelationId() || undefined);
     return null;

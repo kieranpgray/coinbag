@@ -7,12 +7,15 @@
     "dev": "vite",
     "dev:https": "vite --https",
     "setup:https": "./scripts/generate-ssl-certs.sh",
-    "build": "node scripts/validate-build-env.js && tsc && vite build",
+    "build": "node scripts/validate-build-env.js && tsc --noEmit && vite build",
     "build:prod": "VITE_DATA_SOURCE=supabase vite build --mode production",
+    "type-check": "tsc --noEmit",
+    "build:check": "pnpm type-check && pnpm build",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
     "test": "vitest --run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "prepare": "husky"
   },
   "dependencies": {
     "@clerk/clerk-react": "^5.59.2",
@@ -55,6 +58,7 @@
     "eslint": "^8.57.0",
     "eslint-plugin-react-hooks": "^4.6.2",
     "eslint-plugin-react-refresh": "^0.4.11",
+    "husky": "^9.1.7",
     "jsdom": "^27.1.0",
     "pg": "^8.16.3",
     "postcss": "^8.4.47",

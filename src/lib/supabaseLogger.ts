@@ -11,9 +11,8 @@ import { logger, getCorrelationId } from './logger';
 /**
  * Wrap Supabase table operations to add logging
  */
-export function wrapSupabaseTableForLogging<T>(
-  supabase: SupabaseClient,
-  tableName: string
+export function wrapSupabaseTableForLogging(
+  supabase: SupabaseClient
 ): SupabaseClient['from'] {
   if (import.meta.env.VITE_DEBUG_LOGGING !== 'true') {
     return supabase.from.bind(supabase);

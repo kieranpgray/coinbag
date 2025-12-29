@@ -1,9 +1,11 @@
 #!/usr/bin/env node
 /**
- * Build-time environment variable validation
+ * Build-time validation
  * 
- * Fails the build if VITE_DATA_SOURCE is not set to 'supabase' in production mode.
- * This prevents accidentally building with mock repository, which would cause data loss.
+ * 1. Validates environment variables (VITE_DATA_SOURCE must be 'supabase' in production)
+ * 2. Validates TypeScript compilation (no type errors allowed)
+ * 
+ * This prevents accidentally building with mock repository or broken TypeScript code.
  */
 
 // Detect production mode
@@ -52,4 +54,8 @@ if (isProduction && dataSource === 'supabase') {
     console.warn('⚠️  WARNING: VITE_SUPABASE_ANON_KEY is not set');
   }
 }
+
+// Note: TypeScript validation is handled by the build script itself
+// (via `tsc --noEmit` in package.json), so we don't duplicate it here.
+// This script focuses on environment variable validation.
 

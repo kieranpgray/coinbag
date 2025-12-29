@@ -38,7 +38,8 @@ export function getLatestMigrationVersion(): string {
 
     // Sort and get latest
     const sorted = migrations.sort((a, b) => b.localeCompare(a));
-    return sorted[0];
+    const latest = sorted[0];
+    return latest || 'unknown';
   } catch (error) {
     console.warn('Failed to determine migration version:', error);
     return 'unknown';

@@ -37,33 +37,44 @@ const amountSchema = z.number()
   .refine(value => /^\d+(\.\d{1,2})?$/.test(value.toFixed(2)), 'Amount can have at most 2 decimal places');
 
 // Date validation (ISO date string in YYYY-MM-DD format)
-const deadlineSchema = z.string()
-  .transform((val) => {
-    // If it's an ISO datetime string, extract just the date part (YYYY-MM-DD)
-    if (val.includes('T')) {
-      return val.split('T')[0];
+const deadlineSchema = z.preprocess(
+  (val) => {
+    if (val === undefined || val === null || val === '') {
+      return undefined;
     }
-    return val;
-  })
-  .refine(
-    (date) => /^\d{4}-\d{2}-\d{2}$/.test(date),
-    'Date must be in YYYY-MM-DD format'
-  )
-  .refine(
-    (date) => {
-      const parsed = Date.parse(date);
-      if (isNaN(parsed)) return false;
-      const [year, month, day] = date.split('-').map(Number);
-      const dateObj = new Date(year, month - 1, day);
-      return (
-        dateObj.getFullYear() === year &&
-        dateObj.getMonth() === month - 1 &&
-        dateObj.getDate() === day
-      );
-    },
-    'Date must be a valid calendar date'
-  )
-  .optional();
+    const str = String(val);
+    // If it's an ISO datetime string, extract just the date part (YYYY-MM-DD)
+    if (str.includes('T')) {
+      return str.split('T')[0];
+    }
+    return str;
+  },
+  z.string()
+    .refine(
+      (date) => /^\d{4}-\d{2}-\d{2}$/.test(date),
+      'Date must be in YYYY-MM-DD format'
+    )
+    .refine(
+      (date) => {
+        const parsed = Date.parse(date);
+        if (isNaN(parsed)) return false;
+        const parts = date.split('-');
+        if (parts.length !== 3) return false;
+        const year = Number(parts[0]);
+        const month = Number(parts[1]);
+        const day = Number(parts[2]);
+        if (!year || !month || !day) return false;
+        const dateObj = new Date(year, month - 1, day);
+        return (
+          dateObj.getFullYear() === year &&
+          dateObj.getMonth() === month - 1 &&
+          dateObj.getDate() === day
+        );
+      },
+      'Date must be a valid calendar date'
+    )
+    .optional()
+);
 
 // API request schemas
 export const goalCreateSchema = z.object({
@@ -111,13 +122,27 @@ const nullableStringSchema = z.string()
   .transform(val => val === null ? undefined : val);
 
 // Helper to handle nullable dates from database (transform null to undefined)
-const nullableDateSchema = z.string()
-  .nullable()
-  .optional()
-  .transform((val) => {
-    if (val === null) return undefined;
+const nullableDateSchema = z.preprocess(
+  (val) => {
+    if (val === null || val === undefined || val === '') {
+      return undefined;
+    }
+    const str = String(val);
+    if (str.includes('T')) {
+      return str.split('T')[0];
+    }
+    return str;
+  },
+  z.string()
+    .refine(
+      (date) => /^\d{4}-\d{2}-\d{2}$/.test(date),
+      'Date must be in YYYY-MM-DD format'
+    )
+    .optional()
+).transform((val) => {
+    if (val === null || val === undefined) return undefined;
     // If it's an ISO datetime string, extract just the date part (YYYY-MM-DD)
-    if (val.includes('T')) {
+    if (typeof val === 'string' && val.includes('T')) {
       return val.split('T')[0];
     }
     return val;
@@ -138,7 +163,7 @@ export const goalEntitySchema = z.object({
   source: nullableStringSchema,
   targetAmount: amountSchema,
   currentAmount: amountSchema,
-  deadline: nullableDateSchema,
+  deadline: nullableDateSchema.optional(),
   status: goalStatusSchema,
   createdAt: datetimeSchema,
   updatedAt: datetimeSchema,

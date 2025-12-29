@@ -7,25 +7,21 @@ import type {
   ValidationSummary,
   EntityType,
 } from './types';
+import type { FieldError } from './types';
 import {
   accountCreateSchema,
-  accountEntitySchema,
 } from '@/contracts/accounts';
 import {
   assetCreateSchema,
-  assetEntitySchema,
 } from '@/contracts/assets';
 import {
   liabilityCreateSchema,
-  liabilityEntitySchema,
 } from '@/contracts/liabilities';
 import {
   subscriptionCreateSchema,
-  subscriptionEntitySchema,
 } from '@/contracts/subscriptionsOrExpenses';
 import {
   incomeCreateSchema,
-  incomeEntitySchema,
 } from '@/contracts/income';
 import type { Account, Asset, Liability, Subscription, Income } from '@/types/domain';
 
@@ -45,7 +41,7 @@ function isExcelError(value: unknown): boolean {
  */
 function checkExcelErrors(
   row: ParsedImportData['accounts'][0] | ParsedImportData['assets'][0] | ParsedImportData['liabilities'][0] | ParsedImportData['subscriptions'][0] | ParsedImportData['income'][0],
-  entityType: EntityType
+  _entityType: EntityType
 ): FieldError[] {
   const errors: FieldError[] = [];
   
@@ -192,7 +188,7 @@ export class ImportValidation {
           fields: validation.error.errors.map((err) => ({
             field: err.path.join('.'),
             message: err.message,
-            value: err.input,
+            value: String(err.path?.[0] || 'unknown'),
           })),
           rawData: row.data,
         });
@@ -251,7 +247,7 @@ export class ImportValidation {
           fields: validation.error.errors.map((err) => ({
             field: err.path.join('.'),
             message: err.message,
-            value: err.input,
+            value: String(err.path?.[0] || 'unknown'),
           })),
           rawData: row.data,
         });
@@ -310,7 +306,7 @@ export class ImportValidation {
           fields: validation.error.errors.map((err) => ({
             field: err.path.join('.'),
             message: err.message,
-            value: err.input,
+            value: String(err.path?.[0] || 'unknown'),
           })),
           rawData: row.data,
         });
@@ -384,7 +380,7 @@ export class ImportValidation {
             fields: relevantErrors.map((err) => ({
               field: err.path.join('.'),
               message: err.message,
-              value: err.input,
+              value: String(err.path?.[0] || 'unknown'),
             })),
             rawData: row.data,
           });
@@ -467,7 +463,7 @@ export class ImportValidation {
           fields: validation.error.errors.map((err) => ({
             field: err.path.join('.'),
             message: err.message,
-            value: err.input,
+            value: String(err.path?.[0] || 'unknown'),
           })),
           rawData: row.data,
         });

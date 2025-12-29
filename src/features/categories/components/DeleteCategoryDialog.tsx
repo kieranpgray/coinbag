@@ -22,8 +22,6 @@ export function DeleteCategoryDialog({
 
   if (!category) return null;
 
-  const hasDependent = dependentSubscriptionsCount > 0;
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>

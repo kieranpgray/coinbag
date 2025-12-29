@@ -21,8 +21,6 @@ import {
   formatMigrationVersion,
   extractSupabaseProjectId,
 } from '@/lib/migrationVersion';
-import { useAuth } from '@clerk/clerk-react';
-
 interface DebugPanelProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -30,7 +28,6 @@ interface DebugPanelProps {
 
 export function DebugPanel({ open, onOpenChange }: DebugPanelProps) {
   const { user } = useUser();
-  const { getToken } = useAuth();
   const [userId, setUserId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 

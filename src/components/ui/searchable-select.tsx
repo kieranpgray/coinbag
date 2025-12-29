@@ -140,8 +140,11 @@ export function SearchableSelect({
 
     if (isOpen) {
       document.addEventListener('mousedown', handleClickOutside);
-      return () => document.removeEventListener('mousedown', handleClickOutside);
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+      };
     }
+    return undefined;
   }, [isOpen]);
 
   // Handle keyboard navigation in dropdown

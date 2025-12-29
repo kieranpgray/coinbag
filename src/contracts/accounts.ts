@@ -74,11 +74,6 @@ export const accountUpdateSchema = z.object({
   hidden: z.boolean().optional(),
 });
 
-// Helper to handle nullable strings from database (transform null to undefined)
-const nullableStringSchema = z.string()
-  .nullable()
-  .optional()
-  .transform(val => val === null ? undefined : val);
 
 // API response schemas
 export const accountEntitySchema = z.object({

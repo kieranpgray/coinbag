@@ -47,33 +47,44 @@ const monthlyPaymentSchema = z.number()
   .optional();
 
 // Date validation (ISO date string in YYYY-MM-DD format)
-const dueDateSchema = z.string()
-  .transform((val) => {
-    // If it's an ISO datetime string, extract just the date part (YYYY-MM-DD)
-    if (val.includes('T')) {
-      return val.split('T')[0];
+const dueDateSchema = z.preprocess(
+  (val) => {
+    if (val === undefined || val === null || val === '') {
+      return undefined;
     }
-    return val;
-  })
-  .refine(
-    (date) => /^\d{4}-\d{2}-\d{2}$/.test(date),
-    'Date must be in YYYY-MM-DD format'
-  )
-  .refine(
-    (date) => {
-      const parsed = Date.parse(date);
-      if (isNaN(parsed)) return false;
-      const [year, month, day] = date.split('-').map(Number);
-      const dateObj = new Date(year, month - 1, day);
-      return (
-        dateObj.getFullYear() === year &&
-        dateObj.getMonth() === month - 1 &&
-        dateObj.getDate() === day
-      );
-    },
-    'Date must be a valid calendar date'
-  )
-  .optional();
+    const str = String(val);
+    // If it's an ISO datetime string, extract just the date part (YYYY-MM-DD)
+    if (str.includes('T')) {
+      return str.split('T')[0];
+    }
+    return str;
+  },
+  z.string()
+    .refine(
+      (date) => /^\d{4}-\d{2}-\d{2}$/.test(date),
+      'Date must be in YYYY-MM-DD format'
+    )
+    .refine(
+      (date) => {
+        const parsed = Date.parse(date);
+        if (isNaN(parsed)) return false;
+        const parts = date.split('-');
+        if (parts.length !== 3) return false;
+        const year = Number(parts[0]);
+        const month = Number(parts[1]);
+        const day = Number(parts[2]);
+        if (!year || !month || !day) return false;
+        const dateObj = new Date(year, month - 1, day);
+        return (
+          dateObj.getFullYear() === year &&
+          dateObj.getMonth() === month - 1 &&
+          dateObj.getDate() === day
+        );
+      },
+      'Date must be a valid calendar date'
+    )
+    .optional()
+);
 
 // API request schemas
 export const liabilityCreateSchema = z.object({
@@ -137,17 +148,24 @@ export const liabilityEntitySchema = z.object({
   balance: balanceSchema,
   interestRate: nullableNumberSchema,
   monthlyPayment: nullableNumberSchema,
-  dueDate: z.string()
-    .transform((val) => {
-      if (val.includes('T')) {
-        return val.split('T')[0];
+  dueDate: z.preprocess(
+    (val) => {
+      if (val === undefined || val === null || val === '') {
+        return undefined;
       }
-      return val;
-    })
-    .refine(
-      (date) => /^\d{4}-\d{2}-\d{2}$/.test(date),
-      'Date must be in YYYY-MM-DD format'
-    )
+      const str = String(val);
+      if (str.includes('T')) {
+        return str.split('T')[0];
+      }
+      return str;
+    },
+    z.string()
+      .refine(
+        (date) => /^\d{4}-\d{2}-\d{2}$/.test(date),
+        'Date must be in YYYY-MM-DD format'
+      )
+      .optional()
+  )
     .nullable()
     .optional()
     .transform(val => val === null ? undefined : val),

@@ -1,5 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useState, useMemo } from 'react';
 import { useAccounts } from '@/features/accounts/hooks';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -19,20 +18,8 @@ import { Plus, Eye, EyeOff, RefreshCw, AlertTriangle } from 'lucide-react';
 
 export function AccountsPage() {
   const { data: accounts = [], isLoading, error, refetch } = useAccounts();
-  const [searchParams, setSearchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState<string>('all');
-  const [createModalOpen, setCreateModalOpen] = useState(false);
-
-  // Handle query params for auto-opening create modal
-  useEffect(() => {
-    const shouldCreate = searchParams.get('create') === '1';
-    if (shouldCreate) {
-      setCreateModalOpen(true);
-      // Clear the query params after processing
-      setSearchParams({});
-    }
-  }, [searchParams, setSearchParams]);
 
   // Filter and search accounts
   const filteredAccounts = useMemo(() => {
