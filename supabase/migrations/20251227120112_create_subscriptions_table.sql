@@ -47,24 +47,29 @@ CREATE INDEX IF NOT EXISTS idx_subscriptions_frequency ON subscriptions(frequenc
 ALTER TABLE subscriptions ENABLE ROW LEVEL SECURITY;
 
 -- Create RLS policies for user data isolation
+-- Drop existing policies first to make migration idempotent
 
 -- Policy: Users can view their own subscriptions
+DROP POLICY IF EXISTS "Users can view their own subscriptions" ON subscriptions;
 CREATE POLICY "Users can view their own subscriptions" ON subscriptions
   FOR SELECT
   USING (auth.uid() = user_id);
 
 -- Policy: Users can create their own subscriptions
+DROP POLICY IF EXISTS "Users can create their own subscriptions" ON subscriptions;
 CREATE POLICY "Users can create their own subscriptions" ON subscriptions
   FOR INSERT
   WITH CHECK (auth.uid() = user_id);
 
 -- Policy: Users can update their own subscriptions
+DROP POLICY IF EXISTS "Users can update their own subscriptions" ON subscriptions;
 CREATE POLICY "Users can update their own subscriptions" ON subscriptions
   FOR UPDATE
   USING (auth.uid() = user_id)
   WITH CHECK (auth.uid() = user_id);
 
 -- Policy: Users can delete their own subscriptions
+DROP POLICY IF EXISTS "Users can delete their own subscriptions" ON subscriptions;
 CREATE POLICY "Users can delete their own subscriptions" ON subscriptions
   FOR DELETE
   USING (auth.uid() = user_id);
@@ -79,6 +84,7 @@ END;
 $$ language 'plpgsql';
 
 -- Create trigger for automatic updated_at updates
+DROP TRIGGER IF EXISTS update_subscriptions_updated_at ON subscriptions;
 CREATE TRIGGER update_subscriptions_updated_at
   BEFORE UPDATE ON subscriptions
   FOR EACH ROW
