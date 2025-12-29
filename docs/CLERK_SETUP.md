@@ -1,6 +1,6 @@
 # Clerk Authentication Setup
 
-This document outlines the Clerk authentication integration for the Moneybags application.
+This document outlines the Clerk authentication integration for the Coinbag application.
 
 ## Environment Variables
 

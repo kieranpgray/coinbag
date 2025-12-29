@@ -1,6 +1,6 @@
 # Mock API Inventory
 
-This document catalogs all mocked API usage in the Moneybags application, including in-memory data stores, test fixtures, and stub implementations.
+This document catalogs all mocked API usage in the Coinbag application, including in-memory data stores, test fixtures, and stub implementations.
 
 ## Summary
 

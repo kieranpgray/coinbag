@@ -59,7 +59,7 @@ describe('DashboardPage Empty States', () => {
     renderDashboard();
 
     // Check for empty state
-    expect(screen.getByText('Welcome to Moneybags')).toBeInTheDocument();
+    expect(screen.getByText('Welcome to Coinbag')).toBeInTheDocument();
     expect(
       screen.getByText(/Start building your financial picture/)
     ).toBeInTheDocument();

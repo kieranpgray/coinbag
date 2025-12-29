@@ -1,5 +1,5 @@
 /**
- * Domain types for Moneybags application
+ * Domain types for Coinbag application
  *
  * This file contains all TypeScript interfaces and types representing
  * the core domain entities and data structures used throughout the application.

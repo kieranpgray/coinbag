@@ -1,6 +1,6 @@
-# Moneybags Routes Documentation
+# Coinbag Routes Documentation
 
-This document provides a comprehensive overview of all routes in the Moneybags application, including their purpose, key components, user interactions, and edge cases.
+This document provides a comprehensive overview of all routes in the Coinbag application, including their purpose, key components, user interactions, and edge cases.
 
 ## Primary Navigation Routes
 
@@ -117,7 +117,7 @@ This document provides a comprehensive overview of all routes in the Moneybags a
 
 The following routes are implemented as stub pages with "Coming Soon" messages:
 
-### `/ask-moneybags`
+### `/ask-coinbag`
 - **Purpose**: AI-powered financial assistance (future feature)
 - **Status**: Stub page
 
@@ -178,7 +178,7 @@ The sidebar provides quick access to all main routes:
 - Accounts
 - Assets
 - Liabilities
-- Ask Moneybags
+- Ask Coinbag
 - Scenarios
 - Vault
 - Transactions

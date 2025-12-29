@@ -47,7 +47,7 @@ export function generateImportTemplate(): Blob {
  */
 function createInstructionsSheet(): XLSX.WorkSheet {
   const instructions = [
-    ['Moneybags Import Template - Instructions'],
+    ['Coinbag Import Template - Instructions'],
     [],
     ['QUICK START'],
     ['1. Fill in data in the appropriate sheets (Accounts, Assets, Liabilities, Subscriptions, Income)'],

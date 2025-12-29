@@ -4,7 +4,7 @@ This guide explains how to configure and verify that all user-entered data persi
 
 ## Overview
 
-The Moneybags application uses Supabase PostgreSQL database for data persistence. All user data is stored securely with Row Level Security (RLS) policies ensuring users can only access their own data.
+The Coinbag application uses Supabase PostgreSQL database for data persistence. All user data is stored securely with Row Level Security (RLS) policies ensuring users can only access their own data.
 
 ## Prerequisites
 

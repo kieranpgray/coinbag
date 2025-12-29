@@ -1,6 +1,6 @@
 # Supabase Database Migrations
 
-This directory contains SQL migrations for the Moneybags application's Supabase database.
+This directory contains SQL migrations for the Coinbag application's Supabase database.
 
 ## ⚠️ Production Safety Warning
 

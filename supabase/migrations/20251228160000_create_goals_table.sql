@@ -1,5 +1,5 @@
 -- Migration: Create goals table with RLS policies
--- Description: Creates the goals table for the Moneybags application
+-- Description: Creates the goals table for the Coinbag application
 -- Prerequisites: Requires pgcrypto extension for gen_random_uuid()
 -- Rollback: Drop table and related objects
 

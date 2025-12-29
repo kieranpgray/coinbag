@@ -19,7 +19,7 @@ export function Header() {
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Link to="/dashboard" className="text-xl font-bold hover:opacity-80">
-              Moneybags
+              Coinbag
             </Link>
           </div>
           <div className="flex items-center gap-2">

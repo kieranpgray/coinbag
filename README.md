@@ -1,10 +1,10 @@
-# Moneybags
+# Coinbag
 
 A comprehensive financial portfolio management application built with React, TypeScript, and modern web technologies.
 
 ## Overview
 
-Moneybags is a financial dashboard application that helps users track their assets, liabilities, accounts, and overall net worth. The application provides a clean, intuitive interface for managing personal finances with features like dark mode, privacy mode, and a command palette for quick navigation.
+Coinbag is a financial dashboard application that helps users track their assets, liabilities, accounts, and overall net worth. The application provides a clean, intuitive interface for managing personal finances with features like dark mode, privacy mode, and a command palette for quick navigation.
 
 ## Features
 
@@ -75,7 +75,7 @@ For detailed setup instructions, see:
 1. Clone the repository:
 ```bash
 git clone <repository-url>
-cd moneybags
+cd coinbag
 ```
 
 2. Install dependencies:

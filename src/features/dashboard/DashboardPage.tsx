@@ -175,7 +175,7 @@ export function DashboardPage() {
                 />
               </svg>
             </div>
-            <h3 className="text-lg font-medium text-foreground mb-2">Let's set up your Moneybags dashboard</h3>
+            <h3 className="text-lg font-medium text-foreground mb-2">Let's set up your Coinbag dashboard</h3>
             <p className="text-muted-foreground mb-6 max-w-sm mx-auto">
               Add a few data sources to start tracking your finances and see meaningful insights here.
             </p>
