@@ -10,7 +10,7 @@ import type { Asset } from '@/types/domain';
 
 const assetSchema = z.object({
   name: z.string().min(1, 'Name is required'),
-  type: z.enum(['Real Estate', 'Investments', 'Vehicles', 'Crypto', 'Cash', 'Other']),
+  type: z.enum(['Real Estate', 'Investments', 'Vehicles', 'Crypto', 'Cash', 'Superannuation', 'Other']),
   value: z.number().min(0, 'Value must be positive'),
   dateAdded: z.string().min(1, 'Date is required'),
   institution: z.string().optional(),
@@ -90,6 +90,7 @@ export function AssetForm({ asset, onSubmit, onCancel, isLoading, defaultType }:
             { value: 'Vehicles', label: 'Vehicles' },
             { value: 'Crypto', label: 'Crypto' },
             { value: 'Cash', label: 'Cash' },
+            { value: 'Superannuation', label: 'Superannuation' },
             { value: 'Other', label: 'Other' },
           ]}
           placeholder="Select asset type"

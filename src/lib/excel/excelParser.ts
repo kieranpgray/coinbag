@@ -252,7 +252,9 @@ function normalizeRowData(
 
   // Normalize column names and values
   Object.entries(row).forEach(([key, value]) => {
-    const normalizedKey = mapping[key.toLowerCase().trim()] || key;
+    // Strip trailing asterisks from column names (used to indicate required fields in template)
+    const normalizedColumnName = key.toLowerCase().trim().replace(/\*+$/, '');
+    const normalizedKey = mapping[normalizedColumnName] || key;
     const fieldType = types[normalizedKey];
     
     // Convert empty strings to undefined for optional fields

@@ -172,6 +172,9 @@ export const DashboardCalculations = {
       const holdingsAssets = assets.filter((a) => a.type === 'Investments' || a.type === 'Crypto');
       const investments = holdingsAssets.reduce((sum, asset) => sum + asset.value, 0);
 
+      const superannuationAssets = assets.filter((a) => a.type === 'Superannuation');
+      const superannuation = superannuationAssets.reduce((sum, asset) => sum + asset.value, 0);
+
       // Calculate total cash from both accounts and cash assets
       const cashFromAccounts = accounts
         .filter((a) => a.accountType === 'Checking' || a.accountType === 'Savings')
@@ -187,7 +190,7 @@ export const DashboardCalculations = {
 
       // Deterministic change calculations based on data characteristics
       // In a real app, these would come from historical data comparison
-      const dataHash = `${totalAssets}-${totalLiabilities}-${investments}`.split('').reduce((a, b) => {
+      const dataHash = `${totalAssets}-${totalLiabilities}-${investments}-${superannuation}`.split('').reduce((a, b) => {
         a = ((a << 5) - a) + b.charCodeAt(0);
         return a & a;
       }, 0);
@@ -198,6 +201,9 @@ export const DashboardCalculations = {
 
       const investmentsChange1D = ((dataHash % 400) - 200) / 100; // -2% to +2%
       const investmentsChange1W = ((dataHash % 1000) - 500) / 100; // -5% to +5%
+
+      const superannuationChange1D = ((dataHash % 300) - 150) / 100; // -1.5% to +1.5%
+      const superannuationChange1W = ((dataHash % 800) - 400) / 100; // -4% to +4%
 
       const cashChange1D = 0;
       const cashChange1W = 0;
@@ -226,6 +232,9 @@ export const DashboardCalculations = {
         investments,
         investmentsChange1D: Math.round(investmentsChange1D * 100) / 100,
         investmentsChange1W: Math.round(investmentsChange1W * 100) / 100,
+        superannuation,
+        superannuationChange1D: Math.round(superannuationChange1D * 100) / 100,
+        superannuationChange1W: Math.round(superannuationChange1W * 100) / 100,
         totalCash,
         totalCashChange1D: cashChange1D,
         totalCashChange1W: cashChange1W,

@@ -11,6 +11,7 @@ const VALIDATION_LIMITS = {
   balance: { max: 99999999.99 }, // Matches numeric(10,2)
   interestRate: { max: 100 }, // Percentage 0-100
   monthlyPayment: { max: 99999999.99 }, // Matches numeric(10,2)
+  repaymentAmount: { max: 99999999.99 }, // Matches numeric(10,2)
   institution: { max: 100 },
 } as const;
 
@@ -45,6 +46,18 @@ const monthlyPaymentSchema = z.number()
   .max(VALIDATION_LIMITS.monthlyPayment.max, `Monthly payment cannot exceed ${VALIDATION_LIMITS.monthlyPayment.max}`)
   .refine(value => /^\d+(\.\d{1,2})?$/.test(value.toFixed(2)), 'Monthly payment can have at most 2 decimal places')
   .optional();
+
+// Repayment amount validation
+const repaymentAmountSchema = z.number()
+  .min(0, 'Repayment amount must be positive')
+  .max(VALIDATION_LIMITS.repaymentAmount.max, `Repayment amount cannot exceed ${VALIDATION_LIMITS.repaymentAmount.max}`)
+  .refine(value => /^\d+(\.\d{1,2})?$/.test(value.toFixed(2)), 'Repayment amount can have at most 2 decimal places')
+  .optional();
+
+// Repayment frequency validation (matches SubscriptionFrequency)
+const repaymentFrequencySchema = z.enum(['weekly', 'fortnightly', 'monthly', 'yearly'], {
+  errorMap: () => ({ message: 'Invalid repayment frequency' }),
+}).optional();
 
 // Date validation (ISO date string in YYYY-MM-DD format)
 const dueDateSchema = z.preprocess(
@@ -99,6 +112,8 @@ export const liabilityCreateSchema = z.object({
     .trim()
     .optional()
     .transform(e => e === '' ? undefined : e), // Convert empty string to undefined
+  repaymentAmount: repaymentAmountSchema,
+  repaymentFrequency: repaymentFrequencySchema,
 });
 
 export const liabilityUpdateSchema = z.object({
@@ -113,6 +128,8 @@ export const liabilityUpdateSchema = z.object({
     .trim()
     .optional()
     .transform(e => e === '' ? null : e), // Convert empty string to null for DB
+  repaymentAmount: repaymentAmountSchema,
+  repaymentFrequency: repaymentFrequencySchema,
 });
 
 // Helper to handle nullable numbers from database (transform null to undefined)
@@ -170,6 +187,11 @@ export const liabilityEntitySchema = z.object({
     .optional()
     .transform(val => val === null ? undefined : val),
   institution: nullableStringSchema,
+  repaymentAmount: nullableNumberSchema,
+  repaymentFrequency: z.enum(['weekly', 'fortnightly', 'monthly', 'yearly'])
+    .nullable()
+    .optional()
+    .transform(val => val === null ? undefined : val),
   createdAt: datetimeSchema,
   updatedAt: datetimeSchema,
 });

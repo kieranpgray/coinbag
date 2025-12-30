@@ -13,7 +13,7 @@ const VALIDATION_LIMITS = {
 } as const;
 
 // Asset type enum
-const assetTypeSchema = z.enum(['Real Estate', 'Investments', 'Vehicles', 'Crypto', 'Cash', 'Other'], {
+const assetTypeSchema = z.enum(['Real Estate', 'Investments', 'Vehicles', 'Crypto', 'Cash', 'Superannuation', 'Other'], {
   errorMap: () => ({ message: 'Invalid asset type' }),
 });
 

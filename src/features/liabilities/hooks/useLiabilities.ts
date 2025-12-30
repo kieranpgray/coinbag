@@ -7,6 +7,12 @@ import {
   updateLiabilityOptimistically,
   removeLiabilityOptimistically,
 } from '@/features/dashboard/utils/optimisticUpdates';
+import {
+  createSubscriptionFromLiability,
+  updateSubscriptionFromLiability,
+  deleteSubscriptionIfNoRepayment,
+  findLinkedSubscription,
+} from '../services/liabilitySubscriptionService';
 
 export function useLiabilities() {
   const { getToken } = useAuth();
@@ -59,10 +65,21 @@ export function useCreateLiability() {
       }
       return result.data!;
     },
-    onSuccess: (newLiability) => {
+    onSuccess: async (newLiability) => {
       // Optimistically update dashboard cache instead of invalidating
       addLiabilityOptimistically(queryClient, newLiability);
       queryClient.invalidateQueries({ queryKey: ['liabilities'] });
+      
+      // Auto-create subscription if liability has repayment info
+      try {
+        await createSubscriptionFromLiability(newLiability, getToken);
+        // Invalidate subscriptions and dashboard to reflect new subscription
+        queryClient.invalidateQueries({ queryKey: ['subscriptions'] });
+        queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      } catch (error) {
+        // Log error but don't fail the liability creation
+        console.error('Failed to create subscription from liability:', error);
+      }
     },
     onError: () => {
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
@@ -83,11 +100,32 @@ export function useUpdateLiability() {
       }
       return result.data!;
     },
-    onSuccess: (updatedLiability) => {
+    onSuccess: async (updatedLiability) => {
       // Optimistically update dashboard cache instead of invalidating
       updateLiabilityOptimistically(queryClient, updatedLiability);
       queryClient.invalidateQueries({ queryKey: ['liabilities'] });
       queryClient.invalidateQueries({ queryKey: ['liabilities', updatedLiability.id] });
+      
+      // Handle subscription create/update/delete based on repayment info
+      try {
+        const existing = await findLinkedSubscription(updatedLiability.id, getToken);
+        if (existing) {
+          // Update existing subscription
+          await updateSubscriptionFromLiability(existing.id, updatedLiability, getToken);
+        } else if (updatedLiability.repaymentAmount && updatedLiability.repaymentFrequency) {
+          // Create new subscription if repayment info exists
+          await createSubscriptionFromLiability(updatedLiability, getToken);
+        } else {
+          // Delete subscription if repayment info removed
+          await deleteSubscriptionIfNoRepayment(updatedLiability, getToken);
+        }
+        // Invalidate subscriptions and dashboard to reflect changes
+        queryClient.invalidateQueries({ queryKey: ['subscriptions'] });
+        queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      } catch (error) {
+        // Log error but don't fail the liability update
+        console.error('Failed to sync subscription with liability:', error);
+      }
     },
     onError: () => {
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });

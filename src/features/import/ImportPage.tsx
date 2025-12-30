@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { useAuth } from '@clerk/clerk-react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Download, Loader2 } from 'lucide-react';
@@ -40,7 +40,7 @@ export function ImportPage() {
   const { data: existingSubscriptions = [] } = useSubscriptions();
   const { data: existingIncome = [] } = useIncomes();
 
-  const importService = new ImportService(getToken);
+  const importService = useMemo(() => new ImportService(getToken), [getToken]);
 
   const handleDownloadTemplate = useCallback(() => {
     try {

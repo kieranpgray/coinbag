@@ -50,6 +50,7 @@ export function LiabilitiesPage() {
       },
       correlationId || undefined
     );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Only run on mount
 
   // Handle query params for auto-opening create modal
@@ -119,8 +120,7 @@ export function LiabilitiesPage() {
         correlationId || undefined
       );
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams, setSearchParams]);
+  }, [searchParams, setSearchParams]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Log createModalOpen state changes
   useEffect(() => {
@@ -133,6 +133,7 @@ export function LiabilitiesPage() {
       },
       correlationId || undefined
     );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [createModalOpen, searchParams]);
 
   // Calculate total liability balance

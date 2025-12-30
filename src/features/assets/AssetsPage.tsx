@@ -47,8 +47,6 @@ export function AssetsPage() {
         shouldCreate,
         type,
         searchParams: searchParams.toString(),
-        assetsCount: assets.length,
-        assets: assets.map(a => ({id: a.id, name: a.name, type: a.type})),
       },
       correlationId || undefined
     );
@@ -59,7 +57,6 @@ export function AssetsPage() {
         'Opening create modal from query params',
         {
           type,
-          assetsCount: assets.length,
         },
         correlationId || undefined
       );
@@ -78,6 +75,7 @@ export function AssetsPage() {
         correlationId || undefined
       );
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams, setSearchParams]); // FIXED: Removed assets and selectedAsset from dependencies
 
   // Calculate total asset value

@@ -67,6 +67,8 @@ export class ImportService {
   ): Promise<ValidationResult> {
     // Set existing data for duplicate detection
     if (existingData) {
+      // Type assertion needed because existingData uses unknown[] but setExistingData expects specific types
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       this.validation.setExistingData(existingData as any);
     }
 
@@ -328,7 +330,9 @@ export class ImportService {
         result.imported.subscriptions = subscriptionResults.successes.length;
         result.errors.push(...this.convertBatchErrorsToRowErrors(subscriptionResults.errors, 'subscription'));
         // Add validation errors from subscription processing
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         if ((subscriptionResults as any).validationErrors) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           result.errors.push(...(subscriptionResults as any).validationErrors);
         }
         overallProgress += validSubscriptions.length;
@@ -571,6 +575,7 @@ export class ImportService {
           // Continue with fallback
         }
 
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { categoryName: _, ...restData } = row.data;
         const validation = subscriptionCreateSchema.safeParse({
           ...restData,
@@ -609,6 +614,7 @@ export class ImportService {
     // Note: Validation errors are already in RowError format and will be added separately
     // Batch errors will be converted via convertBatchErrorsToRowErrors
     // Store validation errors separately to be merged later
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (batchResult as any).validationErrors = errors;
 
     return batchResult;
@@ -717,7 +723,7 @@ export class ImportService {
         step,
         current: Math.min(i + BATCH_SIZE, items.length),
         total: items.length,
-        entityType: entityType as any,
+        entityType: entityType as EntityType,
         message: `Importing ${entityType}... (${Math.min(i + BATCH_SIZE, items.length)}/${items.length})`,
       });
     }

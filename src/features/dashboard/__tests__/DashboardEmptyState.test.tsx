@@ -36,13 +36,40 @@ describe('DashboardPage Empty States', () => {
   };
 
   it('shows dashboard-level empty state when all collections are empty', () => {
-    // Mock useDashboard to return empty data
+    // Mock useDashboard to return empty data with zero dataSources
     vi.mocked(dashboardHooks.useDashboard).mockReturnValue({
       data: {
         assets: [],
         liabilities: [],
+        accounts: [],
+        subscriptions: [],
         expenseBreakdown: [],
         incomeBreakdown: [],
+        dataSources: {
+          accountsCount: 0,
+          assetsCount: 0,
+          liabilitiesCount: 0,
+          subscriptionsCount: 0,
+          transactionsCount: 0,
+          incomeCount: 0,
+          holdingsCount: 0,
+        },
+        netWorth: 0,
+        netWorthChange1D: 0,
+        netWorthChange1W: 0,
+        investments: 0,
+        investmentsChange1D: 0,
+        investmentsChange1W: 0,
+        totalCash: 0,
+        totalCashChange1D: 0,
+        totalCashChange1W: 0,
+        totalDebts: 0,
+        totalDebtsChange1D: 0,
+        totalDebtsChange1W: 0,
+        estimatedTaxOnGains: 0,
+        adjustedNetWorth: 0,
+        setupProgress: 0,
+        setupChecklist: [],
       },
       isLoading: false,
       error: null,
@@ -58,16 +85,18 @@ describe('DashboardPage Empty States', () => {
 
     renderDashboard();
 
-    // Check for empty state
+    // Check for new empty state design
     expect(screen.getByText('Welcome to Coinbag')).toBeInTheDocument();
+    expect(screen.getByText("Let's get your finances organized")).toBeInTheDocument();
     expect(
-      screen.getByText(/Start building your financial picture/)
+      screen.getByText(/Choose any action below to start tracking your wealth/)
     ).toBeInTheDocument();
     
-    // Check for CTAs
-    expect(screen.getByText('Add Subscription')).toBeInTheDocument();
-    expect(screen.getByText('Add Asset')).toBeInTheDocument();
-    expect(screen.getByText('Add Liability')).toBeInTheDocument();
+    // Check for card titles (4 cards instead of 5 buttons)
+    expect(screen.getByText('Add an account')).toBeInTheDocument();
+    expect(screen.getByText('Add assets')).toBeInTheDocument();
+    expect(screen.getByText('Set a goal')).toBeInTheDocument();
+    expect(screen.getByText('Create budget')).toBeInTheDocument();
   });
 
   it('shows error state when dashboard query fails', () => {

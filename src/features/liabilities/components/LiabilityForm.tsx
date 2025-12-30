@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { SearchableSelect } from '@/components/ui/searchable-select';
-import type { Liability } from '@/types/domain';
+import type { Liability, SubscriptionFrequency } from '@/types/domain';
 
 const liabilitySchema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -29,6 +29,15 @@ const liabilitySchema = z.object({
   ),
   dueDate: z.string().min(1, 'Due date is required'),
   institution: z.string().optional(),
+  repaymentAmount: z.preprocess(
+    (val) => {
+      if (val === '' || val === null || val === undefined) return undefined;
+      const num = typeof val === 'number' ? val : Number(val);
+      return Number.isNaN(num) ? undefined : num;
+    },
+    z.number().min(0).optional()
+  ),
+  repaymentFrequency: z.enum(['weekly', 'fortnightly', 'monthly', 'yearly']).optional(),
 });
 
 type LiabilityFormData = z.infer<typeof liabilitySchema>;
@@ -53,7 +62,7 @@ export function LiabilityForm({
     watch,
     formState: { errors },
   } = useForm<LiabilityFormData>({
-    resolver: zodResolver(liabilitySchema) as any,
+    resolver: zodResolver(liabilitySchema),
     defaultValues: liability
       ? {
           name: liability.name,
@@ -63,6 +72,8 @@ export function LiabilityForm({
           monthlyPayment: liability.monthlyPayment,
           dueDate: liability.dueDate ? liability.dueDate.split('T')[0] : new Date().toISOString().split('T')[0],
           institution: liability.institution,
+          repaymentAmount: liability.repaymentAmount,
+          repaymentFrequency: liability.repaymentFrequency,
         }
       : {
           type: 'Loans',
@@ -72,6 +83,7 @@ export function LiabilityForm({
 
   const selectedType = watch('type') || 'Loans'; // Ensure always defined for controlled Select
   const isLoan = selectedType === 'Loans';
+  const isLoanOrCreditCard = selectedType === 'Loans' || selectedType === 'Credit Cards';
 
   const onSubmitForm = (formData: LiabilityFormData) => {
     onSubmit({
@@ -82,11 +94,13 @@ export function LiabilityForm({
       monthlyPayment: isLoan ? formData.monthlyPayment : undefined,
       dueDate: new Date(formData.dueDate).toISOString(),
       institution: formData.institution,
+      repaymentAmount: formData.repaymentAmount,
+      repaymentFrequency: formData.repaymentFrequency,
     });
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmitForm as any)} className="space-y-4">
+    <form onSubmit={handleSubmit(onSubmitForm)} className="space-y-4">
       <div className="space-y-2">
         <Label htmlFor="name">
           Name <span className="text-destructive">*</span>
@@ -161,6 +175,46 @@ export function LiabilityForm({
             <p className="text-sm text-destructive">{errors.monthlyPayment.message}</p>
           )}
         </div>
+      )}
+
+      {isLoanOrCreditCard && (
+        <>
+          <div className="space-y-2">
+            <Label htmlFor="repaymentAmount">Repayment Amount ($)</Label>
+            <Input
+              id="repaymentAmount"
+              type="number"
+              step="0.01"
+              placeholder="0.00"
+              clearOnFocus
+              clearValue={0}
+              {...register('repaymentAmount', { valueAsNumber: true })}
+            />
+            {errors.repaymentAmount && (
+              <p className="text-sm text-destructive">{errors.repaymentAmount.message}</p>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="repaymentFrequency">Repayment Frequency</Label>
+            <SearchableSelect
+              id="repaymentFrequency"
+              value={watch('repaymentFrequency') || ''}
+              onValueChange={(value) => setValue('repaymentFrequency', value as SubscriptionFrequency | undefined)}
+              options={[
+                { value: 'weekly', label: 'Weekly' },
+                { value: 'fortnightly', label: 'Fortnightly' },
+                { value: 'monthly', label: 'Monthly' },
+                { value: 'yearly', label: 'Yearly' },
+              ]}
+              placeholder="Select frequency"
+              error={errors.repaymentFrequency?.message}
+            />
+            {errors.repaymentFrequency && (
+              <p className="text-sm text-destructive">{errors.repaymentFrequency.message}</p>
+            )}
+          </div>
+        </>
       )}
 
       <div className="space-y-2">

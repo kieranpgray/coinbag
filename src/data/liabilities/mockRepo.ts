@@ -99,6 +99,8 @@ export class MockLiabilitiesRepository implements LiabilitiesRepository {
       monthlyPayment: input.monthlyPayment ?? existing.monthlyPayment,
       dueDate: input.dueDate ?? existing.dueDate,
       institution: input.institution ?? existing.institution,
+      repaymentAmount: input.repaymentAmount ?? existing.repaymentAmount,
+      repaymentFrequency: input.repaymentFrequency ?? existing.repaymentFrequency,
     };
 
     liabilities[index] = updated;

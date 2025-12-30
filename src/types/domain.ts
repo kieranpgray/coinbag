@@ -22,7 +22,7 @@ export interface Category {
 export interface Asset {
   id: string;
   name: string;
-  type: 'Real Estate' | 'Investments' | 'Vehicles' | 'Crypto' | 'Cash' | 'Other';
+  type: 'Real Estate' | 'Investments' | 'Vehicles' | 'Crypto' | 'Cash' | 'Superannuation' | 'Other';
   value: number;
   change1D?: number;
   change1W?: number;
@@ -43,6 +43,8 @@ export interface Liability {
   monthlyPayment?: number;
   dueDate?: string;
   institution?: string;
+  repaymentAmount?: number;
+  repaymentFrequency?: SubscriptionFrequency;
 }
 
 /**
@@ -250,6 +252,9 @@ export interface DashboardData {
   investments: number;
   investmentsChange1D: number;
   investmentsChange1W: number;
+  superannuation: number;
+  superannuationChange1D: number;
+  superannuationChange1W: number;
   totalCash: number;
   totalCashChange1D: number;
   totalCashChange1W: number;

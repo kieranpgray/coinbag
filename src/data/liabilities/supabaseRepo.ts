@@ -20,7 +20,7 @@ import { z } from 'zod';
  */
 export class SupabaseLiabilitiesRepository implements LiabilitiesRepository {
   private readonly selectColumns =
-    'id, name, type, balance, interestRate:interest_rate, monthlyPayment:monthly_payment, dueDate:due_date, institution, userId:user_id, createdAt:created_at, updatedAt:updated_at';
+    'id, name, type, balance, interestRate:interest_rate, monthlyPayment:monthly_payment, dueDate:due_date, institution, repaymentAmount:repayment_amount, repaymentFrequency:repayment_frequency, userId:user_id, createdAt:created_at, updatedAt:updated_at';
 
   /**
    * Maps liability entity (with userId and timestamps) to domain Liability type (without userId)
@@ -42,6 +42,8 @@ export class SupabaseLiabilitiesRepository implements LiabilitiesRepository {
       monthlyPayment: entity.monthlyPayment,
       dueDate,
       institution: entity.institution,
+      repaymentAmount: entity.repaymentAmount,
+      repaymentFrequency: entity.repaymentFrequency,
     };
   }
 
@@ -287,6 +289,12 @@ export class SupabaseLiabilitiesRepository implements LiabilitiesRepository {
       if (validation.data.institution !== undefined) {
         dbInput.institution = validation.data.institution;
       }
+      if (validation.data.repaymentAmount !== undefined) {
+        dbInput.repayment_amount = validation.data.repaymentAmount;
+      }
+      if (validation.data.repaymentFrequency !== undefined) {
+        dbInput.repayment_frequency = validation.data.repaymentFrequency;
+      }
 
       const { data, error } = await supabase
         .from('liabilities')
@@ -403,6 +411,12 @@ export class SupabaseLiabilitiesRepository implements LiabilitiesRepository {
       }
       if (validation.data.institution !== undefined) {
         dbInput.institution = validation.data.institution;
+      }
+      if (validation.data.repaymentAmount !== undefined) {
+        dbInput.repayment_amount = validation.data.repaymentAmount;
+      }
+      if (validation.data.repaymentFrequency !== undefined) {
+        dbInput.repayment_frequency = validation.data.repaymentFrequency;
       }
 
       const { data, error } = await supabase

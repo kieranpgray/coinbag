@@ -85,8 +85,9 @@ function getUserId(): string | undefined {
   // Try to get from window if Clerk is available
   // This is a best-effort approach
   try {
-    if (typeof window !== 'undefined' && (window as any).__clerk_user_id) {
-      return (window as any).__clerk_user_id;
+    if (typeof window !== 'undefined') {
+      const windowWithClerk = window as typeof window & { __clerk_user_id?: string };
+      return windowWithClerk.__clerk_user_id;
     }
   } catch {
     // Ignore errors

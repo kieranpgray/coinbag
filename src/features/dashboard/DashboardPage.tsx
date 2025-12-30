@@ -10,6 +10,7 @@ import { AssetsBreakdown } from '@/features/dashboard/components/AssetsBreakdown
 import { LiabilitiesBreakdown } from '@/features/dashboard/components/LiabilitiesBreakdown';
 import { ExpenseBreakdown } from '@/features/dashboard/components/ExpenseBreakdown';
 import { IncomeBreakdown } from '@/features/dashboard/components/IncomeBreakdown';
+import { CardBasedFlow } from '@/features/dashboard/components/CardBasedFlow';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -93,8 +94,8 @@ export function DashboardPage() {
 
   // Memoize expensive calculations to prevent unnecessary recalculations on re-renders
   // These hooks must be called unconditionally before any early returns
-  const assets = dashboardData?.assets ?? [];
-  const liabilities = dashboardData?.liabilities ?? [];
+  const assets = useMemo(() => dashboardData?.assets ?? [], [dashboardData?.assets]);
+  const liabilities = useMemo(() => dashboardData?.liabilities ?? [], [dashboardData?.liabilities]);
   
   const assetBreakdown = useMemo(
     () => calculateAssetBreakdown(assets),
@@ -120,6 +121,12 @@ export function DashboardPage() {
   const hasAssets = useMemo(() => dataSources.assetsCount > 0, [dataSources.assetsCount]);
   const hasLiabilities = useMemo(() => dataSources.liabilitiesCount > 0, [dataSources.liabilitiesCount]);
   const hasHoldings = useMemo(() => dataSources.holdingsCount > 0, [dataSources.holdingsCount]);
+  
+  // Check for superannuation assets
+  const hasSuperannuation = useMemo(
+    () => assets.some(a => a.type === 'Superannuation'),
+    [assets]
+  );
   
   // Check for cash: either accounts OR cash assets
   const hasCashAssets = useMemo(
@@ -205,51 +212,7 @@ export function DashboardPage() {
 
   // Show dashboard-level empty state when all data is empty (State A)
   if (isDashboardEmpty) {
-    return (
-      <div className="space-y-6">
-        <h1 className="text-3xl font-bold">Dashboard</h1>
-        <Card>
-          <CardContent className="py-12 text-center">
-            <div className="mx-auto w-24 h-24 bg-muted rounded-full flex items-center justify-center mb-4">
-              <svg
-                className="w-12 h-12 text-muted-foreground"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={1.5}
-                  d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-                />
-              </svg>
-            </div>
-            <h3 className="text-lg font-medium text-foreground mb-2">Let's set up your Coinbag dashboard</h3>
-            <p className="text-muted-foreground mb-6 max-w-sm mx-auto">
-              Add a few data sources to start tracking your finances and see meaningful insights here.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-3 justify-center flex-wrap">
-              <Button asChild>
-                <Link to="/accounts">Add an account</Link>
-              </Button>
-              <Button asChild variant="outline">
-                <Link to="/assets?create=1">Add an asset</Link>
-              </Button>
-              <Button asChild variant="outline">
-                <Link to="/liabilities?create=1">Add a liability</Link>
-              </Button>
-              <Button asChild variant="outline">
-                <Link to="/subscriptions?create=1">Add a subscription</Link>
-              </Button>
-              <Button asChild variant="outline">
-                <Link to="/income?create=1">Add income</Link>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
+    return <CardBasedFlow />;
   }
 
   return (
@@ -276,9 +239,9 @@ export function DashboardPage() {
         />
 
         {/* Summary Cards - responsive grid that wraps gracefully */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <SummaryCard
-            title="Investments & Crypto"
+            title="Investments"
             value={dashboardData.investments}
             change1D={dashboardData.investmentsChange1D}
             change1W={dashboardData.investmentsChange1W}
@@ -287,6 +250,17 @@ export function DashboardPage() {
             emptyText="Add investments to track your portfolio value."
             emptyCtaLabel="Add investment"
             emptyCtaHref="/assets?create=1&type=Investments"
+          />
+          <SummaryCard
+            title="Superannuation"
+            value={dashboardData.superannuation}
+            change1D={dashboardData.superannuationChange1D}
+            change1W={dashboardData.superannuationChange1W}
+            isLoading={isLoading}
+            isEmpty={!hasSuperannuation}
+            emptyText="Add superannuation to track your retirement savings."
+            emptyCtaLabel="Add superannuation"
+            emptyCtaHref="/assets?create=1&type=Superannuation"
           />
           <SummaryCard
             title="Total Cash"

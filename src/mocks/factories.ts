@@ -34,7 +34,7 @@ function randomDate(daysAgo: number): string {
 /**
  * Asset types
  */
-const ASSET_TYPES: Asset['type'][] = ['Real Estate', 'Investments', 'Vehicles', 'Crypto', 'Other'];
+const ASSET_TYPES: Asset['type'][] = ['Real Estate', 'Investments', 'Vehicles', 'Crypto', 'Cash', 'Superannuation', 'Other'];
 
 /**
  * Liability types
