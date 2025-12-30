@@ -1,4 +1,4 @@
-import { useForm } from 'react-hook-form';
+import { useForm, type Resolver } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
@@ -62,7 +62,7 @@ export function LiabilityForm({
     watch,
     formState: { errors },
   } = useForm<LiabilityFormData>({
-    resolver: zodResolver(liabilitySchema),
+    resolver: zodResolver(liabilitySchema) as Resolver<LiabilityFormData>,
     defaultValues: liability
       ? {
           name: liability.name,
