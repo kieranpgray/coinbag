@@ -1,4 +1,5 @@
 import { createAuthenticatedSupabaseClient } from '@/lib/supabaseClient';
+import { logger, getCorrelationId } from '@/lib/logger';
 import { ensureUserIdForInsert, verifyInsertedUserId } from '@/lib/repositoryHelpers';
 import type { SubscriptionsRepository } from './repo';
 import type { Subscription } from '@/types/domain';
@@ -52,7 +53,7 @@ export class SupabaseSubscriptionsRepository implements SubscriptionsRepository 
       // Validate response data
       const validation = subscriptionListSchema.safeParse(data || []);
       if (!validation.success) {
-        console.error('Subscription list validation error:', validation.error);
+        logger.error('DB:SUBSCRIPTIONS_LIST', 'Subscription list validation error', { error: validation.error }, getCorrelationId() || undefined);
         return {
           data: [],
           error: {
@@ -100,7 +101,7 @@ export class SupabaseSubscriptionsRepository implements SubscriptionsRepository 
       // Validate response data
       const validation = subscriptionEntitySchema.safeParse(data);
       if (!validation.success) {
-        console.error('Subscription validation error:', validation.error);
+        logger.error('DB:SUBSCRIPTIONS_GET', 'Subscription validation error', { error: validation.error }, getCorrelationId() || undefined);
         return {
           error: {
             error: 'Invalid data received from server.',
@@ -184,7 +185,7 @@ export class SupabaseSubscriptionsRepository implements SubscriptionsRepository 
       // Validate response data
       const responseValidation = subscriptionEntitySchema.safeParse(data);
       if (!responseValidation.success) {
-        console.error('Subscription create response validation error:', responseValidation.error);
+        logger.error('DB:SUBSCRIPTIONS_CREATE', 'Subscription create response validation error', { error: responseValidation.error }, getCorrelationId() || undefined);
         return {
           error: {
             error: 'Invalid data received from server.',
@@ -259,7 +260,7 @@ export class SupabaseSubscriptionsRepository implements SubscriptionsRepository 
       // Validate response data
       const responseValidation = subscriptionEntitySchema.safeParse(data);
       if (!responseValidation.success) {
-        console.error('Subscription update response validation error:', responseValidation.error);
+        logger.error('DB:SUBSCRIPTIONS_UPDATE', 'Subscription update response validation error', { error: responseValidation.error }, getCorrelationId() || undefined);
         return {
           error: {
             error: 'Invalid data received from server.',

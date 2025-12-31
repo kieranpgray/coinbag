@@ -8,6 +8,7 @@ import type {
   RowError,
   EntityType,
 } from './types';
+import { logger } from '@/lib/logger';
 import { ImportValidation } from './ImportValidation';
 import { parseExcelFile, validateExcelFile } from '@/lib/excel/excelParser';
 import { createCategoriesRepository } from '@/data/categories/repo';
@@ -144,9 +145,7 @@ export class ImportService {
         );
 
         if (createResult.error) {
-          console.warn(
-            `Failed to create category "${categoryName}": ${createResult.error.error}`
-          );
+          logger.warn('IMPORT:SERVICE', `Failed to create category "${categoryName}"`, { error: createResult.error.error });
           // Use Uncategorised as fallback
           categoryMap.set(categoryName, uncategorisedId);
         } else if (createResult.data) {
@@ -158,7 +157,7 @@ export class ImportService {
           categoryMap.set(categoryName, uncategorisedId);
         }
       } catch (error) {
-        console.warn(`Error creating category "${categoryName}":`, error);
+        logger.warn('IMPORT:SERVICE', `Error creating category "${categoryName}"`, { error });
         // Use Uncategorised as fallback
         categoryMap.set(categoryName, uncategorisedId);
       }
@@ -696,7 +695,7 @@ export class ImportService {
                 : result.value.error.error,
             };
             // Log error for debugging
-            console.error(`[ImportService] Failed to import ${entityType} at row ${rowNumber || 'unknown'}:`, {
+            logger.error('IMPORT:SERVICE', `Failed to import ${entityType} at row ${rowNumber || 'unknown'}`, {
               error: result.value.error.error,
               code: result.value.error.code,
               item: item,
@@ -710,7 +709,7 @@ export class ImportService {
           const rowNumber = 'rowNumber' in item ? item.rowNumber : undefined;
           const errorMessage = result.reason?.message || 'Unknown error';
           // Log error for debugging
-          console.error(`[ImportService] Exception importing ${entityType} at row ${rowNumber || 'unknown'}:`, {
+          logger.error('IMPORT:SERVICE', `Exception importing ${entityType} at row ${rowNumber || 'unknown'}`, {
             error: errorMessage,
             reason: result.reason,
             item: item,

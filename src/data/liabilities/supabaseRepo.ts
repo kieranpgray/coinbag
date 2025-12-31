@@ -208,13 +208,6 @@ export class SupabaseLiabilitiesRepository implements LiabilitiesRepository {
       }
 
       if (error) {
-        console.error('Supabase liabilities list error:', error);
-        console.error('Error details:', {
-          message: error.message,
-          code: error.code,
-          details: error.details,
-          hint: error.hint,
-        });
         logger.error('DB:LIABILITY_LIST', 'Failed to list liabilities from Supabase', { 
           error: error.message, 
           code: error.code,
@@ -242,7 +235,7 @@ export class SupabaseLiabilitiesRepository implements LiabilitiesRepository {
       // Validate response data
       const validation = liabilityListSchema.safeParse(mappedData);
       if (!validation.success) {
-        console.error('Liability list validation error:', validation.error);
+        logger.error('DB:LIABILITIES_LIST', 'Liability list validation error', { error: validation.error }, correlationId || undefined);
         return {
           data: [],
           error: {
@@ -258,7 +251,7 @@ export class SupabaseLiabilitiesRepository implements LiabilitiesRepository {
       logger.info('DB:LIABILITY_LIST', 'Liabilities listed successfully from Supabase', { count: liabilities.length }, correlationId || undefined);
       return { data: liabilities };
     } catch (error) {
-      console.error('List liabilities error:', error);
+      logger.error('DB:LIABILITIES_LIST', 'List liabilities error', { error }, getCorrelationId() || undefined);
       return {
         data: [],
         error: this.normalizeSupabaseError(error),
@@ -335,7 +328,7 @@ export class SupabaseLiabilitiesRepository implements LiabilitiesRepository {
       }
 
       if (error) {
-        console.error('Supabase liabilities get error:', error);
+        logger.error('DB:LIABILITY_GET', 'Supabase liabilities get error', { error }, correlationId || undefined);
         logger.error('DB:LIABILITY_GET', 'Failed to get liability from Supabase', { liabilityId: id, error: error.message, code: error.code }, correlationId || undefined);
         return { error: this.normalizeSupabaseError(error) };
       }
@@ -361,7 +354,7 @@ export class SupabaseLiabilitiesRepository implements LiabilitiesRepository {
       // Validate response data
       const validation = liabilityEntitySchema.safeParse(mappedData);
       if (!validation.success) {
-        console.error('Liability validation error:', validation.error);
+        logger.error('DB:LIABILITY_GET', 'Liability validation error', { error: validation.error }, correlationId || undefined);
         return {
           error: {
             error: 'Invalid data received from server.',
@@ -376,7 +369,7 @@ export class SupabaseLiabilitiesRepository implements LiabilitiesRepository {
       logger.info('DB:LIABILITY_GET', 'Liability fetched successfully from Supabase', { liabilityId: liability.id, liabilityName: liability.name }, correlationId || undefined);
       return { data: liability };
     } catch (error) {
-      console.error('Get liability error:', error);
+      logger.error('DB:LIABILITY_GET', 'Get liability error', { error }, getCorrelationId() || undefined);
       return { error: this.normalizeSupabaseError(error) };
     }
   }
@@ -449,7 +442,7 @@ export class SupabaseLiabilitiesRepository implements LiabilitiesRepository {
         .single();
 
       if (error) {
-        console.error('Supabase liabilities create error:', error);
+        logger.error('DB:LIABILITY_CREATE', 'Supabase liabilities create error', { error }, correlationId || undefined);
         logger.error(
           'DB:LIABILITY_INSERT',
           'Failed to create liability in Supabase',
@@ -475,7 +468,7 @@ export class SupabaseLiabilitiesRepository implements LiabilitiesRepository {
       // Validate response data
       const responseValidation = liabilityEntitySchema.safeParse(mappedData);
       if (!responseValidation.success) {
-        console.error('Liability create response validation error:', responseValidation.error);
+        logger.error('DB:LIABILITY_CREATE', 'Liability create response validation error', { error: responseValidation.error }, correlationId || undefined);
         logger.error('DB:LIABILITY_INSERT', 'Liability create response validation failed', { errors: responseValidation.error.errors, data }, correlationId || undefined);
         return {
           error: {
@@ -506,7 +499,7 @@ export class SupabaseLiabilitiesRepository implements LiabilitiesRepository {
 
       return { data: liability };
     } catch (error) {
-      console.error('Create liability error:', error);
+      logger.error('DB:LIABILITY_CREATE', 'Create liability error', { error }, getCorrelationId() || undefined);
       return { error: this.normalizeSupabaseError(error) };
     }
   }
@@ -584,7 +577,7 @@ export class SupabaseLiabilitiesRepository implements LiabilitiesRepository {
             },
           };
         }
-        console.error('Supabase liabilities update error:', error);
+        logger.error('DB:LIABILITY_UPDATE', 'Supabase liabilities update error', { error }, correlationId || undefined);
         logger.error('DB:LIABILITY_UPDATE', 'Failed to update liability in Supabase', { liabilityId: id, error: error.message, code: error.code, dbInput }, correlationId || undefined);
         return { error: this.normalizeSupabaseError(error) };
       }
@@ -605,7 +598,7 @@ export class SupabaseLiabilitiesRepository implements LiabilitiesRepository {
       // Validate response data
       const responseValidation = liabilityEntitySchema.safeParse(mappedData);
       if (!responseValidation.success) {
-        console.error('Liability update response validation error:', responseValidation.error);
+        logger.error('DB:LIABILITY_UPDATE', 'Liability update response validation error', { error: responseValidation.error }, correlationId || undefined);
         logger.error('DB:LIABILITY_UPDATE', 'Liability update response validation failed', { liabilityId: id, errors: responseValidation.error.errors, data }, correlationId || undefined);
         return {
           error: {
@@ -627,7 +620,7 @@ export class SupabaseLiabilitiesRepository implements LiabilitiesRepository {
 
       return { data: liability };
     } catch (error) {
-      console.error('Update liability error:', error);
+      logger.error('DB:LIABILITY_UPDATE', 'Update liability error', { error }, getCorrelationId() || undefined);
       return { error: this.normalizeSupabaseError(error) };
     }
   }
@@ -672,7 +665,7 @@ export class SupabaseLiabilitiesRepository implements LiabilitiesRepository {
             },
           };
         }
-        console.error('Supabase liabilities delete error:', error);
+        logger.error('DB:LIABILITY_DELETE', 'Supabase liabilities delete error', { error }, correlationId || undefined);
         logger.error('DB:LIABILITY_DELETE', 'Failed to delete liability from Supabase', { liabilityId: id, error: error.message, code: error.code }, correlationId || undefined);
         return { error: this.normalizeSupabaseError(error) };
       }
@@ -680,7 +673,7 @@ export class SupabaseLiabilitiesRepository implements LiabilitiesRepository {
       logger.info('DB:LIABILITY_DELETE', 'Liability deleted successfully from Supabase', { liabilityId: id }, correlationId || undefined);
       return {};
     } catch (error) {
-      console.error('Delete liability error:', error);
+      logger.error('DB:LIABILITY_DELETE', 'Delete liability error', { error }, getCorrelationId() || undefined);
       return { error: this.normalizeSupabaseError(error) };
     }
   }

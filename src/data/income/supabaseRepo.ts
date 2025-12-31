@@ -143,7 +143,6 @@ export class SupabaseIncomeRepository implements IncomeRepository {
         .order('name', { ascending: true });
 
       if (error) {
-        console.error('Supabase income list error:', error);
         logger.error('DB:INCOME_LIST', 'Failed to list income from Supabase', { error: error.message, code: error.code }, correlationId || undefined);
         return {
           data: [],
@@ -154,7 +153,7 @@ export class SupabaseIncomeRepository implements IncomeRepository {
       // Validate response data
       const validation = incomeListSchema.safeParse(data || []);
       if (!validation.success) {
-        console.error('Income list validation error:', validation.error);
+        logger.error('DB:INCOME_LIST', 'Income list validation error', { error: validation.error }, correlationId || undefined);
         return {
           data: [],
           error: {
@@ -170,7 +169,7 @@ export class SupabaseIncomeRepository implements IncomeRepository {
       logger.info('DB:INCOME_LIST', 'Income listed successfully from Supabase', { count: incomes.length }, correlationId || undefined);
       return { data: incomes };
     } catch (error) {
-      console.error('List income error:', error);
+      logger.error('DB:INCOME_LIST', 'List income error', { error }, getCorrelationId() || undefined);
       return {
         data: [],
         error: this.normalizeSupabaseError(error),
@@ -202,7 +201,7 @@ export class SupabaseIncomeRepository implements IncomeRepository {
         .single();
 
       if (error) {
-        console.error('Supabase income get error:', error);
+        logger.error('DB:INCOME_GET', 'Supabase income get error', { error }, correlationId || undefined);
         logger.error('DB:INCOME_GET', 'Failed to get income from Supabase', { incomeId: id, error: error.message, code: error.code }, correlationId || undefined);
         return { error: this.normalizeSupabaseError(error) };
       }
@@ -219,7 +218,7 @@ export class SupabaseIncomeRepository implements IncomeRepository {
       // Validate response data
       const validation = incomeEntitySchema.safeParse(data);
       if (!validation.success) {
-        console.error('Income validation error:', validation.error);
+        logger.error('DB:INCOME_GET', 'Income validation error', { error: validation.error }, correlationId || undefined);
         return {
           error: {
             error: 'Invalid data received from server.',
@@ -234,7 +233,7 @@ export class SupabaseIncomeRepository implements IncomeRepository {
       logger.info('DB:INCOME_GET', 'Income fetched successfully from Supabase', { incomeId: income.id, incomeName: income.name }, correlationId || undefined);
       return { data: income };
     } catch (error) {
-      console.error('Get income error:', error);
+      logger.error('DB:INCOME_GET', 'Get income error', { error }, getCorrelationId() || undefined);
       return { error: this.normalizeSupabaseError(error) };
     }
   }
@@ -297,7 +296,7 @@ export class SupabaseIncomeRepository implements IncomeRepository {
         .single();
 
       if (error) {
-        console.error('Supabase income create error:', error);
+        logger.error('DB:INCOME_CREATE', 'Supabase income create error', { error }, correlationId || undefined);
         logger.error(
           'DB:INCOME_INSERT',
           'Failed to create income in Supabase',
@@ -320,7 +319,7 @@ export class SupabaseIncomeRepository implements IncomeRepository {
       // Validate response data
       const responseValidation = incomeEntitySchema.safeParse(data);
       if (!responseValidation.success) {
-        console.error('Income create response validation error:', responseValidation.error);
+        logger.error('DB:INCOME_CREATE', 'Income create response validation error', { error: responseValidation.error }, correlationId || undefined);
         logger.error('DB:INCOME_INSERT', 'Income create response validation failed', { errors: responseValidation.error.errors, data }, correlationId || undefined);
         return {
           error: {
@@ -351,7 +350,7 @@ export class SupabaseIncomeRepository implements IncomeRepository {
 
       return { data: income };
     } catch (error) {
-      console.error('Create income error:', error);
+      logger.error('DB:INCOME_CREATE', 'Create income error', { error }, getCorrelationId() || undefined);
       return { error: this.normalizeSupabaseError(error) };
     }
   }
@@ -422,7 +421,7 @@ export class SupabaseIncomeRepository implements IncomeRepository {
             },
           };
         }
-        console.error('Supabase income update error:', error);
+        logger.error('DB:INCOME_UPDATE', 'Supabase income update error', { error }, correlationId || undefined);
         logger.error('DB:INCOME_UPDATE', 'Failed to update income in Supabase', { incomeId: id, error: error.message, code: error.code, dbInput }, correlationId || undefined);
         return { error: this.normalizeSupabaseError(error) };
       }
@@ -440,7 +439,7 @@ export class SupabaseIncomeRepository implements IncomeRepository {
       // Validate response data
       const responseValidation = incomeEntitySchema.safeParse(data);
       if (!responseValidation.success) {
-        console.error('Income update response validation error:', responseValidation.error);
+        logger.error('DB:INCOME_UPDATE', 'Income update response validation error', { error: responseValidation.error }, correlationId || undefined);
         logger.error('DB:INCOME_UPDATE', 'Income update response validation failed', { incomeId: id, errors: responseValidation.error.errors, data }, correlationId || undefined);
         return {
           error: {
@@ -462,7 +461,7 @@ export class SupabaseIncomeRepository implements IncomeRepository {
 
       return { data: income };
     } catch (error) {
-      console.error('Update income error:', error);
+      logger.error('DB:INCOME_UPDATE', 'Update income error', { error }, getCorrelationId() || undefined);
       return { error: this.normalizeSupabaseError(error) };
     }
   }
@@ -507,7 +506,7 @@ export class SupabaseIncomeRepository implements IncomeRepository {
             },
           };
         }
-        console.error('Supabase income delete error:', error);
+        logger.error('DB:INCOME_DELETE', 'Supabase income delete error', { error }, correlationId || undefined);
         logger.error('DB:INCOME_DELETE', 'Failed to delete income from Supabase', { incomeId: id, error: error.message, code: error.code }, correlationId || undefined);
         return { error: this.normalizeSupabaseError(error) };
       }
@@ -515,7 +514,7 @@ export class SupabaseIncomeRepository implements IncomeRepository {
       logger.info('DB:INCOME_DELETE', 'Income deleted successfully from Supabase', { incomeId: id }, correlationId || undefined);
       return {};
     } catch (error) {
-      console.error('Delete income error:', error);
+      logger.error('DB:INCOME_DELETE', 'Delete income error', { error }, getCorrelationId() || undefined);
       return { error: this.normalizeSupabaseError(error) };
     }
   }

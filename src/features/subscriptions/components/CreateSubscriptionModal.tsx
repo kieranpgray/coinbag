@@ -5,6 +5,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { logger } from '@/lib/logger';
 import { SubscriptionForm } from './SubscriptionForm';
 import { useSubscriptionMutations } from '../hooks';
 import type { Subscription } from '@/types/domain';
@@ -26,13 +27,13 @@ export function CreateSubscriptionModal({ open, onOpenChange, defaultCategoryId 
       // Note: Toast notifications are deferred - form validation and mutation errors
       // are handled by react-hook-form and React Query error states
       if (import.meta.env.VITE_DEBUG_LOGGING === 'true') {
-        console.log('Subscription created successfully');
+        logger.debug('SUBSCRIPTION:CREATE', 'Subscription created successfully');
       }
     } catch (error) {
       // Error is handled by react-hook-form and React Query
       // Toast notifications can be added in the future if needed
       if (import.meta.env.VITE_DEBUG_LOGGING === 'true') {
-        console.error('Failed to create subscription:', error);
+        logger.error('SUBSCRIPTION:CREATE', 'Failed to create subscription', { error });
       }
       throw error; // Re-throw to let form handle it
     }

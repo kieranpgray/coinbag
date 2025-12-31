@@ -5,6 +5,8 @@
  * Falls back to "unknown" if migrations cannot be determined.
  */
 
+import { logger } from './logger';
+
 /**
  * Get the latest migration version from migration filenames
  * Migration files are named: YYYYMMDDHHMMSS_description.sql
@@ -43,7 +45,7 @@ export function getLatestMigrationVersion(): string {
   } catch (error) {
     // Only log in debug mode or development
     if (import.meta.env.VITE_DEBUG_LOGGING === 'true' || import.meta.env.MODE !== 'production') {
-      console.warn('Failed to determine migration version:', error);
+      logger.warn('MIGRATION:VERSION', 'Failed to determine migration version', { error });
     }
     return 'unknown';
   }

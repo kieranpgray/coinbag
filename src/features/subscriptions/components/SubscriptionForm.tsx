@@ -2,6 +2,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useEffect, useState } from 'react';
+import { logger } from '@/lib/logger';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -131,7 +132,7 @@ export function SubscriptionForm({ defaultValues, onSubmit, isSubmitting }: Subs
         setValue('nextDueDate', format(new Date(nextDue), 'yyyy-MM-dd'));
       } catch (error) {
         // If calculation fails, keep the current value
-        console.warn('Failed to auto-calculate next due date:', error);
+        logger.warn('SUBSCRIPTION:FORM', 'Failed to auto-calculate next due date', { error });
       }
     }
   }, [watchedFrequency, watchedChargeDate, setValue, defaultValues?.nextDueDate]);

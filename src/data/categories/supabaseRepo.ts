@@ -1,5 +1,6 @@
 import type { CategoriesRepository } from './repo';
 import { createAuthenticatedSupabaseClient } from '@/lib/supabaseClient';
+import { logger, getCorrelationId } from '@/lib/logger';
 import { categoryCreateSchema, categoryUpdateSchema, categoryListSchema, categoryEntitySchema } from '@/contracts/categories';
 
 /**
@@ -19,7 +20,7 @@ export class SupabaseCategoriesRepository implements CategoriesRepository {
         .order('name', { ascending: true });
 
       if (error) {
-        console.error('Supabase categories list error:', error);
+        logger.error('DB:CATEGORIES_LIST', 'Supabase categories list error', { error }, getCorrelationId() || undefined);
         return {
           data: [],
           error: this.normalizeSupabaseError(error),
@@ -29,7 +30,7 @@ export class SupabaseCategoriesRepository implements CategoriesRepository {
       // Validate response data
       const validation = categoryListSchema.safeParse(data || []);
       if (!validation.success) {
-        console.error('Categories list validation error:', validation.error);
+        logger.error('DB:CATEGORIES_LIST', 'Categories list validation error', { error: validation.error }, getCorrelationId() || undefined);
         return {
           data: [],
           error: {
@@ -41,7 +42,7 @@ export class SupabaseCategoriesRepository implements CategoriesRepository {
 
       return { data: validation.data };
     } catch (error) {
-      console.error('List categories error:', error);
+      logger.error('DB:CATEGORIES_LIST', 'List categories error', { error }, getCorrelationId() || undefined);
       return {
         data: [],
         error: this.normalizeSupabaseError(error),
@@ -78,14 +79,14 @@ export class SupabaseCategoriesRepository implements CategoriesRepository {
             },
           };
         }
-        console.error('Supabase categories get error:', error);
+        logger.error('DB:CATEGORIES_GET', 'Supabase categories get error', { error }, getCorrelationId() || undefined);
         return { error: this.normalizeSupabaseError(error) };
       }
 
       // Validate response data
       const validation = categoryEntitySchema.safeParse(data);
       if (!validation.success) {
-        console.error('Category validation error:', validation.error);
+        logger.error('DB:CATEGORIES_GET', 'Category validation error', { error: validation.error }, getCorrelationId() || undefined);
         return {
           error: {
             error: 'Invalid data received from server.',
@@ -96,7 +97,7 @@ export class SupabaseCategoriesRepository implements CategoriesRepository {
 
       return { data: validation.data };
     } catch (error) {
-      console.error('Get category error:', error);
+      logger.error('DB:CATEGORIES_GET', 'Get category error', { error }, getCorrelationId() || undefined);
       return { error: this.normalizeSupabaseError(error) };
     }
   }
@@ -123,14 +124,14 @@ export class SupabaseCategoriesRepository implements CategoriesRepository {
         .single();
 
       if (error) {
-        console.error('Supabase categories create error:', error);
+        logger.error('DB:CATEGORIES_CREATE', 'Supabase categories create error', { error }, getCorrelationId() || undefined);
         return { error: this.normalizeSupabaseError(error) };
       }
 
       // Validate response data
       const responseValidation = categoryEntitySchema.safeParse(data);
       if (!responseValidation.success) {
-        console.error('Category create response validation error:', responseValidation.error);
+        logger.error('DB:CATEGORIES_CREATE', 'Category create response validation error', { error: responseValidation.error }, getCorrelationId() || undefined);
         return {
           error: {
             error: 'Invalid data received from server.',
@@ -141,7 +142,7 @@ export class SupabaseCategoriesRepository implements CategoriesRepository {
 
       return { data: responseValidation.data };
     } catch (error) {
-      console.error('Create category error:', error);
+      logger.error('DB:CATEGORIES_CREATE', 'Create category error', { error }, getCorrelationId() || undefined);
       return { error: this.normalizeSupabaseError(error) };
     }
   }
@@ -186,14 +187,14 @@ export class SupabaseCategoriesRepository implements CategoriesRepository {
             },
           };
         }
-        console.error('Supabase categories update error:', error);
+        logger.error('DB:CATEGORIES_UPDATE', 'Supabase categories update error', { error }, getCorrelationId() || undefined);
         return { error: this.normalizeSupabaseError(error) };
       }
 
       // Validate response data
       const responseValidation = categoryEntitySchema.safeParse(data);
       if (!responseValidation.success) {
-        console.error('Category update response validation error:', responseValidation.error);
+        logger.error('DB:CATEGORIES_UPDATE', 'Category update response validation error', { error: responseValidation.error }, getCorrelationId() || undefined);
         return {
           error: {
             error: 'Invalid data received from server.',
@@ -204,7 +205,7 @@ export class SupabaseCategoriesRepository implements CategoriesRepository {
 
       return { data: responseValidation.data };
     } catch (error) {
-      console.error('Update category error:', error);
+      logger.error('DB:CATEGORIES_UPDATE', 'Update category error', { error }, getCorrelationId() || undefined);
       return { error: this.normalizeSupabaseError(error) };
     }
   }
@@ -231,7 +232,7 @@ export class SupabaseCategoriesRepository implements CategoriesRepository {
         .eq('category_id', id);
 
       if (uncategoriseError) {
-        console.error('Error uncategorising subscriptions before category delete:', uncategoriseError);
+        logger.error('DB:CATEGORIES_DELETE', 'Error uncategorising subscriptions before category delete', { error: uncategoriseError }, getCorrelationId() || undefined);
         return {
           error: {
             error: 'Failed to uncategorise subscriptions before deleting category.',
@@ -255,13 +256,13 @@ export class SupabaseCategoriesRepository implements CategoriesRepository {
             },
           };
         }
-        console.error('Supabase categories delete error:', error);
+        logger.error('DB:CATEGORIES_DELETE', 'Supabase categories delete error', { error }, getCorrelationId() || undefined);
         return { error: this.normalizeSupabaseError(error) };
       }
 
       return {};
     } catch (error) {
-      console.error('Delete category error:', error);
+      logger.error('DB:CATEGORIES_DELETE', 'Delete category error', { error }, getCorrelationId() || undefined);
       return { error: this.normalizeSupabaseError(error) };
     }
   }

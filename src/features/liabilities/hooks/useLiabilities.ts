@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { logger } from '@/lib/logger';
 import { createLiabilitiesRepository } from '@/data/liabilities/repo';
 import { useAuth } from '@clerk/clerk-react';
 import type { Liability } from '@/types/domain';
@@ -78,7 +79,7 @@ export function useCreateLiability() {
         queryClient.invalidateQueries({ queryKey: ['dashboard'] });
       } catch (error) {
         // Log error but don't fail the liability creation
-        console.error('Failed to create subscription from liability:', error);
+        logger.error('LIABILITY:HOOKS', 'Failed to create subscription from liability', { error });
       }
     },
     onError: () => {
@@ -124,7 +125,7 @@ export function useUpdateLiability() {
         queryClient.invalidateQueries({ queryKey: ['dashboard'] });
       } catch (error) {
         // Log error but don't fail the liability update
-        console.error('Failed to sync subscription with liability:', error);
+        logger.error('LIABILITY:HOOKS', 'Failed to sync subscription with liability', { error });
       }
     },
     onError: () => {

@@ -6,6 +6,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { logger } from '@/lib/logger';
 import { LiabilityForm } from './LiabilityForm';
 import type { Liability } from '@/types/domain';
 
@@ -25,7 +26,9 @@ export function EditLiabilityModal({
   isLoading,
 }: EditLiabilityModalProps) {
   const handleSubmit = useCallback((data: Omit<Liability, 'id'>) => {
-    console.log('[EditModal] Updating:', data.name);
+    if (import.meta.env.VITE_DEBUG_LOGGING === 'true') {
+      logger.debug('LIABILITY:UPDATE', 'Updating liability', { name: data.name });
+    }
     onSubmit(data);
   }, [onSubmit]);
 

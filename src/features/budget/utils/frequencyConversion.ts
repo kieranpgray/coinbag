@@ -3,6 +3,8 @@
  * Converts amounts between different time frequencies
  */
 
+import { logger } from '@/lib/logger';
+
 export type Frequency = 'weekly' | 'fortnightly' | 'monthly' | 'quarterly' | 'annually';
 
 /**
@@ -31,7 +33,7 @@ export function normalizeToFrequency(frequency: DomainFrequency | string): Frequ
   
   // Default fallback for invalid frequencies
   if (import.meta.env.MODE === 'development') {
-    console.warn(`Invalid frequency "${frequency}", defaulting to "monthly"`);
+    logger.warn('FREQUENCY:CONVERSION', `Invalid frequency "${frequency}", defaulting to "monthly"`);
   }
   return 'monthly';
 }
@@ -112,7 +114,8 @@ export function convertToFrequency(
   // Defensive check: ensure both frequencies exist in CONVERSION_MULTIPLIERS
   if (!CONVERSION_MULTIPLIERS[normalizedFrom] || !CONVERSION_MULTIPLIERS[normalizedFrom][normalizedTo]) {
     if (import.meta.env.MODE === 'development') {
-      console.warn(
+      logger.warn(
+        'FREQUENCY:CONVERSION',
         `Cannot convert from "${normalizedFrom}" to "${normalizedTo}". Missing conversion multiplier. Returning original amount.`
       );
     }

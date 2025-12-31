@@ -30,7 +30,7 @@ wrapQueryClientForLogging(queryClient);
 
 function App() {
   if (import.meta.env.VITE_DEBUG_LOGGING === 'true') {
-    console.log('🔍 DEBUG: App component rendering...');
+    logger.debug('APP:RENDER', 'App component rendering...');
   }
   const konamiActivated = useKonamiCode();
   const [debugPanelOpen, setDebugPanelOpen] = useState(false);

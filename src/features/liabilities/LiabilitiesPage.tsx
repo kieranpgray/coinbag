@@ -150,14 +150,18 @@ export function LiabilitiesPage() {
   };
 
   const handleCreate = (data: Omit<Liability, 'id'>) => {
-    console.log('[Page] Creating liability:', data.name);
+    if (import.meta.env.VITE_DEBUG_LOGGING === 'true') {
+      logger.debug('LIABILITY:CREATE', 'Creating liability', { name: data.name });
+    }
     createMutation.mutate(data, {
       onSuccess: () => {
-        console.log('[Page] Success - closing modal');
+        if (import.meta.env.VITE_DEBUG_LOGGING === 'true') {
+          logger.debug('LIABILITY:CREATE', 'Success - closing modal');
+        }
         setCreateModalOpen(false);
       },
       onError: (error) => {
-        console.error('[Page] Error:', error);
+        logger.error('LIABILITY:CREATE', 'Failed to create liability', { error });
       },
     });
   };

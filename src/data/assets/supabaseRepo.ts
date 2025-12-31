@@ -137,7 +137,7 @@ export class SupabaseAssetsRepository implements AssetsRepository {
           );
         }
         
-        console.error('Supabase assets list error:', error);
+        logger.error('DB:ASSETS_LIST', 'Supabase assets list error', { error }, correlationId || undefined);
         return {
           data: [],
           error: this.normalizeSupabaseError(error),
@@ -150,7 +150,7 @@ export class SupabaseAssetsRepository implements AssetsRepository {
       // Validate response data
       const validation = assetListSchema.safeParse(mappedData);
       if (!validation.success) {
-        console.error('Assets list validation error:', validation.error);
+        logger.error('DB:ASSETS_LIST', 'Assets list validation error', { error: validation.error }, correlationId || undefined);
         return {
           data: [],
           error: {
@@ -175,7 +175,7 @@ export class SupabaseAssetsRepository implements AssetsRepository {
 
       return { data: assets };
     } catch (error) {
-      console.error('List assets error:', error);
+      logger.error('DB:ASSETS_LIST', 'List assets error', { error }, getCorrelationId() || undefined);
       return {
         data: [],
         error: this.normalizeSupabaseError(error),
@@ -212,7 +212,7 @@ export class SupabaseAssetsRepository implements AssetsRepository {
             },
           };
         }
-        console.error('Supabase assets get error:', error);
+        logger.error('DB:ASSETS_GET', 'Supabase assets get error', { error }, getCorrelationId() || undefined);
         return { error: this.normalizeSupabaseError(error) };
       }
 
@@ -231,7 +231,7 @@ export class SupabaseAssetsRepository implements AssetsRepository {
       // Validate response data
       const validation = assetEntitySchema.safeParse(mappedData);
       if (!validation.success) {
-        console.error('Asset validation error:', validation.error);
+        logger.error('DB:ASSETS_GET', 'Asset validation error', { error: validation.error }, getCorrelationId() || undefined);
         return {
           error: {
             error: 'Invalid data received from server.',
@@ -245,7 +245,7 @@ export class SupabaseAssetsRepository implements AssetsRepository {
 
       return { data: asset };
     } catch (error) {
-      console.error('Get asset error:', error);
+      logger.error('DB:ASSETS_GET', 'Get asset error', { error }, getCorrelationId() || undefined);
       return { error: this.normalizeSupabaseError(error) };
     }
   }
@@ -377,7 +377,7 @@ export class SupabaseAssetsRepository implements AssetsRepository {
           );
         }
         
-        console.error('Supabase assets create error:', error);
+        logger.error('DB:ASSETS_CREATE', 'Supabase assets create error', { error }, correlationId || undefined);
         return { error: this.normalizeSupabaseError(error) };
       }
 
@@ -402,7 +402,7 @@ export class SupabaseAssetsRepository implements AssetsRepository {
       // Validate response data
       const responseValidation = assetEntitySchema.safeParse(mappedData);
       if (!responseValidation.success) {
-        console.error('Asset create response validation error:', responseValidation.error);
+        logger.error('DB:ASSETS_CREATE', 'Asset create response validation error', { error: responseValidation.error }, correlationId || undefined);
         return {
           error: {
             error: 'Invalid data received from server.',
@@ -450,7 +450,7 @@ export class SupabaseAssetsRepository implements AssetsRepository {
 
       return { data: asset };
     } catch (error) {
-      console.error('Create asset error:', error);
+      logger.error('DB:ASSETS_CREATE', 'Create asset error', { error }, getCorrelationId() || undefined);
       return { error: this.normalizeSupabaseError(error) };
     }
   }
@@ -558,12 +558,12 @@ export class SupabaseAssetsRepository implements AssetsRepository {
             hint: 'The database constraint may not include all types. Check if migrations have been run.',
           }, correlationId || undefined);
           
-          console.error('Asset type constraint violation:', {
+          logger.error('DB:ASSETS_UPDATE', 'Asset type constraint violation', {
             providedType,
             allowedTypes,
             error: error.message,
             hint: 'Ensure migration 20251229160001_add_superannuation_asset_type.sql has been run',
-          });
+          }, correlationId || undefined);
           
           return {
             error: {
@@ -573,14 +573,13 @@ export class SupabaseAssetsRepository implements AssetsRepository {
           };
         }
         
-        console.error('Supabase assets update error:', error);
-        console.error('Error details:', {
+        logger.error('DB:ASSETS_UPDATE', 'Supabase assets update error', {
           message: error.message,
           code: error.code,
           details: error.details,
           hint: error.hint,
-        });
-        console.error('Update input:', dbInput);
+          dbInput,
+        }, correlationId || undefined);
         logger.error('DB:ASSET_UPDATE', 'Failed to update asset in Supabase', {
           error: error.message,
           code: error.code,
@@ -606,7 +605,7 @@ export class SupabaseAssetsRepository implements AssetsRepository {
       // Validate response data
       const responseValidation = assetEntitySchema.safeParse(mappedData);
       if (!responseValidation.success) {
-        console.error('Asset update response validation error:', responseValidation.error);
+        logger.error('DB:ASSETS_UPDATE', 'Asset update response validation error', { error: responseValidation.error }, correlationId || undefined);
         return {
           error: {
             error: 'Invalid data received from server.',
@@ -620,7 +619,7 @@ export class SupabaseAssetsRepository implements AssetsRepository {
 
       return { data: asset };
     } catch (error) {
-      console.error('Update asset error:', error);
+      logger.error('DB:ASSETS_UPDATE', 'Update asset error', { error }, getCorrelationId() || undefined);
       return { error: this.normalizeSupabaseError(error) };
     }
   }
@@ -662,7 +661,7 @@ export class SupabaseAssetsRepository implements AssetsRepository {
             },
           };
         }
-        console.error('Supabase assets delete error:', error);
+        logger.error('DB:ASSETS_DELETE', 'Supabase assets delete error', { error }, correlationId || undefined);
         logger.error(
           'DB:ASSET_DELETE',
           'Failed to delete asset from Supabase',
@@ -684,7 +683,7 @@ export class SupabaseAssetsRepository implements AssetsRepository {
 
       return {};
     } catch (error) {
-      console.error('Delete asset error:', error);
+      logger.error('DB:ASSETS_DELETE', 'Delete asset error', { error }, getCorrelationId() || undefined);
       return { error: this.normalizeSupabaseError(error) };
     }
   }

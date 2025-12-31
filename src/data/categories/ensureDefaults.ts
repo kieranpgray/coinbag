@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import { createCategoriesRepository } from './repo';
 
 /**
@@ -78,7 +79,7 @@ export async function ensureDefaultCategories(
       const result = await repository.create({ name }, getToken);
       // Treat DUPLICATE_ENTRY as success (category already exists)
       if (result.error && result.error.code !== 'DUPLICATE_ENTRY') {
-        console.warn(`Failed to create default category "${name}":`, result.error);
+        logger.warn('CATEGORIES:ENSURE_DEFAULTS', `Failed to create default category "${name}"`, { error: result.error });
         return { success: false, error: result.error };
       }
       return { success: true };
@@ -97,7 +98,7 @@ export async function ensureDefaultCategories(
 
     return { success: true };
   } catch (error) {
-    console.error('Unexpected error ensuring default categories:', error);
+    logger.error('CATEGORIES:ENSURE_DEFAULTS', 'Unexpected error ensuring default categories', { error });
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',
