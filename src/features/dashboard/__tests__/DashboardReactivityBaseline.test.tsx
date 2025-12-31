@@ -4,17 +4,15 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useDashboard } from '../hooks/useDashboard';
 import { useCreateAsset } from '@/features/assets/hooks/useAssets';
 import { useCreateLiability } from '@/features/liabilities/hooks/useLiabilities';
-import { useCreateAccount } from '@/features/accounts/hooks/useAccounts';
 import { useCreateSubscription } from '@/features/subscriptions/hooks';
 import { useCreateIncome } from '@/features/income/hooks/useIncome';
 import type { ReactNode } from 'react';
-import type { Asset, Liability, Account, Subscription, Income } from '@/types/domain';
 
 // Import seed/clear functions for mock repositories
-import { seedMockAssets, clearMockAssets } from '@/data/assets/mockRepo';
-import { seedMockLiabilities, clearMockLiabilities } from '@/data/liabilities/mockRepo';
-import { seedMockAccounts, clearMockAccounts } from '@/data/accounts/mockRepo';
-import { seedMockSubscriptions, clearMockSubscriptions } from '@/data/subscriptions/mockRepo';
+import { clearMockAssets } from '@/data/assets/mockRepo';
+import { clearMockLiabilities } from '@/data/liabilities/mockRepo';
+import { clearMockAccounts } from '@/data/accounts/mockRepo';
+import { clearMockSubscriptions } from '@/data/subscriptions/mockRepo';
 import { clearMockDashboardData } from '@/lib/api';
 
 // Mock environment to use mock repositories

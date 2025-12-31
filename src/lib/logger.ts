@@ -52,6 +52,7 @@ export function getCorrelationId(): string | null {
 
 /**
  * Sanitize data to remove sensitive information
+ * In production, this prevents leaking user IDs, tokens, API keys, etc.
  */
 function sanitizeData(data: unknown): unknown {
   if (!data || typeof data !== 'object') {
@@ -59,11 +60,61 @@ function sanitizeData(data: unknown): unknown {
   }
 
   const sanitized = { ...data as Record<string, unknown> };
-  const sensitiveKeys = ['password', 'token', 'secret', 'apiKey', 'authorization'];
+  const isProduction = import.meta.env.MODE === 'production' || import.meta.env.PROD === true;
+  
+  // List of sensitive keys that should be redacted
+  const sensitiveKeys = [
+    'password',
+    'token',
+    'secret',
+    'apiKey',
+    'api_key',
+    'authorization',
+    'auth',
+    'bearer',
+    'jwt',
+    'access_token',
+    'refresh_token',
+    'session',
+    'cookie',
+    'key',
+    'private_key',
+    'public_key',
+  ];
+  
+  // In production, also redact user identifiers
+  if (isProduction) {
+    sensitiveKeys.push(
+      'user_id',
+      'userId',
+      'user_id',
+      'sub',
+      'email',
+      'phone',
+      'username',
+      'account_id',
+      'accountId',
+    );
+  }
   
   for (const key of sensitiveKeys) {
-    if (key in sanitized) {
-      sanitized[key] = '[REDACTED]';
+    // Case-insensitive matching
+    const lowerKey = key.toLowerCase();
+    for (const dataKey in sanitized) {
+      if (dataKey.toLowerCase() === lowerKey) {
+        sanitized[dataKey] = '[REDACTED]';
+      }
+    }
+  }
+
+  // Recursively sanitize nested objects
+  for (const key in sanitized) {
+    if (sanitized[key] && typeof sanitized[key] === 'object' && !Array.isArray(sanitized[key])) {
+      sanitized[key] = sanitizeData(sanitized[key]);
+    } else if (Array.isArray(sanitized[key])) {
+      sanitized[key] = (sanitized[key] as unknown[]).map(item => 
+        typeof item === 'object' ? sanitizeData(item) : item
+      );
     }
   }
 

@@ -473,35 +473,65 @@ export const dashboardApi = {
     
     // Fetch all repository data in parallel for better performance
     const [assetsResult, liabilitiesResult, accountsResult, subscriptionsResult, incomeResult] = await Promise.all([
-      assetsRepo.list(getToken).catch((error) => {
-        console.error('Assets repository error:', error);
+      assetsRepo.list(getToken).catch(async (error) => {
         if (import.meta.env.VITE_DEBUG_LOGGING === 'true') {
-          import('@/lib/logger').then(({ logger, getCorrelationId }) => {
-            logger.error(
-              'DASHBOARD:FETCH',
-              'Assets repository failed',
-              { error: error instanceof Error ? error.message : String(error) },
-              getCorrelationId() || undefined
-            );
-          });
+          const { logger, getCorrelationId } = await import('@/lib/logger');
+          logger.error(
+            'DASHBOARD:FETCH',
+            'Assets repository failed',
+            { error: error instanceof Error ? error.message : String(error) },
+            getCorrelationId() || undefined
+          );
         }
-        return { data: [], error: { error: error instanceof Error ? error.message : String(error), code: 'UNKNOWN_ERROR' } };
+        return { data: [], error: { error: 'Failed to load assets. Please try again.', code: 'UNKNOWN_ERROR' } };
       }),
-      liabilitiesRepo.list(getToken).catch((error) => {
-        console.error('Liabilities repository error:', error);
-        return { data: [], error: { error: error instanceof Error ? error.message : String(error), code: 'UNKNOWN_ERROR' } };
+      liabilitiesRepo.list(getToken).catch(async (error) => {
+        if (import.meta.env.VITE_DEBUG_LOGGING === 'true') {
+          const { logger, getCorrelationId } = await import('@/lib/logger');
+          logger.error(
+            'DASHBOARD:FETCH',
+            'Liabilities repository failed',
+            { error: error instanceof Error ? error.message : String(error) },
+            getCorrelationId() || undefined
+          );
+        }
+        return { data: [], error: { error: 'Failed to load liabilities. Please try again.', code: 'UNKNOWN_ERROR' } };
       }),
-      accountsRepo.list(getToken).catch((error) => {
-        console.error('Accounts repository error:', error);
-        return { data: [], error: { error: error instanceof Error ? error.message : String(error), code: 'UNKNOWN_ERROR' } };
+      accountsRepo.list(getToken).catch(async (error) => {
+        if (import.meta.env.VITE_DEBUG_LOGGING === 'true') {
+          const { logger, getCorrelationId } = await import('@/lib/logger');
+          logger.error(
+            'DASHBOARD:FETCH',
+            'Accounts repository failed',
+            { error: error instanceof Error ? error.message : String(error) },
+            getCorrelationId() || undefined
+          );
+        }
+        return { data: [], error: { error: 'Failed to load accounts. Please try again.', code: 'UNKNOWN_ERROR' } };
       }),
-      subscriptionsRepo.list(getToken).catch((error) => {
-        console.error('Subscriptions repository error:', error);
-        return { data: [], error: { error: error instanceof Error ? error.message : String(error), code: 'UNKNOWN_ERROR' } };
+      subscriptionsRepo.list(getToken).catch(async (error) => {
+        if (import.meta.env.VITE_DEBUG_LOGGING === 'true') {
+          const { logger, getCorrelationId } = await import('@/lib/logger');
+          logger.error(
+            'DASHBOARD:FETCH',
+            'Subscriptions repository failed',
+            { error: error instanceof Error ? error.message : String(error) },
+            getCorrelationId() || undefined
+          );
+        }
+        return { data: [], error: { error: 'Failed to load subscriptions. Please try again.', code: 'UNKNOWN_ERROR' } };
       }),
-      incomeRepo.list(getToken).catch((error) => {
-        console.error('Income repository error:', error);
-        return { data: [], error: { error: error instanceof Error ? error.message : String(error), code: 'UNKNOWN_ERROR' } };
+      incomeRepo.list(getToken).catch(async (error) => {
+        if (import.meta.env.VITE_DEBUG_LOGGING === 'true') {
+          const { logger, getCorrelationId } = await import('@/lib/logger');
+          logger.error(
+            'DASHBOARD:FETCH',
+            'Income repository failed',
+            { error: error instanceof Error ? error.message : String(error) },
+            getCorrelationId() || undefined
+          );
+        }
+        return { data: [], error: { error: 'Failed to load income. Please try again.', code: 'UNKNOWN_ERROR' } };
       }),
     ]);
     
@@ -509,23 +539,18 @@ export const dashboardApi = {
     const errors: Array<{ source: string; error: { error: string; code: string } }> = [];
     if (assetsResult.error) {
       errors.push({ source: 'assets', error: assetsResult.error });
-      console.error('Dashboard: Assets fetch error:', assetsResult.error);
     }
     if (liabilitiesResult.error) {
       errors.push({ source: 'liabilities', error: liabilitiesResult.error });
-      console.error('Dashboard: Liabilities fetch error:', liabilitiesResult.error);
     }
     if (accountsResult.error) {
       errors.push({ source: 'accounts', error: accountsResult.error });
-      console.error('Dashboard: Accounts fetch error:', accountsResult.error);
     }
     if (subscriptionsResult.error) {
       errors.push({ source: 'subscriptions', error: subscriptionsResult.error });
-      console.error('Dashboard: Subscriptions fetch error:', subscriptionsResult.error);
     }
     if (incomeResult.error) {
       errors.push({ source: 'income', error: incomeResult.error });
-      console.error('Dashboard: Income fetch error:', incomeResult.error);
     }
     
     // Log errors if debug logging is enabled

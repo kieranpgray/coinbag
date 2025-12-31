@@ -7,8 +7,8 @@ import type {
  * Validation functions
  */
 export function isValidCurrencyAmount(amount: number): boolean {
-  // Treat 0 as invalid for subscription amounts (subscriptions must be > 0)
-  return typeof amount === 'number' && amount > 0 && amount <= 1_000_000 && !isNaN(amount);
+  // Allow 0.00 amounts
+  return typeof amount === 'number' && amount >= 0 && amount <= 1_000_000 && !isNaN(amount);
 }
 
 export function isValidISODateString(date: string): boolean {
@@ -45,22 +45,24 @@ export function validateSubscriptionDates(chargeDate: string, nextDueDate: strin
 }
 
 export function validateSubscriptionAmount(amount: number, frequency: SubscriptionFrequency): boolean {
-  // Check if amount is a valid positive number
-  if (!isValidCurrencyAmount(amount) || amount <= 0) {
+  // Check if amount is a valid number (allow 0.00)
+  if (!isValidCurrencyAmount(amount) || amount < 0) {
     return false;
   }
 
   const minAmounts: Record<SubscriptionFrequency, number> = {
-    weekly: 1,
-    fortnightly: 1,
-    monthly: 1,
-    yearly: 1,
+    weekly: 0,
+    fortnightly: 0,
+    monthly: 0,
+    quarterly: 0,
+    yearly: 0,
   };
 
   const maxAmounts: Record<SubscriptionFrequency, number> = {
     weekly: 2000,
     fortnightly: 4000,
     monthly: 10000,
+    quarterly: 30000,
     yearly: 50000,
   };
 
@@ -92,10 +94,11 @@ export function validateSubscriptionIntegrity(subscription: {
   // Amount validation
   if (!validateSubscriptionAmount(subscription.amount, subscription.frequency)) {
     const ranges = {
-      weekly: '$1-2000',
-      fortnightly: '$1-4000',
-      monthly: '$1-10,000',
-      yearly: '$1-50,000',
+      weekly: '$0-2000',
+      fortnightly: '$0-4000',
+      monthly: '$0-10,000',
+      quarterly: '$0-30,000',
+      yearly: '$0-50,000',
     };
     errors.push(`Amount must be between ${ranges[subscription.frequency]} for ${subscription.frequency} frequency`);
   }
@@ -164,6 +167,11 @@ export function calculateNextDueDate(
       date.setMonth(date.getMonth() + 1, 1);
       clampDayInMonth(date, originalDay);
       break;
+    case 'quarterly':
+      // Add 3 months and clamp day
+      date.setMonth(date.getMonth() + 3, 1);
+      clampDayInMonth(date, originalDay);
+      break;
     case 'yearly':
       // Add year and clamp day (e.g. Feb 29 -> Feb 28 on non-leap years)
       date.setFullYear(date.getFullYear() + 1, date.getMonth(), 1);
@@ -196,6 +204,7 @@ export function calculateMonthlyEquivalent(amount: number, frequency: Subscripti
     weekly: 4.33, // Average weeks per month
     fortnightly: 2.167, // Average fortnights per month
     monthly: 1,
+    quarterly: 1/3, // Quarterly = 3 months, so monthly equivalent = amount / 3
     yearly: 1/12,
   };
 
@@ -209,6 +218,7 @@ export const SUBSCRIPTION_FREQUENCIES: readonly SubscriptionFrequency[] = [
   'weekly',
   'fortnightly',
   'monthly',
+  'quarterly',
   'yearly',
 ] as const;
 

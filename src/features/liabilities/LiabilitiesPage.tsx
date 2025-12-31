@@ -220,30 +220,46 @@ export function LiabilitiesPage() {
   return (
     <div className="space-y-8">
       {/* Header with Total Value */}
-      <div className="flex items-start justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="space-y-1">
-          <h1 className="text-3xl font-bold tracking-tight">Liabilities</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Liabilities</h1>
           <div className="space-y-0.5">
-            <p className="text-5xl font-bold tracking-tight">
+            <div className="text-3xl sm:text-4xl font-bold mb-4">
               {formatCurrency(totalLiabilityBalance)}
-            </p>
+            </div>
             <p className="text-sm text-muted-foreground">Total debt balance</p>
           </div>
         </div>
-        <Button onClick={() => {
-          logger.info(
-            'NAV:LIABILITIES_BUTTON_CLICK',
-            'Add New Liability button clicked',
-            {
-              createModalOpenBefore: createModalOpen,
-            },
-            correlationId || undefined
-          );
-          setCreateModalOpen(true);
-        }}>
-          <Plus className="h-4 w-4 mr-2" />
-          Add New Liability
-        </Button>
+        <div className="flex flex-col gap-4 sm:items-end">
+          <Button onClick={() => {
+            logger.info(
+              'NAV:LIABILITIES_BUTTON_CLICK',
+              'Add New Liability button clicked',
+              {
+                createModalOpenBefore: createModalOpen,
+              },
+              correlationId || undefined
+            );
+            setCreateModalOpen(true);
+          }} className="w-full sm:w-auto">
+            <Plus className="h-4 w-4 mr-2" />
+            Add New Liability
+          </Button>
+          <div className="flex items-center gap-3">
+            <Label htmlFor="view-mode" className="text-sm text-muted-foreground">
+              List view
+            </Label>
+            <Switch
+              id="view-mode"
+              checked={viewMode === 'cards'}
+              onCheckedChange={(checked) => setViewMode(checked ? 'cards' : 'list')}
+              aria-label="Toggle between list view and card view"
+            />
+            <Label htmlFor="view-mode" className="text-sm text-muted-foreground">
+              Card view
+            </Label>
+          </div>
+        </div>
       </div>
 
       {/* Category Tabs */}
@@ -255,22 +271,6 @@ export function LiabilitiesPage() {
             </TabsTrigger>
           ))}
         </TabsList>
-
-        {/* View Toggle */}
-        <div className="flex items-center gap-3 mt-4">
-          <Label htmlFor="view-mode" className="text-sm text-muted-foreground">
-            List view
-          </Label>
-          <Switch
-            id="view-mode"
-            checked={viewMode === 'cards'}
-            onCheckedChange={(checked) => setViewMode(checked ? 'cards' : 'list')}
-            aria-label="Toggle between list view and card view"
-          />
-          <Label htmlFor="view-mode" className="text-sm text-muted-foreground">
-            Card view
-          </Label>
-        </div>
 
         {liabilityCategories.map((category) => (
           <TabsContent key={category.value} value={category.value} className="mt-6">

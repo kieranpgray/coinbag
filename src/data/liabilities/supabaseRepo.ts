@@ -19,8 +19,38 @@ import { z } from 'zod';
  * Uses Clerk JWT authentication and Row Level Security (RLS) for data isolation.
  */
 export class SupabaseLiabilitiesRepository implements LiabilitiesRepository {
+  // Select actual database column names (snake_case)
+  // Supabase doesn't support column aliasing in select strings, so we map them manually
+  // Note: repayment_amount and repayment_frequency may not exist if migrations haven't been run
+  // We'll try with them first, and fall back if needed
   private readonly selectColumns =
-    'id, name, type, balance, interestRate:interest_rate, monthlyPayment:monthly_payment, dueDate:due_date, institution, repaymentAmount:repayment_amount, repaymentFrequency:repayment_frequency, userId:user_id, createdAt:created_at, updatedAt:updated_at';
+    'id, name, type, balance, interest_rate, monthly_payment, due_date, institution, repayment_amount, repayment_frequency, user_id, created_at, updated_at';
+  
+  // Fallback select without optional repayment fields (for databases without the migration)
+  private readonly selectColumnsBasic =
+    'id, name, type, balance, interest_rate, monthly_payment, due_date, institution, user_id, created_at, updated_at';
+
+  /**
+   * Maps database row (snake_case) to entity schema (camelCase)
+   * Converts snake_case database columns to camelCase for entity schema validation
+   */
+  private mapDbRowToEntity(row: Record<string, unknown>): z.infer<typeof liabilityEntitySchema> {
+    return {
+      id: row.id as string,
+      name: row.name as string,
+      type: row.type as 'Loans' | 'Credit Cards' | 'Other',
+      balance: row.balance as number,
+      interestRate: row.interest_rate === null ? undefined : (row.interest_rate as number | undefined),
+      monthlyPayment: row.monthly_payment === null ? undefined : (row.monthly_payment as number | undefined),
+      dueDate: (row.due_date ? String(row.due_date).split('T')[0] : undefined) as string | undefined,
+      institution: row.institution === null ? undefined : (row.institution as string | undefined),
+      repaymentAmount: row.repayment_amount === null ? undefined : (row.repayment_amount as number | undefined),
+      repaymentFrequency: (row.repayment_frequency === null ? undefined : row.repayment_frequency) as 'weekly' | 'fortnightly' | 'monthly' | 'yearly' | undefined,
+      userId: row.user_id as string,
+      createdAt: row.created_at as string,
+      updatedAt: row.updated_at as string,
+    };
+  }
 
   /**
    * Maps liability entity (with userId and timestamps) to domain Liability type (without userId)
@@ -129,22 +159,88 @@ export class SupabaseLiabilitiesRepository implements LiabilitiesRepository {
 
       const supabase = await createAuthenticatedSupabaseClient(getToken);
 
-      const { data, error } = await supabase
+      // Try with full columns first (including repayment fields)
+      let { data, error } = await supabase
         .from('liabilities')
         .select(this.selectColumns)
         .order('created_at', { ascending: false });
 
+      // If error suggests missing columns, try without repayment fields
+      const errorMessage = error?.message || '';
+      const errorCode = typeof error === 'object' && error !== null && 'code' in error 
+        ? String((error as { code?: unknown }).code) 
+        : '';
+      const errorStatus = typeof error === 'object' && error !== null && 'status' in error
+        ? (error as { status?: unknown }).status
+        : undefined;
+      const isMissingColumnError = 
+        errorMessage.includes('column') || 
+        errorCode === '42703' ||
+        errorCode === 'PGRST100' ||
+        errorStatus === 400 ||
+        errorMessage.includes('repayment_amount') ||
+        errorMessage.includes('repayment_frequency');
+      
+      if (error && isMissingColumnError) {
+        logger.warn('DB:LIABILITY_LIST', 'Repayment columns may not exist, trying without them', { 
+          error: errorMessage,
+          code: errorCode,
+          status: typeof errorStatus === 'number' ? errorStatus : undefined,
+        }, correlationId || undefined);
+        
+        const retry = await supabase
+          .from('liabilities')
+          .select(this.selectColumnsBasic)
+          .order('created_at', { ascending: false });
+        
+        if (retry.error) {
+          // Still an error, use the original error
+          error = retry.error;
+        } else {
+          // Success with basic columns - add null values for missing repayment fields
+          data = (retry.data || []).map((row: Record<string, unknown>) => ({
+            ...row,
+            repayment_amount: null,
+            repayment_frequency: null,
+          })) as typeof data;
+          error = null;
+        }
+      }
+
       if (error) {
         console.error('Supabase liabilities list error:', error);
-        logger.error('DB:LIABILITY_LIST', 'Failed to list liabilities from Supabase', { error: error.message, code: error.code }, correlationId || undefined);
+        console.error('Error details:', {
+          message: error.message,
+          code: error.code,
+          details: error.details,
+          hint: error.hint,
+        });
+        logger.error('DB:LIABILITY_LIST', 'Failed to list liabilities from Supabase', { 
+          error: error.message, 
+          code: error.code,
+          details: error.details,
+          hint: error.hint,
+        }, correlationId || undefined);
         return {
           data: [],
           error: this.normalizeSupabaseError(error),
         };
       }
 
+      // Map database rows (snake_case) to entity schema (camelCase)
+      // Handle case where repayment fields might not exist
+      const mappedData = (data || []).map((row) => {
+        // If repayment fields don't exist in the row, set them to null/undefined
+        const rowWithDefaults = {
+          ...row,
+          repayment_amount: row.repayment_amount ?? null,
+          repayment_frequency: row.repayment_frequency ?? null,
+        };
+        return this.mapDbRowToEntity(rowWithDefaults);
+      });
+
       // Validate response data
-      const validation = liabilityListSchema.safeParse(data || []);
+      const validation = liabilityListSchema.safeParse(mappedData);
       if (!validation.success) {
         console.error('Liability list validation error:', validation.error);
         return {
@@ -187,11 +283,56 @@ export class SupabaseLiabilitiesRepository implements LiabilitiesRepository {
 
       const supabase = await createAuthenticatedSupabaseClient(getToken);
 
-      const { data, error } = await supabase
+      // Try with full columns first (including repayment fields)
+      let { data, error } = await supabase
         .from('liabilities')
         .select(this.selectColumns)
         .eq('id', id)
         .single();
+
+      // If error suggests missing columns, try without repayment fields
+      const errorMessage = error?.message || '';
+      const errorCode = typeof error === 'object' && error !== null && 'code' in error 
+        ? String((error as { code?: unknown }).code) 
+        : '';
+      const errorStatus = typeof error === 'object' && error !== null && 'status' in error
+        ? (error as { status?: unknown }).status
+        : undefined;
+      const isMissingColumnError = 
+        errorMessage.includes('column') || 
+        errorCode === '42703' ||
+        errorCode === 'PGRST100' ||
+        errorStatus === 400 ||
+        errorMessage.includes('repayment_amount') ||
+        errorMessage.includes('repayment_frequency');
+      
+      if (error && isMissingColumnError) {
+        logger.warn('DB:LIABILITY_GET', 'Repayment columns may not exist, trying without them', { 
+          liabilityId: id,
+          error: errorMessage,
+          code: errorCode,
+          status: typeof errorStatus === 'number' ? errorStatus : undefined,
+        }, correlationId || undefined);
+        
+        const retry = await supabase
+          .from('liabilities')
+          .select(this.selectColumnsBasic)
+          .eq('id', id)
+          .single();
+        
+        if (retry.error) {
+          // Still an error, use the original error
+          error = retry.error;
+        } else {
+          // Success with basic columns - add null values for missing repayment fields
+          data = (retry.data ? {
+            ...retry.data,
+            repayment_amount: null,
+            repayment_frequency: null,
+          } : null) as typeof data;
+          error = null;
+        }
+      }
 
       if (error) {
         console.error('Supabase liabilities get error:', error);
@@ -208,8 +349,17 @@ export class SupabaseLiabilitiesRepository implements LiabilitiesRepository {
         };
       }
 
+      // Map database row (snake_case) to entity schema (camelCase)
+      // Handle case where repayment fields might not exist
+      const rowWithDefaults = {
+        ...data,
+        repayment_amount: data.repayment_amount ?? null,
+        repayment_frequency: data.repayment_frequency ?? null,
+      };
+      const mappedData = this.mapDbRowToEntity(rowWithDefaults);
+
       // Validate response data
-      const validation = liabilityEntitySchema.safeParse(data);
+      const validation = liabilityEntitySchema.safeParse(mappedData);
       if (!validation.success) {
         console.error('Liability validation error:', validation.error);
         return {
@@ -289,12 +439,8 @@ export class SupabaseLiabilitiesRepository implements LiabilitiesRepository {
       if (validation.data.institution !== undefined) {
         dbInput.institution = validation.data.institution;
       }
-      if (validation.data.repaymentAmount !== undefined) {
-        dbInput.repayment_amount = validation.data.repaymentAmount;
-      }
-      if (validation.data.repaymentFrequency !== undefined) {
-        dbInput.repayment_frequency = validation.data.repaymentFrequency;
-      }
+      // Note: repaymentAmount and repaymentFrequency are not included in create operations
+      // as the database columns may not exist. They are only used in update operations.
 
       const { data, error } = await supabase
         .from('liabilities')
@@ -323,8 +469,11 @@ export class SupabaseLiabilitiesRepository implements LiabilitiesRepository {
         };
       }
 
+      // Map database row (snake_case) to entity schema (camelCase)
+      const mappedData = this.mapDbRowToEntity(data);
+
       // Validate response data
-      const responseValidation = liabilityEntitySchema.safeParse(data);
+      const responseValidation = liabilityEntitySchema.safeParse(mappedData);
       if (!responseValidation.success) {
         console.error('Liability create response validation error:', responseValidation.error);
         logger.error('DB:LIABILITY_INSERT', 'Liability create response validation failed', { errors: responseValidation.error.errors, data }, correlationId || undefined);
@@ -450,8 +599,11 @@ export class SupabaseLiabilitiesRepository implements LiabilitiesRepository {
         };
       }
 
+      // Map database row (snake_case) to entity schema (camelCase)
+      const mappedData = this.mapDbRowToEntity(data);
+
       // Validate response data
-      const responseValidation = liabilityEntitySchema.safeParse(data);
+      const responseValidation = liabilityEntitySchema.safeParse(mappedData);
       if (!responseValidation.success) {
         console.error('Liability update response validation error:', responseValidation.error);
         logger.error('DB:LIABILITY_UPDATE', 'Liability update response validation failed', { liabilityId: id, errors: responseValidation.error.errors, data }, correlationId || undefined);

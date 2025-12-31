@@ -1,8 +1,8 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useIncomes, useCreateIncome, useUpdateIncome, useDeleteIncome } from '@/features/income/hooks';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
+import { Switch } from '@/components/ui/switch';
 import { Card, CardContent } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { RefreshCw, AlertTriangle, Plus } from 'lucide-react';
@@ -149,9 +149,9 @@ export function IncomePage() {
           <div className="space-y-1">
             <h1 className="text-3xl font-bold tracking-tight">Income</h1>
             <div className="space-y-0.5">
-              <p className="text-5xl font-bold tracking-tight">
+              <div className="text-4xl font-bold mb-4">
                 {formatCurrency(totalMonthlyIncome)}
-              </p>
+              </div>
               <p className="text-sm text-muted-foreground">Total monthly income</p>
             </div>
           </div>
@@ -185,9 +185,12 @@ export function IncomePage() {
     return (
       <div className="space-y-8">
         <div className="flex items-start justify-between">
-          <div className="space-y-2">
-            <Skeleton className="h-10 w-48" />
-            <Skeleton className="h-14 w-64" />
+          <div className="space-y-1">
+            <Skeleton className="h-9 w-32" />
+            <div className="space-y-0.5">
+              <Skeleton className="h-9 w-48 mb-4" />
+              <Skeleton className="h-4 w-32" />
+            </div>
           </div>
           <Skeleton className="h-10 w-40" />
         </div>
@@ -203,36 +206,45 @@ export function IncomePage() {
         <div className="space-y-1">
           <h1 className="text-3xl font-bold tracking-tight">Income</h1>
           <div className="space-y-0.5">
-            <p className="text-5xl font-bold tracking-tight">
+            <div className="text-4xl font-bold mb-4">
               {formatCurrency(totalMonthlyIncome)}
-            </p>
+            </div>
             <p className="text-sm text-muted-foreground">Total monthly income</p>
           </div>
         </div>
-        <Button onClick={() => setCreateModalOpen(true)}>
-          <Plus className="h-4 w-4 mr-2" />
-          Add Income
-        </Button>
+        <div className="flex flex-col items-end gap-4">
+          <Button onClick={() => setCreateModalOpen(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            Add Income
+          </Button>
+          <div className="flex items-center gap-3">
+            <Label htmlFor="view-mode" className="text-sm text-muted-foreground">
+              List view
+            </Label>
+            <Switch
+              id="view-mode"
+              checked={viewMode === 'cards'}
+              onCheckedChange={(checked) => setViewMode(checked ? 'cards' : 'list')}
+              aria-label="Toggle between list view and card view"
+            />
+            <Label htmlFor="view-mode" className="text-sm text-muted-foreground">
+              Card view
+            </Label>
+          </div>
+        </div>
       </div>
 
-      {/* View Toggle */}
-      <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as 'list' | 'cards')}>
-        <TabsList>
-          <TabsTrigger value="list">List</TabsTrigger>
-          <TabsTrigger value="cards">Cards</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="list" className="mt-4">
+      {/* Content based on view mode */}
+      <div className="mt-4">
+        {viewMode === 'list' ? (
           <IncomeList
             incomes={incomes}
             onEdit={handleEdit}
             onDelete={handleDelete}
             onCreate={() => setCreateModalOpen(true)}
           />
-        </TabsContent>
-
-        <TabsContent value="cards" className="mt-4">
-          {incomes.length === 0 ? (
+        ) : (
+          incomes.length === 0 ? (
             <Card>
               <CardContent className="py-12 text-center">
                 <div className="space-y-4">
@@ -260,9 +272,9 @@ export function IncomePage() {
                 />
               ))}
             </div>
-          )}
-        </TabsContent>
-      </Tabs>
+          )
+        )}
+      </div>
 
       {/* Create Modal */}
       <Dialog open={createModalOpen} onOpenChange={setCreateModalOpen}>
@@ -272,7 +284,7 @@ export function IncomePage() {
             <DialogDescription>Add a new source of income to track your earnings.</DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSubmit(handleCreate)} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="name">Name</Label>
                 <Input id="name" {...register('name')} placeholder="e.g., Main Salary" />
@@ -297,7 +309,7 @@ export function IncomePage() {
                 />
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="amount">Amount ($)</Label>
                 <Input 
@@ -321,6 +333,7 @@ export function IncomePage() {
                     { value: 'weekly', label: 'Weekly' },
                     { value: 'fortnightly', label: 'Fortnightly' },
                     { value: 'monthly', label: 'Monthly' },
+                    { value: 'quarterly', label: 'Quarterly' },
                     { value: 'yearly', label: 'Yearly' },
                   ]}
                   placeholder="Select frequency"
@@ -359,7 +372,7 @@ export function IncomePage() {
               <DialogDescription>Update your income source details.</DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit(handleUpdate)} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="edit-name">Name</Label>
                   <Input id="edit-name" {...register('name')} />
@@ -383,7 +396,7 @@ export function IncomePage() {
                   />
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="edit-amount">Amount ($)</Label>
                   <Input 

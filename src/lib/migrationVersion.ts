@@ -41,7 +41,10 @@ export function getLatestMigrationVersion(): string {
     const latest = sorted[0];
     return latest || 'unknown';
   } catch (error) {
-    console.warn('Failed to determine migration version:', error);
+    // Only log in debug mode or development
+    if (import.meta.env.VITE_DEBUG_LOGGING === 'true' || import.meta.env.MODE !== 'production') {
+      console.warn('Failed to determine migration version:', error);
+    }
     return 'unknown';
   }
 }

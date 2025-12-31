@@ -18,8 +18,31 @@ import { z } from 'zod';
  * Uses Clerk JWT authentication and Row Level Security (RLS) for data isolation.
  */
 export class SupabaseAssetsRepository implements AssetsRepository {
+  // Select actual database column names (snake_case)
+  // Supabase doesn't support column aliasing in select strings, so we map them manually
   private readonly selectColumns =
-    'id, name, type, value, change1D:change_1d, change1W:change_1w, dateAdded:date_added, institution, notes, userId:user_id, createdAt:created_at, updatedAt:updated_at';
+    'id, name, type, value, change_1d, change_1w, date_added, institution, notes, user_id, created_at, updated_at';
+
+  /**
+   * Maps database row (snake_case) to entity schema (camelCase)
+   * Converts snake_case database columns to camelCase for entity schema validation
+   */
+  private mapDbRowToEntity(row: Record<string, unknown>): z.infer<typeof assetEntitySchema> {
+    return {
+      id: row.id as string,
+      name: row.name as string,
+      type: row.type as 'Real Estate' | 'Investments' | 'Vehicles' | 'Crypto' | 'Cash' | 'Superannuation' | 'Other',
+      value: row.value as number,
+      change1D: row.change_1d === null ? undefined : (row.change_1d as number | undefined),
+      change1W: row.change_1w === null ? undefined : (row.change_1w as number | undefined),
+      dateAdded: (row.date_added ? String(row.date_added).split('T')[0] : new Date().toISOString().split('T')[0]) as string,
+      institution: row.institution === null ? undefined : (row.institution as string | undefined),
+      notes: row.notes === null ? undefined : (row.notes as string | undefined),
+      userId: row.user_id as string,
+      createdAt: row.created_at as string,
+      updatedAt: row.updated_at as string,
+    };
+  }
 
   /**
    * Maps asset entity (with userId and timestamps) to domain Asset type (without userId)
@@ -121,8 +144,11 @@ export class SupabaseAssetsRepository implements AssetsRepository {
         };
       }
 
+      // Map database rows (snake_case) to entity schema (camelCase)
+      const mappedData = (data || []).map((row) => this.mapDbRowToEntity(row));
+
       // Validate response data
-      const validation = assetListSchema.safeParse(data || []);
+      const validation = assetListSchema.safeParse(mappedData);
       if (!validation.success) {
         console.error('Assets list validation error:', validation.error);
         return {
@@ -190,8 +216,20 @@ export class SupabaseAssetsRepository implements AssetsRepository {
         return { error: this.normalizeSupabaseError(error) };
       }
 
+      if (!data) {
+        return {
+          error: {
+            error: 'Asset not found.',
+            code: 'NOT_FOUND',
+          },
+        };
+      }
+
+      // Map database row (snake_case) to entity schema (camelCase)
+      const mappedData = this.mapDbRowToEntity(data);
+
       // Validate response data
-      const validation = assetEntitySchema.safeParse(data);
+      const validation = assetEntitySchema.safeParse(mappedData);
       if (!validation.success) {
         console.error('Asset validation error:', validation.error);
         return {
@@ -263,10 +301,27 @@ export class SupabaseAssetsRepository implements AssetsRepository {
       }
 
       // Map camelCase to snake_case for database
+      // Validate and normalize asset type to ensure it matches database constraint
+      const typeValue = String(validation.data.type).trim();
+      const allowedTypes = ['Real Estate', 'Investments', 'Vehicles', 'Crypto', 'Cash', 'Superannuation', 'Other'];
+      
+      if (!allowedTypes.includes(typeValue)) {
+        logger.error('DB:ASSET_INSERT', 'Invalid asset type provided', {
+          providedType: typeValue,
+          allowedTypes,
+        }, correlationId || undefined);
+        return {
+          error: {
+            error: `Invalid asset type: "${typeValue}". Allowed types: ${allowedTypes.join(', ')}`,
+            code: 'VALIDATION_ERROR',
+          },
+        };
+      }
+      
       const dbInput: Record<string, unknown> = {
         user_id: userId, // EXPLICIT: Set user_id from JWT, don't rely on DB default
         name: validation.data.name,
-        type: validation.data.type,
+        type: typeValue, // Use validated and trimmed type
         value: validation.data.value,
         date_added: validation.data.dateAdded,
       };
@@ -341,8 +396,11 @@ export class SupabaseAssetsRepository implements AssetsRepository {
         };
       }
 
+      // Map database row (snake_case) to entity schema (camelCase)
+      const mappedData = this.mapDbRowToEntity(data);
+
       // Validate response data
-      const responseValidation = assetEntitySchema.safeParse(data);
+      const responseValidation = assetEntitySchema.safeParse(mappedData);
       if (!responseValidation.success) {
         console.error('Asset create response validation error:', responseValidation.error);
         return {
@@ -403,6 +461,8 @@ export class SupabaseAssetsRepository implements AssetsRepository {
     getToken: () => Promise<string | null>
   ) {
     try {
+      const correlationId = getCorrelationId();
+      
       // Validate input
       if (!id) {
         return {
@@ -428,7 +488,33 @@ export class SupabaseAssetsRepository implements AssetsRepository {
       // Map camelCase to snake_case for database
       const dbInput: Record<string, unknown> = {};
       if (validation.data.name !== undefined) dbInput.name = validation.data.name;
-      if (validation.data.type !== undefined) dbInput.type = validation.data.type;
+      if (validation.data.type !== undefined) {
+        // Ensure type matches database constraint exactly
+        // Trim whitespace and validate against allowed types
+        const typeValue = String(validation.data.type).trim();
+        const allowedTypes = ['Real Estate', 'Investments', 'Vehicles', 'Crypto', 'Cash', 'Superannuation', 'Other'];
+        
+        if (!allowedTypes.includes(typeValue)) {
+          logger.error('DB:ASSET_UPDATE', 'Invalid asset type provided', {
+            assetId: id,
+            providedType: typeValue,
+            allowedTypes,
+          }, correlationId || undefined);
+          return {
+            error: {
+              error: `Invalid asset type: "${typeValue}". Allowed types: ${allowedTypes.join(', ')}`,
+              code: 'VALIDATION_ERROR',
+            },
+          };
+        }
+        
+        dbInput.type = typeValue;
+        logger.info('DB:ASSET_UPDATE', 'Updating asset type', { 
+          assetId: id, 
+          type: typeValue,
+          allowedTypes,
+        }, correlationId || undefined);
+      }
       if (validation.data.value !== undefined) dbInput.value = validation.data.value;
       if (validation.data.dateAdded !== undefined) dbInput.date_added = validation.data.dateAdded;
       if (validation.data.change1D !== undefined) dbInput.change_1d = validation.data.change1D;
@@ -456,7 +542,52 @@ export class SupabaseAssetsRepository implements AssetsRepository {
             },
           };
         }
+        
+        // Check if it's a constraint violation for type
+        if (error.code === '23514' && error.message.includes('assets_type_check')) {
+          const providedType = dbInput.type;
+          const allowedTypes = ['Real Estate', 'Investments', 'Vehicles', 'Crypto', 'Cash', 'Superannuation', 'Other'];
+          
+          logger.error('DB:ASSET_UPDATE', 'Asset type constraint violation', {
+            assetId: id,
+            error: error.message,
+            code: error.code,
+            dbInput,
+            providedType,
+            allowedTypes,
+            hint: 'The database constraint may not include all types. Check if migrations have been run.',
+          }, correlationId || undefined);
+          
+          console.error('Asset type constraint violation:', {
+            providedType,
+            allowedTypes,
+            error: error.message,
+            hint: 'Ensure migration 20251229160001_add_superannuation_asset_type.sql has been run',
+          });
+          
+          return {
+            error: {
+              error: `Invalid asset type "${providedType}". The database constraint may not include this type. Please ensure all migrations have been run, including: 20251229160001_add_superannuation_asset_type.sql`,
+              code: 'VALIDATION_ERROR',
+            },
+          };
+        }
+        
         console.error('Supabase assets update error:', error);
+        console.error('Error details:', {
+          message: error.message,
+          code: error.code,
+          details: error.details,
+          hint: error.hint,
+        });
+        console.error('Update input:', dbInput);
+        logger.error('DB:ASSET_UPDATE', 'Failed to update asset in Supabase', {
+          error: error.message,
+          code: error.code,
+          details: error.details,
+          hint: error.hint,
+          dbInput,
+        }, correlationId || undefined);
         return { error: this.normalizeSupabaseError(error) };
       }
 
@@ -469,8 +600,11 @@ export class SupabaseAssetsRepository implements AssetsRepository {
         };
       }
 
+      // Map database row (snake_case) to entity schema (camelCase)
+      const mappedData = this.mapDbRowToEntity(data);
+
       // Validate response data
-      const responseValidation = assetEntitySchema.safeParse(data);
+      const responseValidation = assetEntitySchema.safeParse(mappedData);
       if (!responseValidation.success) {
         console.error('Asset update response validation error:', responseValidation.error);
         return {

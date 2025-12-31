@@ -74,8 +74,8 @@ describe('Authentication Protection', () => {
   });
 
   describe('Route Protection', () => {
-    it('protects subscription routes', () => {
-      // This test would verify that accessing /subscriptions redirects to /sign-in when unauthenticated
+    it('protects budget routes', () => {
+      // This test would verify that accessing /budget redirects to /sign-in when unauthenticated
       // Would require MemoryRouter with initial entries and route change assertions
       expect(true).toBe(true); // Placeholder for future comprehensive routing tests
     });

@@ -201,7 +201,16 @@ export const getCurrentUserId = async (getUserId: () => string | null): Promise<
   try {
     return getUserId();
   } catch (error) {
-    console.error('Failed to get current user ID:', error);
+    // Log error only if debug logging is enabled
+    if (import.meta.env.VITE_DEBUG_LOGGING === 'true') {
+      const { logger, getCorrelationId } = await import('./logger');
+      logger.error(
+        'AUTH:USER_ID',
+        'Failed to get current user ID',
+        { error: error instanceof Error ? error.message : String(error) },
+        getCorrelationId() || undefined
+      );
+    }
     return null;
   }
 };

@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { isAdmin } from '../adminCheck';
 import type { User } from '@clerk/clerk-react';
 

@@ -5,7 +5,9 @@ import App from './App.tsx';
 import './index.css';
 import { validateEnvironment } from './lib/env';
 
-console.log('🔍 DEBUG: Starting app initialization...');
+if (import.meta.env.VITE_DEBUG_LOGGING === 'true') {
+  console.log('🔍 DEBUG: Starting app initialization...');
+}
 
 // Validate environment configuration early
 const envValidation = validateEnvironment();
@@ -15,25 +17,38 @@ if (envValidation.shouldBlockStartup) {
 }
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
-console.log('🔍 DEBUG: Clerk key loaded:', PUBLISHABLE_KEY ? 'YES' : 'NO');
+if (import.meta.env.VITE_DEBUG_LOGGING === 'true') {
+  console.log('🔍 DEBUG: Clerk key loaded:', PUBLISHABLE_KEY ? 'YES' : 'NO');
+}
 
 if (!PUBLISHABLE_KEY) {
-  console.error('❌ ERROR: Missing Publishable Key');
+  // Only log error in production if debug logging is enabled
+  if (import.meta.env.VITE_DEBUG_LOGGING === 'true' || import.meta.env.MODE !== 'production') {
+    console.error('❌ ERROR: Missing Publishable Key');
+  }
   throw new Error("Missing Publishable Key");
 }
 
-console.log('🔍 DEBUG: Creating React root...');
+if (import.meta.env.VITE_DEBUG_LOGGING === 'true') {
+  console.log('🔍 DEBUG: Creating React root...');
+}
 const rootElement = document.getElementById('root');
-console.log('🔍 DEBUG: Root element found:', rootElement ? 'YES' : 'NO');
+if (import.meta.env.VITE_DEBUG_LOGGING === 'true') {
+  console.log('🔍 DEBUG: Root element found:', rootElement ? 'YES' : 'NO');
+}
 
 if (!rootElement) {
-  console.error('❌ ERROR: Root element not found');
+  if (import.meta.env.VITE_DEBUG_LOGGING === 'true' || import.meta.env.MODE !== 'production') {
+    console.error('❌ ERROR: Root element not found');
+  }
   throw new Error('Root element not found');
 }
 
 // Ensure your index.html contains a <div id="root"></div> element for React to mount the app.
 
-console.log('🔍 DEBUG: Rendering React app...');
+if (import.meta.env.VITE_DEBUG_LOGGING === 'true') {
+  console.log('🔍 DEBUG: Rendering React app...');
+}
 ReactDOM.createRoot(rootElement).render(
   <React.StrictMode>
     <ClerkProvider publishableKey={PUBLISHABLE_KEY} afterSignOutUrl="/">
@@ -42,5 +57,7 @@ ReactDOM.createRoot(rootElement).render(
   </React.StrictMode>
 );
 
-console.log('🔍 DEBUG: App render initiated');
+if (import.meta.env.VITE_DEBUG_LOGGING === 'true') {
+  console.log('🔍 DEBUG: App render initiated');
+}
 

@@ -55,7 +55,7 @@ const repaymentAmountSchema = z.number()
   .optional();
 
 // Repayment frequency validation (matches SubscriptionFrequency)
-const repaymentFrequencySchema = z.enum(['weekly', 'fortnightly', 'monthly', 'yearly'], {
+const repaymentFrequencySchema = z.enum(['weekly', 'fortnightly', 'monthly', 'quarterly', 'yearly'], {
   errorMap: () => ({ message: 'Invalid repayment frequency' }),
 }).optional();
 
@@ -112,8 +112,8 @@ export const liabilityCreateSchema = z.object({
     .trim()
     .optional()
     .transform(e => e === '' ? undefined : e), // Convert empty string to undefined
-  repaymentAmount: repaymentAmountSchema,
-  repaymentFrequency: repaymentFrequencySchema,
+  // Note: repaymentAmount and repaymentFrequency are not included in create schema
+  // as they are only used for update operations and the database columns may not exist
 });
 
 export const liabilityUpdateSchema = z.object({
@@ -188,7 +188,7 @@ export const liabilityEntitySchema = z.object({
     .transform(val => val === null ? undefined : val),
   institution: nullableStringSchema,
   repaymentAmount: nullableNumberSchema,
-  repaymentFrequency: z.enum(['weekly', 'fortnightly', 'monthly', 'yearly'])
+  repaymentFrequency: z.enum(['weekly', 'fortnightly', 'monthly', 'quarterly', 'yearly'])
     .nullable()
     .optional()
     .transform(val => val === null ? undefined : val),

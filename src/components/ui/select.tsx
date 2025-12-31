@@ -34,15 +34,15 @@ const SelectTrigger = React.forwardRef<
   <SelectPrimitive.Trigger
     ref={ref}
       className={cn(
-        // Atlassian Design System styling: clean borders, subtle focus states, minimal styling
-        'flex h-10 w-full items-center justify-between rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900',
-        'placeholder:text-gray-400',
+        // Design system styling: 12px border radius, clean borders, subtle focus states
+        'flex h-10 w-full items-center justify-between rounded-[12px] border border-border bg-background px-3 py-2 text-sm text-foreground',
+        'placeholder:text-muted-foreground',
         // Subtle hover state
-        'hover:border-gray-400 hover:bg-gray-50',
+        'hover:border-neutral-mid hover:bg-muted/50',
         // Subtle focus ring (not heavy)
-        'focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:ring-offset-0 focus:border-blue-500',
+        'focus:outline-none focus:ring-2 focus:ring-primary/20 focus:ring-offset-0 focus:border-primary',
         // Disabled state
-        'disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-gray-50 disabled:hover:border-gray-300',
+        'disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-muted disabled:hover:border-border',
         // Text overflow handling
         '[&>span]:line-clamp-1',
         className
@@ -51,7 +51,7 @@ const SelectTrigger = React.forwardRef<
   >
     {children}
     <SelectPrimitive.Icon asChild>
-      <ChevronDown className="h-4 w-4 text-gray-500" />
+      <ChevronDown className="h-4 w-4 text-muted-foreground" />
     </SelectPrimitive.Icon>
   </SelectPrimitive.Trigger>
 ));
@@ -93,10 +93,8 @@ const SelectContent = React.forwardRef<
     <SelectPrimitive.Content
       ref={ref}
       className={cn(
-        // Atlassian Design System styling: cleaner dropdown menu appearance, subtle shadows
-        'relative z-50 max-h-96 min-w-[8rem] overflow-hidden rounded-md border border-gray-200 bg-white text-gray-900',
-        // Subtle shadow (not heavy)
-        'shadow-sm',
+        // Design system styling: cleaner dropdown menu appearance, flat design
+        'relative z-50 max-h-96 min-w-[8rem] overflow-hidden rounded-[12px] border border-border bg-background text-foreground',
         // Smooth animations
         'data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2',
         position === 'popper' &&
@@ -128,7 +126,7 @@ const SelectLabel = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <SelectPrimitive.Label
     ref={ref}
-    className={cn('py-1.5 pl-8 pr-2 text-sm font-semibold text-gray-700', className)}
+    className={cn('py-1.5 pl-8 pr-2 text-sm font-semibold text-muted-foreground', className)}
     {...props}
   />
 ));
@@ -141,23 +139,23 @@ const SelectItem = React.forwardRef<
   <SelectPrimitive.Item
     ref={ref}
     className={cn(
-      // Atlassian Design System styling: improved hover states, better selected state indication
-      'relative flex w-full cursor-default select-none items-center rounded-sm py-2 pl-8 pr-2 text-sm text-gray-900 outline-none',
+      // Design system styling: improved hover states, better selected state indication
+      'relative flex w-full cursor-default select-none items-center rounded-sm py-2 pl-8 pr-2 text-sm text-foreground outline-none',
       // Subtle hover state
-      'hover:bg-gray-100',
+      'hover:bg-muted',
       // Focus state (keyboard navigation)
-      'focus:bg-blue-50 focus:text-gray-900',
+      'focus:bg-primary/10 focus:text-foreground',
       // Selected state
-      'data-[highlighted]:bg-blue-50',
+      'data-[highlighted]:bg-primary/10',
       // Disabled state
-      'data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[disabled]:text-gray-400',
+      'data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[disabled]:text-muted-foreground',
       className
     )}
     {...props}
   >
     <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
       <SelectPrimitive.ItemIndicator>
-        <Check className="h-4 w-4 text-blue-600" />
+        <Check className="h-4 w-4 text-primary" />
       </SelectPrimitive.ItemIndicator>
     </span>
 

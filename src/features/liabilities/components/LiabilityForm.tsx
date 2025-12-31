@@ -37,7 +37,7 @@ const liabilitySchema = z.object({
     },
     z.number().min(0).optional()
   ),
-  repaymentFrequency: z.enum(['weekly', 'fortnightly', 'monthly', 'yearly']).optional(),
+  repaymentFrequency: z.enum(['weekly', 'fortnightly', 'monthly', 'quarterly', 'yearly']).optional(),
 });
 
 type LiabilityFormData = z.infer<typeof liabilitySchema>;
@@ -100,7 +100,7 @@ export function LiabilityForm({
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmitForm)} className="space-y-4">
+    <form onSubmit={handleSubmit(onSubmitForm as (data: LiabilityFormData) => void)} className="space-y-4">
       <div className="space-y-2">
         <Label htmlFor="name">
           Name <span className="text-destructive">*</span>
@@ -205,6 +205,7 @@ export function LiabilityForm({
                 { value: 'weekly', label: 'Weekly' },
                 { value: 'fortnightly', label: 'Fortnightly' },
                 { value: 'monthly', label: 'Monthly' },
+                { value: 'quarterly', label: 'Quarterly' },
                 { value: 'yearly', label: 'Yearly' },
               ]}
               placeholder="Select frequency"

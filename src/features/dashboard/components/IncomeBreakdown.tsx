@@ -43,7 +43,7 @@ export const IncomeBreakdown = memo(function IncomeBreakdownComponent({
             Add income sources to see your income breakdown.
           </p>
           <Button asChild size="sm">
-            <Link to="/income?create=1">Add income</Link>
+            <Link to="/budget?create=income">Add income</Link>
           </Button>
         </CardContent>
       </Card>

@@ -41,10 +41,10 @@ export const NetWorthCard = memo(function NetWorthCard({ netWorth, change1D, cha
           </p>
           <div className="flex gap-2">
             <Button asChild size="sm">
-              <Link to="/assets">Add asset</Link>
+              <Link to="/wealth?create=asset">Add asset</Link>
             </Button>
             <Button asChild size="sm" variant="outline">
-              <Link to="/liabilities?create=1">Add liability</Link>
+              <Link to="/wealth?create=liability">Add liability</Link>
             </Button>
           </div>
         </CardContent>

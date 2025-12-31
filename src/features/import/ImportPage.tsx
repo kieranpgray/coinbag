@@ -7,7 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { FileUpload } from '@/components/shared/FileUpload';
 import { ImportPreview } from './ImportPreview';
-import { ImportResults, generateErrorReport } from './ImportResults';
+import { ImportResults } from './ImportResults';
+import { generateErrorReport } from '@/lib/excel/errorReport';
 import { ImportService } from './ImportService';
 import { generateImportTemplate } from '@/lib/excel/templateGenerator';
 import { useImportProgress } from './hooks/useImportProgress';
@@ -113,12 +114,34 @@ export function ImportPage() {
 
       // Batch invalidate all related queries efficiently
       // Using predicate to invalidate multiple queries at once reduces overhead
+      // This ensures the UI refreshes with newly imported data
       queryClient.invalidateQueries({
         predicate: (query) => {
           const key = query.queryKey[0];
-          return ['accounts', 'assets', 'liabilities', 'subscriptions', 'incomes', 'dashboard'].includes(key as string);
+          return ['accounts', 'assets', 'liabilities', 'subscriptions', 'incomes', 'dashboard', 'income'].includes(key as string);
         },
       });
+
+      // Also explicitly refetch critical queries to ensure data is fresh
+      // This is a safety measure in case invalidation doesn't trigger refetch
+      if (result.imported.accounts > 0) {
+        queryClient.refetchQueries({ queryKey: ['accounts'] });
+      }
+      if (result.imported.assets > 0) {
+        queryClient.refetchQueries({ queryKey: ['assets'] });
+      }
+      if (result.imported.liabilities > 0) {
+        queryClient.refetchQueries({ queryKey: ['liabilities'] });
+      }
+      if (result.imported.subscriptions > 0) {
+        queryClient.refetchQueries({ queryKey: ['subscriptions'] });
+      }
+      if (result.imported.income > 0) {
+        queryClient.refetchQueries({ queryKey: ['incomes'] });
+        queryClient.refetchQueries({ queryKey: ['income'] });
+      }
+      // Always refetch dashboard to show updated totals
+      queryClient.refetchQueries({ queryKey: ['dashboard'] });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Import failed');
       setStep('preview');

@@ -92,7 +92,7 @@ export interface Goal {
 /**
  * Subscription frequency options
  */
-export type SubscriptionFrequency = 'weekly' | 'fortnightly' | 'monthly' | 'yearly';
+export type SubscriptionFrequency = 'weekly' | 'fortnightly' | 'monthly' | 'quarterly' | 'yearly';
 
 /**
  * Predefined subscription categories

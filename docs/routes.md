@@ -19,9 +19,9 @@ This document provides a comprehensive overview of all routes in the Coinbag app
   - Latest News widget (placeholder)
   - Recent Transactions widget (placeholder)
 - **Interactions**:
-  - Clicking "View all assets" navigates to `/assets`
-  - Clicking "View all liabilities" navigates to `/liabilities`
-  - Clicking "View all subscriptions" navigates to `/subscriptions`
+  - Clicking "View all assets" navigates to `/wealth`
+  - Clicking "View all liabilities" navigates to `/wealth`
+  - Clicking "View all expenses" navigates to `/budget`
   - Clicking "View all accounts" navigates to `/accounts`
   - Privacy mode toggle hides sensitive financial values
   - Dark mode toggle switches theme
@@ -31,16 +31,28 @@ This document provides a comprehensive overview of all routes in the Coinbag app
   - Error states for API calls
   - Privacy mode replaces values with "••••"
 
-### `/assets`
-- **Purpose**: Manage and view all financial assets
+### `/wealth`
+- **Purpose**: Unified view for managing assets and liabilities, showing net worth
 - **Key Components**:
-  - View toggle (List/Cards)
-  - Search bar for filtering by name or institution
-  - Type filter dropdown (Real Estate, Investments, Vehicles, Crypto, Other)
-  - "Add New Asset" button
-  - Asset list table or card grid
-  - Edit/Delete actions per asset
+  - Wealth header
+  - Wealth breakdown component (assets, liabilities, net worth)
+  - Assets section with view toggle (List/Cards) and category tabs
+  - Liabilities section with view toggle (List/Cards) and category tabs
+  - Visual divider between sections
+  - "Add Asset" and "Add Liability" buttons
+  - Edit/Delete actions per asset and liability
 - **Interactions**:
+  - Create assets via query params: `/wealth?create=asset&type=Investments`
+  - Create liabilities via query params: `/wealth?create=liability`
+  - View toggle for both sections (list/cards)
+  - Category filtering for assets and liabilities
+- **Legacy Routes** (redirect to `/wealth`):
+  - `/assets` → `/wealth` (with query param transformation)
+  - `/liabilities` → `/wealth` (with query param transformation)
+
+### `/assets` (Deprecated - redirects to `/wealth`)
+- **Status**: Deprecated, redirects to `/wealth`
+- **Migration**: All links should use `/wealth` instead
   - Click "Add New Asset" opens create modal
   - Click edit icon opens edit modal with pre-filled form
   - Click delete icon opens confirmation dialog
@@ -58,26 +70,10 @@ This document provides a comprehensive overview of all routes in the Coinbag app
   - Form validation errors
   - Loading states during API calls
 
-### `/liabilities`
-- **Purpose**: Manage and view all financial liabilities
-- **Key Components**:
-  - View toggle (List/Cards)
-  - Search bar for filtering
-  - Type filter dropdown (Loans, Credit Cards, Other)
-  - "Add New Liability" button
-  - Liability list table or card grid
-  - Edit/Delete actions per liability
-- **Interactions**:
-  - Same as Assets page (mirrored structure)
-  - Conditional fields: Monthly payment only shown for Loans
-- **CRUD Operations**:
-  - **Create**: Modal form (name, type, balance, interest rate, monthly payment*, due date, institution)
-  - **Edit**: Pre-filled form
-  - **Delete**: Confirmation dialog
-- **Edge Cases**:
-  - Empty state
-  - Conditional form fields based on liability type
-  - Validation for required fields
+### `/liabilities` (Deprecated - redirects to `/wealth`)
+- **Status**: Deprecated, redirects to `/wealth`
+- **Migration**: All links should use `/wealth` instead
+- **Purpose**: Previously managed and viewed all financial liabilities (now part of `/wealth`)
 
 ### `/accounts`
 - **Purpose**: View and manage connected financial accounts
@@ -133,26 +129,40 @@ The following routes are implemented as stub pages with "Coming Soon" messages:
 - **Purpose**: Transaction history and analysis (future feature)
 - **Status**: Stub page
 
-### `/subscriptions`
-- **Purpose**: Track and manage recurring expenses and subscriptions
+### `/budget`
+- **Purpose**: Unified budget management page combining income sources and expenses (subscriptions)
 - **Key Components**:
-  - "Add Subscription" button
-  - Subscription list table (Name, Amount, Frequency, Category, Next Due, Actions)
-  - Edit/Delete actions per subscription
+  - **Income Section**: 
+    - Total monthly income display
+    - Income sources in card grid layout
+    - "Add Income" button
+  - **Expenses Section**:
+    - Total monthly expenses display
+    - Category-based filtering tabs (All, Subscriptions, Bills, Repayments, Living, Lifestyle)
+    - Expense items grouped by category
+    - "Add Expense" button
+  - **Budget Summary**: Remaining budget and available percentage
+  - **Summary Card**: Total expenses, categories count, total items, average per item
 - **Interactions**:
-  - Click "Add Subscription" opens create modal
-  - Click edit icon opens edit modal with pre-filled form
+  - Click "Add Income" opens income create modal
+  - Click "Add Expense" opens subscription create modal
+  - Click edit icon on income/expense opens edit modal
   - Click delete icon opens confirmation dialog
+  - Filter expenses by category using tabs
+  - View expenses grouped by category in "All" tab
 - **CRUD Operations**:
-  - **Create**: Modal form with validation (name, amount, frequency, charge date, next due date, category, notes)
-  - **Edit**: Same form pre-filled with existing data
-  - **Delete**: Confirmation dialog before deletion
+  - **Income**: Create, Edit, Delete via modals (name, source, amount, frequency, next payment date, notes)
+  - **Expenses**: Create, Edit, Delete via modals (name, amount, frequency, charge date, next due date, category, notes)
   - All operations use optimistic updates
 - **Edge Cases**:
-  - Empty state when no subscriptions exist
-  - Form validation for required fields and date ordering
-  - Loading states during API calls
-- **Dashboard Integration**: Subscription totals appear in expense breakdown cards
+  - Empty states for income and expenses sections independently
+  - Empty states per expense category tab
+  - Loading states coordinated between income and expenses
+  - Error states per section (graceful degradation)
+  - Negative remaining budget (shown in red)
+  - Zero income handling (division by zero protection)
+- **Dashboard Integration**: Income and expense totals appear in respective breakdown cards
+- **Route Redirects**: Old routes `/income` and `/subscriptions` redirect to `/budget` for backward compatibility
 
 ### `/goals`
 - **Purpose**: Financial goal tracking (future feature)
@@ -176,13 +186,12 @@ The following routes are implemented as stub pages with "Coming Soon" messages:
 The sidebar provides quick access to all main routes:
 - Dashboard
 - Accounts
-- Assets
-- Liabilities
+- Wealth (replaces Assets and Liabilities)
 - Ask Coinbag
 - Scenarios
 - Vault
 - Transactions
-- Subscriptions
+- Budget
 - Goals
 - Earnings Calendar
 - Calculator

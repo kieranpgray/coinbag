@@ -330,10 +330,8 @@ export class ImportService {
         result.imported.subscriptions = subscriptionResults.successes.length;
         result.errors.push(...this.convertBatchErrorsToRowErrors(subscriptionResults.errors, 'subscription'));
         // Add validation errors from subscription processing
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        if ((subscriptionResults as any).validationErrors) {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          result.errors.push(...(subscriptionResults as any).validationErrors);
+        if (subscriptionResults.validationErrors) {
+          result.errors.push(...subscriptionResults.validationErrors);
         }
         overallProgress += validSubscriptions.length;
       }
@@ -614,8 +612,7 @@ export class ImportService {
     // Note: Validation errors are already in RowError format and will be added separately
     // Batch errors will be converted via convertBatchErrorsToRowErrors
     // Store validation errors separately to be merged later
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (batchResult as any).validationErrors = errors;
+    batchResult.validationErrors = errors;
 
     return batchResult;
   }
@@ -698,6 +695,12 @@ export class ImportService {
                 ? `Row ${rowNumber}: ${result.value.error.error}`
                 : result.value.error.error,
             };
+            // Log error for debugging
+            console.error(`[ImportService] Failed to import ${entityType} at row ${rowNumber || 'unknown'}:`, {
+              error: result.value.error.error,
+              code: result.value.error.code,
+              item: item,
+            });
             results.errors.push({
               item: item as T,
               error: enhancedError,
@@ -705,10 +708,17 @@ export class ImportService {
           }
         } else {
           const rowNumber = 'rowNumber' in item ? item.rowNumber : undefined;
+          const errorMessage = result.reason?.message || 'Unknown error';
+          // Log error for debugging
+          console.error(`[ImportService] Exception importing ${entityType} at row ${rowNumber || 'unknown'}:`, {
+            error: errorMessage,
+            reason: result.reason,
+            item: item,
+          });
           const enhancedError = {
             error: rowNumber
-              ? `Row ${rowNumber}: ${result.reason?.message || 'Unknown error'}`
-              : result.reason?.message || 'Unknown error',
+              ? `Row ${rowNumber}: ${errorMessage}`
+              : errorMessage,
             code: 'UNKNOWN_ERROR' as const,
           };
           results.errors.push({

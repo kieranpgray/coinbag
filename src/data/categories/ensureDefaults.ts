@@ -2,16 +2,63 @@ import { createCategoriesRepository } from './repo';
 
 /**
  * Default categories to create for new users
- * Includes "Uncategorised" plus popular subscription categories
+ * Organized by expense type for US and AU markets
+ * Aligned with budget page tabs: Subscriptions, Bills, Repayments, Living, Lifestyle
  */
 const DEFAULT_CATEGORY_NAMES = [
+  // Uncategorised (always first)
   'Uncategorised',
-  'Utilities',
+  
+  // Subscriptions
+  'Streaming',
   'Entertainment',
   'Software',
-  'Streaming',
   'Cloud Storage',
+  'Gym Membership',
+  'News & Media',
+  
+  // Bills
+  'Utilities',
+  'Electricity',
+  'Gas',
+  'Water',
+  'Internet',
+  'Phone',
   'Insurance',
+  'Rent',
+  'Mortgage',
+  
+  // Repayments
+  'Credit Card',
+  'Student Loan',
+  'Personal Loan',
+  'Car Loan',
+  'Home Loan',
+  
+  // Savings
+  'Savings',
+  'Emergency Fund',
+  'Investment',
+  
+  // Living
+  'Groceries',
+  'Food',
+  'Transportation',
+  'Public Transport',
+  'Fuel',
+  'Health',
+  'Medical',
+  'Pharmacy',
+  'Education',
+  
+  // Lifestyle
+  'Dining Out',
+  'Coffee',
+  'Shopping',
+  'Clothing',
+  'Hobbies',
+  'Travel',
+  'Entertainment',
 ] as const;
 
 /**

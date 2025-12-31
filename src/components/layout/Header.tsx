@@ -5,11 +5,13 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { CommandPalette } from '@/components/command-palette/CommandPalette';
 import { useCommandPalette } from '@/hooks/useCommandPalette';
 import { Button } from '@/components/ui/button';
-import { Eye, EyeOff, Moon, Sun, Settings } from 'lucide-react';
+import { Eye, EyeOff, Moon, Sun, Settings, Menu } from 'lucide-react';
+import { MobileNav } from './MobileNav';
 
 export function Header() {
   const { darkMode, toggleDarkMode, privacyMode, togglePrivacyMode } = useTheme();
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   useCommandPalette(() => setCommandPaletteOpen(true));
 
@@ -18,6 +20,15 @@ export function Header() {
       <header className="sticky top-0 z-40 border-b border-border bg-card backdrop-blur-sm">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setMobileNavOpen(true)}
+              aria-label="Open navigation menu"
+              className="md:hidden"
+            >
+              <Menu className="h-5 w-5" />
+            </Button>
             <Link to="/dashboard" className="text-xl font-bold hover:opacity-80">
               Coinbag
             </Link>
@@ -86,6 +97,7 @@ export function Header() {
           </div>
         </div>
       </header>
+      <MobileNav open={mobileNavOpen} onOpenChange={setMobileNavOpen} />
       <CommandPalette open={commandPaletteOpen} onOpenChange={setCommandPaletteOpen} />
     </>
   );

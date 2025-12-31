@@ -19,13 +19,11 @@ interface CommandItem {
 
 const commands: CommandItem[] = [
   { id: 'dashboard', label: 'Go to Dashboard', path: '/dashboard', keywords: ['dashboard', 'home', 'main'] },
-  { id: 'assets', label: 'Go to Assets', path: '/assets', keywords: ['assets', 'investments', 'portfolio'] },
-  { id: 'liabilities', label: 'Go to Liabilities', path: '/liabilities', keywords: ['liabilities', 'debts', 'loans'] },
+  { id: 'wealth', label: 'Go to Wealth', path: '/wealth', keywords: ['wealth', 'assets', 'liabilities', 'investments', 'portfolio', 'debts', 'loans', 'net worth'] },
   { id: 'accounts', label: 'Go to Accounts', path: '/accounts', keywords: ['accounts', 'bank', 'financial'] },
   { id: 'settings', label: 'Go to Settings', path: '/settings', keywords: ['settings', 'preferences', 'config'] },
-  { id: 'transactions', label: 'Go to Transactions', path: '/transactions', keywords: ['transactions', 'history', 'activity'] },
   { id: 'goals', label: 'Go to Goals', path: '/goals', keywords: ['goals', 'targets', 'objectives'] },
-  { id: 'subscriptions', label: 'Go to Subscriptions', path: '/subscriptions', keywords: ['subscriptions', 'recurring', 'bills'] },
+  { id: 'budget', label: 'Go to Budget', path: '/budget', keywords: ['budget', 'income', 'expenses', 'subscriptions', 'recurring', 'bills'] },
 ];
 
 interface CommandPaletteProps {

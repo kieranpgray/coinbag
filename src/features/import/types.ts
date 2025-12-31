@@ -107,5 +107,6 @@ export interface ImportResult {
 export interface BatchResult<T> {
   successes: Array<{ item: T; data: unknown }>;
   errors: Array<{ item: T; error: { error: string; code: string } }>;
+  validationErrors?: RowError[];
 }
 

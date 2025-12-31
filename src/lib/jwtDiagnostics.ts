@@ -72,13 +72,16 @@ export function logJwtDiagnostics(token: string | null, context: string): void {
   const isExpired = exp ? exp < now : false;
   const expiresIn = exp ? exp - now : null;
 
+  const isProduction = import.meta.env.MODE === 'production' || import.meta.env.PROD === true;
+  
   logger.info(
     'JWT:DIAGNOSTICS',
     `JWT token retrieved in ${context}`,
     {
       context,
       hasSub: !!sub,
-      sub: sub || 'MISSING',
+      // Don't log actual user ID in production, even with debug logging
+      sub: isProduction ? '[REDACTED]' : (sub || 'MISSING'),
       isExpired,
       expiresIn: expiresIn !== null ? `${expiresIn}s` : 'unknown',
       issuedAt: iat ? new Date(iat * 1000).toISOString() : 'unknown',

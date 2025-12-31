@@ -14,22 +14,30 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     return (
       <Comp
         className={cn(
-          'inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
+          'inline-flex items-center justify-center text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-40 disabled:cursor-default',
           {
-            'bg-primary text-primary-foreground hover:bg-primary/90': variant === 'default',
-            'bg-destructive text-destructive-foreground hover:bg-destructive/90':
-              variant === 'destructive',
-            'border border-border bg-background hover:bg-accent hover:text-accent-foreground':
-              variant === 'outline',
-            'bg-secondary text-secondary-foreground hover:bg-secondary/80': variant === 'secondary',
-            'hover:bg-accent hover:text-accent-foreground': variant === 'ghost',
-            'text-primary underline-offset-4 hover:underline': variant === 'link',
+            // Primary button: pill-shaped, flat solid color, white text
+            'rounded-full bg-primary text-white hover:bg-primary/90': variant === 'default',
+            // Destructive button: pill-shaped, flat red background
+            'rounded-full bg-error text-white hover:bg-error/90': variant === 'destructive',
+            // Outline button: pill-shaped with border, flat hover
+            'rounded-full border border-border bg-background hover:bg-muted/50 hover:text-foreground': variant === 'outline',
+            // Secondary button: tonal style with lighter background, flat hover
+            'rounded-full bg-secondary text-secondary-foreground hover:bg-secondary/80': variant === 'secondary',
+            // Ghost button: no background, flat hover effect
+            'rounded-full hover:bg-muted/50 hover:text-foreground': variant === 'ghost',
+            // Link button: no background, underline on hover
+            'text-link underline-offset-4 hover:underline': variant === 'link',
           },
           {
-            'h-10 px-4 py-2': size === 'default',
-            'h-9 rounded-md px-3': size === 'sm',
-            'h-11 rounded-md px-8': size === 'lg',
-            'h-10 w-10': size === 'icon',
+            // Default size: 40-48px height, responsive horizontal padding
+            'h-12 px-4 sm:px-6 min-h-[44px]': size === 'default',
+            // Small size: smaller height and responsive padding
+            'h-9 px-3 sm:px-4 min-h-[44px]': size === 'sm',
+            // Large size: larger height, responsive horizontal padding
+            'h-14 px-4 sm:px-6 min-h-[44px]': size === 'lg',
+            // Icon button: circular, 40px diameter, no text wrapping needed
+            'h-10 w-10 rounded-full p-0 whitespace-nowrap': size === 'icon',
           },
           className
         )}

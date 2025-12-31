@@ -106,15 +106,15 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
       <input
         type={type}
         className={cn(
-          // Atlassian Design System styling: clean borders, subtle focus states
-          'flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900',
-          'placeholder:text-gray-400',
+          // Design system styling: 12px border radius, clean borders, subtle focus states
+          'flex h-10 w-full rounded-[12px] border border-border bg-background px-3 py-2 text-sm text-foreground',
+          'placeholder:text-muted-foreground',
           // Subtle hover state
-          'hover:border-gray-400',
+          'hover:border-neutral-mid',
           // Subtle focus ring (not heavy)
-          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/20 focus-visible:ring-offset-0 focus-visible:border-blue-500',
+          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:ring-offset-0 focus-visible:border-primary',
           // Disabled state
-          'disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-gray-50 disabled:hover:border-gray-300',
+          'disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-muted disabled:hover:border-border',
           // File input styling
           'file:border-0 file:bg-transparent file:text-sm file:font-medium',
           className

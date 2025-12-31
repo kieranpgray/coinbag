@@ -7,20 +7,21 @@ import { z } from 'zod';
 
 // Constants for validation rules
 const AMOUNT_RANGES = {
-  weekly: { min: 1, max: 2000, label: '$1-2000' },
-  fortnightly: { min: 1, max: 4000, label: '$1-4000' },
-  monthly: { min: 1, max: 10000, label: '$1-10,000' },
-  yearly: { min: 1, max: 50000, label: '$1-50,000' },
+  weekly: { min: 0, max: 2000, label: '$0-2000' },
+  fortnightly: { min: 0, max: 4000, label: '$0-4000' },
+  monthly: { min: 0, max: 10000, label: '$0-10,000' },
+  quarterly: { min: 0, max: 30000, label: '$0-30,000' },
+  yearly: { min: 0, max: 50000, label: '$0-50,000' },
 } as const;
 
 const VALIDATION_LIMITS = {
   name: { min: 1, max: 100 },
-  amount: { min: 0.01, max: 100000 },
+  amount: { min: 0, max: 100000 },
   notes: { max: 500 },
 } as const;
 
 // Base schemas for domain types
-export const subscriptionFrequencySchema = z.enum(['weekly', 'fortnightly', 'monthly', 'yearly']);
+export const subscriptionFrequencySchema = z.enum(['weekly', 'fortnightly', 'monthly', 'quarterly', 'yearly']);
 
 // Category ID schema - references categories table
 export const categoryIdSchema = z.string().uuid('Invalid category ID format');
@@ -32,7 +33,7 @@ const validDateString = z.string().refine(
 );
 
 const validAmount = z.number()
-  .min(VALIDATION_LIMITS.amount.min, `Amount must be greater than $${VALIDATION_LIMITS.amount.min}`)
+  .min(VALIDATION_LIMITS.amount.min, `Amount must be at least $${VALIDATION_LIMITS.amount.min}`)
   .max(VALIDATION_LIMITS.amount.max, `Amount must be less than $${VALIDATION_LIMITS.amount.max}`)
   .finite('Amount must be a valid number');
 

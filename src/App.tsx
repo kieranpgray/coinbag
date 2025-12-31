@@ -6,6 +6,7 @@ import { RouteChangeLogger } from './components/shared/RouteChangeLogger';
 import { DebugOverlay } from './components/shared/DebugOverlay';
 import { EnvironmentBanner } from './components/shared/EnvironmentBanner';
 import { DebugPanel } from './components/shared/DebugPanel';
+import { ErrorBoundary } from './components/shared/ErrorBoundary';
 import { useKonamiCode } from './hooks/useKonamiCode';
 import { wrapQueryClientForLogging } from './lib/queryClientLogger';
 import { logger } from './lib/logger';
@@ -28,7 +29,9 @@ const queryClient = new QueryClient({
 wrapQueryClientForLogging(queryClient);
 
 function App() {
-  console.log('🔍 DEBUG: App component rendering...');
+  if (import.meta.env.VITE_DEBUG_LOGGING === 'true') {
+    console.log('🔍 DEBUG: App component rendering...');
+  }
   const konamiActivated = useKonamiCode();
   const [debugPanelOpen, setDebugPanelOpen] = useState(false);
 
@@ -40,17 +43,21 @@ function App() {
   }, [konamiActivated]);
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <RouteChangeLogger />
-        <ThemeProvider>
-          <EnvironmentBanner />
-          <Routes />
-          <DebugOverlay />
-          <DebugPanel open={debugPanelOpen} onOpenChange={setDebugPanelOpen} />
-        </ThemeProvider>
-      </BrowserRouter>
-    </QueryClientProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <BrowserRouter>
+          <RouteChangeLogger />
+          <ThemeProvider>
+            <EnvironmentBanner />
+            <ErrorBoundary>
+              <Routes />
+            </ErrorBoundary>
+            <DebugOverlay />
+            <DebugPanel open={debugPanelOpen} onOpenChange={setDebugPanelOpen} />
+          </ThemeProvider>
+        </BrowserRouter>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 }
 

@@ -62,7 +62,7 @@ export function AssetsPage() {
       );
       
       setCreateModalOpen(true);
-      if (type && ['Real Estate', 'Investments', 'Vehicles', 'Crypto', 'Cash', 'Other'].includes(type)) {
+      if (type && ['Real Estate', 'Investments', 'Vehicles', 'Crypto', 'Cash', 'Superannuation', 'Other'].includes(type)) {
         setDefaultAssetType(type);
       }
       // Clear the query params after processing
@@ -75,7 +75,6 @@ export function AssetsPage() {
         correlationId || undefined
       );
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams, setSearchParams]); // FIXED: Removed assets and selectedAsset from dependencies
 
   // Calculate total asset value
@@ -172,6 +171,7 @@ export function AssetsPage() {
     { value: 'Vehicles', label: 'Vehicles' },
     { value: 'Crypto', label: 'Crypto' },
     { value: 'Cash', label: 'Cash' },
+    { value: 'Superannuation', label: 'Superannuation' },
     { value: 'Other', label: 'Other' },
   ];
 
@@ -182,9 +182,9 @@ export function AssetsPage() {
           <div className="space-y-1">
             <h1 className="text-3xl font-bold tracking-tight">Assets</h1>
             <div className="space-y-0.5">
-              <p className="text-5xl font-bold tracking-tight">
+              <div className="text-4xl font-bold mb-4">
                 {formatCurrency(totalAssetValue)}
-              </p>
+              </div>
               <p className="text-sm text-muted-foreground">Total asset value</p>
             </div>
           </div>
@@ -218,9 +218,12 @@ export function AssetsPage() {
     return (
       <div className="space-y-8">
         <div className="flex items-start justify-between">
-          <div className="space-y-2">
-            <Skeleton className="h-14 w-64" />
-            <Skeleton className="h-4 w-32" />
+          <div className="space-y-1">
+            <Skeleton className="h-9 w-32" />
+            <div className="space-y-0.5">
+              <Skeleton className="h-9 w-48 mb-4" />
+              <Skeleton className="h-4 w-32" />
+            </div>
           </div>
           <Skeleton className="h-10 w-40" />
         </div>
@@ -233,20 +236,36 @@ export function AssetsPage() {
   return (
     <div className="space-y-8">
       {/* Header with Total Value */}
-      <div className="flex items-start justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="space-y-1">
-          <h1 className="text-3xl font-bold tracking-tight">Assets</h1>
-          <div className="space-y-0.5">
-            <p className="text-5xl font-bold tracking-tight">
-              {formatCurrency(totalAssetValue)}
-            </p>
-            <p className="text-sm text-muted-foreground">Total asset value</p>
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Assets</h1>
+            <div className="space-y-0.5">
+              <div className="text-3xl sm:text-4xl font-bold mb-4">
+                {formatCurrency(totalAssetValue)}
+              </div>
+              <p className="text-sm text-muted-foreground">Total asset value</p>
+            </div>
+        </div>
+        <div className="flex flex-col gap-4 sm:items-end">
+          <Button onClick={() => setCreateModalOpen(true)} className="w-full sm:w-auto">
+            <Plus className="h-4 w-4 mr-2" />
+            Add New Asset
+          </Button>
+          <div className="flex items-center gap-3">
+            <Label htmlFor="view-mode" className="text-sm text-muted-foreground">
+              List view
+            </Label>
+            <Switch
+              id="view-mode"
+              checked={viewMode === 'cards'}
+              onCheckedChange={(checked) => setViewMode(checked ? 'cards' : 'list')}
+              aria-label="Toggle between list view and card view"
+            />
+            <Label htmlFor="view-mode" className="text-sm text-muted-foreground">
+              Card view
+            </Label>
           </div>
         </div>
-        <Button onClick={() => setCreateModalOpen(true)}>
-          <Plus className="h-4 w-4 mr-2" />
-          Add New Asset
-        </Button>
       </div>
 
       {/* Category Tabs */}
@@ -258,22 +277,6 @@ export function AssetsPage() {
             </TabsTrigger>
           ))}
         </TabsList>
-
-        {/* View Toggle */}
-        <div className="flex items-center gap-3 mt-4">
-          <Label htmlFor="view-mode" className="text-sm text-muted-foreground">
-            List view
-          </Label>
-          <Switch
-            id="view-mode"
-            checked={viewMode === 'cards'}
-            onCheckedChange={(checked) => setViewMode(checked ? 'cards' : 'list')}
-            aria-label="Toggle between list view and card view"
-          />
-          <Label htmlFor="view-mode" className="text-sm text-muted-foreground">
-            Card view
-          </Label>
-        </div>
 
         {assetCategories.map((category) => (
           <TabsContent key={category.value} value={category.value} className="mt-6">

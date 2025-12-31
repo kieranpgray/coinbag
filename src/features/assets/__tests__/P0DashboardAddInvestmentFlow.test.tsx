@@ -10,14 +10,12 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { render, screen, waitFor, fireEvent } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter } from 'react-router-dom';
 import type { ReactNode } from 'react';
 import { AssetsPage } from '@/features/assets/AssetsPage';
-import { DashboardPage } from '@/features/dashboard/DashboardPage';
 import { seedMockAssets, clearMockAssets } from '@/data/assets/mockRepo';
-import { useCreateAsset } from '@/features/assets/hooks/useAssets';
 import type { Asset } from '@/types/domain';
 
 // Mock environment to use mock repositories

@@ -7,6 +7,12 @@ import type {
   ValidationSummary,
   EntityType,
 } from './types';
+import {
+  normalizeFrequency,
+  normalizeAssetType,
+  normalizeLiabilityType,
+  normalizeIncomeSource,
+} from './utils';
 import type { FieldError } from './types';
 import {
   accountCreateSchema,
@@ -185,11 +191,20 @@ export class ImportValidation {
         errors.push({
           rowNumber: row.rowNumber,
           entityType: 'account',
-          fields: validation.error.errors.map((err) => ({
-            field: err.path.join('.'),
-            message: err.message,
-            value: String(err.path?.[0] || 'unknown'),
-          })),
+          fields: validation.error.errors.map((err) => {
+            let message = err.message;
+            // Enhance error messages with suggestions
+            // Type guard for ZodIssue input property (may not exist in all Zod versions)
+            const errInput = 'input' in err ? (err as { input?: unknown }).input : undefined;
+            if (err.path[0] === 'accountType' && typeof errInput === 'string') {
+              message = `${err.message}. Valid values: Checking, Savings, Credit Card, Investment, Other`;
+            }
+            return {
+              field: err.path.join('.'),
+              message,
+              value: errInput !== undefined ? String(errInput) : String(err.path?.[0] || 'unknown'),
+            };
+          }),
           rawData: row.data,
         });
         return;
@@ -244,11 +259,25 @@ export class ImportValidation {
         errors.push({
           rowNumber: row.rowNumber,
           entityType: 'asset',
-          fields: validation.error.errors.map((err) => ({
-            field: err.path.join('.'),
-            message: err.message,
-            value: String(err.path?.[0] || 'unknown'),
-          })),
+          fields: validation.error.errors.map((err) => {
+            let message = err.message;
+            // Enhance error messages with suggestions for type field
+            // Type guard for ZodIssue input property (may not exist in all Zod versions)
+            const errInput = 'input' in err ? (err as { input?: unknown }).input : undefined;
+            if (err.path[0] === 'type' && typeof errInput === 'string') {
+              const normalized = normalizeAssetType(errInput);
+              if (normalized) {
+                message = `Invalid asset type "${errInput}". Did you mean "${normalized}"? Valid values: Real Estate, Investments, Vehicles, Crypto, Cash, Superannuation, Other`;
+              } else {
+                message = `${err.message}. Valid values: Real Estate, Investments, Vehicles, Crypto, Cash, Superannuation, Other`;
+              }
+            }
+            return {
+              field: err.path.join('.'),
+              message,
+              value: errInput !== undefined ? String(errInput) : String(err.path?.[0] || 'unknown'),
+            };
+          }),
           rawData: row.data,
         });
         return;
@@ -303,11 +332,25 @@ export class ImportValidation {
         errors.push({
           rowNumber: row.rowNumber,
           entityType: 'liability',
-          fields: validation.error.errors.map((err) => ({
-            field: err.path.join('.'),
-            message: err.message,
-            value: String(err.path?.[0] || 'unknown'),
-          })),
+          fields: validation.error.errors.map((err) => {
+            let message = err.message;
+            // Enhance error messages with suggestions for type field
+            // Type guard for ZodIssue input property (may not exist in all Zod versions)
+            const errInput = 'input' in err ? (err as { input?: unknown }).input : undefined;
+            if (err.path[0] === 'type' && typeof errInput === 'string') {
+              const normalized = normalizeLiabilityType(errInput);
+              if (normalized) {
+                message = `Invalid liability type "${errInput}". Did you mean "${normalized}"? Valid values: Loans, Credit Cards, Other`;
+              } else {
+                message = `${err.message}. Valid values: Loans, Credit Cards, Other`;
+              }
+            }
+            return {
+              field: err.path.join('.'),
+              message,
+              value: errInput !== undefined ? String(errInput) : String(err.path?.[0] || 'unknown'),
+            };
+          }),
           rawData: row.data,
         });
         return;
@@ -377,11 +420,25 @@ export class ImportValidation {
           errors.push({
             rowNumber: row.rowNumber,
             entityType: 'subscription',
-            fields: relevantErrors.map((err) => ({
-              field: err.path.join('.'),
-              message: err.message,
-              value: String(err.path?.[0] || 'unknown'),
-            })),
+            fields: relevantErrors.map((err) => {
+              let message = err.message;
+              // Enhance error messages with suggestions for frequency field
+              // Type guard for ZodIssue input property (may not exist in all Zod versions)
+              const errInput = 'input' in err ? (err as { input?: unknown }).input : undefined;
+              if (err.path[0] === 'frequency' && typeof errInput === 'string') {
+                const normalized = normalizeFrequency(errInput);
+                if (normalized) {
+                  message = `Invalid frequency "${errInput}". Did you mean "${normalized}"? Valid values: weekly, fortnightly, monthly, quarterly, yearly`;
+                } else {
+                  message = `${err.message}. Valid values: weekly, fortnightly, monthly, quarterly, yearly`;
+                }
+              }
+              return {
+                field: err.path.join('.'),
+                message,
+                value: errInput !== undefined ? String(errInput) : String(err.path?.[0] || 'unknown'),
+              };
+            }),
             rawData: row.data,
           });
         }
@@ -460,11 +517,32 @@ export class ImportValidation {
         errors.push({
           rowNumber: row.rowNumber,
           entityType: 'income',
-          fields: validation.error.errors.map((err) => ({
-            field: err.path.join('.'),
-            message: err.message,
-            value: String(err.path?.[0] || 'unknown'),
-          })),
+          fields: validation.error.errors.map((err) => {
+            let message = err.message;
+            // Enhance error messages with suggestions
+            // Type guard for ZodIssue input property (may not exist in all Zod versions)
+            const errInput = 'input' in err ? (err as { input?: unknown }).input : undefined;
+            if (err.path[0] === 'frequency' && typeof errInput === 'string') {
+              const normalized = normalizeFrequency(errInput);
+              if (normalized) {
+                message = `Invalid frequency "${errInput}". Did you mean "${normalized}"? Valid values: weekly, fortnightly, monthly, quarterly, yearly`;
+              } else {
+                message = `${err.message}. Valid values: weekly, fortnightly, monthly, yearly`;
+              }
+            } else if (err.path[0] === 'source' && typeof errInput === 'string') {
+              const normalized = normalizeIncomeSource(errInput);
+              if (normalized) {
+                message = `Invalid income source "${errInput}". Did you mean "${normalized}"? Valid values: Salary, Freelance, Business, Investments, Rental, Other`;
+              } else {
+                message = `${err.message}. Valid values: Salary, Freelance, Business, Investments, Rental, Other`;
+              }
+            }
+            return {
+              field: err.path.join('.'),
+              message,
+              value: errInput !== undefined ? String(errInput) : String(err.path?.[0] || 'unknown'),
+            };
+          }),
           rawData: row.data,
         });
         return;

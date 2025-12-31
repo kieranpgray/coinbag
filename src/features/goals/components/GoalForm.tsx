@@ -101,7 +101,7 @@ export function GoalForm({ goal, onSubmit, onCancel, isLoading }: GoalFormProps)
         />
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="type">Goal Type</Label>
           <SearchableSelect
@@ -131,7 +131,7 @@ export function GoalForm({ goal, onSubmit, onCancel, isLoading }: GoalFormProps)
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="currentAmount">Current Amount</Label>
           <div className="relative">

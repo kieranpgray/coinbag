@@ -4,11 +4,10 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useDashboard } from '../hooks/useDashboard';
 import { useCreateAsset } from '@/features/assets/hooks/useAssets';
 import { useCreateLiability } from '@/features/liabilities/hooks/useLiabilities';
-import { useCreateAccount } from '@/features/accounts/hooks/useAccounts';
 import { useCreateSubscription } from '@/features/subscriptions/hooks';
 import { useCreateIncome } from '@/features/income/hooks/useIncome';
 import type { ReactNode } from 'react';
-import type { Asset, Liability, Account, Subscription, Income } from '@/types/domain';
+import type { Asset, Liability, Account, Subscription } from '@/types/domain';
 
 // Import seed/clear functions
 import { seedMockAssets, clearMockAssets } from '@/data/assets/mockRepo';
@@ -446,14 +445,15 @@ describe('P0 Dashboard Verification', () => {
         created_at: '2024-01-01T00:00:00Z',
         updated_at: '2024-01-01T00:00:00Z',
       };
-      const initialIncome: Income = {
-        id: 'income-1',
-        name: 'Salary',
-        source: 'Salary',
-        amount: 5000,
-        frequency: 'monthly',
-        nextPaymentDate: '2024-02-01',
-      };
+      // Note: Income uses in-memory store, so we'll create it via API if needed
+      // const _initialIncome: Income = {
+      //   id: 'income-1',
+      //   name: 'Salary',
+      //   source: 'Salary',
+      //   amount: 5000,
+      //   frequency: 'monthly',
+      //   nextPaymentDate: '2024-02-01',
+      // };
 
       seedMockAssets([initialAsset]);
       seedMockLiabilities([initialLiability]);

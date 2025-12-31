@@ -38,7 +38,7 @@ export const AssetsBreakdown = memo(function AssetsBreakdown({ breakdown, totalV
             Add your first asset to see a breakdown.
           </p>
           <Button asChild size="sm">
-            <Link to="/assets?create=1">Add asset</Link>
+            <Link to="/wealth?create=asset">Add asset</Link>
           </Button>
         </CardContent>
       </Card>
@@ -73,7 +73,7 @@ export const AssetsBreakdown = memo(function AssetsBreakdown({ breakdown, totalV
           ))}
         </div>
         <Link
-          to="/assets"
+          to="/wealth"
           className="mt-4 inline-block text-sm text-primary hover:underline"
         >
           View all assets →

@@ -229,17 +229,15 @@ export function ImportPreview({
       )}
 
       {/* Actions */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-4 pt-4">
         <Button variant="outline" onClick={onCancel}>
           Cancel
         </Button>
-        <div className="flex items-center gap-2">
-          {canImport && (
-            <Button onClick={onConfirm} disabled={!canImport}>
-              Import {summary.validRows} Item{summary.validRows !== 1 ? 's' : ''}
-            </Button>
-          )}
-        </div>
+        {canImport && (
+          <Button onClick={onConfirm} disabled={!canImport}>
+            Import {summary.validRows} Item{summary.validRows !== 1 ? 's' : ''}
+          </Button>
+        )}
       </div>
     </div>
   );

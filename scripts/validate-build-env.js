@@ -53,6 +53,50 @@ if (isProduction && dataSource === 'supabase') {
   if (!process.env.VITE_SUPABASE_ANON_KEY) {
     console.warn('⚠️  WARNING: VITE_SUPABASE_ANON_KEY is not set');
   }
+  
+  // Validate Supabase URL format
+  if (process.env.VITE_SUPABASE_URL && !process.env.VITE_SUPABASE_URL.match(/^https:\/\/.*\.supabase\.co$/)) {
+    console.error('');
+    console.error('❌ BUILD FAILED: VITE_SUPABASE_URL must be a valid Supabase URL');
+    console.error(`   Current value: "${process.env.VITE_SUPABASE_URL}"`);
+    console.error('   Expected format: https://<project-id>.supabase.co');
+    console.error('');
+    process.exit(1);
+  }
+}
+
+// CRITICAL: Validate Clerk key format in production
+const clerkKey = process.env.VITE_CLERK_PUBLISHABLE_KEY;
+if (isProduction && clerkKey) {
+  if (clerkKey.startsWith('pk_test_')) {
+    console.error('');
+    console.error('❌ BUILD FAILED: Test Clerk key detected in production');
+    console.error('   Clerk publishable key starts with "pk_test_" which is for development only.');
+    console.error('   Use production key (pk_live_...) in production builds.');
+    console.error('');
+    console.error('   Get production key from:');
+    console.error('   Clerk Dashboard → API Keys → Production tab');
+    console.error('');
+    process.exit(1);
+  }
+  
+  if (!clerkKey.startsWith('pk_live_') && !clerkKey.startsWith('pk_test_')) {
+    console.error('');
+    console.error('❌ BUILD FAILED: Invalid Clerk key format');
+    console.error(`   Current value: "${clerkKey.substring(0, 20)}..."`);
+    console.error('   Clerk keys must start with "pk_live_" (production) or "pk_test_" (development)');
+    console.error('');
+    process.exit(1);
+  }
+  
+  if (clerkKey.startsWith('pk_live_')) {
+    console.log('✅ Clerk production key detected');
+  }
+} else if (isProduction && !clerkKey) {
+  console.error('');
+  console.error('❌ BUILD FAILED: VITE_CLERK_PUBLISHABLE_KEY is required in production');
+  console.error('');
+  process.exit(1);
 }
 
 // Note: TypeScript validation is handled by the build script itself

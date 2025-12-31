@@ -34,8 +34,8 @@ async function testSupabaseConnection() {
   // Step 3: Test basic connection (check if we can reach Supabase)
   console.log('Step 3: Testing basic connection');
   try {
-    // Try to fetch from a public endpoint
-    const { data, error } = await supabase.from('assets').select('count').limit(0);
+    // Try to fetch from a public endpoint (data unused, only checking for errors)
+    const { error } = await supabase.from('assets').select('count').limit(0);
     
     if (error) {
       // Some errors are expected (like RLS blocking, table not found, etc.)
@@ -63,8 +63,8 @@ async function testSupabaseConnection() {
   // Step 4: Check if assets table exists
   console.log('Step 4: Checking if assets table exists');
   try {
-    // Try to get table schema (this should work even with RLS)
-    const { data, error } = await supabase.rpc('pg_get_tabledef', { tablename: 'assets' }).single();
+    // Try to get table schema (this should work even with RLS) (data unused, only checking for errors)
+    const { error } = await supabase.rpc('pg_get_tabledef', { tablename: 'assets' }).single();
     
     if (error) {
       // Try alternative: just check if we can query (even if empty)

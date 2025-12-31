@@ -214,7 +214,7 @@ export function SearchableSelect({
         <div
           ref={dropdownRef}
           role="listbox"
-          className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-sm max-h-80 overflow-hidden flex flex-col"
+          className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-md max-h-80 overflow-hidden flex flex-col"
         >
           {/* Search input */}
           <div className="p-2 border-b border-gray-200">

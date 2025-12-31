@@ -31,7 +31,7 @@ const cards: CardData[] = [
     description: 'Track investments, crypto, and more',
     color: 'emerald',
     action: 'Add asset',
-    href: '/assets?create=1',
+    href: '/wealth?create=asset',
   },
   {
     icon: Target,
@@ -47,7 +47,7 @@ const cards: CardData[] = [
     description: 'Take control of your spending',
     color: 'pink',
     action: 'Set budget',
-    href: '/subscriptions',
+    href: '/budget',
   },
 ];
 

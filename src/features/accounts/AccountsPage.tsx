@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
-import { useAccounts } from '@/features/accounts/hooks';
+import { useParams, useNavigate } from 'react-router-dom';
+import { useAccounts, useDeleteAccount, useAccount } from '@/features/accounts/hooks';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -14,12 +15,21 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Card, CardContent } from '@/components/ui/card';
 import { formatCurrency, formatDate } from '@/lib/utils';
-import { Plus, Eye, EyeOff, RefreshCw, AlertTriangle } from 'lucide-react';
+import { Plus, Eye, EyeOff, RefreshCw, AlertTriangle, Trash2, ArrowLeft } from 'lucide-react';
+import { DeleteAccountDialog } from '@/features/accounts/components/DeleteAccountDialog';
+import { TransactionList } from '@/features/transactions/components/TransactionList';
+import type { Account } from '@/types/domain';
 
 export function AccountsPage() {
+  const { accountId } = useParams<{ accountId?: string }>();
+  const navigate = useNavigate();
   const { data: accounts = [], isLoading, error, refetch } = useAccounts();
+  const { data: selectedAccountData, isLoading: isLoadingAccount } = useAccount(accountId || '');
+  const deleteMutation = useDeleteAccount();
   const [searchQuery, setSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState<string>('all');
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [selectedAccount, setSelectedAccount] = useState<Account | null>(null);
 
   // Filter and search accounts
   const filteredAccounts = useMemo(() => {
@@ -45,12 +55,122 @@ export function AccountsPage() {
 
   const accountTypes = ['all', 'Checking', 'Savings', 'Investment', 'Credit Card', 'Loan', 'Crypto'];
 
+  const handleDelete = (account: Account) => {
+    setSelectedAccount(account);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (!selectedAccount) return;
+    deleteMutation.mutate(selectedAccount.id, {
+      onSuccess: () => {
+        setDeleteDialogOpen(false);
+        setSelectedAccount(null);
+        // If we're viewing the deleted account, navigate back to accounts list
+        if (accountId === selectedAccount.id) {
+          navigate('/accounts');
+        }
+      },
+    });
+  };
+
+  const handleAccountClick = (account: Account) => {
+    navigate(`/accounts/${account.id}`);
+  };
+
+  const handleBackToAccounts = () => {
+    navigate('/accounts');
+  };
+
+  // Account Detail View (when accountId is in URL)
+  if (accountId) {
+    if (isLoadingAccount) {
+      return (
+        <div className="space-y-6">
+          <Skeleton className="h-10 w-48" />
+          <Skeleton className="h-64 w-full" />
+        </div>
+      );
+    }
+
+    if (!selectedAccountData) {
+      return (
+        <div className="space-y-6">
+          <Button variant="ghost" onClick={handleBackToAccounts} className="mb-4">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Accounts
+          </Button>
+          <Alert>
+            <AlertTriangle className="h-4 w-4" />
+            <AlertTitle>Account not found</AlertTitle>
+            <AlertDescription className="mt-2">
+              The account you're looking for doesn't exist or has been deleted.
+            </AlertDescription>
+          </Alert>
+        </div>
+      );
+    }
+
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" onClick={handleBackToAccounts}>
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Accounts
+          </Button>
+        </div>
+
+        {/* Account Summary */}
+        <Card>
+          <CardContent className="py-6">
+            <div className="flex items-start justify-between">
+              <div>
+                <h1 className="text-3xl font-bold mb-2">{selectedAccountData.accountName}</h1>
+                <p className="text-muted-foreground mb-4">{selectedAccountData.institution}</p>
+                <div className="flex items-center gap-4">
+                  <div>
+                    <span className="text-sm text-muted-foreground">Type</span>
+                    <p className="font-medium">{selectedAccountData.accountType}</p>
+                  </div>
+                  <div>
+                    <span className="text-sm text-muted-foreground">Balance</span>
+                    <p className="font-medium">{formatCurrency(selectedAccountData.balance)}</p>
+                  </div>
+                  <div>
+                    <span className="text-sm text-muted-foreground">Available</span>
+                    <p className="font-medium">
+                      {formatCurrency(selectedAccountData.availableBalance)}
+                    </p>
+                  </div>
+                  <div>
+                    <span className="text-sm text-muted-foreground">Last Updated</span>
+                    <p className="font-medium">{formatDate(selectedAccountData.lastUpdated)}</p>
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                {selectedAccountData.hidden ? (
+                  <EyeOff className="h-5 w-5 text-muted-foreground" />
+                ) : (
+                  <Eye className="h-5 w-5 text-muted-foreground" />
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Transactions List */}
+        <TransactionList accountId={accountId} />
+      </div>
+    );
+  }
+
   if (error) {
     return (
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold">Accounts</h1>
-          <Button disabled>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <h1 className="text-2xl sm:text-3xl font-bold">Accounts</h1>
+          <Button disabled className="w-full sm:w-auto">
             <Plus className="h-4 w-4 mr-2" />
             ADD NEW ACCOUNT
           </Button>
@@ -89,8 +209,8 @@ export function AccountsPage() {
   if (accounts.length === 0) {
     return (
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold">Accounts</h1>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <h1 className="text-2xl sm:text-3xl font-bold">Accounts</h1>
         </div>
         <Card>
           <CardContent className="py-12 text-center">
@@ -127,11 +247,11 @@ export function AccountsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Accounts</h1>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <h1 className="text-2xl sm:text-3xl font-bold">Accounts</h1>
         <Button onClick={() => {
           alert('Account creation not yet implemented');
-        }}>
+        }} className="w-full sm:w-auto">
           <Plus className="h-4 w-4 mr-2" />
           ADD NEW ACCOUNT
         </Button>
@@ -170,18 +290,23 @@ export function AccountsPage() {
               <TableHead className="text-right">Available Balance</TableHead>
               <TableHead>Last Updated</TableHead>
               <TableHead className="text-right">Status</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filteredAccounts.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
+                <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
                   No accounts found
                 </TableCell>
               </TableRow>
             ) : (
               filteredAccounts.map((account) => (
-                <TableRow key={account.id}>
+                <TableRow
+                  key={account.id}
+                  className="cursor-pointer hover:bg-muted/50"
+                  onClick={() => handleAccountClick(account)}
+                >
                   <TableCell className="font-medium">{account.institution}</TableCell>
                   <TableCell>{account.accountName}</TableCell>
                   <TableCell>{account.accountType}</TableCell>
@@ -197,12 +322,31 @@ export function AccountsPage() {
                       <Eye className="h-4 w-4 text-muted-foreground inline" />
                     )}
                   </TableCell>
+                  <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleDelete(account)}
+                      aria-label="Delete account"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </TableCell>
                 </TableRow>
               ))
             )}
           </TableBody>
         </Table>
       </div>
+
+      {/* Delete Dialog */}
+      <DeleteAccountDialog
+        account={selectedAccount}
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        onConfirm={handleConfirmDelete}
+        isLoading={deleteMutation.isPending}
+      />
     </div>
   );
 }

@@ -6,7 +6,6 @@ import { useCreateAsset } from '@/features/assets/hooks/useAssets';
 import { useCreateLiability } from '@/features/liabilities/hooks/useLiabilities';
 import { useCreateAccount } from '@/features/accounts/hooks/useAccounts';
 import { useCreateSubscription } from '@/features/subscriptions/hooks';
-import { useCreateIncome } from '@/features/income/hooks/useIncome';
 import type { ReactNode } from 'react';
 import type { Asset, Liability, Account, Subscription, Income } from '@/types/domain';
 

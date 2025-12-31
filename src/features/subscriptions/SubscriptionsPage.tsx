@@ -69,9 +69,9 @@ export function SubscriptionsPage() {
           <div className="space-y-1">
             <h1 className="text-3xl font-bold tracking-tight">Subscriptions</h1>
             <div className="space-y-0.5">
-              <p className="text-5xl font-bold tracking-tight">
+              <div className="text-4xl font-bold mb-4">
                 {formatCurrency(totalMonthlyExpenses)}
-              </p>
+              </div>
               <p className="text-sm text-muted-foreground">Total monthly expenses</p>
             </div>
           </div>
@@ -105,9 +105,12 @@ export function SubscriptionsPage() {
     return (
       <div className="space-y-8">
         <div className="flex items-start justify-between">
-          <div className="space-y-2">
-            <Skeleton className="h-10 w-48" />
-            <Skeleton className="h-14 w-64" />
+          <div className="space-y-1">
+            <Skeleton className="h-9 w-32" />
+            <div className="space-y-0.5">
+              <Skeleton className="h-9 w-48 mb-4" />
+              <Skeleton className="h-4 w-32" />
+            </div>
           </div>
           <Skeleton className="h-10 w-40" />
         </div>
@@ -125,9 +128,9 @@ export function SubscriptionsPage() {
         <div className="space-y-1">
           <h1 className="text-3xl font-bold tracking-tight">Subscriptions</h1>
           <div className="space-y-0.5">
-            <p className="text-5xl font-bold tracking-tight">
+            <div className="text-4xl font-bold mb-4">
               {formatCurrency(totalMonthlyExpenses)}
-            </p>
+            </div>
             <p className="text-sm text-muted-foreground">Total monthly expenses</p>
           </div>
         </div>

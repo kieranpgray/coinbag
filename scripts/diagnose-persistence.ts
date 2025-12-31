@@ -112,10 +112,13 @@ async function diagnosePersistence() {
       } else {
         const count = data?.length || 0;
         const userIds = (data || [])
-          .map((row: any) => row.user_id)
-          .filter((id: any) => id !== null && id !== undefined);
-        const uniqueUserIds = [...new Set(userIds)] as string[];
-        const hasNullUserIds = (data || []).some((row: any) => row.user_id === null || row.user_id === undefined);
+          .map((row: Record<string, unknown>) => row.user_id as string | null | undefined)
+          .filter((id: string | null | undefined): id is string => id !== null && id !== undefined);
+        const uniqueUserIds = [...new Set(userIds)];
+        const hasNullUserIds = (data || []).some((row: Record<string, unknown>) => {
+          const userId = row.user_id;
+          return userId === null || userId === undefined;
+        });
 
         console.log(`✅ Table "${table}":`);
         console.log(`   Records found: ${count}`);

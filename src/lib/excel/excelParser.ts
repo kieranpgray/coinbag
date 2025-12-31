@@ -1,6 +1,15 @@
 import * as XLSX from 'xlsx';
 import type { ParsedImportData, ParsedRow, EntityType } from '@/features/import/types';
-import { parseDate, normalizeNumber, normalizeBoolean, normalizeString } from '@/features/import/utils';
+import { 
+  parseDate, 
+  normalizeNumber, 
+  normalizeBoolean, 
+  normalizeString,
+  normalizeFrequency,
+  normalizeAssetType,
+  normalizeLiabilityType,
+  normalizeIncomeSource,
+} from '@/features/import/utils';
 
 /**
  * Parse Excel file into structured import data
@@ -284,9 +293,27 @@ function normalizeRowData(
         normalized[normalizedKey] = normalizeBoolean(value);
         break;
       case 'string':
-      default:
-        normalized[normalizedKey] = normalizeString(value);
+      default: {
+        const normalizedValue = normalizeString(value);
+        
+        // Apply enum normalization for specific fields
+        if (normalizedKey === 'frequency') {
+          const normalizedFreq = normalizeFrequency(normalizedValue);
+          normalized[normalizedKey] = normalizedFreq || normalizedValue;
+        } else if (normalizedKey === 'type' && entityType === 'asset') {
+          const normalizedType = normalizeAssetType(normalizedValue);
+          normalized[normalizedKey] = normalizedType || normalizedValue;
+        } else if (normalizedKey === 'type' && entityType === 'liability') {
+          const normalizedType = normalizeLiabilityType(normalizedValue);
+          normalized[normalizedKey] = normalizedType || normalizedValue;
+        } else if (normalizedKey === 'source' && entityType === 'income') {
+          const normalizedSource = normalizeIncomeSource(normalizedValue);
+          normalized[normalizedKey] = normalizedSource || normalizedValue;
+        } else {
+          normalized[normalizedKey] = normalizedValue;
+        }
         break;
+      }
     }
   });
 

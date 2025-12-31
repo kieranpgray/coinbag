@@ -169,7 +169,7 @@ export function SettingsPage() {
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit(handleProfileSubmit)} className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="firstName">First Name</Label>
                     <Input id="firstName" {...register('firstName')} />
@@ -213,7 +213,7 @@ export function SettingsPage() {
               <CardDescription>Customize your display settings</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                 <div className="space-y-0.5">
                   <Label htmlFor="privacy-mode">Privacy Mode</Label>
                   <p className="text-sm text-muted-foreground">
@@ -227,7 +227,7 @@ export function SettingsPage() {
                   aria-label="Enable privacy mode to hide sensitive financial information"
                 />
               </div>
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                 <div className="space-y-0.5">
                   <Label htmlFor="dark-mode">Dark Mode</Label>
                   <p className="text-sm text-muted-foreground">Use dark theme</p>
@@ -283,7 +283,7 @@ export function SettingsPage() {
               <CardDescription>Manage your email notification preferences</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                 <div className="space-y-0.5">
                   <Label htmlFor="portfolio-summary">Portfolio Summary</Label>
                   <p className="text-sm text-muted-foreground">Weekly portfolio updates</p>
@@ -297,7 +297,7 @@ export function SettingsPage() {
                   aria-label="Enable portfolio summary email notifications"
                 />
               </div>
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                 <div className="space-y-0.5">
                   <Label htmlFor="spending-alerts">Spending Alerts</Label>
                   <p className="text-sm text-muted-foreground">Notify about unusual spending</p>
@@ -311,7 +311,7 @@ export function SettingsPage() {
                   aria-label="Enable spending alerts email notifications"
                 />
               </div>
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                 <div className="space-y-0.5">
                   <Label htmlFor="stock-price-alerts">Stock Price Alerts</Label>
                   <p className="text-sm text-muted-foreground">Price change notifications</p>
@@ -325,7 +325,7 @@ export function SettingsPage() {
                   aria-label="Enable stock price alerts email notifications"
                 />
               </div>
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                 <div className="space-y-0.5">
                   <Label htmlFor="feature-announcements">Feature Announcements</Label>
                   <p className="text-sm text-muted-foreground">New feature updates</p>
@@ -339,7 +339,7 @@ export function SettingsPage() {
                   aria-label="Enable feature announcements email notifications"
                 />
               </div>
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                 <div className="space-y-0.5">
                   <Label htmlFor="monthly-reports">Monthly Reports</Label>
                   <p className="text-sm text-muted-foreground">Monthly portfolio and spending report</p>
@@ -353,7 +353,7 @@ export function SettingsPage() {
                   aria-label="Enable monthly reports email notifications"
                 />
               </div>
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                 <div className="space-y-0.5">
                   <Label htmlFor="marketing-promotions">Marketing Promotions</Label>
                   <p className="text-sm text-muted-foreground">Promotional emails</p>
@@ -379,7 +379,7 @@ export function SettingsPage() {
               <CardDescription>Manage your account security</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                 <div className="space-y-0.5">
                   <Label htmlFor="mfa-enabled">Two-Factor Authentication</Label>
                   <p className="text-sm text-muted-foreground">

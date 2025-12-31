@@ -249,7 +249,7 @@ export function DashboardPage() {
             isEmpty={!hasHoldings}
             emptyText="Add investments to track your portfolio value."
             emptyCtaLabel="Add investment"
-            emptyCtaHref="/assets?create=1&type=Investments"
+            emptyCtaHref="/wealth?create=asset&type=Investments"
           />
           <SummaryCard
             title="Superannuation"
@@ -260,7 +260,7 @@ export function DashboardPage() {
             isEmpty={!hasSuperannuation}
             emptyText="Add superannuation to track your retirement savings."
             emptyCtaLabel="Add superannuation"
-            emptyCtaHref="/assets?create=1&type=Superannuation"
+            emptyCtaHref="/wealth?create=asset&type=Superannuation"
           />
           <SummaryCard
             title="Total Cash"
@@ -271,7 +271,7 @@ export function DashboardPage() {
             isEmpty={!hasCash}
             emptyText="Add cash as an asset to track your cash."
             emptyCtaLabel="Add cash"
-            emptyCtaHref="/assets?create=1&type=Cash"
+            emptyCtaHref="/wealth?create=asset&type=Cash"
           />
           <SummaryCard
             title="Total Debts"
@@ -282,7 +282,7 @@ export function DashboardPage() {
             isEmpty={!hasLiabilities}
             emptyText="Add a liability to track your debts."
             emptyCtaLabel="Add liability"
-            emptyCtaHref="/liabilities?create=1"
+            emptyCtaHref="/wealth?create=liability"
           />
         </div>
 
@@ -333,7 +333,7 @@ export function DashboardPage() {
                     Add investments to see news related to your holdings.
                   </p>
                   <Button asChild size="sm">
-                    <Link to="/assets?create=1&type=Investments">Add investment</Link>
+                    <Link to="/wealth?create=asset&type=Investments">Add investment</Link>
                   </Button>
                 </>
               ) : (

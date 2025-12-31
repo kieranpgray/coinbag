@@ -43,7 +43,7 @@ export const LiabilitiesBreakdown = memo(function LiabilitiesBreakdown({
             Add your first liability to see a breakdown.
           </p>
           <Button asChild size="sm">
-            <Link to="/liabilities?create=1">Add liability</Link>
+            <Link to="/wealth?create=liability">Add liability</Link>
           </Button>
         </CardContent>
       </Card>
@@ -78,7 +78,7 @@ export const LiabilitiesBreakdown = memo(function LiabilitiesBreakdown({
           ))}
         </div>
         <Link
-          to="/liabilities"
+          to="/wealth"
           className="mt-4 inline-block text-sm text-primary hover:underline"
         >
           View all liabilities →

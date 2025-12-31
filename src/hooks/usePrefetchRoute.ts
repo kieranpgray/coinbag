@@ -103,6 +103,54 @@ export function usePrefetchRoute() {
     });
   };
 
+  const prefetchBudget = () => {
+    if (!getToken) return;
+    // Prefetch both income and subscriptions for budget page
+    const cachedIncomes = queryClient.getQueryData(['incomes']);
+    const cachedSubs = queryClient.getQueryData(['subscriptions']);
+    const cachedCats = queryClient.getQueryData(['categories']);
+    
+    if (!cachedIncomes) {
+      const incomeRepo = createIncomeRepository();
+      queryClient.prefetchQuery({
+        queryKey: ['incomes'],
+        queryFn: async () => {
+          const result = await incomeRepo.list(getToken);
+          if (result.error) throw result.error;
+          return result.data;
+        },
+        staleTime: 1000 * 60 * 5, // 5 minutes
+      });
+    }
+    
+    if (!cachedSubs) {
+      const subscriptionsRepo = createSubscriptionsRepository();
+      queryClient.prefetchQuery({
+        queryKey: ['subscriptions'],
+        queryFn: async () => {
+          const result = await subscriptionsRepo.list(getToken);
+          if (result.error) throw result.error;
+          return result.data;
+        },
+        staleTime: 1000 * 60 * 5, // 5 minutes
+      });
+    }
+    
+    // Also prefetch categories since budget page uses them
+    if (!cachedCats) {
+      const categoriesRepo = createCategoriesRepository();
+      queryClient.prefetchQuery({
+        queryKey: ['categories'],
+        queryFn: async () => {
+          const result = await categoriesRepo.list(getToken);
+          if (result.error) throw result.error;
+          return result.data;
+        },
+        staleTime: 1000 * 60 * 5, // 5 minutes
+      });
+    }
+  };
+
   const prefetchAccounts = () => {
     if (!getToken) return;
     // Skip if data is already cached and fresh
@@ -121,12 +169,21 @@ export function usePrefetchRoute() {
     });
   };
 
+  const prefetchWealth = () => {
+    if (!getToken) return;
+    // Prefetch both assets and liabilities for wealth page
+    prefetchAssets();
+    prefetchLiabilities();
+  };
+
   return {
     prefetchAssets,
     prefetchLiabilities,
     prefetchSubscriptions,
     prefetchIncome,
+    prefetchBudget,
     prefetchAccounts,
+    prefetchWealth,
   };
 }
 

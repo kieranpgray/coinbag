@@ -1,4 +1,5 @@
 import { createAuthenticatedSupabaseClient } from '@/lib/supabaseClient';
+import { ensureUserIdForInsert, verifyInsertedUserId } from '@/lib/repositoryHelpers';
 import type { SubscriptionsRepository } from './repo';
 import type { Subscription } from '@/types/domain';
 import {
@@ -142,8 +143,16 @@ export class SupabaseSubscriptionsRepository implements SubscriptionsRepository 
 
       const supabase = await createAuthenticatedSupabaseClient(getToken);
 
+      // CRITICAL: Explicitly extract and set user_id from JWT
+      const userIdResult = await ensureUserIdForInsert(getToken, 'create subscription');
+      if ('error' in userIdResult) {
+        return { error: userIdResult.error };
+      }
+      const { userId } = userIdResult;
+
       // Map camelCase to snake_case for database
       const dbInput = {
+        user_id: userId, // EXPLICIT: Set user_id from JWT
         name: validated.name,
         amount: validated.amount,
         frequency: validated.frequency,
@@ -183,6 +192,9 @@ export class SupabaseSubscriptionsRepository implements SubscriptionsRepository 
           },
         };
       }
+
+      // CRITICAL: Verify the inserted record has the correct user_id
+      verifyInsertedUserId(responseValidation.data, userId, 'create subscription', responseValidation.data.id);
 
       // Map entity schema to domain Subscription type
       const subscription = this.mapEntityToSubscription(responseValidation.data);

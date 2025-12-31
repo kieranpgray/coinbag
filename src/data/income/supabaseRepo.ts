@@ -48,7 +48,8 @@ export class SupabaseIncomeRepository implements IncomeRepository {
       name: entity.name,
       source: entity.source,
       amount: entity.amount,
-      frequency: entity.frequency,
+      // Type assertion: incomeFrequencySchema includes 'quarterly', matching SubscriptionFrequency
+      frequency: entity.frequency as Income['frequency'],
       nextPaymentDate,
       notes: entity.notes,
     };

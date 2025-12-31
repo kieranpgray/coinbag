@@ -124,6 +124,7 @@ const calculateIncomeBreakdownMemoized = memoize(
       weekly: 4.33,      // ~4.33 weeks per month
       fortnightly: 2.167, // ~2.167 fortnights per month
       monthly: 1,
+      quarterly: 1 / 3,  // Quarterly = 3 months, so monthly equivalent = amount / 3
       yearly: 1 / 12,
     };
 
@@ -220,7 +221,7 @@ export const DashboardCalculations = {
         assetsCount: assets.length,
         liabilitiesCount: liabilities.length,
         subscriptionsCount: subscriptions.length,
-        transactionsCount: 0, // TODO: wire up when transactions are integrated
+        transactionsCount: 0, // Transactions feature not yet implemented - will be integrated when available
         incomeCount: incomes.length,
         holdingsCount: holdingsAssets.length,
       };

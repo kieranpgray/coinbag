@@ -3,44 +3,34 @@ import {
   Home,
   CreditCard,
   TrendingUp,
-  AlertTriangle,
   Zap,
-  ArrowRightLeft,
-  Repeat,
   Target,
   Settings,
-  DollarSign,
+  Wallet,
 } from 'lucide-react';
 import { usePrefetchRoute } from '@/hooks/usePrefetchRoute';
 
 const navigation = [
   { name: 'Dashboard', path: '/dashboard', icon: Home },
   { name: 'Accounts', path: '/accounts', icon: CreditCard },
-  { name: 'Assets', path: '/assets', icon: TrendingUp },
-  { name: 'Liabilities', path: '/liabilities', icon: AlertTriangle },
-  { name: 'Income', path: '/income', icon: DollarSign },
+  { name: 'Wealth', path: '/wealth', icon: TrendingUp },
+  { name: 'Budget', path: '/budget', icon: Wallet },
   { name: 'Goals', path: '/goals', icon: Target },
   { name: 'Simulate', path: '/scenarios', icon: Zap },
-  { name: 'Transactions', path: '/transactions', icon: ArrowRightLeft },
-  { name: 'Subscriptions', path: '/subscriptions', icon: Repeat },
   { name: 'Settings', path: '/settings', icon: Settings },
 ];
 
 export function Sidebar() {
   const location = useLocation();
-  const { prefetchAssets, prefetchLiabilities, prefetchSubscriptions, prefetchIncome, prefetchAccounts } = usePrefetchRoute();
+  const { prefetchWealth, prefetchBudget, prefetchAccounts } = usePrefetchRoute();
 
   // Map routes to their prefetch functions
   const getPrefetchHandler = (path: string) => {
     switch (path) {
-      case '/assets':
-        return prefetchAssets;
-      case '/liabilities':
-        return prefetchLiabilities;
-      case '/subscriptions':
-        return prefetchSubscriptions;
-      case '/income':
-        return prefetchIncome;
+      case '/wealth':
+        return prefetchWealth;
+      case '/budget':
+        return prefetchBudget;
       case '/accounts':
         return prefetchAccounts;
       default:

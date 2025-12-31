@@ -25,10 +25,10 @@ const subscriptionSchema = z.object({
     .max(100, 'Name must be less than 100 characters')
     .trim(),
   amount: z.number()
-    .min(0.01, 'Amount must be greater than $0.00')
+    .min(0, 'Amount must be at least $0.00')
     .max(100000, 'Amount must be less than $100,000')
     .refine((val) => Number.isFinite(val), 'Amount must be a valid number'),
-  frequency: z.enum(['weekly', 'fortnightly', 'monthly', 'yearly'] as const),
+  frequency: z.enum(['weekly', 'fortnightly', 'monthly', 'quarterly', 'yearly'] as const),
   chargeDate: z.string()
     .min(1, 'Charge date is required')
     .refine((date) => !isNaN(Date.parse(date)), 'Invalid date format'),
@@ -49,11 +49,12 @@ const subscriptionSchema = z.object({
   }
 
   if (!validateSubscriptionAmount(data.amount, data.frequency)) {
-    const ranges: Record<SubscriptionFrequency, string> = {
-      weekly: '$1-2000',
-      fortnightly: '$1-4000',
-      monthly: '$1-10000',
-      yearly: '$1-50000',
+      const ranges: Record<SubscriptionFrequency, string> = {
+      weekly: '$0-2000',
+      fortnightly: '$0-4000',
+      monthly: '$0-10000',
+      quarterly: '$0-30000',
+      yearly: '$0-50000',
     };
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
@@ -75,6 +76,7 @@ const FREQUENCIES = [
   { value: 'weekly' as SubscriptionFrequency, label: 'Weekly' },
   { value: 'fortnightly' as SubscriptionFrequency, label: 'Fortnightly' },
   { value: 'monthly' as SubscriptionFrequency, label: 'Monthly' },
+  { value: 'quarterly' as SubscriptionFrequency, label: 'Quarterly' },
   { value: 'yearly' as SubscriptionFrequency, label: 'Yearly' },
 ] as const;
 
@@ -147,8 +149,8 @@ export function SubscriptionForm({ defaultValues, onSubmit, isSubmitting }: Subs
   };
 
   return (
-    <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
-      <div className="grid grid-cols-2 gap-4">
+    <form onSubmit={handleSubmit(handleFormSubmit as (data: SubscriptionFormData) => void)} className="space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="name">Name</Label>
           <Input
@@ -177,7 +179,7 @@ export function SubscriptionForm({ defaultValues, onSubmit, isSubmitting }: Subs
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="frequency">Frequency</Label>
           <SearchableSelect
@@ -206,7 +208,7 @@ export function SubscriptionForm({ defaultValues, onSubmit, isSubmitting }: Subs
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="chargeDate">Charge Date</Label>
           <Input

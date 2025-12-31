@@ -12,9 +12,10 @@ import type { Subscription } from '@/types/domain';
 interface CreateSubscriptionModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  defaultCategoryId?: string;
 }
 
-export function CreateSubscriptionModal({ open, onOpenChange }: CreateSubscriptionModalProps) {
+export function CreateSubscriptionModal({ open, onOpenChange, defaultCategoryId }: CreateSubscriptionModalProps) {
   const { create: createMutation } = useSubscriptionMutations();
 
   const handleSubmit = async (data: Omit<Subscription, 'id'>) => {
@@ -22,11 +23,17 @@ export function CreateSubscriptionModal({ open, onOpenChange }: CreateSubscripti
       await createMutation.mutateAsync(data);
       // If we reach here, the mutation was successful
       onOpenChange(false);
-      // TODO: Show success toast notification
-      console.log('Subscription created successfully');
+      // Note: Toast notifications are deferred - form validation and mutation errors
+      // are handled by react-hook-form and React Query error states
+      if (import.meta.env.VITE_DEBUG_LOGGING === 'true') {
+        console.log('Subscription created successfully');
+      }
     } catch (error) {
-      // TODO: Show error toast notification
-      console.error('Failed to create subscription:', error);
+      // Error is handled by react-hook-form and React Query
+      // Toast notifications can be added in the future if needed
+      if (import.meta.env.VITE_DEBUG_LOGGING === 'true') {
+        console.error('Failed to create subscription:', error);
+      }
       throw error; // Re-throw to let form handle it
     }
   };
@@ -41,6 +48,7 @@ export function CreateSubscriptionModal({ open, onOpenChange }: CreateSubscripti
           </DialogDescription>
         </DialogHeader>
         <SubscriptionForm
+          defaultValues={defaultCategoryId ? { categoryId: defaultCategoryId } : undefined}
           onSubmit={handleSubmit}
           isSubmitting={createMutation.isPending}
         />

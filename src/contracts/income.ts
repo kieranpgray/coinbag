@@ -18,7 +18,7 @@ const incomeSourceSchema = z.enum(['Salary', 'Freelance', 'Business', 'Investmen
 });
 
 // Income frequency enum
-const incomeFrequencySchema = z.enum(['weekly', 'fortnightly', 'monthly', 'yearly'], {
+const incomeFrequencySchema = z.enum(['weekly', 'fortnightly', 'monthly', 'quarterly', 'yearly'], {
   errorMap: () => ({ message: 'Invalid income frequency' }),
 });
 
