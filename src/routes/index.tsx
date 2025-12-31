@@ -1,5 +1,6 @@
 import { Suspense, lazy, useEffect } from 'react';
 import { Routes as ReactRouterRoutes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { logger } from '@/lib/logger';
 import { Layout } from '@/components/layout/Layout';
 import { DashboardPage } from '@/features/dashboard/DashboardPage';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -80,7 +81,7 @@ function LiabilitiesRedirect() {
 
 export function Routes() {
   if (import.meta.env.VITE_DEBUG_LOGGING === 'true') {
-    console.log('🔍 DEBUG: Routes component rendering...');
+    logger.debug('ROUTES:RENDER', 'Routes component rendering...');
   }
   return (
     <ReactRouterRoutes>

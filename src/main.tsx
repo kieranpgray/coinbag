@@ -4,9 +4,10 @@ import { ClerkProvider } from '@clerk/clerk-react';
 import App from './App.tsx';
 import './index.css';
 import { validateEnvironment } from './lib/env';
+import { logger } from './lib/logger';
 
 if (import.meta.env.VITE_DEBUG_LOGGING === 'true') {
-  console.log('🔍 DEBUG: Starting app initialization...');
+  logger.debug('APP:INIT', 'Starting app initialization...');
 }
 
 // Validate environment configuration early
@@ -18,7 +19,7 @@ if (envValidation.shouldBlockStartup) {
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 if (import.meta.env.VITE_DEBUG_LOGGING === 'true') {
-  console.log('🔍 DEBUG: Clerk key loaded:', PUBLISHABLE_KEY ? 'YES' : 'NO');
+  logger.debug('APP:INIT', 'Clerk key loaded', { hasKey: !!PUBLISHABLE_KEY });
 }
 
 if (!PUBLISHABLE_KEY) {
@@ -30,11 +31,11 @@ if (!PUBLISHABLE_KEY) {
 }
 
 if (import.meta.env.VITE_DEBUG_LOGGING === 'true') {
-  console.log('🔍 DEBUG: Creating React root...');
+  logger.debug('APP:INIT', 'Creating React root...');
 }
 const rootElement = document.getElementById('root');
 if (import.meta.env.VITE_DEBUG_LOGGING === 'true') {
-  console.log('🔍 DEBUG: Root element found:', rootElement ? 'YES' : 'NO');
+  logger.debug('APP:INIT', 'Root element found', { found: !!rootElement });
 }
 
 if (!rootElement) {
@@ -47,7 +48,7 @@ if (!rootElement) {
 // Ensure your index.html contains a <div id="root"></div> element for React to mount the app.
 
 if (import.meta.env.VITE_DEBUG_LOGGING === 'true') {
-  console.log('🔍 DEBUG: Rendering React app...');
+  logger.debug('APP:INIT', 'Rendering React app...');
 }
 ReactDOM.createRoot(rootElement).render(
   <React.StrictMode>
@@ -58,6 +59,6 @@ ReactDOM.createRoot(rootElement).render(
 );
 
 if (import.meta.env.VITE_DEBUG_LOGGING === 'true') {
-  console.log('🔍 DEBUG: App render initiated');
+  logger.debug('APP:INIT', 'App render initiated');
 }
 

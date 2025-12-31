@@ -1,11 +1,14 @@
 import { Outlet } from 'react-router-dom';
 import { SignedIn, SignedOut, RedirectToSignIn } from '@clerk/clerk-react';
+import { logger } from '@/lib/logger';
 import { Header } from './Header';
 import { Sidebar } from './Sidebar';
 import { Footer } from './Footer';
 
 export function Layout() {
-  console.log('🔍 DEBUG: Layout component rendering...');
+  if (import.meta.env.VITE_DEBUG_LOGGING === 'true') {
+    logger.debug('LAYOUT:RENDER', 'Layout component rendering...');
+  }
   return (
     <>
       <SignedIn>
