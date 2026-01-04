@@ -17,14 +17,12 @@ interface NetWorthCardProps {
 
 export const NetWorthCard = memo(function NetWorthCard({ 
   netWorth, 
-  totalAssets, 
-  totalLiabilities, 
-  change1D, 
-  change1W, 
-  isLoading, 
-  isEmpty 
+  totalAssets,
+  totalLiabilities,
   change1D: _change1D,
   change1W: _change1W,
+  isLoading,
+  isEmpty,
 }: NetWorthCardProps) {
   if (isLoading) {
     return (
