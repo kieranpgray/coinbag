@@ -71,18 +71,20 @@ const MONTH_NAMES: Record<string, number> = {
  * @param dateStr - Date string to parse
  * @param locale - Locale code (e.g., 'en-US', 'en-AU') to determine date format preference
  */
-function parseDate(dateStr: string, locale?: string): string | null {
+function parseDate(dateStr: string, locale: string = 'en-US'): string | null {
   // Try MM/DD/YYYY or DD/MM/YYYY
   const slashMatch = dateStr.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
   if (slashMatch) {
     const [, part1, part2, year] = slashMatch;
-    // Use locale to determine format: en-US uses MM/DD/YYYY, en-AU uses DD/MM/YYYY
-    const effectiveLocale = locale || 'en-US';
-    const isUSFormat = effectiveLocale === 'en-US' || !effectiveLocale.startsWith('en-AU');
-    const month = parseInt(isUSFormat ? part1 : part2, 10);
-    const day = parseInt(isUSFormat ? part2 : part1, 10);
-    if (month >= 1 && month <= 12 && day >= 1 && day <= 31) {
-      return `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+    if (part1 && part2 && year) {
+      // Use locale to determine format: en-US uses MM/DD/YYYY, en-AU uses DD/MM/YYYY
+      const effectiveLocale = locale || 'en-US';
+      const isUSFormat = effectiveLocale === 'en-US' || !effectiveLocale.startsWith('en-AU');
+      const month = parseInt(isUSFormat ? part1 : part2, 10);
+      const day = parseInt(isUSFormat ? part2 : part1, 10);
+      if (!isNaN(month) && !isNaN(day) && month >= 1 && month <= 12 && day >= 1 && day <= 31) {
+        return `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+      }
     }
   }
 
@@ -195,7 +197,7 @@ export function parseStatementText(text: string, locale: string = 'en-US'): Pars
     }
 
     // Parse date
-    const parsedDate = parseDate(dateStr, locale);
+    const parsedDate = parseDate(dateStr, locale || 'en-US');
     if (!parsedDate) {
       warnings.push(`Could not parse date: ${dateStr} on line ${i + 1}`);
       continue;

@@ -27,11 +27,12 @@ export function generateDeduplicationKey(
   // Normalize date to YYYY-MM-DD format
   const normalizedDate = new Date(date).toISOString().split('T')[0];
 
+  // At this point, transactionReference is guaranteed to be truthy
   return {
     accountId,
     transactionReference: transactionReference.trim(),
     date: normalizedDate,
-  };
+  } as DeduplicationKey;
 }
 
 /**

@@ -75,7 +75,32 @@ export function ReviewScreen({
 
   const handleUpdateTransaction = (index: number, field: keyof TransactionCreate, value: unknown) => {
     const updated = [...editableTransactions];
-    updated[index] = { ...updated[index], [field]: value };
+    const currentTransaction = updated[index];
+
+    // Ensure we maintain valid TransactionCreate structure
+    const updatedTransaction = { ...currentTransaction };
+
+    // Type-safe field updates with validation - ensure required fields are never undefined
+    if (field === 'type' && (value === 'income' || value === 'expense')) {
+      updatedTransaction.type = value;
+    } else if (field === 'accountId' && typeof value === 'string' && value.trim()) {
+      updatedTransaction.accountId = value;
+    } else if (field === 'date' && typeof value === 'string' && value.trim()) {
+      updatedTransaction.date = value;
+    } else if (field === 'description' && typeof value === 'string' && value.trim()) {
+      updatedTransaction.description = value;
+    } else if (field === 'amount' && typeof value === 'number' && !isNaN(value)) {
+      updatedTransaction.amount = value;
+    } else if (field === 'category' && (value === null || value === undefined || (typeof value === 'string' && value.trim()))) {
+      updatedTransaction.category = typeof value === 'string' ? value : value;
+    } else if (field === 'transactionReference' && (value === null || value === undefined || (typeof value === 'string' && value.trim()))) {
+      updatedTransaction.transactionReference = typeof value === 'string' ? value : value;
+    } else if (field === 'statementImportId' && (value === null || value === undefined || (typeof value === 'string' && value.trim()))) {
+      updatedTransaction.statementImportId = typeof value === 'string' ? value : value;
+    }
+
+    // Ensure the transaction conforms to TransactionCreate type
+    updated[index] = updatedTransaction as TransactionCreate;
     setEditableTransactions(updated);
   };
 
@@ -101,7 +126,7 @@ export function ReviewScreen({
               <li>• {t('checkTransactionData', { ns: 'import' })}</li>
             </ul>
             {errors.length > 0 && (
-              <Alert variant="destructive" className="max-w-md mx-auto mb-4">
+              <Alert className="max-w-md mx-auto mb-4">
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>
                   {errors.map((error, i) => (
@@ -170,7 +195,7 @@ export function ReviewScreen({
 
       {/* Errors */}
       {errors.length > 0 && (
-        <Alert variant="destructive">
+        <Alert>
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
             <p className="font-medium mb-2">Errors:</p>
