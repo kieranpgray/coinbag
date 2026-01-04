@@ -110,8 +110,10 @@ export function AccountForm({ account, onSubmit, onCancel, isLoading }: AccountF
       data.balance = -owed;
     } else {
       // For non-credit accounts, ensure balance is provided (default to 0 if undefined/empty)
-      if (data.balance === undefined || data.balance === null || isNaN(data.balance)) {
+      if (data.balance === undefined || data.balance === null || data.balance === '' || isNaN(Number(data.balance))) {
         data.balance = 0;
+      } else {
+        data.balance = Number(data.balance);
       }
     }
 

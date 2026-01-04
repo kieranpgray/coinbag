@@ -49,7 +49,7 @@ export class StatementImportErrorBoundary extends Component<Props, State> {
       }
 
       return (
-        <Alert variant="destructive" className="my-4">
+        <Alert className="my-4">
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>Error parsing statement</AlertTitle>
           <AlertDescription className="mt-2">

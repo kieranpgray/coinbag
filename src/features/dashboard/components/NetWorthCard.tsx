@@ -23,6 +23,8 @@ export const NetWorthCard = memo(function NetWorthCard({
   change1W, 
   isLoading, 
   isEmpty 
+  change1D: _change1D,
+  change1W: _change1W,
 }: NetWorthCardProps) {
   if (isLoading) {
     return (

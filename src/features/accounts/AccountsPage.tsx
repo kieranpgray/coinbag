@@ -57,7 +57,7 @@ export function AccountsPage() {
       filtered = filtered.filter(
         (account) =>
           account.accountName.toLowerCase().includes(query) ||
-          account.institution.toLowerCase().includes(query)
+          (account.institution && account.institution.toLowerCase().includes(query))
       );
     }
 

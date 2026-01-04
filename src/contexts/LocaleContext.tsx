@@ -79,9 +79,11 @@ function getBrowserLocale(): string {
 
   // Try to match language part (e.g., 'en' from 'en-GB')
   const langPart = browserLang.split('-')[0];
-  for (const locale of Object.keys({ 'en-US': true, 'en-AU': true })) {
-    if (locale.startsWith(langPart)) {
-      return locale;
+  if (langPart) {
+    for (const locale of Object.keys({ 'en-US': true, 'en-AU': true })) {
+      if (locale.startsWith(langPart)) {
+        return locale;
+      }
     }
   }
 

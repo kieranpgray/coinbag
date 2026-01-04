@@ -23,8 +23,8 @@ interface BudgetBreakdownTileProps {
 export const BudgetBreakdownTile = memo(function BudgetBreakdownTile({
   totalIncome,
   totalExpenses,
-  totalSavings,
-  totalRepayments,
+  totalSavings: _totalSavings,
+  totalRepayments: _totalRepayments,
   remaining,
   isLoading,
   isEmpty,

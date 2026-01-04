@@ -78,7 +78,7 @@ const DatePicker = React.forwardRef<HTMLInputElement, DatePickerProps>(
 
     // Update input value when value prop changes
     React.useEffect(() => {
-      if (value) {
+      if (value && typeof value === 'string') {
         try {
           const parsed = parseISO(value);
           if (isValid(parsed)) {

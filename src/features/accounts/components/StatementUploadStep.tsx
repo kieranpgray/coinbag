@@ -49,7 +49,8 @@ export function StatementUploadStep({
     
     for (let i = 0; i < pendingFiles.length; i++) {
       const fileWithStatus = pendingFiles[i];
-      
+      if (!fileWithStatus) continue;
+
       // Update status to uploading
       setFiles((prev) =>
         prev.map((f) =>
