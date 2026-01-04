@@ -84,13 +84,13 @@ function createInstructionsSheet(): XLSX.WorkSheet {
     ['- due_date: Due date (YYYY-MM-DD format, optional)'],
     ['- institution: Institution name (optional)'],
     [],
-    ['SUBSCRIPTIONS'],
-    ['- name*: Subscription name (e.g., "Netflix", "Spotify")'],
-    ['- amount*: Subscription amount (must be between $1-$100,000)'],
+    ['EXPENSES'],
+    ['- name*: Expense name (e.g., "Netflix", "Rent", "Groceries")'],
+    ['- amount*: Expense amount (must be between $1-$100,000)'],
     ['- frequency*: Billing frequency - must be one of: weekly, fortnightly, monthly, quarterly, yearly'],
     ['- charge_date*: Next charge date (YYYY-MM-DD format)'],
     ['- next_due_date*: Next due date (YYYY-MM-DD format, must be >= charge_date)'],
-    ['- category_name*: Category name (will be created if it doesn\'t exist)'],
+    ['- category_name*: Category name (e.g., "Streaming", "Rent", "Groceries", "Entertainment")'],
     ['- notes: Additional notes (optional)'],
     [],
     ['INCOME'],
@@ -262,13 +262,13 @@ function createExpensesSheet(): XLSX.WorkSheet {
   ];
 
   const exampleRow = [
-    'Netflix',
-    15.99,
-    'monthly',
+    'Weekly Groceries',
+    120.00,
+    'weekly',
     '2024-12-15',
-    '2025-01-15',
-    'Entertainment',
-    'Streaming service',
+    '2024-12-22',
+    'Groceries',
+    'Weekly food shopping',
   ];
 
   const data = [headers, exampleRow];

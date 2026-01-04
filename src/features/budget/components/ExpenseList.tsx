@@ -82,14 +82,27 @@ export function ExpenseList({
                 : expense.frequency.toLowerCase();
               
               return (
-                <TableRow key={expense.id}>
+                <TableRow
+                  key={expense.id}
+                  className="cursor-pointer hover:bg-muted/50"
+                  onClick={() => onEdit(expense)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      onEdit(expense);
+                    }
+                  }}
+                  aria-label={`Edit ${expense.name}`}
+                >
                   <TableCell className="font-medium">{expense.name}</TableCell>
                   <TableCell>{getCategoryName(expense.categoryId)}</TableCell>
                   <TableCell className="text-right">{formatCurrency(displayAmount)}</TableCell>
                   <TableCell className="capitalize">{displayFreqLabel}</TableCell>
                   <TableCell>{format(new Date(expense.nextDueDate), 'MMM d, yyyy')}</TableCell>
                   <TableCell>{expense.notes || '-'}</TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
                     <div className="flex justify-end gap-2">
                       <Button
                         variant="ghost"

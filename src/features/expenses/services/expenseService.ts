@@ -149,7 +149,7 @@ export class ExpenseService {
       },
       {
         category: 'Utilities',
-        commonServices: ['Internet', 'Phone', 'Electricity'],
+        commonServices: ['Phone / Internet', 'Electricity'],
         averageMonthlyCost: 80,
       },
     ];

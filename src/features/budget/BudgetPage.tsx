@@ -272,7 +272,7 @@ export function BudgetPage() {
         </div>
       </div>
 
-      {/* Budget Breakdown */}
+      {/* In and Out */}
       <BudgetBreakdown
         totalIncome={totalMonthlyIncome}
         totalExpenses={totalMonthlyExpenses}

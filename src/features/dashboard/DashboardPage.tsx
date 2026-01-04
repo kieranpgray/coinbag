@@ -150,7 +150,7 @@ export function DashboardPage() {
   const hasExpenses = useMemo(() => dataSources.expensesCount > 0, [dataSources.expensesCount]);
   const hasIncome = useMemo(() => dataSources.incomeCount > 0, [dataSources.incomeCount]);
 
-  // Budget breakdown calculations
+  // In and Out calculations
   const categoryMap = useMemo(() => {
     return new Map(categories.map((c) => [c.id, c.name]));
   }, [categories]);
@@ -287,7 +287,7 @@ export function DashboardPage() {
           isLoading={isLoading}
         />
 
-        {/* Net Worth and Budget Breakdown - 50/50 split */}
+        {/* Net Worth and In and Out - 50/50 split */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <NetWorthCard
             netWorth={dashboardData.netWorth}

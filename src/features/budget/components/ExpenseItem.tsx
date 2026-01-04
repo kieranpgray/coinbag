@@ -38,11 +38,21 @@ export function ExpenseItem({
   
   return (
     <div
-      className={`group flex items-center justify-between p-4 rounded-xl border transition-all ${
+      className={`group flex items-center justify-between p-4 rounded-xl border transition-all cursor-pointer ${
         isHighlight
           ? 'border-orange-200 bg-orange-50/50'
           : 'border-neutral-200 bg-white hover:border-neutral-300 hover:shadow-sm'
       }`}
+      onClick={() => onEdit(expense)}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onEdit(expense);
+        }
+      }}
+      aria-label={`Edit ${expense.name}`}
     >
       <div className="flex items-center gap-4 flex-1 min-w-0">
         {/* Icon */}
@@ -73,7 +83,10 @@ export function ExpenseItem({
         </div>
 
         {/* Action buttons - shown on hover (desktop) */}
-        <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 md:flex hidden">
+        <div
+          className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 md:flex hidden"
+          onClick={(e) => e.stopPropagation()}
+        >
           <Button
             variant="ghost"
             size="sm"
@@ -95,7 +108,10 @@ export function ExpenseItem({
         </div>
 
         {/* Mobile: actions always visible */}
-        <div className="flex items-center gap-1 md:hidden">
+        <div
+          className="flex items-center gap-1 md:hidden"
+          onClick={(e) => e.stopPropagation()}
+        >
           <Button
             variant="ghost"
             size="sm"

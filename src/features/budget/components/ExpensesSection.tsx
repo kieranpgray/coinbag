@@ -138,8 +138,7 @@ export function ExpensesSection({
           </Select>
           <Button
             size="sm"
-            variant="outline"
-            className="border-neutral-300 whitespace-nowrap"
+            className="whitespace-nowrap"
             onClick={() => onCreate()}
             aria-label="Add expense"
           >
@@ -183,7 +182,7 @@ export function ExpensesSection({
               <p className="text-neutral-500 text-sm mb-4">
                 Add your first expense to start tracking your spending
               </p>
-                <Button size="sm" variant="outline" onClick={() => onCreate()}>
+                <Button size="sm" onClick={() => onCreate()}>
                   <Plus className="h-4 w-4 mr-1" />
                   Add Expense
                 </Button>

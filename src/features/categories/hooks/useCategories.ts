@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { createCategoriesRepository } from '@/data/categories/repo';
+import { ensureDefaultCategories } from '@/data/categories/ensureDefaults';
 import { useAuth } from '@clerk/clerk-react';
 import type { Category } from '@/types/domain';
 
@@ -14,6 +15,19 @@ export function useCategories() {
       if (result.error) {
         throw result.error;
       }
+
+      // Always ensure default categories exist (creates any missing ones)
+      const ensureResult = await ensureDefaultCategories(getToken);
+      if (ensureResult.success) {
+        // Refetch categories after ensuring defaults (will include any newly created ones)
+        const refreshedResult = await repository.list(getToken);
+        if (refreshedResult.error) {
+          throw refreshedResult.error;
+        }
+        return refreshedResult.data;
+      }
+
+      // If ensure failed, return the original data (better than showing nothing)
       return result.data;
     },
     staleTime: 1000 * 60 * 5, // 5 minutes - improves performance by reducing refetches

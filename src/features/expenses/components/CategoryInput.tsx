@@ -5,9 +5,9 @@ import { ChevronDown, Check, Loader2, Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { createCategoriesRepository } from '@/data/categories/repo';
 import { useAuth } from '@clerk/clerk-react';
-import type { Category } from '@/types/domain';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { CategoryForm } from '@/features/categories/components/CategoryForm';
+import { useCategories } from '@/features/categories/hooks';
 
 interface CategoryInputProps {
   /**
@@ -24,9 +24,6 @@ interface CategoryInputProps {
 
 export function CategoryInput({ id, value, onChange, placeholder = "Select category", error, onCategoriesRefresh }: CategoryInputProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [loadError, setLoadError] = useState<string | null>(null);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
@@ -36,29 +33,8 @@ export function CategoryInput({ id, value, onChange, placeholder = "Select categ
   const searchInputRef = useRef<HTMLInputElement>(null);
   const { getToken } = useAuth();
 
-  // Load categories on mount and when requested
-  const loadCategories = async () => {
-    const repository = createCategoriesRepository();
-    try {
-      setIsLoading(true);
-      setLoadError(null);
-      const result = await repository.list(getToken);
-      if (result.error) {
-        setLoadError(result.error.error);
-      } else {
-        setCategories(result.data);
-      }
-    } catch (error) {
-      setLoadError('Failed to load categories');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    loadCategories();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  // Use the useCategories hook for consistent data and caching
+  const { data: categories = [], isLoading, error: loadError, refetch: refetchCategories } = useCategories();
 
   // Filter categories based on search query
   const filteredCategories = categories.filter((cat) =>
@@ -88,7 +64,7 @@ export function CategoryInput({ id, value, onChange, placeholder = "Select categ
       }
 
       // Success: reload categories and select the new one
-      await loadCategories();
+      await refetchCategories();
       if (result.data) {
         // Select the newly created category
         onChange(result.data.id);
@@ -202,7 +178,7 @@ export function CategoryInput({ id, value, onChange, placeholder = "Select categ
         >
           {loadError ? (
             <div className="px-3 py-2 text-sm text-destructive">
-              {loadError}
+              {loadError instanceof Error ? loadError.message : 'Failed to load categories'}
             </div>
           ) : categories.length > 0 ? (
             <>

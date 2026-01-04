@@ -19,18 +19,23 @@ const EXPENSE_TYPE_MAPPINGS: Record<string, ExpenseType> = {
   'news & media': 'subscriptions',
   'news': 'subscriptions',
   media: 'subscriptions',
-  
+  'fitness / gym': 'subscriptions',
+
   // Bills
   utilities: 'bills',
   electricity: 'bills',
   gas: 'bills',
   water: 'bills',
+  'phone / internet': 'bills',
   internet: 'bills',
   phone: 'bills',
+  'phone bill': 'bills',
   insurance: 'bills',
   rent: 'bills',
+  'rent / mortgage': 'bills',
   mortgage: 'bills',
-  
+  'fees & charges': 'bills',
+
   // Repayments
   loans: 'repayments',
   'credit card': 'repayments',
@@ -42,32 +47,56 @@ const EXPENSE_TYPE_MAPPINGS: Record<string, ExpenseType> = {
   'home loan': 'repayments',
   repayment: 'repayments',
   repayments: 'repayments',
-  
+  'loan repayments': 'repayments',
+  'credit card payments': 'repayments',
+
   // Savings
   savings: 'savings',
   'savings account': 'savings',
   'emergency fund': 'savings',
   investment: 'savings',
-  
+  'retirement / superannuation / 401k': 'savings',
+  investments: 'savings',
+
   // Living
   food: 'living',
   groceries: 'living',
   transportation: 'living',
-  'public transport': 'repayments',
+  'public transport': 'living',
   fuel: 'living',
+  'fuel / gas': 'living',
   health: 'living',
   medical: 'living',
+  'medical & dental': 'living',
   pharmacy: 'living',
+  'medicine / pharmacy': 'living',
   education: 'living',
-  
+  'childcare / school fees': 'living',
+  'car maintenance & registration': 'living',
+  'parking & tolls': 'living',
+  rideshare: 'living',
+
   // Lifestyle
   'dining out': 'lifestyle',
   coffee: 'lifestyle',
+  'coffee shops': 'lifestyle',
   shopping: 'lifestyle',
   clothing: 'lifestyle',
   hobbies: 'lifestyle',
   travel: 'lifestyle',
-  
+  'vacation / travel': 'lifestyle',
+  'eating out': 'lifestyle',
+  alcohol: 'lifestyle',
+  'takeaway / delivery': 'lifestyle',
+  'personal care': 'lifestyle',
+  'technology & gadgets': 'lifestyle',
+  'home maintenance': 'lifestyle',
+  'big purchase': 'lifestyle',
+  gifts: 'lifestyle',
+  donations: 'lifestyle',
+  miscellaneous: 'lifestyle',
+  'cash withdrawals': 'lifestyle',
+
   // Default fallback
   other: 'lifestyle',
   uncategorised: 'lifestyle',

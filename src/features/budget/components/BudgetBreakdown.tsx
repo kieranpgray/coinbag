@@ -14,7 +14,7 @@ interface BudgetBreakdownProps {
 }
 
 /**
- * Budget breakdown component
+ * In and Out component
  * Displays Income, Expenses, Savings, Repayments, and Remaining with status indicators
  * Always open with frequency selector
  */
@@ -40,7 +40,7 @@ export function BudgetBreakdown({
         {/* Header */}
         <div className="flex items-center justify-between p-4">
           <h2 className="text-lg font-semibold text-foreground">
-            Breakdown
+            In and Out
           </h2>
           <Select value={frequency} onValueChange={(value) => onFrequencyChange(value as Frequency)}>
             <SelectTrigger className="w-[140px]">

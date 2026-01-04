@@ -9,7 +9,7 @@ import { createCategoriesRepository } from './repo';
 const DEFAULT_CATEGORY_NAMES = [
   // Uncategorised (always first)
   'Uncategorised',
-  
+
   // Subscriptions
   'Streaming',
   'Entertainment',
@@ -17,30 +17,32 @@ const DEFAULT_CATEGORY_NAMES = [
   'Cloud Storage',
   'Gym Membership',
   'News & Media',
-  
+
   // Bills
   'Utilities',
   'Electricity',
   'Gas',
   'Water',
-  'Internet',
-  'Phone',
+  'Phone / Internet',
   'Insurance',
   'Rent',
   'Mortgage',
-  
+
   // Repayments
   'Credit Card',
   'Student Loan',
   'Personal Loan',
   'Car Loan',
   'Home Loan',
-  
+  'Loan Repayments',
+  'Credit Card Payments',
+
   // Savings
   'Savings',
   'Emergency Fund',
   'Investment',
-  
+  'Retirement / Superannuation / 401k',
+
   // Living
   'Groceries',
   'Food',
@@ -51,7 +53,8 @@ const DEFAULT_CATEGORY_NAMES = [
   'Medical',
   'Pharmacy',
   'Education',
-  
+  'Childcare / School Fees',
+
   // Lifestyle
   'Dining Out',
   'Coffee',
@@ -60,6 +63,15 @@ const DEFAULT_CATEGORY_NAMES = [
   'Hobbies',
   'Travel',
   'Entertainment',
+  'Personal Care',
+  'Medicine / Pharmacy',
+  'Technology & Gadgets',
+  'Home Maintenance',
+  'Big Purchase',
+  'Gifts',
+  'Donations',
+  'Miscellaneous',
+  'Cash Withdrawals',
 ] as const;
 
 /**

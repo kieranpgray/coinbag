@@ -16,7 +16,7 @@ interface BudgetBreakdownTileProps {
 }
 
 /**
- * Budget breakdown tile component for dashboard
+ * In and Out tile component for dashboard
  * Displays Income, Outgoing (all expenses), and Remaining with status indicators
  * Always shows monthly values (no frequency selector)
  */
@@ -52,9 +52,9 @@ export const BudgetBreakdownTile = memo(function BudgetBreakdownTile({
       <Card className="border border-neutral-200">
         <CardContent className="p-0">
           <div className="p-4">
-            <h2 className="text-lg font-semibold text-foreground mb-4">Budget Breakdown</h2>
+            <h2 className="text-lg font-semibold text-foreground mb-4">In and Out</h2>
             <p className="text-sm text-muted-foreground mb-4">
-              Add income and expenses to see your budget breakdown.
+              Add income and expenses to see your in and out breakdown.
             </p>
             <div className="flex gap-2">
               <Button asChild size="sm">
@@ -76,7 +76,7 @@ export const BudgetBreakdownTile = memo(function BudgetBreakdownTile({
         {/* Header */}
         <div className="p-4">
           <h2 className="text-lg font-semibold text-foreground">
-            Budget Breakdown
+            In and Out
           </h2>
         </div>
 
