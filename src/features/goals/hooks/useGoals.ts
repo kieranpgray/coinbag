@@ -11,7 +11,7 @@ export function useGoals() {
   return useQuery<Goal[]>({
     queryKey: ['goals'],
     queryFn: async () => {
-      const result = await repository.list(undefined, getToken);
+      const result = await repository.list(getToken);
       if (result.error) {
         throw result.error;
       }
@@ -30,8 +30,8 @@ export function useCreateGoal() {
       const goalData: Omit<Goal, 'id'> = {
         name: data.name,
         description: data.description,
-        type: data.type,
         source: data.source,
+        accountId: data.accountId,
         targetAmount: data.targetAmount,
         currentAmount: data.currentAmount,
         deadline: data.deadline,
@@ -60,8 +60,8 @@ export function useUpdateGoal() {
       const updateData: Partial<Omit<Goal, 'id'>> = {
         name: data.name,
         description: data.description,
-        type: data.type,
         source: data.source,
+        accountId: data.accountId,
         targetAmount: data.targetAmount,
         currentAmount: data.currentAmount,
         deadline: data.deadline,

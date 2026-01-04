@@ -78,7 +78,7 @@ export const LiabilitiesBreakdown = memo(function LiabilitiesBreakdown({
           ))}
         </div>
         <Link
-          to="/wealth"
+          to="/app/wealth"
           className="mt-4 inline-block text-sm text-primary hover:underline"
         >
           View all liabilities →

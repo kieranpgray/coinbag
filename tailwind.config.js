@@ -100,9 +100,9 @@ export default {
       container: {
         center: true,
         padding: {
-          DEFAULT: '1rem',
-          sm: '1.5rem',
-          lg: '2rem',
+          DEFAULT: '0.9rem',
+          sm: '1.35rem',
+          lg: '1.8rem',
         },
         screens: {
           '2xl': '80rem', // 1280px - matches max-w-7xl

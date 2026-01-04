@@ -95,8 +95,9 @@ export class MockAccountsRepository implements AccountsRepository {
       institution: input.institution ?? existing.institution,
       accountName: input.accountName ?? existing.accountName,
       balance: input.balance ?? existing.balance,
-      availableBalance: input.availableBalance ?? existing.availableBalance,
       accountType: input.accountType ?? existing.accountType,
+      creditLimit: input.creditLimit ?? existing.creditLimit,
+      balanceOwed: input.balanceOwed ?? existing.balanceOwed,
       lastUpdated: input.lastUpdated ?? existing.lastUpdated,
       hidden: input.hidden ?? existing.hidden,
     };

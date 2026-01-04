@@ -22,9 +22,9 @@ export function generateImportTemplate(): Blob {
   const liabilitiesSheet = createLiabilitiesSheet();
   XLSX.utils.book_append_sheet(workbook, liabilitiesSheet, 'Liabilities');
 
-  // Create Subscriptions sheet
-  const subscriptionsSheet = createSubscriptionsSheet();
-  XLSX.utils.book_append_sheet(workbook, subscriptionsSheet, 'Subscriptions');
+  // Create Expenses sheet
+  const expensesSheet = createExpensesSheet();
+  XLSX.utils.book_append_sheet(workbook, expensesSheet, 'Expenses');
 
   // Create Income sheet
   const incomeSheet = createIncomeSheet();
@@ -50,7 +50,7 @@ function createInstructionsSheet(): XLSX.WorkSheet {
     ['Coinbag Import Template - Instructions'],
     [],
     ['QUICK START'],
-    ['1. Fill in data in the appropriate sheets (Accounts, Assets, Liabilities, Subscriptions, Income)'],
+    ['1. Fill in data in the appropriate sheets (Accounts, Assets, Liabilities, Expenses, Income)'],
     ['2. Leave sheets empty if you don\'t have data for that type'],
     ['3. Required fields are marked with an asterisk (*)'],
     ['4. Save this file and upload it in the Import section'],
@@ -58,11 +58,10 @@ function createInstructionsSheet(): XLSX.WorkSheet {
     ['FIELD DESCRIPTIONS'],
     [],
     ['ACCOUNTS'],
-    ['- institution*: Bank or financial institution name (e.g., "Chase Bank")'],
-    ['- account_name*: Display name of the account (e.g., "Checking Account")'],
+    ['- institution: Bank or financial institution name (optional, e.g., "Chase Bank")'],
+    ['- account_name*: Display name of the account (e.g., "Bank Account")'],
     ['- balance*: Current account balance (can be negative for credit cards)'],
-    ['- available_balance*: Available balance after holds'],
-    ['- account_type*: Type of account (e.g., "Checking", "Savings", "Credit Card")'],
+    ['- account_type*: Type of account (e.g., "Bank Account", "Savings", "Credit Card")'],
     ['- last_updated*: Last update date (YYYY-MM-DD format)'],
     ['- hidden: Whether account is hidden (true/false, optional)'],
     [],
@@ -130,10 +129,9 @@ function createInstructionsSheet(): XLSX.WorkSheet {
  */
 function createAccountsSheet(): XLSX.WorkSheet {
   const headers = [
-    'institution*',
+    'institution',
     'account_name*',
     'balance*',
-    'available_balance*',
     'account_type*',
     'last_updated*',
     'hidden',
@@ -141,10 +139,9 @@ function createAccountsSheet(): XLSX.WorkSheet {
 
   const exampleRow = [
     'Chase Bank',
-    'Checking Account',
+    'Bank Account',
     5000.00,
-    5000.00,
-    'Checking',
+    'Bank Account',
     '2024-12-31',
     false,
   ];
@@ -157,7 +154,6 @@ function createAccountsSheet(): XLSX.WorkSheet {
     { wch: 20 }, // institution
     { wch: 25 }, // account_name
     { wch: 15 }, // balance
-    { wch: 18 }, // available_balance
     { wch: 15 }, // account_type
     { wch: 15 }, // last_updated
     { wch: 10 }, // hidden
@@ -252,9 +248,9 @@ function createLiabilitiesSheet(): XLSX.WorkSheet {
 }
 
 /**
- * Create Subscriptions sheet with headers and example row
+ * Create Expenses sheet with headers and example row
  */
-function createSubscriptionsSheet(): XLSX.WorkSheet {
+function createExpensesSheet(): XLSX.WorkSheet {
   const headers = [
     'name*',
     'amount*',

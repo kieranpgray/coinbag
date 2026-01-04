@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { SearchableSelect } from '@/components/ui/searchable-select';
 import { Textarea } from '@/components/ui/textarea';
+import { DatePicker } from '@/components/ui/date-picker';
 import type { Asset } from '@/types/domain';
 
 const assetSchema = z.object({
@@ -72,8 +73,19 @@ export function AssetForm({ asset, onSubmit, onCancel, isLoading, defaultType }:
         <Label htmlFor="name">
           Name <span className="text-destructive">*</span>
         </Label>
-        <Input id="name" {...register('name')} placeholder="Asset name" />
-        {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
+        <Input
+          id="name"
+          aria-invalid={errors.name ? 'true' : 'false'}
+          aria-describedby={errors.name ? 'name-error' : undefined}
+          className={errors.name ? 'border-destructive' : ''}
+          {...register('name')}
+          placeholder="Asset name"
+        />
+        {errors.name && (
+          <p id="name-error" className="text-sm text-destructive" role="alert">
+            {errors.name.message}
+          </p>
+        )}
       </div>
 
       <div className="space-y-2">
@@ -109,18 +121,34 @@ export function AssetForm({ asset, onSubmit, onCancel, isLoading, defaultType }:
           placeholder="0.00"
           clearOnFocus
           clearValue={0}
+          aria-invalid={errors.value ? 'true' : 'false'}
+          aria-describedby={errors.value ? 'value-error' : undefined}
+          className={errors.value ? 'border-destructive' : ''}
           {...register('value', { valueAsNumber: true })}
         />
-        {errors.value && <p className="text-sm text-destructive">{errors.value.message}</p>}
+        {errors.value && (
+          <p id="value-error" className="text-sm text-destructive" role="alert">
+            {errors.value.message}
+          </p>
+        )}
       </div>
 
       <div className="space-y-2">
         <Label htmlFor="dateAdded">
           Date Added <span className="text-destructive">*</span>
         </Label>
-        <Input id="dateAdded" type="date" {...register('dateAdded')} />
+        <DatePicker
+          id="dateAdded"
+          shouldShowCalendarButton
+          {...(() => {
+            const { disabled, ...registerProps } = register('dateAdded');
+            return registerProps;
+          })()}
+        />
         {errors.dateAdded && (
-          <p className="text-sm text-destructive">{errors.dateAdded.message}</p>
+          <p id="dateAdded-error" className="text-sm text-destructive" role="alert">
+            {errors.dateAdded.message}
+          </p>
         )}
       </div>
 

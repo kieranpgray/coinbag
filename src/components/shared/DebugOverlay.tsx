@@ -9,7 +9,7 @@ import { useLocation } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { getCorrelationId, isDebugLoggingEnabled } from '@/lib/logger';
 import { useEffect, useState, useRef } from 'react';
-import type { Asset, Liability, Account, Subscription } from '@/types/domain';
+import type { Asset, Liability, Account, Expense } from '@/types/domain';
 
 export function DebugOverlay() {
   const location = useLocation();
@@ -19,7 +19,7 @@ export function DebugOverlay() {
     assets: 0,
     liabilities: 0,
     accounts: 0,
-    subscriptions: 0,
+    expenses: 0,
   });
 
   useEffect(() => {
@@ -40,13 +40,13 @@ export function DebugOverlay() {
         const assets = queryClient.getQueryData<Asset[]>(['assets']) || [];
         const liabilities = queryClient.getQueryData<Liability[]>(['liabilities']) || [];
         const accounts = queryClient.getQueryData<Account[]>(['accounts']) || [];
-        const subscriptions = queryClient.getQueryData<Subscription[]>(['subscriptions']) || [];
+        const expenses = queryClient.getQueryData<Expense[]>(['expenses']) || [];
 
         setCounts({
           assets: assets.length,
           liabilities: liabilities.length,
           accounts: accounts.length,
-          subscriptions: subscriptions.length,
+          expenses: expenses.length,
         });
       });
     };
@@ -116,7 +116,7 @@ export function DebugOverlay() {
           Accounts: <span style={{ color: counts.accounts > 0 ? '#4ade80' : '#f87171' }}>{counts.accounts}</span>
         </div>
         <div style={{ marginLeft: '8px' }}>
-          Subscriptions: <span style={{ color: counts.subscriptions > 0 ? '#4ade80' : '#f87171' }}>{counts.subscriptions}</span>
+          Expenses: <span style={{ color: counts.expenses > 0 ? '#4ade80' : '#f87171' }}>{counts.expenses}</span>
         </div>
       </div>
     </div>

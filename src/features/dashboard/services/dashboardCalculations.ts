@@ -2,13 +2,14 @@ import type {
   Asset,
   Liability,
   Account,
-  Subscription,
+  Expense,
   Income,
   AssetBreakdown,
   LiabilityBreakdown,
   ExpenseBreakdown,
   IncomeBreakdown,
 } from '@/types/domain';
+import { calculateMonthlyEquivalent } from '@/features/expenses/utils';
 
 /**
  * Simple memoization utility
@@ -96,10 +97,12 @@ const calculateLiabilityBreakdownMemoized = memoize(
 );
 
 const calculateExpenseBreakdownMemoized = memoize(
-  (subscriptions: Subscription[]): ExpenseBreakdown[] => {
+  (expenses: Expense[]): ExpenseBreakdown[] => {
     const expenseTotals: Record<string, number> = {};
-    subscriptions.forEach((sub) => {
-      expenseTotals[sub.categoryId] = (expenseTotals[sub.categoryId] || 0) + sub.amount;
+    expenses.forEach((expense) => {
+      // Use monthly equivalents instead of raw amounts
+      const monthlyAmount = calculateMonthlyEquivalent(expense.amount, expense.frequency);
+      expenseTotals[expense.categoryId] = (expenseTotals[expense.categoryId] || 0) + monthlyAmount;
     });
 
     const totalExpenses = Object.values(expenseTotals).reduce((sum, amount) => sum + amount, 0);
@@ -114,7 +117,7 @@ const calculateExpenseBreakdownMemoized = memoize(
       .sort((a, b) => b.amount - a.amount);
   },
   // Custom cache key
-  (subscriptions) => subscriptions.map(s => `${s.id}-${s.amount}-${s.categoryId}`).sort().join('|')
+  (expenses) => expenses.map(e => `${e.id}-${e.amount}-${e.frequency}-${e.categoryId}`).sort().join('|')
 );
 
 const calculateIncomeBreakdownMemoized = memoize(
@@ -165,7 +168,7 @@ export const DashboardCalculations = {
    * Calculate all dashboard metrics at once
    */
   calculateAll: memoize(
-    (assets: Asset[], liabilities: Liability[], accounts: Account[], subscriptions: Subscription[], incomes: Income[] = []) => {
+    (assets: Asset[], liabilities: Liability[], accounts: Account[], expenses: Expense[], incomes: Income[] = []) => {
       const totalAssets = assets.reduce((sum, asset) => sum + asset.value, 0);
       const totalLiabilities = liabilities.reduce((sum, liability) => sum + liability.balance, 0);
       const netWorth = totalAssets - totalLiabilities;
@@ -178,7 +181,7 @@ export const DashboardCalculations = {
 
       // Calculate total cash from both accounts and cash assets
       const cashFromAccounts = accounts
-        .filter((a) => a.accountType === 'Checking' || a.accountType === 'Savings')
+        .filter((a) => a.accountType === 'Bank Account' || a.accountType === 'Savings')
         .reduce((sum, account) => sum + account.balance, 0);
       
       const cashFromAssets = assets
@@ -220,7 +223,7 @@ export const DashboardCalculations = {
         accountsCount: accounts.length,
         assetsCount: assets.length,
         liabilitiesCount: liabilities.length,
-        subscriptionsCount: subscriptions.length,
+        expensesCount: expenses.length,
         transactionsCount: 0, // Transactions feature not yet implemented - will be integrated when available
         incomeCount: incomes.length,
         holdingsCount: holdingsAssets.length,
@@ -246,14 +249,14 @@ export const DashboardCalculations = {
         adjustedNetWorth,
         assetBreakdown: calculateAssetBreakdownMemoized(assets),
         liabilityBreakdown: calculateLiabilityBreakdownMemoized(liabilities),
-        expenseBreakdown: calculateExpenseBreakdownMemoized(subscriptions),
+        expenseBreakdown: calculateExpenseBreakdownMemoized(expenses),
         incomeBreakdown: calculateIncomeBreakdownMemoized(incomes),
         dataSources,
       };
     },
     // Complex cache key for all parameters
-    (assets, liabilities, accounts, subscriptions, incomes) =>
-      `${assets.map(a => `${a.id}-${a.value}`).sort().join('|')}|${liabilities.map(l => `${l.id}-${l.balance}`).sort().join('|')}|${accounts.map(a => `${a.id}-${a.balance}`).sort().join('|')}|${subscriptions.map(s => `${s.id}-${s.amount}`).sort().join('|')}|${(incomes || []).map(i => `${i.id}-${i.amount}`).sort().join('|')}`
+    (assets, liabilities, accounts, expenses, incomes) =>
+      `${assets.map(a => `${a.id}-${a.value}`).sort().join('|')}|${liabilities.map(l => `${l.id}-${l.balance}`).sort().join('|')}|${accounts.map(a => `${a.id}-${a.balance}`).sort().join('|')}|${expenses.map(e => `${e.id}-${e.amount}-${e.frequency}`).sort().join('|')}|${(incomes || []).map(i => `${i.id}-${i.amount}`).sort().join('|')}`
   ),
 
   /**

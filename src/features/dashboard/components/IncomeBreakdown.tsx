@@ -79,7 +79,7 @@ export const IncomeBreakdown = memo(function IncomeBreakdownComponent({
           ))}
         </div>
         <Link
-          to="/accounts"
+          to="/app/accounts"
           className="mt-4 inline-block text-sm text-primary hover:underline"
         >
           View all accounts →

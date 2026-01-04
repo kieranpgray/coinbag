@@ -40,3 +40,4 @@ export function DebugPage() {
   return <DebugPanel open={showPanel} onOpenChange={handleClose} />;
 }
 
+

@@ -1,12 +1,13 @@
 import { useState, useEffect, useRef } from 'react';
-import { TrendingUp, Plus, DollarSign } from 'lucide-react';
+import { TrendingUp, Plus, DollarSign, Pencil, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { formatCurrency } from '@/lib/utils';
 import { format } from 'date-fns';
 import type { Income } from '@/types/domain';
 import { convertToFrequency, getFrequencyLabelForDisplay, normalizeToFrequency, type Frequency, FREQUENCY_OPTIONS } from '../utils/frequencyConversion';
+import { IncomeList } from '@/features/income/components/IncomeList';
 
 interface IncomeSectionProps {
   totalIncome: number; // monthly equivalent
@@ -16,6 +17,7 @@ interface IncomeSectionProps {
   onDelete: (income: Income) => void;
   parentFrequency?: Frequency;
   onFrequencyChange?: (frequency: Frequency) => void;
+  viewMode?: 'list' | 'cards';
 }
 
 /**
@@ -30,6 +32,7 @@ export function IncomeSection({
   onDelete,
   parentFrequency,
   onFrequencyChange,
+  viewMode = 'cards',
 }: IncomeSectionProps) {
   const [localFrequency, setLocalFrequency] = useState<Frequency | undefined>(parentFrequency);
   const hasManualOverride = useRef(false);
@@ -117,53 +120,64 @@ export function IncomeSection({
             </div>
           </CardContent>
         </Card>
+      ) : viewMode === 'list' ? (
+        <IncomeList
+          incomes={incomeSources}
+          onEdit={onEdit}
+          onDelete={onDelete}
+          onCreate={onCreate}
+        />
       ) : (
-        <div className="grid gap-3 md:grid-cols-2">
+        <div className="grid gap-4 md:grid-cols-2">
           {incomeSources.map((source) => (
             <Card
               key={source.id}
-              className="p-5 hover:shadow-md transition-shadow border border-neutral-200 rounded-xl"
+              className="hover:shadow-md transition-shadow"
             >
-              <div className="flex items-start justify-between mb-4">
-                <div>
-                  <h3 className="text-neutral-900 mb-1 font-semibold">{source.name}</h3>
-                  <p className="text-sm text-neutral-500">{source.source}</p>
+              <CardHeader>
+                <div className="flex items-start justify-between">
+                  <div>
+                    <CardTitle className="text-lg">{source.name}</CardTitle>
+                    <p className="text-sm text-muted-foreground mt-1">{source.source}</p>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => onEdit(source)}
+                      aria-label={`Edit ${source.name}`}
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => onDelete(source)}
+                      aria-label={`Delete ${source.name}`}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
-                <div className="h-8 w-8 rounded-lg bg-emerald-50 flex items-center justify-center">
-                  <DollarSign className="h-4 w-4 text-emerald-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-sm text-muted-foreground">Amount</span>
+                    <span className="font-semibold">
+                      {formatCurrency(convertToFrequency(source.amount, normalizeToFrequency(source.frequency), displayFrequency))}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-muted-foreground">Frequency</span>
+                    <span className="text-sm capitalize">{getFrequencyLabelForDisplay(displayFrequency)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-muted-foreground">Next Payment</span>
+                    <span className="text-sm">{format(new Date(source.nextPaymentDate), 'MMM d, yyyy')}</span>
+                  </div>
                 </div>
-              </div>
-              <div className="space-y-2">
-                <div className="flex items-baseline gap-2">
-                  <span className="text-2xl text-neutral-900 font-semibold">
-                    {formatCurrency(convertToFrequency(source.amount, normalizeToFrequency(source.frequency), displayFrequency))}
-                  </span>
-                  <span className="text-sm text-neutral-500">
-                    / {getFrequencyLabelForDisplay(displayFrequency)}
-                  </span>
-                </div>
-                <div className="text-xs text-neutral-500">
-                  Next payment: {format(new Date(source.nextPaymentDate), 'MMM d, yyyy')}
-                </div>
-              </div>
-              <div className="flex gap-2 mt-4 pt-4 border-t">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => onEdit(source)}
-                  aria-label={`Edit ${source.name}`}
-                >
-                  Edit
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => onDelete(source)}
-                  aria-label={`Delete ${source.name}`}
-                >
-                  Delete
-                </Button>
-              </div>
+              </CardContent>
             </Card>
           ))}
         </div>

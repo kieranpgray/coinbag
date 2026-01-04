@@ -1,0 +1,49 @@
+{
+  "privacyMode": {
+    "label": "Privacy Mode",
+    "description": "Hide sensitive financial information",
+    "ariaLabel": "Enable privacy mode to hide sensitive financial information"
+  },
+  "darkMode": {
+    "label": "Dark Mode",
+    "description": "Use dark theme",
+    "ariaLabel": "Enable dark mode theme"
+  },
+  "locale": {
+    "label": "Language and Location",
+    "detected": "Detected: {{country}}"
+  },
+  "taxRate": {
+    "label": "Tax Rate",
+    "placeholder": "0.0",
+    "description": "Your default tax rate percentage"
+  },
+  "emailNotifications": {
+    "title": "Email Notifications",
+    "portfolioSummary": {
+      "label": "Portfolio Summary",
+      "ariaLabel": "Enable portfolio summary email notifications"
+    },
+    "spendingAlerts": {
+      "label": "Spending Alerts",
+      "ariaLabel": "Enable spending alerts email notifications"
+    },
+    "stockPriceAlerts": {
+      "label": "Stock Price Alerts",
+      "ariaLabel": "Enable stock price alerts email notifications"
+    },
+    "featureAnnouncements": {
+      "label": "Feature Announcements",
+      "ariaLabel": "Enable feature announcements email notifications"
+    },
+    "monthlyReports": {
+      "label": "Monthly Reports",
+      "ariaLabel": "Enable monthly reports email notifications"
+    },
+    "marketingPromotions": {
+      "label": "Marketing Promotions",
+      "ariaLabel": "Enable marketing promotions email notifications"
+    }
+  }
+}
+

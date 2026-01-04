@@ -16,7 +16,7 @@ import type { ParsedImportData, ValidationResult, ImportResult } from './types';
 import { useAccounts } from '@/features/accounts/hooks';
 import { useAssets } from '@/features/assets/hooks';
 import { useLiabilities } from '@/features/liabilities/hooks';
-import { useSubscriptions } from '@/features/subscriptions/hooks';
+import { useExpenses } from '@/features/expenses/hooks';
 import { useIncomes } from '@/features/income/hooks';
 
 type ImportStep = 'upload' | 'preview' | 'importing' | 'results';
@@ -38,7 +38,7 @@ export function ImportPage() {
   const { data: existingAccounts = [] } = useAccounts();
   const { data: existingAssets = [] } = useAssets();
   const { data: existingLiabilities = [] } = useLiabilities();
-  const { data: existingSubscriptions = [] } = useSubscriptions();
+  const { data: existingExpenses = [] } = useExpenses();
   const { data: existingIncome = [] } = useIncomes();
 
   const importService = useMemo(() => new ImportService(getToken), [getToken]);
@@ -74,7 +74,7 @@ export function ImportPage() {
           accounts: existingAccounts,
           assets: existingAssets,
           liabilities: existingLiabilities,
-          subscriptions: existingSubscriptions,
+          expenses: existingExpenses,
           income: existingIncome,
         });
 
@@ -87,7 +87,7 @@ export function ImportPage() {
         setIsParsing(false);
       }
     },
-    [importService, existingAccounts, existingAssets, existingLiabilities, existingSubscriptions, existingIncome]
+    [importService, existingAccounts, existingAssets, existingLiabilities, existingExpenses, existingIncome]
   );
 
   const handleConfirmImport = useCallback(async () => {
@@ -118,7 +118,7 @@ export function ImportPage() {
       queryClient.invalidateQueries({
         predicate: (query) => {
           const key = query.queryKey[0];
-          return ['accounts', 'assets', 'liabilities', 'subscriptions', 'incomes', 'dashboard', 'income'].includes(key as string);
+          return ['accounts', 'assets', 'liabilities', 'expenses', 'incomes', 'dashboard', 'income'].includes(key as string);
         },
       });
 
@@ -133,8 +133,8 @@ export function ImportPage() {
       if (result.imported.liabilities > 0) {
         queryClient.refetchQueries({ queryKey: ['liabilities'] });
       }
-      if (result.imported.subscriptions > 0) {
-        queryClient.refetchQueries({ queryKey: ['subscriptions'] });
+      if (result.imported.expenses > 0) {
+        queryClient.refetchQueries({ queryKey: ['expenses'] });
       }
       if (result.imported.income > 0) {
         queryClient.refetchQueries({ queryKey: ['incomes'] });

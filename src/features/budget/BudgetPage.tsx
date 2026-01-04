@@ -1,24 +1,24 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useIncomes, useCreateIncome, useUpdateIncome, useDeleteIncome } from '@/features/income/hooks';
-import { useSubscriptions } from '@/features/subscriptions/hooks';
+import { useExpenses } from '@/features/expenses/hooks';
 import { useCategories } from '@/features/categories/hooks';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { RefreshCw, AlertTriangle } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import { IncomeSection } from './components/IncomeSection';
 import { ExpensesSection } from './components/ExpensesSection';
 import { VisualDivider } from './components/VisualDivider';
 import { BudgetBreakdown } from './components/BudgetBreakdown';
 import { calculateMonthlyIncome } from './utils/calculations';
 import { filterByExpenseType } from './utils/filtering';
-import { getExpenseType } from './utils/expenseTypeMapping';
-import { getCategoryNameSafe } from './utils/categoryHelpers';
-import { calculateMonthlyEquivalent } from '@/features/subscriptions/utils';
+import { calculateMonthlyEquivalent } from '@/features/expenses/utils';
 import { type Frequency } from './utils/frequencyConversion';
 import type { Income } from '@/types/domain';
-import type { Subscription } from '@/types/domain';
+import type { Expense } from '@/types/domain';
 import {
   Dialog,
   DialogContent,
@@ -27,16 +27,16 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { DatePicker } from '@/components/ui/date-picker';
 import { SearchableSelect } from '@/components/ui/searchable-select';
 import { Textarea } from '@/components/ui/textarea';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { format } from 'date-fns';
-import { CreateSubscriptionModal } from '@/features/subscriptions/components/CreateSubscriptionModal';
-import { EditSubscriptionModal } from '@/features/subscriptions/components/EditSubscriptionModal';
-import { DeleteSubscriptionDialog } from '@/features/subscriptions/components/DeleteSubscriptionDialog';
+import { CreateExpenseModal } from '@/features/expenses/components/CreateExpenseModal';
+import { EditExpenseModal } from '@/features/expenses/components/EditExpenseModal';
+import { DeleteExpenseDialog } from '@/features/expenses/components/DeleteExpenseDialog';
 import { findCategoryIdByExpenseType } from './utils/categoryMapping';
 import type { ExpenseType } from './utils/expenseTypeMapping';
 import { findUncategorisedCategoryId } from '@/data/categories/ensureDefaults';
@@ -59,7 +59,7 @@ type IncomeFormData = z.infer<typeof incomeSchema>;
 export function BudgetPage() {
   // Data hooks
   const { data: incomes = [], isLoading: incomesLoading, error: incomesError, refetch: refetchIncomes } = useIncomes();
-  const { data: subscriptions = [], isLoading: subscriptionsLoading, error: subscriptionsError, refetch: refetchSubscriptions } = useSubscriptions();
+  const { data: expenses = [], isLoading: expensesLoading, error: expensesError, refetch: refetchExpenses } = useExpenses();
   const { data: categories = [] } = useCategories();
 
   // Mutations
@@ -72,15 +72,18 @@ export function BudgetPage() {
   const [createIncomeModalOpen, setCreateIncomeModalOpen] = useState(false);
   const [editingIncome, setEditingIncome] = useState<Income | null>(null);
   const [deletingIncome, setDeletingIncome] = useState<Income | null>(null);
-  const [createSubscriptionModalOpen, setCreateSubscriptionModalOpen] = useState(false);
+  const [createExpenseModalOpen, setCreateExpenseModalOpen] = useState(false);
   const [defaultCategoryId, setDefaultCategoryId] = useState<string | undefined>(undefined);
-  const [editingSubscription, setEditingSubscription] = useState<Subscription | null>(null);
-  const [deletingSubscription, setDeletingSubscription] = useState<Subscription | null>(null);
+  const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
+  const [deletingExpense, setDeletingExpense] = useState<Expense | null>(null);
   
   // Frequency state
   const [breakdownFrequency, setBreakdownFrequency] = useState<Frequency>('monthly');
   const [incomeFrequency, setIncomeFrequency] = useState<Frequency | undefined>(undefined);
   const [expensesFrequency, setExpensesFrequency] = useState<Frequency | undefined>(undefined);
+  
+  // View mode state
+  const [viewMode, setViewMode] = useState<'list' | 'cards'>('cards');
 
   // Handle query params for auto-opening create modal
   useEffect(() => {
@@ -89,7 +92,7 @@ export function BudgetPage() {
       setCreateIncomeModalOpen(true);
       setSearchParams({});
     } else if (shouldCreate === 'expense' || shouldCreate === 'subscription') {
-      setCreateSubscriptionModalOpen(true);
+      setCreateExpenseModalOpen(true);
       setSearchParams({});
     }
   }, [searchParams, setSearchParams]);
@@ -109,32 +112,29 @@ export function BudgetPage() {
     return calculateMonthlyIncome(incomes);
   }, [incomes]);
 
-  // Calculate separate totals for savings, repayments, and other expenses
+  // Calculate separate totals for savings, repayments, subscriptions, and all expenses
   const totalMonthlySavings = useMemo(() => {
-    const savingsSubscriptions = filterByExpenseType(subscriptions, 'savings', categoryMap, uncategorisedId);
-    return savingsSubscriptions.reduce((sum, subscription) => {
-      return sum + calculateMonthlyEquivalent(subscription.amount, subscription.frequency);
+    const savingsExpenses = filterByExpenseType(expenses, 'savings', categoryMap, uncategorisedId);
+    return savingsExpenses.reduce((sum, expense) => {
+      return sum + calculateMonthlyEquivalent(expense.amount, expense.frequency);
     }, 0);
-  }, [subscriptions, categoryMap, uncategorisedId]);
+  }, [expenses, categoryMap, uncategorisedId]);
 
   const totalMonthlyRepayments = useMemo(() => {
-    const repaymentsSubscriptions = filterByExpenseType(subscriptions, 'repayments', categoryMap, uncategorisedId);
-    return repaymentsSubscriptions.reduce((sum, subscription) => {
-      return sum + calculateMonthlyEquivalent(subscription.amount, subscription.frequency);
+    const repaymentsExpenses = filterByExpenseType(expenses, 'repayments', categoryMap, uncategorisedId);
+    return repaymentsExpenses.reduce((sum, expense) => {
+      return sum + calculateMonthlyEquivalent(expense.amount, expense.frequency);
     }, 0);
-  }, [subscriptions, categoryMap, uncategorisedId]);
+  }, [expenses, categoryMap, uncategorisedId]);
 
+
+  // Calculate total monthly expenses (ALL expenses dynamically - no hardcoded types)
   const totalMonthlyExpenses = useMemo(() => {
-    // Exclude savings and repayments from general expenses
-    return subscriptions.reduce((sum, subscription) => {
-      const categoryName = getCategoryNameSafe(subscription.categoryId, categoryMap, uncategorisedId);
-      const expenseType = getExpenseType(categoryName);
-      if (expenseType === 'savings' || expenseType === 'repayments') {
-        return sum;
-      }
-      return sum + calculateMonthlyEquivalent(subscription.amount, subscription.frequency);
+    // Sum ALL expenses dynamically - this ensures future expense types are automatically included
+    return expenses.reduce((sum, expense) => {
+      return sum + calculateMonthlyEquivalent(expense.amount, expense.frequency);
     }, 0);
-  }, [subscriptions, categoryMap, uncategorisedId]);
+  }, [expenses]);
 
   // Form handling for income
   const {
@@ -207,7 +207,7 @@ export function BudgetPage() {
     });
   };
 
-  // Subscription handlers
+  // Expense handlers
   const handleCreateExpense = (expenseType?: ExpenseType) => {
     // Find matching category for the expense type
     const categoryId = expenseType && categories.length > 0
@@ -215,19 +215,19 @@ export function BudgetPage() {
       : undefined;
     
     setDefaultCategoryId(categoryId);
-    setCreateSubscriptionModalOpen(true);
+    setCreateExpenseModalOpen(true);
   };
 
-  const handleEditSubscription = (subscription: Subscription) => {
-    setEditingSubscription(subscription);
+  const handleEditExpense = (expense: Expense) => {
+    setEditingExpense(expense);
   };
 
-  const handleDeleteSubscription = (subscription: Subscription) => {
-    setDeletingSubscription(subscription);
+  const handleDeleteExpense = (expense: Expense) => {
+    setDeletingExpense(expense);
   };
 
   // Loading state
-  const isLoading = incomesLoading || subscriptionsLoading;
+  const isLoading = incomesLoading || expensesLoading;
 
   if (isLoading) {
     return (
@@ -246,16 +246,30 @@ export function BudgetPage() {
 
   // Error states (show available data even if one section fails)
   const hasIncomesError = !!incomesError;
-  const hasSubscriptionsError = !!subscriptionsError;
+  const hasExpensesError = !!expensesError;
 
-  // Calculate remaining budget (income - expenses - savings - repayments)
-  const remaining = totalMonthlyIncome - totalMonthlyExpenses - totalMonthlySavings - totalMonthlyRepayments;
+  // Calculate remaining budget (income - all expenses)
+  const remaining = totalMonthlyIncome - totalMonthlyExpenses;
 
   return (
     <div className="space-y-12">
       {/* Budget Header */}
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Budget</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Budget</h1>
+        <div className="flex items-center gap-3">
+          <Label htmlFor="view-mode-budget" className="text-sm text-muted-foreground">
+            List view
+          </Label>
+          <Switch
+            id="view-mode-budget"
+            checked={viewMode === 'cards'}
+            onCheckedChange={(checked) => setViewMode(checked ? 'cards' : 'list')}
+            aria-label="Toggle between list view and card view"
+          />
+          <Label htmlFor="view-mode-budget" className="text-sm text-muted-foreground">
+            Card view
+          </Label>
+        </div>
       </div>
 
       {/* Budget Breakdown */}
@@ -306,6 +320,7 @@ export function BudgetPage() {
           onDelete={handleDeleteIncome}
           parentFrequency={breakdownFrequency}
           onFrequencyChange={setIncomeFrequency}
+          viewMode={viewMode}
         />
       )}
 
@@ -313,7 +328,7 @@ export function BudgetPage() {
       <VisualDivider />
 
       {/* Expenses Section */}
-      {hasSubscriptionsError ? (
+      {hasExpensesError ? (
         <Alert>
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>Unable to load expenses</AlertTitle>
@@ -323,24 +338,25 @@ export function BudgetPage() {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => refetchSubscriptions()}
+            onClick={() => refetchExpenses()}
             className="mt-4"
-            disabled={subscriptionsLoading}
+            disabled={expensesLoading}
           >
-            <RefreshCw className={`h-4 w-4 mr-2 ${subscriptionsLoading ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`h-4 w-4 mr-2 ${expensesLoading ? 'animate-spin' : ''}`} />
             Try again
           </Button>
         </Alert>
       ) : (
         <ExpensesSection
-          subscriptions={subscriptions}
+          expenses={expenses}
           categoryMap={categoryMap}
           uncategorisedId={uncategorisedId}
           onCreate={handleCreateExpense}
-          onEdit={handleEditSubscription}
-          onDelete={handleDeleteSubscription}
+          onEdit={handleEditExpense}
+          onDelete={handleDeleteExpense}
           parentFrequency={breakdownFrequency}
           onFrequencyChange={setExpensesFrequency}
+          viewMode={viewMode}
         />
       )}
 
@@ -355,8 +371,19 @@ export function BudgetPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="name">Name</Label>
-                <Input id="name" {...registerIncome('name')} placeholder="e.g., Main Salary" />
-                {incomeErrors.name && <p className="text-sm text-destructive">{incomeErrors.name.message}</p>}
+                <Input
+                  id="name"
+                  aria-invalid={incomeErrors.name ? 'true' : 'false'}
+                  aria-describedby={incomeErrors.name ? 'name-error' : undefined}
+                  className={incomeErrors.name ? 'border-destructive' : ''}
+                  {...registerIncome('name')}
+                  placeholder="e.g., Main Salary"
+                />
+                {incomeErrors.name && (
+                  <p id="name-error" className="text-sm text-destructive" role="alert">
+                    {incomeErrors.name.message}
+                  </p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="source">Source</Label>
@@ -387,9 +414,16 @@ export function BudgetPage() {
                   placeholder="0.00"
                   clearOnFocus
                   clearValue={0}
+                  aria-invalid={incomeErrors.amount ? 'true' : 'false'}
+                  aria-describedby={incomeErrors.amount ? 'amount-error' : undefined}
+                  className={incomeErrors.amount ? 'border-destructive' : ''}
                   {...registerIncome('amount', { valueAsNumber: true })}
                 />
-                {incomeErrors.amount && <p className="text-sm text-destructive">{incomeErrors.amount.message}</p>}
+                {incomeErrors.amount && (
+                  <p id="amount-error" className="text-sm text-destructive" role="alert">
+                    {incomeErrors.amount.message}
+                  </p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="frequency">Frequency</Label>
@@ -410,8 +444,19 @@ export function BudgetPage() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="nextPaymentDate">Next Payment Date</Label>
-              <Input id="nextPaymentDate" type="date" {...registerIncome('nextPaymentDate')} />
-              {incomeErrors.nextPaymentDate && <p className="text-sm text-destructive">{incomeErrors.nextPaymentDate.message}</p>}
+              <DatePicker
+                id="nextPaymentDate"
+                shouldShowCalendarButton
+                {...(() => {
+                  const { disabled, ...registerProps } = registerIncome('nextPaymentDate');
+                  return registerProps;
+                })()}
+              />
+              {incomeErrors.nextPaymentDate && (
+                <p id="nextPaymentDate-error" className="text-sm text-destructive" role="alert">
+                  {incomeErrors.nextPaymentDate.message}
+                </p>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="notes">Notes (Optional)</Label>
@@ -441,8 +486,18 @@ export function BudgetPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="edit-name">Name</Label>
-                  <Input id="edit-name" {...registerIncome('name')} />
-                  {incomeErrors.name && <p className="text-sm text-destructive">{incomeErrors.name.message}</p>}
+                  <Input
+                    id="edit-name"
+                    aria-invalid={incomeErrors.name ? 'true' : 'false'}
+                    aria-describedby={incomeErrors.name ? 'edit-name-error' : undefined}
+                    className={incomeErrors.name ? 'border-destructive' : ''}
+                    {...registerIncome('name')}
+                  />
+                  {incomeErrors.name && (
+                    <p id="edit-name-error" className="text-sm text-destructive" role="alert">
+                      {incomeErrors.name.message}
+                    </p>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="edit-source">Source</Label>
@@ -472,9 +527,16 @@ export function BudgetPage() {
                     placeholder="0.00"
                     clearOnFocus
                     clearValue={0}
+                    aria-invalid={incomeErrors.amount ? 'true' : 'false'}
+                    aria-describedby={incomeErrors.amount ? 'edit-amount-error' : undefined}
+                    className={incomeErrors.amount ? 'border-destructive' : ''}
                     {...registerIncome('amount', { valueAsNumber: true })}
                   />
-                  {incomeErrors.amount && <p className="text-sm text-destructive">{incomeErrors.amount.message}</p>}
+                  {incomeErrors.amount && (
+                    <p id="edit-amount-error" className="text-sm text-destructive" role="alert">
+                      {incomeErrors.amount.message}
+                    </p>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="edit-frequency">Frequency</Label>
@@ -494,8 +556,19 @@ export function BudgetPage() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="edit-nextPaymentDate">Next Payment Date</Label>
-                <Input id="edit-nextPaymentDate" type="date" {...registerIncome('nextPaymentDate')} />
-                {incomeErrors.nextPaymentDate && <p className="text-sm text-destructive">{incomeErrors.nextPaymentDate.message}</p>}
+                <DatePicker
+                  id="edit-nextPaymentDate"
+                  shouldShowCalendarButton
+                  {...(() => {
+                    const { disabled, ...registerProps } = registerIncome('nextPaymentDate');
+                    return registerProps;
+                  })()}
+                />
+                {incomeErrors.nextPaymentDate && (
+                  <p id="edit-nextPaymentDate-error" className="text-sm text-destructive" role="alert">
+                    {incomeErrors.nextPaymentDate.message}
+                  </p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="edit-notes">Notes (Optional)</Label>
@@ -536,11 +609,11 @@ export function BudgetPage() {
         </Dialog>
       )}
 
-      {/* Subscription Modals */}
-      <CreateSubscriptionModal
-        open={createSubscriptionModalOpen}
+      {/* Expense Modals */}
+      <CreateExpenseModal
+        open={createExpenseModalOpen}
         onOpenChange={(open) => {
-          setCreateSubscriptionModalOpen(open);
+          setCreateExpenseModalOpen(open);
           if (!open) {
             // Clear default category when modal closes
             setDefaultCategoryId(undefined);
@@ -549,22 +622,22 @@ export function BudgetPage() {
         defaultCategoryId={defaultCategoryId}
       />
 
-      {editingSubscription && (
-        <EditSubscriptionModal
-          subscription={editingSubscription}
-          open={!!editingSubscription}
+      {editingExpense && (
+        <EditExpenseModal
+          expense={editingExpense}
+          open={!!editingExpense}
           onOpenChange={(open) => {
-            if (!open) setEditingSubscription(null);
+            if (!open) setEditingExpense(null);
           }}
         />
       )}
 
-      {deletingSubscription && (
-        <DeleteSubscriptionDialog
-          subscription={deletingSubscription}
-          open={!!deletingSubscription}
+      {deletingExpense && (
+        <DeleteExpenseDialog
+          expense={deletingExpense}
+          open={!!deletingExpense}
           onOpenChange={(open) => {
-            if (!open) setDeletingSubscription(null);
+            if (!open) setDeletingExpense(null);
           }}
         />
       )}

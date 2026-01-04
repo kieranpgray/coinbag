@@ -14,8 +14,7 @@
       "stockPriceAlerts": true,
       "featureAnnouncements": false,
       "marketingPromotions": false
-    },
-    "mfaEnabled": false
+    }
   }
 ]
 

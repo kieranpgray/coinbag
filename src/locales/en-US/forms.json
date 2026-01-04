@@ -1,0 +1,81 @@
+{
+  "accountName": {
+    "label": "Account Name",
+    "placeholder": "e.g., Everyday Account"
+  },
+  "accountType": {
+    "label": "Account Type",
+    "placeholder": "Select account type"
+  },
+  "institution": {
+    "label": "Institution",
+    "placeholder": "Optional"
+  },
+  "balance": {
+    "label": "Balance",
+    "placeholder": "0.00"
+  },
+  "goal": {
+    "label": "Goal",
+    "placeholder": "E.g. Emergency Fund, Net Worth"
+  },
+  "targetAmount": {
+    "label": "Target Amount",
+    "placeholder": "0.00"
+  },
+  "deadline": {
+    "label": "Target Date"
+  },
+  "amount": {
+    "label": "Amount",
+    "placeholder": "0.00"
+  },
+  "frequency": {
+    "label": "Frequency",
+    "placeholder": "Select frequency"
+  },
+  "source": {
+    "label": "Source",
+    "placeholder": "Select source"
+  },
+  "liabilityName": {
+    "label": "Liability Name",
+    "placeholder": "Liability name"
+  },
+  "liabilityType": {
+    "label": "Type",
+    "placeholder": "Select liability type"
+  },
+  "monthlyPayment": {
+    "label": "Monthly Payment"
+  },
+  "repaymentAmount": {
+    "label": "Repayment Amount"
+  },
+  "value": {
+    "label": "Value"
+  },
+  "dateAdded": {
+    "label": "Date Added"
+  },
+  "subscriptionName": {
+    "label": "Name",
+    "placeholder": "Netflix Subscription"
+  },
+  "chargeDate": {
+    "label": "Charge Date"
+  },
+  "nextDueDate": {
+    "label": "Next Due Date"
+  },
+  "incomeSource": {
+    "placeholder": "e.g., Main Salary"
+  },
+  "anyAdditionalNotes": {
+    "placeholder": "Any additional notes"
+  },
+  "selectAccount": {
+    "placeholder": "Select an account to link"
+  }
+}
+

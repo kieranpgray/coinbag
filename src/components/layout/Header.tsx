@@ -29,7 +29,7 @@ export function Header() {
             >
               <Menu className="h-5 w-5" />
             </Button>
-            <Link to="/dashboard" className="text-xl font-bold hover:opacity-80">
+            <Link to="/app/dashboard" className="text-xl font-bold hover:opacity-80">
               Coinbag
             </Link>
           </div>
@@ -73,7 +73,7 @@ export function Header() {
                 <path d="M18 3a3 3 0 0 0-3 3v12a3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3H6a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3V6a3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3h12a3 3 0 0 0 3-3 3 3 0 0 0-3-3z" />
               </svg>
             </Button>
-            <Link to="/settings">
+            <Link to="/app/settings">
               <Button variant="ghost" size="icon" aria-label="Settings">
                 <Settings className="h-4 w-4" />
               </Button>

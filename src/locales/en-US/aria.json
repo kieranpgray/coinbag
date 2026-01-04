@@ -1,0 +1,18 @@
+{
+  "deleteAccount": "Delete account",
+  "editSubscription": "Edit subscription",
+  "deleteSubscription": "Delete subscription",
+  "openCalendar": "Open calendar",
+  "previousMonth": "Previous month",
+  "nextMonth": "Next month",
+  "toggleView": "Toggle between list view and card view",
+  "editGoal": "Edit goal",
+  "deleteGoal": "Delete goal",
+  "dismiss": "Dismiss",
+  "addAsset": "Add asset",
+  "addIncomeSource": "Add income source",
+  "assetsSection": "Assets section",
+  "incomeSection": "Income section",
+  "liabilitiesSection": "Liabilities section"
+}
+

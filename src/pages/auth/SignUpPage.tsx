@@ -12,7 +12,7 @@ export function SignUpPage() {
           path="/sign-up"
           routing="path"
           signInUrl="/sign-in"
-          redirectUrl="/dashboard"
+          redirectUrl="/app/dashboard"
           appearance={{
             baseTheme: undefined,
             variables: {

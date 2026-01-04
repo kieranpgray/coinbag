@@ -1,0 +1,19 @@
+{
+  "title": "Import Data",
+  "upload": "Upload File",
+  "processing": "Processing...",
+  "success": "Import completed successfully",
+  "error": "Import failed",
+  "review": "Review Import",
+  "noTransactionsFound": "No transactions found",
+  "noTransactionsDescription": "We couldn't find any transactions in this statement. Please check:",
+  "checkStatementFormat": "The statement format is supported",
+  "checkFileReadable": "The file is readable and not corrupted",
+  "checkTransactionData": "The statement contains transaction data",
+  "goBack": "Go Back",
+  "fileSizeExceeded": "File size exceeds {{size}}MB limit",
+  "invalidFileType": "Invalid file type. Please upload {{types}}",
+  "fileAlreadyInQueue": "{{fileName}} is already in the queue",
+  "fileError": "{{fileName}}: {{error}}",
+  "uploadFailed": "Upload failed"
+}

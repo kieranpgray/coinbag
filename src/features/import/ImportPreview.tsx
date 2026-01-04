@@ -109,7 +109,7 @@ export function ImportPreview({
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="accounts" className="w-full">
-            <TabsList className="grid w-full grid-cols-5">
+            <TabsList className="grid w-full grid-cols-6">
               <TabsTrigger value="accounts">
                 Accounts ({parsedData.accounts.length})
               </TabsTrigger>

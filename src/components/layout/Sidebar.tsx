@@ -9,16 +9,23 @@ import {
   Wallet,
 } from 'lucide-react';
 import { usePrefetchRoute } from '@/hooks/usePrefetchRoute';
+import { NAVIGATION_ITEMS, ROUTES } from '@/lib/constants/routes';
 
-const navigation = [
-  { name: 'Dashboard', path: '/dashboard', icon: Home },
-  { name: 'Accounts', path: '/accounts', icon: CreditCard },
-  { name: 'Wealth', path: '/wealth', icon: TrendingUp },
-  { name: 'Budget', path: '/budget', icon: Wallet },
-  { name: 'Goals', path: '/goals', icon: Target },
-  { name: 'Simulate', path: '/scenarios', icon: Zap },
-  { name: 'Settings', path: '/settings', icon: Settings },
-];
+const navigation = NAVIGATION_ITEMS.map(item => ({
+  ...item,
+  icon: (() => {
+    switch (item.path) {
+      case ROUTES.app.dashboard: return Home;
+      case ROUTES.app.accounts: return CreditCard;
+      case ROUTES.app.wealth: return TrendingUp;
+      case ROUTES.app.budget: return Wallet;
+      case ROUTES.app.goals: return Target;
+      case ROUTES.app.scenarios: return Zap;
+      case ROUTES.app.settings: return Settings;
+      default: return Home;
+    }
+  })(),
+}));
 
 export function Sidebar() {
   const location = useLocation();
@@ -27,11 +34,11 @@ export function Sidebar() {
   // Map routes to their prefetch functions
   const getPrefetchHandler = (path: string) => {
     switch (path) {
-      case '/wealth':
+      case ROUTES.app.wealth:
         return prefetchWealth;
-      case '/budget':
+      case ROUTES.app.budget:
         return prefetchBudget;
-      case '/accounts':
+      case ROUTES.app.accounts:
         return prefetchAccounts;
       default:
         return undefined;

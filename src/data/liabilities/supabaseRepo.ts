@@ -165,55 +165,74 @@ export class SupabaseLiabilitiesRepository implements LiabilitiesRepository {
         .select(this.selectColumns)
         .order('created_at', { ascending: false });
 
-      // If error suggests missing columns, try without repayment fields
-      const errorMessage = error?.message || '';
-      const errorCode = typeof error === 'object' && error !== null && 'code' in error 
-        ? String((error as { code?: unknown }).code) 
-        : '';
-      const errorStatus = typeof error === 'object' && error !== null && 'status' in error
-        ? (error as { status?: unknown }).status
-        : undefined;
-      const isMissingColumnError = 
-        errorMessage.includes('column') || 
-        errorCode === '42703' ||
-        errorCode === 'PGRST100' ||
-        errorStatus === 400 ||
-        errorMessage.includes('repayment_amount') ||
-        errorMessage.includes('repayment_frequency');
-      
-      if (error && isMissingColumnError) {
-        logger.warn('DB:LIABILITY_LIST', 'Repayment columns may not exist, trying without them', { 
-          error: errorMessage,
-          code: errorCode,
-          status: typeof errorStatus === 'number' ? errorStatus : undefined,
-        }, correlationId || undefined);
+      // Handle different error types
+      if (error) {
+        const errorMessage = error?.message || '';
+        const errorCode = typeof error === 'object' && error !== null && 'code' in error 
+          ? String((error as { code?: unknown }).code) 
+          : '';
+        const errorStatus = typeof error === 'object' && error !== null && 'status' in error
+          ? (error as { status?: unknown }).status
+          : undefined;
         
-        const retry = await supabase
-          .from('liabilities')
-          .select(this.selectColumnsBasic)
-          .order('created_at', { ascending: false });
+        // Check if it's a missing column error
+        const isMissingColumnError = 
+          errorMessage.includes('column') || 
+          errorCode === '42703' ||
+          errorCode === 'PGRST100' ||
+          (errorStatus === 400 && (errorMessage.includes('repayment_amount') || errorMessage.includes('repayment_frequency')));
         
-        if (retry.error) {
-          // Still an error, use the original error
-          error = retry.error;
+        // Check if it's an RLS/permission error
+        const isRLSError = 
+          errorCode === '42501' ||
+          errorMessage.includes('permission denied') ||
+          errorMessage.includes('row-level security');
+        
+        if (isMissingColumnError) {
+          logger.warn('DB:LIABILITY_LIST', 'Repayment columns may not exist, trying without them', { 
+            error: errorMessage,
+            code: errorCode,
+            status: typeof errorStatus === 'number' ? errorStatus : undefined,
+          }, correlationId || undefined);
+          
+          const retry = await supabase
+            .from('liabilities')
+            .select(this.selectColumnsBasic)
+            .order('created_at', { ascending: false });
+          
+          if (retry.error) {
+            // Still an error, use the original error
+            error = retry.error;
+          } else {
+            // Success with basic columns - add null values for missing repayment fields
+            data = (retry.data || []).map((row: Record<string, unknown>) => ({
+              ...row,
+              repayment_amount: null,
+              repayment_frequency: null,
+            })) as typeof data;
+            error = null;
+          }
+        } else if (isRLSError) {
+          // RLS error - log with more detail
+          logger.error('DB:LIABILITY_LIST', 'RLS policy may be blocking query', { 
+            error: errorMessage, 
+            code: errorCode,
+            hint: (error as any).hint,
+            details: (error as any).details,
+          }, correlationId || undefined);
         } else {
-          // Success with basic columns - add null values for missing repayment fields
-          data = (retry.data || []).map((row: Record<string, unknown>) => ({
-            ...row,
-            repayment_amount: null,
-            repayment_frequency: null,
-          })) as typeof data;
-          error = null;
+          // Other error - log with full details
+          logger.error('DB:LIABILITY_LIST', 'Failed to list liabilities from Supabase', { 
+            error: errorMessage, 
+            code: errorCode,
+            status: typeof errorStatus === 'number' ? errorStatus : undefined,
+            hint: (error as any).hint,
+            details: (error as any).details,
+          }, correlationId || undefined);
         }
       }
 
       if (error) {
-        logger.error('DB:LIABILITY_LIST', 'Failed to list liabilities from Supabase', { 
-          error: error.message, 
-          code: error.code,
-          details: error.details,
-          hint: error.hint,
-        }, correlationId || undefined);
         return {
           data: [],
           error: this.normalizeSupabaseError(error),

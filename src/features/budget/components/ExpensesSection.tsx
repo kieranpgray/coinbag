@@ -4,27 +4,29 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { formatCurrency } from '@/lib/utils';
-import type { Subscription } from '@/types/domain';
+import type { Expense } from '@/types/domain';
 import { ExpenseItem } from './ExpenseItem';
+import { ExpenseList } from './ExpenseList';
 import { BudgetSummaryCard } from './BudgetSummaryCard';
-import { calculateMonthlyEquivalent } from '@/features/subscriptions/utils';
+import { calculateMonthlyEquivalent } from '@/features/expenses/utils';
 import {
   filterByExpenseType,
   groupByCategory,
 } from '../utils/filtering';
-import { getExpenseTypeLabelPlural, getExpenseTypeLabelSingular, getExpenseType, type ExpenseType } from '../utils/expenseTypeMapping';
+import { getExpenseTypeLabel, getExpenseTypeLabelPlural, getExpenseTypeLabelSingular, getExpenseTypesFromExpenses, type ExpenseType } from '../utils/expenseTypeMapping';
 import { getCategoryNameSafe } from '../utils/categoryHelpers';
 import { convertToFrequency, getFrequencyLabelForDisplay, type Frequency, FREQUENCY_OPTIONS } from '../utils/frequencyConversion';
 
 interface ExpensesSectionProps {
-  subscriptions: Subscription[];
+  expenses: Expense[];
   categoryMap: Map<string, string>;
   uncategorisedId?: string;
   onCreate: (expenseType?: ExpenseType) => void;
-  onEdit: (subscription: Subscription) => void;
-  onDelete: (subscription: Subscription) => void;
+  onEdit: (expense: Expense) => void;
+  onDelete: (expense: Expense) => void;
   parentFrequency?: Frequency;
   onFrequencyChange?: (frequency: Frequency) => void;
+  viewMode?: 'list' | 'cards';
 }
 
 /**
@@ -32,7 +34,7 @@ interface ExpensesSectionProps {
  * Displays total monthly expenses with category-based filtering
  */
 export function ExpensesSection({
-  subscriptions,
+  expenses,
   categoryMap,
   uncategorisedId,
   onCreate,
@@ -40,6 +42,7 @@ export function ExpensesSection({
   onDelete,
   parentFrequency,
   onFrequencyChange,
+  viewMode = 'cards',
 }: ExpensesSectionProps) {
   const [activeTab, setActiveTab] = useState<ExpenseType | 'all'>('all');
   const [localFrequency, setLocalFrequency] = useState<Frequency | undefined>(parentFrequency);
@@ -58,18 +61,12 @@ export function ExpensesSection({
     }
   }, [parentFrequency, localFrequency]);
 
-  // Calculate total monthly expenses (excluding savings and repayments)
+  // Calculate total monthly expenses (ALL expenses dynamically - no hardcoded types)
   const totalMonthlyExpenses = useMemo(() => {
-    return subscriptions.reduce((sum, subscription) => {
-      const categoryName = getCategoryNameSafe(subscription.categoryId, categoryMap, uncategorisedId);
-      const expenseType = getExpenseType(categoryName);
-      // Exclude savings and repayments from general expenses
-      if (expenseType === 'savings' || expenseType === 'repayments') {
-        return sum;
-      }
-      return sum + calculateMonthlyEquivalent(subscription.amount, subscription.frequency);
+    return expenses.reduce((sum, expense) => {
+      return sum + calculateMonthlyEquivalent(expense.amount, expense.frequency);
     }, 0);
-  }, [subscriptions, categoryMap, uncategorisedId]);
+  }, [expenses]);
 
   const displayFrequency = localFrequency || parentFrequency || 'monthly';
   const displayExpenses = convertToFrequency(totalMonthlyExpenses, 'monthly', displayFrequency);
@@ -80,20 +77,30 @@ export function ExpensesSection({
     onFrequencyChange?.(frequency);
   };
 
+  // Get available expense types dynamically (only types that have expenses)
+  const availableExpenseTypes = useMemo(() => {
+    const types = getExpenseTypesFromExpenses(expenses, categoryMap, uncategorisedId);
+    // Filter to only show tabs with expenses
+    return types.filter(type => {
+      const filtered = filterByExpenseType(expenses, type, categoryMap, uncategorisedId);
+      return filtered.length > 0;
+    });
+  }, [expenses, categoryMap, uncategorisedId]);
+
   // Filter expenses based on active tab
   const filteredExpenses = useMemo(() => {
-    return filterByExpenseType(subscriptions, activeTab, categoryMap, uncategorisedId);
-  }, [subscriptions, activeTab, categoryMap, uncategorisedId]);
+    return filterByExpenseType(expenses, activeTab, categoryMap, uncategorisedId);
+  }, [expenses, activeTab, categoryMap, uncategorisedId]);
 
   // Group expenses by category for "All" tab
   const expensesByCategory = useMemo(() => {
     if (activeTab === 'all') {
-      return groupByCategory(subscriptions, categoryMap, uncategorisedId);
+      return groupByCategory(expenses, categoryMap, uncategorisedId);
     }
     return {};
-  }, [subscriptions, activeTab, categoryMap, uncategorisedId]);
+  }, [expenses, activeTab, categoryMap, uncategorisedId]);
 
-  // Get category name for a subscription (deprecated categories become "Uncategorised")
+  // Get category name for an expense (deprecated categories become "Uncategorised")
   const getCategoryName = (categoryId: string) => {
     return getCategoryNameSafe(categoryId, categoryMap, uncategorisedId);
   };
@@ -148,29 +155,26 @@ export function ExpensesSection({
           <TabsTrigger value="all" className="data-[state=active]:bg-white">
             All
           </TabsTrigger>
-          <TabsTrigger value="subscriptions" className="data-[state=active]:bg-white">
-            Subscriptions
-          </TabsTrigger>
-          <TabsTrigger value="bills" className="data-[state=active]:bg-white">
-            Bills
-          </TabsTrigger>
-          <TabsTrigger value="repayments" className="data-[state=active]:bg-white">
-            Repayments
-          </TabsTrigger>
-          <TabsTrigger value="savings" className="data-[state=active]:bg-white">
-            Savings
-          </TabsTrigger>
-          <TabsTrigger value="living" className="data-[state=active]:bg-white">
-            Living
-          </TabsTrigger>
-          <TabsTrigger value="lifestyle" className="data-[state=active]:bg-white">
-            Lifestyle
-          </TabsTrigger>
+          {availableExpenseTypes.map((type) => (
+            <TabsTrigger key={type} value={type} className="data-[state=active]:bg-white">
+              {getExpenseTypeLabel(type)}
+            </TabsTrigger>
+          ))}
         </TabsList>
 
         {/* All Tab */}
-        <TabsContent value="all" className="mt-6 space-y-6">
-          {Object.keys(expensesByCategory).length === 0 ? (
+        <TabsContent value="all" className="mt-6">
+          {viewMode === 'list' ? (
+            <ExpenseList
+              expenses={expenses}
+              categoryMap={categoryMap}
+              uncategorisedId={uncategorisedId}
+              onEdit={onEdit}
+              onDelete={onDelete}
+              onCreate={() => onCreate()}
+              displayFrequency={displayFrequency}
+            />
+          ) : Object.keys(expensesByCategory).length === 0 ? (
             <div className="text-center py-12">
               <div className="h-16 w-16 rounded-full bg-neutral-100 flex items-center justify-center mx-auto mb-4">
                 <TrendingDown className="h-8 w-8 text-neutral-400" />
@@ -185,54 +189,68 @@ export function ExpensesSection({
                 </Button>
             </div>
           ) : (
-            Object.entries(expensesByCategory).map(([category, items]) => {
-              const categoryTotalMonthly = items.reduce((sum, item) => {
-                return sum + calculateMonthlyEquivalent(item.amount, item.frequency);
-              }, 0);
-              const categoryTotalDisplay = convertToFrequency(categoryTotalMonthly, 'monthly', displayFrequency);
+            <div className="space-y-6">
+              {Object.entries(expensesByCategory).map(([category, items]) => {
+                const categoryTotalMonthly = items.reduce((sum, item) => {
+                  return sum + calculateMonthlyEquivalent(item.amount, item.frequency);
+                }, 0);
+                const categoryTotalDisplay = convertToFrequency(categoryTotalMonthly, 'monthly', displayFrequency);
 
-              return (
-                <div key={category}>
-                  <div className="flex items-baseline justify-between mb-3">
-                    <h3 className="text-neutral-700 capitalize font-semibold">{category}</h3>
-                    <span className="text-sm text-neutral-500">
-                      {items.length} {items.length === 1 ? 'item' : 'items'} • {formatCurrency(categoryTotalDisplay)}
-                    </span>
+                return (
+                  <div key={category}>
+                    <div className="flex items-baseline justify-between mb-3">
+                      <h3 className="text-neutral-700 capitalize font-semibold">{category}</h3>
+                      <span className="text-sm text-neutral-500">
+                        {items.length} {items.length === 1 ? 'item' : 'items'} • {formatCurrency(categoryTotalDisplay)}
+                      </span>
+                    </div>
+                    <div className="space-y-2">
+                      {items.map((expense) => (
+                        <ExpenseItem
+                          key={expense.id}
+                          expense={expense}
+                          categoryName={category}
+                          onEdit={onEdit}
+                          onDelete={onDelete}
+                          displayFrequency={displayFrequency}
+                        />
+                      ))}
+                    </div>
                   </div>
-                  <div className="space-y-2">
-                    {items.map((expense) => (
-                      <ExpenseItem
-                        key={expense.id}
-                        subscription={expense}
-                        categoryName={category}
-                        onEdit={onEdit}
-                        onDelete={onDelete}
-                        displayFrequency={displayFrequency}
-                      />
-                    ))}
-                  </div>
-                </div>
-              );
-            })
+                );
+              })}
+            </div>
           )}
         </TabsContent>
 
         {/* Individual Category Tabs */}
-        {(['subscriptions', 'bills', 'repayments', 'savings', 'living', 'lifestyle'] as ExpenseType[]).map((category) => (
+        {availableExpenseTypes.map((category) => (
           <TabsContent key={category} value={category} className="mt-6">
             {filteredExpenses.length > 0 ? (
-              <div className="space-y-2">
-                {filteredExpenses.map((expense) => (
-                  <ExpenseItem
-                    key={expense.id}
-                    subscription={expense}
-                    categoryName={getCategoryName(expense.categoryId)}
-                    onEdit={onEdit}
-                    onDelete={onDelete}
-                    displayFrequency={displayFrequency}
-                  />
-                ))}
-              </div>
+              viewMode === 'list' ? (
+                <ExpenseList
+                  expenses={filteredExpenses}
+                  categoryMap={categoryMap}
+                  uncategorisedId={uncategorisedId}
+                  onEdit={onEdit}
+                  onDelete={onDelete}
+                  onCreate={() => onCreate(category)}
+                  displayFrequency={displayFrequency}
+                />
+              ) : (
+                <div className="space-y-2">
+                  {filteredExpenses.map((expense) => (
+                    <ExpenseItem
+                      key={expense.id}
+                      expense={expense}
+                      categoryName={getCategoryName(expense.categoryId)}
+                      onEdit={onEdit}
+                      onDelete={onDelete}
+                      displayFrequency={displayFrequency}
+                    />
+                  ))}
+                </div>
+              )
             ) : (
               <div className="text-center py-12">
                 <div className="h-16 w-16 rounded-full bg-neutral-100 flex items-center justify-center mx-auto mb-4">
@@ -253,7 +271,7 @@ export function ExpensesSection({
       </Tabs>
 
       {/* Summary card at bottom */}
-      {subscriptions.length > 0 && <BudgetSummaryCard subscriptions={subscriptions} />}
+      {expenses.length > 0 && <BudgetSummaryCard expenses={expenses} />}
     </section>
   );
 }

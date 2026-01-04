@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { GoalCard } from '@/features/goals/components/GoalCard';
 import { CreateGoalModal } from '@/features/goals/components/CreateGoalModal';
 import { EditGoalModal } from '@/features/goals/components/EditGoalModal';
@@ -18,8 +17,6 @@ import { Plus, RefreshCw, AlertTriangle } from 'lucide-react';
 import type { Goal } from '@/types/domain';
 import type { GoalFormData } from '@/features/goals/components/GoalForm';
 
-const GOAL_TYPES: Goal['type'][] = ['Grow', 'Save', 'Pay Off', 'Invest'];
-
 export function GoalsPage() {
   const { data: goals = [], isLoading, error, refetch } = useGoals();
   const createMutation = useCreateGoal();
@@ -30,7 +27,6 @@ export function GoalsPage() {
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedGoal, setSelectedGoal] = useState<Goal | null>(null);
-  const [activeTab, setActiveTab] = useState<string>('all');
 
   const handleCreate = (data: GoalFormData) => {
     createMutation.mutate(data, {
@@ -73,18 +69,11 @@ export function GoalsPage() {
     });
   };
 
-  const filteredGoals =
-    activeTab === 'all'
-      ? goals
-      : goals.filter((goal) => goal.type === activeTab);
-
   const emptyState = (
     <Card>
       <CardContent className="flex flex-col items-center justify-center py-12">
         <p className="text-muted-foreground mb-4">
-          {activeTab === 'all'
-            ? "You don't have any goals yet."
-            : `You don't have any ${activeTab.toLowerCase()} goals yet.`}
+          You don't have any goals yet.
         </p>
         <Button onClick={() => setCreateModalOpen(true)}>
           <Plus className="h-4 w-4 mr-2" />
@@ -135,46 +124,33 @@ export function GoalsPage() {
         </Button>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList>
-          <TabsTrigger value="all">All Goals</TabsTrigger>
-          {GOAL_TYPES.map((type) => (
-            <TabsTrigger key={type} value={type}>
-              {type}
-            </TabsTrigger>
+      {isLoading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {[1, 2, 3].map((i) => (
+            <Card key={i}>
+              <CardContent className="p-6 space-y-4">
+                <Skeleton className="h-6 w-3/4" />
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-2/3" />
+                <Skeleton className="h-2 w-full" />
+              </CardContent>
+            </Card>
           ))}
-        </TabsList>
-
-        <TabsContent value={activeTab} className="mt-6">
-          {isLoading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {[1, 2, 3].map((i) => (
-                <Card key={i}>
-                  <CardContent className="p-6 space-y-4">
-                    <Skeleton className="h-6 w-3/4" />
-                    <Skeleton className="h-4 w-full" />
-                    <Skeleton className="h-4 w-2/3" />
-                    <Skeleton className="h-2 w-full" />
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          ) : filteredGoals.length === 0 ? (
-            emptyState
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredGoals.map((goal) => (
-                <GoalCard
-                  key={goal.id}
-                  goal={goal}
-                  onEdit={handleEdit}
-                  onDelete={handleDeleteClick}
-                />
-              ))}
-            </div>
-          )}
-        </TabsContent>
-      </Tabs>
+        </div>
+      ) : goals.length === 0 ? (
+        emptyState
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {goals.map((goal) => (
+            <GoalCard
+              key={goal.id}
+              goal={goal}
+              onEdit={handleEdit}
+              onDelete={handleDeleteClick}
+            />
+          ))}
+        </div>
+      )}
 
       <CreateGoalModal
         open={createModalOpen}

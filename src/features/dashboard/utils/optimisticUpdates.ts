@@ -1,5 +1,5 @@
 import type { QueryClient } from '@tanstack/react-query';
-import type { DashboardData, Asset, Liability, Account, Subscription, Income } from '@/types/domain';
+import type { DashboardData, Asset, Liability, Account, Expense, Income } from '@/types/domain';
 import { calculateDashboardData } from '@/mocks/factories';
 
 /**
@@ -7,9 +7,9 @@ import { calculateDashboardData } from '@/mocks/factories';
  */
 function getRelatedData(queryClient: QueryClient) {
   const accounts = queryClient.getQueryData<Account[]>(['accounts']) || [];
-  const subscriptions = queryClient.getQueryData<Subscription[]>(['subscriptions']) || [];
+  const expenses = queryClient.getQueryData<Expense[]>(['expenses']) || [];
   const incomes = queryClient.getQueryData<Income[]>(['incomes']) || [];
-  return { accounts, subscriptions, incomes };
+  return { accounts, expenses, incomes };
 }
 
 /**
@@ -34,13 +34,13 @@ export function addAssetOptimistically(
   newAsset: Asset
 ): void {
   updateDashboardOptimistically(queryClient, (data) => {
-    const { accounts, subscriptions, incomes } = getRelatedData(queryClient);
+    const { accounts, expenses, incomes } = getRelatedData(queryClient);
     const updatedAssets = [...data.assets, newAsset];
     const calculated = calculateDashboardData(
       updatedAssets,
       data.liabilities,
       accounts,
-      subscriptions,
+      expenses,
       incomes
     );
     
@@ -67,13 +67,13 @@ export function updateAssetOptimistically(
   updatedAsset: Asset
 ): void {
   updateDashboardOptimistically(queryClient, (data) => {
-    const { accounts, subscriptions, incomes } = getRelatedData(queryClient);
+    const { accounts, expenses, incomes } = getRelatedData(queryClient);
     const updatedAssets = data.assets.map(a => a.id === updatedAsset.id ? updatedAsset : a);
     const calculated = calculateDashboardData(
       updatedAssets,
       data.liabilities,
       accounts,
-      subscriptions,
+      expenses,
       incomes
     );
     
@@ -99,13 +99,13 @@ export function removeAssetOptimistically(
   assetId: string
 ): void {
   updateDashboardOptimistically(queryClient, (data) => {
-    const { accounts, subscriptions, incomes } = getRelatedData(queryClient);
+    const { accounts, expenses, incomes } = getRelatedData(queryClient);
     const updatedAssets = data.assets.filter(a => a.id !== assetId);
     const calculated = calculateDashboardData(
       updatedAssets,
       data.liabilities,
       accounts,
-      subscriptions,
+      expenses,
       incomes
     );
     
@@ -132,13 +132,13 @@ export function addLiabilityOptimistically(
   newLiability: Liability
 ): void {
   updateDashboardOptimistically(queryClient, (data) => {
-    const { accounts, subscriptions, incomes } = getRelatedData(queryClient);
+    const { accounts, expenses, incomes } = getRelatedData(queryClient);
     const updatedLiabilities = [...data.liabilities, newLiability];
     const calculated = calculateDashboardData(
       data.assets,
       updatedLiabilities,
       accounts,
-      subscriptions,
+      expenses,
       incomes
     );
     
@@ -162,13 +162,13 @@ export function updateLiabilityOptimistically(
   updatedLiability: Liability
 ): void {
   updateDashboardOptimistically(queryClient, (data) => {
-    const { accounts, subscriptions, incomes } = getRelatedData(queryClient);
+    const { accounts, expenses, incomes } = getRelatedData(queryClient);
     const updatedLiabilities = data.liabilities.map(l => l.id === updatedLiability.id ? updatedLiability : l);
     const calculated = calculateDashboardData(
       data.assets,
       updatedLiabilities,
       accounts,
-      subscriptions,
+      expenses,
       incomes
     );
     
@@ -188,13 +188,13 @@ export function removeLiabilityOptimistically(
   liabilityId: string
 ): void {
   updateDashboardOptimistically(queryClient, (data) => {
-    const { accounts, subscriptions, incomes } = getRelatedData(queryClient);
+    const { accounts, expenses, incomes } = getRelatedData(queryClient);
     const updatedLiabilities = data.liabilities.filter(l => l.id !== liabilityId);
     const calculated = calculateDashboardData(
       data.assets,
       updatedLiabilities,
       accounts,
-      subscriptions,
+      expenses,
       incomes
     );
     
@@ -218,13 +218,13 @@ export function addAccountOptimistically(
   newAccount: Account
 ): void {
   updateDashboardOptimistically(queryClient, (data) => {
-    const { accounts, subscriptions, incomes } = getRelatedData(queryClient);
+    const { accounts, expenses, incomes } = getRelatedData(queryClient);
     const updatedAccounts = [...accounts, newAccount];
     const calculated = calculateDashboardData(
       data.assets,
       data.liabilities,
       updatedAccounts,
-      subscriptions,
+      expenses,
       incomes
     );
     
@@ -247,13 +247,13 @@ export function updateAccountOptimistically(
   updatedAccount: Account
 ): void {
   updateDashboardOptimistically(queryClient, (data) => {
-    const { accounts, subscriptions, incomes } = getRelatedData(queryClient);
+    const { accounts, expenses, incomes } = getRelatedData(queryClient);
     const updatedAccounts = accounts.map(a => a.id === updatedAccount.id ? updatedAccount : a);
     const calculated = calculateDashboardData(
       data.assets,
       data.liabilities,
       updatedAccounts,
-      subscriptions,
+      expenses,
       incomes
     );
     
@@ -272,13 +272,13 @@ export function removeAccountOptimistically(
   accountId: string
 ): void {
   updateDashboardOptimistically(queryClient, (data) => {
-    const { accounts, subscriptions, incomes } = getRelatedData(queryClient);
+    const { accounts, expenses, incomes } = getRelatedData(queryClient);
     const updatedAccounts = accounts.filter(a => a.id !== accountId);
     const calculated = calculateDashboardData(
       data.assets,
       data.liabilities,
       updatedAccounts,
-      subscriptions,
+      expenses,
       incomes
     );
     
@@ -294,20 +294,20 @@ export function removeAccountOptimistically(
 }
 
 /**
- * Optimistically add a subscription to the dashboard
+ * Optimistically add an expense to the dashboard
  */
-export function addSubscriptionOptimistically(
+export function addExpenseOptimistically(
   queryClient: QueryClient,
-  newSubscription: Subscription
+  newExpense: Expense
 ): void {
   updateDashboardOptimistically(queryClient, (data) => {
-    const { accounts, subscriptions, incomes } = getRelatedData(queryClient);
-    const updatedSubscriptions = [...subscriptions, newSubscription];
+    const { accounts, expenses, incomes } = getRelatedData(queryClient);
+    const updatedExpenses = [...expenses, newExpense];
     const calculated = calculateDashboardData(
       data.assets,
       data.liabilities,
       accounts,
-      updatedSubscriptions,
+      updatedExpenses,
       incomes
     );
     
@@ -316,27 +316,27 @@ export function addSubscriptionOptimistically(
       ...calculated,
       dataSources: {
         ...data.dataSources,
-        subscriptionsCount: updatedSubscriptions.length,
+        expensesCount: updatedExpenses.length,
       },
     };
   });
 }
 
 /**
- * Optimistically update a subscription in the dashboard
+ * Optimistically update an expense in the dashboard
  */
-export function updateSubscriptionOptimistically(
+export function updateExpenseOptimistically(
   queryClient: QueryClient,
-  updatedSubscription: Subscription
+  updatedExpense: Expense
 ): void {
   updateDashboardOptimistically(queryClient, (data) => {
-    const { accounts, subscriptions, incomes } = getRelatedData(queryClient);
-    const updatedSubscriptions = subscriptions.map(s => s.id === updatedSubscription.id ? updatedSubscription : s);
+    const { accounts, expenses, incomes } = getRelatedData(queryClient);
+    const updatedExpenses = expenses.map(e => e.id === updatedExpense.id ? updatedExpense : e);
     const calculated = calculateDashboardData(
       data.assets,
       data.liabilities,
       accounts,
-      updatedSubscriptions,
+      updatedExpenses,
       incomes
     );
     
@@ -348,20 +348,20 @@ export function updateSubscriptionOptimistically(
 }
 
 /**
- * Optimistically remove a subscription from the dashboard
+ * Optimistically remove an expense from the dashboard
  */
-export function removeSubscriptionOptimistically(
+export function removeExpenseOptimistically(
   queryClient: QueryClient,
-  subscriptionId: string
+  expenseId: string
 ): void {
   updateDashboardOptimistically(queryClient, (data) => {
-    const { accounts, subscriptions, incomes } = getRelatedData(queryClient);
-    const updatedSubscriptions = subscriptions.filter(s => s.id !== subscriptionId);
+    const { accounts, expenses, incomes } = getRelatedData(queryClient);
+    const updatedExpenses = expenses.filter(e => e.id !== expenseId);
     const calculated = calculateDashboardData(
       data.assets,
       data.liabilities,
       accounts,
-      updatedSubscriptions,
+      updatedExpenses,
       incomes
     );
     
@@ -370,11 +370,19 @@ export function removeSubscriptionOptimistically(
       ...calculated,
       dataSources: {
         ...data.dataSources,
-        subscriptionsCount: updatedSubscriptions.length,
+        expensesCount: updatedExpenses.length,
       },
     };
   });
 }
+
+// Backward compatibility exports
+/** @deprecated Use addExpenseOptimistically instead */
+export const addSubscriptionOptimistically = addExpenseOptimistically;
+/** @deprecated Use updateExpenseOptimistically instead */
+export const updateSubscriptionOptimistically = updateExpenseOptimistically;
+/** @deprecated Use removeExpenseOptimistically instead */
+export const removeSubscriptionOptimistically = removeExpenseOptimistically;
 
 /**
  * Optimistically add income to the dashboard
@@ -384,13 +392,13 @@ export function addIncomeOptimistically(
   newIncome: Income
 ): void {
   updateDashboardOptimistically(queryClient, (data) => {
-    const { accounts, subscriptions, incomes } = getRelatedData(queryClient);
+    const { accounts, expenses, incomes } = getRelatedData(queryClient);
     const updatedIncomes = [...incomes, newIncome];
     const calculated = calculateDashboardData(
       data.assets,
       data.liabilities,
       accounts,
-      subscriptions,
+      expenses,
       updatedIncomes
     );
     
@@ -413,13 +421,13 @@ export function updateIncomeOptimistically(
   updatedIncome: Income
 ): void {
   updateDashboardOptimistically(queryClient, (data) => {
-    const { accounts, subscriptions, incomes } = getRelatedData(queryClient);
+    const { accounts, expenses, incomes } = getRelatedData(queryClient);
     const updatedIncomes = incomes.map(i => i.id === updatedIncome.id ? updatedIncome : i);
     const calculated = calculateDashboardData(
       data.assets,
       data.liabilities,
       accounts,
-      subscriptions,
+      expenses,
       updatedIncomes
     );
     
@@ -438,13 +446,13 @@ export function removeIncomeOptimistically(
   incomeId: string
 ): void {
   updateDashboardOptimistically(queryClient, (data) => {
-    const { accounts, subscriptions, incomes } = getRelatedData(queryClient);
+    const { accounts, expenses, incomes } = getRelatedData(queryClient);
     const updatedIncomes = incomes.filter(i => i.id !== incomeId);
     const calculated = calculateDashboardData(
       data.assets,
       data.liabilities,
       accounts,
-      subscriptions,
+      expenses,
       updatedIncomes
     );
     

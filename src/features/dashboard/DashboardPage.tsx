@@ -3,6 +3,7 @@ import { useDashboard } from '@/features/dashboard/hooks';
 import { useQuery } from '@tanstack/react-query';
 import { marketApi } from '@/lib/api';
 import { NetWorthCard } from '@/features/dashboard/components/NetWorthCard';
+import { BudgetBreakdownTile } from '@/features/dashboard/components/BudgetBreakdownTile';
 import { SummaryCard } from '@/features/dashboard/components/SummaryCard';
 import { SetupProgress } from '@/features/dashboard/components/SetupProgress';
 import { MarketSummary } from '@/features/dashboard/components/MarketSummary';
@@ -17,6 +18,14 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { RefreshCw, AlertTriangle } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import { useIncomes } from '@/features/income/hooks';
+import { useCategories } from '@/features/categories/hooks';
+import { calculateMonthlyIncome } from '@/features/budget/utils/calculations';
+import { calculateMonthlyEquivalent } from '@/features/expenses/utils';
+import { findUncategorisedCategoryId } from '@/data/categories/ensureDefaults';
+import { filterByExpenseType } from '@/features/budget/utils/filtering';
+import { ROUTES } from '@/lib/constants/routes';
 import type { AssetBreakdown, LiabilityBreakdown } from '@/types/domain';
 
 function calculateAssetBreakdown(assets: { type: string; value: number }[]): AssetBreakdown[] {
@@ -72,11 +81,14 @@ function calculateLiabilityBreakdown(
 }
 
 export function DashboardPage() {
+  const { t } = useTranslation(['dashboard', 'common']);
   const { data: dashboardData, isLoading: dashboardLoading, error: dashboardError, refetch: refetchDashboard } = useDashboard();
   const { data: marketData, isLoading: marketLoading, error: marketError, refetch: refetchMarket } = useQuery({
     queryKey: ['market'],
     queryFn: () => marketApi.getSummary(),
   });
+  const { data: incomes = [] } = useIncomes();
+  const { data: categories = [] } = useCategories();
 
   const isLoading = dashboardLoading || marketLoading;
   const hasError = dashboardError || marketError;
@@ -86,7 +98,7 @@ export function DashboardPage() {
     accountsCount: 0,
     assetsCount: 0,
     liabilitiesCount: 0,
-    subscriptionsCount: 0,
+    expensesCount: 0,
     transactionsCount: 0,
     incomeCount: 0,
     holdingsCount: 0,
@@ -135,8 +147,54 @@ export function DashboardPage() {
   );
   const hasAccounts = useMemo(() => dataSources.accountsCount > 0, [dataSources.accountsCount]);
   const hasCash = useMemo(() => hasAccounts || hasCashAssets, [hasAccounts, hasCashAssets]);
-  const hasSubscriptions = useMemo(() => dataSources.subscriptionsCount > 0, [dataSources.subscriptionsCount]);
+  const hasExpenses = useMemo(() => dataSources.expensesCount > 0, [dataSources.expensesCount]);
   const hasIncome = useMemo(() => dataSources.incomeCount > 0, [dataSources.incomeCount]);
+
+  // Budget breakdown calculations
+  const categoryMap = useMemo(() => {
+    return new Map(categories.map((c) => [c.id, c.name]));
+  }, [categories]);
+
+  const uncategorisedId = useMemo(() => {
+    return findUncategorisedCategoryId(categories);
+  }, [categories]);
+
+  const expenses = useMemo(() => dashboardData?.expenses ?? [], [dashboardData?.expenses]);
+
+  const totalMonthlyIncome = useMemo(() => {
+    return calculateMonthlyIncome(incomes);
+  }, [incomes]);
+
+  const totalMonthlySavings = useMemo(() => {
+    const savingsExpenses = filterByExpenseType(expenses, 'savings', categoryMap, uncategorisedId);
+    return savingsExpenses.reduce((sum, expense) => {
+      return sum + calculateMonthlyEquivalent(expense.amount, expense.frequency);
+    }, 0);
+  }, [expenses, categoryMap, uncategorisedId]);
+
+  const totalMonthlyRepayments = useMemo(() => {
+    const repaymentsExpenses = filterByExpenseType(expenses, 'repayments', categoryMap, uncategorisedId);
+    return repaymentsExpenses.reduce((sum, expense) => {
+      return sum + calculateMonthlyEquivalent(expense.amount, expense.frequency);
+    }, 0);
+  }, [expenses, categoryMap, uncategorisedId]);
+
+
+  // Calculate total monthly expenses (ALL expenses dynamically - no hardcoded types)
+  const totalMonthlyExpenses = useMemo(() => {
+    // Sum ALL expenses dynamically - this ensures future expense types are automatically included
+    return expenses.reduce((sum, expense) => {
+      return sum + calculateMonthlyEquivalent(expense.amount, expense.frequency);
+    }, 0);
+  }, [expenses]);
+
+  const remaining = useMemo(() => {
+    return totalMonthlyIncome - totalMonthlyExpenses;
+  }, [totalMonthlyIncome, totalMonthlyExpenses]);
+
+  const hasBudgetData = useMemo(() => {
+    return hasIncome || hasExpenses;
+  }, [hasIncome, hasExpenses]);
 
   const handleRetry = () => {
     if (dashboardError) refetchDashboard();
@@ -184,12 +242,12 @@ export function DashboardPage() {
   if (!dashboardData) {
     return (
       <div className="space-y-6">
-        <h1 className="text-3xl font-bold">Dashboard</h1>
+        <h1 className="text-3xl font-bold">{t('title', { ns: 'dashboard' })}</h1>
         <Alert>
           <AlertTriangle className="h-4 w-4" />
-          <AlertTitle>No data available</AlertTitle>
+          <AlertTitle>{t('noDataAvailable', { ns: 'dashboard' })}</AlertTitle>
           <AlertDescription>
-            Get started by adding your first asset, liability, or account.
+            {t('getStarted', { ns: 'dashboard' })}
           </AlertDescription>
         </Alert>
       </div>
@@ -204,7 +262,7 @@ export function DashboardPage() {
     dataSources.accountsCount > 0 ||
     dataSources.assetsCount > 0 ||
     dataSources.liabilitiesCount > 0 ||
-    dataSources.subscriptionsCount > 0 ||
+    dataSources.expensesCount > 0 ||
     dataSources.transactionsCount > 0 ||
     dataSources.incomeCount > 0;
   
@@ -229,41 +287,54 @@ export function DashboardPage() {
           isLoading={isLoading}
         />
 
-        {/* Net Worth Card */}
-        <NetWorthCard
-          netWorth={dashboardData.netWorth}
-          change1D={dashboardData.netWorthChange1D}
-          change1W={dashboardData.netWorthChange1W}
-          isLoading={isLoading}
-          isEmpty={!hasAssets && !hasLiabilities}
-        />
+        {/* Net Worth and Budget Breakdown - 50/50 split */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <NetWorthCard
+            netWorth={dashboardData.netWorth}
+            totalAssets={totalAssets}
+            totalLiabilities={totalLiabilities}
+            change1D={dashboardData.netWorthChange1D}
+            change1W={dashboardData.netWorthChange1W}
+            isLoading={isLoading}
+            isEmpty={!hasAssets && !hasLiabilities}
+          />
+          <BudgetBreakdownTile
+            totalIncome={totalMonthlyIncome}
+            totalExpenses={totalMonthlyExpenses}
+            totalSavings={totalMonthlySavings}
+            totalRepayments={totalMonthlyRepayments}
+            remaining={remaining}
+            isLoading={isLoading}
+            isEmpty={!hasBudgetData}
+          />
+        </div>
 
         {/* Summary Cards - responsive grid that wraps gracefully */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <SummaryCard
-            title="Investments"
+            title={t('investments.title', { ns: 'dashboard' })}
             value={dashboardData.investments}
             change1D={dashboardData.investmentsChange1D}
             change1W={dashboardData.investmentsChange1W}
             isLoading={isLoading}
             isEmpty={!hasHoldings}
-            emptyText="Add investments to track your portfolio value."
-            emptyCtaLabel="Add investment"
-            emptyCtaHref="/wealth?create=asset&type=Investments"
+            emptyText={t('investments.empty', { ns: 'dashboard' })}
+            emptyCtaLabel={t('investments.emptyCta', { ns: 'dashboard' })}
+            emptyCtaHref={ROUTES.wealth.createAsset('Investments')}
           />
           <SummaryCard
-            title="Superannuation"
+            title={t('superannuation.title', { ns: 'dashboard' })}
             value={dashboardData.superannuation}
             change1D={dashboardData.superannuationChange1D}
             change1W={dashboardData.superannuationChange1W}
             isLoading={isLoading}
             isEmpty={!hasSuperannuation}
-            emptyText="Add superannuation to track your retirement savings."
-            emptyCtaLabel="Add superannuation"
-            emptyCtaHref="/wealth?create=asset&type=Superannuation"
+            emptyText={t('superannuation.empty', { ns: 'dashboard' })}
+            emptyCtaLabel={t('superannuation.emptyCta', { ns: 'dashboard' })}
+            emptyCtaHref={ROUTES.wealth.createAsset('Superannuation')}
           />
           <SummaryCard
-            title="Total Cash"
+            title={t('totalCash.title', { ns: 'dashboard' })}
             value={dashboardData.totalCash}
             change1D={dashboardData.totalCashChange1D}
             change1W={dashboardData.totalCashChange1W}
@@ -271,7 +342,7 @@ export function DashboardPage() {
             isEmpty={!hasCash}
             emptyText="Add cash as an asset to track your cash."
             emptyCtaLabel="Add cash"
-            emptyCtaHref="/wealth?create=asset&type=Cash"
+            emptyCtaHref={ROUTES.wealth.createAsset('Cash')}
           />
           <SummaryCard
             title="Total Debts"
@@ -282,7 +353,7 @@ export function DashboardPage() {
             isEmpty={!hasLiabilities}
             emptyText="Add a liability to track your debts."
             emptyCtaLabel="Add liability"
-            emptyCtaHref="/wealth?create=liability"
+            emptyCtaHref={ROUTES.wealth.createLiability}
           />
         </div>
 
@@ -308,7 +379,7 @@ export function DashboardPage() {
             breakdown={dashboardData.expenseBreakdown}
             totalAmount={dashboardData.expenseBreakdown.reduce((sum, item) => sum + item.amount, 0)}
             isLoading={isLoading}
-            isEmpty={!hasSubscriptions}
+            isEmpty={!hasExpenses}
           />
           <IncomeBreakdown
             breakdown={dashboardData.incomeBreakdown}
@@ -333,7 +404,7 @@ export function DashboardPage() {
                     Add investments to see news related to your holdings.
                   </p>
                   <Button asChild size="sm">
-                    <Link to="/wealth?create=asset&type=Investments">Add investment</Link>
+                    <Link to="/app/wealth?create=asset&type=Investments">Add investment</Link>
                   </Button>
                 </>
               ) : (
@@ -355,7 +426,7 @@ export function DashboardPage() {
               See your transactions after you connect an account.
             </p>
             <Button asChild size="sm">
-              <Link to="/accounts">Add account</Link>
+              <Link to="/app/accounts">Add account</Link>
             </Button>
           </CardContent>
         </Card>

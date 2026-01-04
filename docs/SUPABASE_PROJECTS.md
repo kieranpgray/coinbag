@@ -52,3 +52,4 @@ VITE_SUPABASE_URL=https://auvtsvmtfrbpvgyvfqlx.supabase.co
 VITE_SUPABASE_ANON_KEY=<prod-anon-key>
 ```
 
+

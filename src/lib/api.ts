@@ -4,13 +4,13 @@ import type {
   Account,
   Transaction,
   Goal,
-  Subscription,
+  Expense,
   User,
   DashboardData,
   MarketSummary,
   Income,
 } from '@/types/domain';
-import { SubscriptionService } from '@/features/subscriptions/services/subscriptionService';
+import { ExpenseService } from '@/features/expenses/services/expenseService';
 import {
   calculateDashboardData,
 } from '@/mocks/factories';
@@ -18,7 +18,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { createAssetsRepository } from '@/data/assets/repo';
 import { createLiabilitiesRepository } from '@/data/liabilities/repo';
 import { createAccountsRepository } from '@/data/accounts/repo';
-import { createSubscriptionsRepository } from '@/data/subscriptions/repo';
+import { createExpensesRepository } from '@/data/expenses/repo';
 import { createIncomeRepository } from '@/data/income/repo';
 
 // Simulate API delay (only in development)
@@ -39,7 +39,7 @@ let liabilities: Liability[] = [];
 let accounts: Account[] = [];
 let transactions: Transaction[] = [];
 let goals: Goal[] = [];
-let subscriptions: Subscription[] = [];
+let expenses: Expense[] = [];
 let incomes: Income[] = [];
 
 /**
@@ -51,7 +51,7 @@ export function seedMockDashboardData(data: {
   accounts?: Account[];
   transactions?: Transaction[];
   goals?: Goal[];
-  subscriptions?: Subscription[];
+  expenses?: Expense[];
   incomes?: Income[];
 }): void {
   if (data.assets) assets = [...data.assets];
@@ -59,7 +59,7 @@ export function seedMockDashboardData(data: {
   if (data.accounts) accounts = [...data.accounts];
   if (data.transactions) transactions = [...data.transactions];
   if (data.goals) goals = [...data.goals];
-  if (data.subscriptions) subscriptions = [...data.subscriptions];
+  if (data.expenses) expenses = [...data.expenses];
   if (data.incomes) incomes = [...data.incomes];
 }
 
@@ -72,7 +72,7 @@ export function clearMockDashboardData(): void {
   accounts = [];
   transactions = [];
   goals = [];
-  subscriptions = [];
+  expenses = [];
   incomes = [];
 }
 
@@ -227,8 +227,9 @@ export const accountsApi = {
       institution: data.institution,
       accountName: data.accountName,
       balance: data.balance,
-      availableBalance: data.availableBalance,
       accountType: data.accountType,
+      creditLimit: data.creditLimit,
+      balanceOwed: data.balanceOwed,
       lastUpdated: data.lastUpdated,
       hidden: data.hidden,
     };
@@ -251,8 +252,9 @@ export const accountsApi = {
       institution: data.institution ?? existing.institution,
       accountName: data.accountName ?? existing.accountName,
       balance: data.balance ?? existing.balance,
-      availableBalance: data.availableBalance ?? existing.availableBalance,
       accountType: data.accountType ?? existing.accountType,
+      creditLimit: data.creditLimit ?? existing.creditLimit,
+      balanceOwed: data.balanceOwed ?? existing.balanceOwed,
       lastUpdated: data.lastUpdated ?? existing.lastUpdated,
       hidden: data.hidden ?? existing.hidden,
     };
@@ -305,13 +307,9 @@ export const transactionsApi = {
  * Goals API
  */
 export const goalsApi = {
-  async getAll(type?: Goal['type']): Promise<Goal[]> {
+  async getAll(): Promise<Goal[]> {
     await randomDelay();
-    let filtered = [...goals];
-    if (type) {
-      filtered = filtered.filter((g) => g.type === type);
-    }
-    return filtered;
+    return [...goals];
   },
 
   async getById(id: string): Promise<Goal | undefined> {
@@ -325,8 +323,8 @@ export const goalsApi = {
       id: uuidv4(),
       name: data.name,
       description: data.description,
-      type: data.type,
       source: data.source,
+      accountId: data.accountId,
       targetAmount: data.targetAmount,
       currentAmount: data.currentAmount,
       deadline: data.deadline,
@@ -350,8 +348,8 @@ export const goalsApi = {
       id: existing.id,
       name: data.name ?? existing.name,
       description: data.description ?? existing.description,
-      type: data.type ?? existing.type,
       source: data.source ?? existing.source,
+      accountId: data.accountId ?? existing.accountId,
       targetAmount: data.targetAmount ?? existing.targetAmount,
       currentAmount: data.currentAmount ?? existing.currentAmount,
       deadline: data.deadline ?? existing.deadline,
@@ -455,7 +453,7 @@ export const dashboardApi = {
     const assetsRepo = createAssetsRepository();
     const liabilitiesRepo = createLiabilitiesRepository();
     const accountsRepo = createAccountsRepository();
-    const subscriptionsRepo = createSubscriptionsRepository();
+    const expensesRepo = createExpensesRepository();
     const incomeRepo = createIncomeRepository();
     
     // Log dashboard fetch attempt
@@ -472,7 +470,7 @@ export const dashboardApi = {
     }
     
     // Fetch all repository data in parallel for better performance
-    const [assetsResult, liabilitiesResult, accountsResult, subscriptionsResult, incomeResult] = await Promise.all([
+    const [assetsResult, liabilitiesResult, accountsResult, expensesResult, incomeResult] = await Promise.all([
       assetsRepo.list(getToken).catch(async (error) => {
         if (import.meta.env.VITE_DEBUG_LOGGING === 'true') {
           const { logger, getCorrelationId } = await import('@/lib/logger');
@@ -509,17 +507,17 @@ export const dashboardApi = {
         }
         return { data: [], error: { error: 'Failed to load accounts. Please try again.', code: 'UNKNOWN_ERROR' } };
       }),
-      subscriptionsRepo.list(getToken).catch(async (error) => {
+      expensesRepo.list(getToken).catch(async (error) => {
         if (import.meta.env.VITE_DEBUG_LOGGING === 'true') {
           const { logger, getCorrelationId } = await import('@/lib/logger');
           logger.error(
             'DASHBOARD:FETCH',
-            'Subscriptions repository failed',
+            'Expenses repository failed',
             { error: error instanceof Error ? error.message : String(error) },
             getCorrelationId() || undefined
           );
         }
-        return { data: [], error: { error: 'Failed to load subscriptions. Please try again.', code: 'UNKNOWN_ERROR' } };
+        return { data: [], error: { error: 'Failed to load expenses. Please try again.', code: 'UNKNOWN_ERROR' } };
       }),
       incomeRepo.list(getToken).catch(async (error) => {
         if (import.meta.env.VITE_DEBUG_LOGGING === 'true') {
@@ -546,8 +544,8 @@ export const dashboardApi = {
     if (accountsResult.error) {
       errors.push({ source: 'accounts', error: accountsResult.error });
     }
-    if (subscriptionsResult.error) {
-      errors.push({ source: 'subscriptions', error: subscriptionsResult.error });
+    if (expensesResult.error) {
+      errors.push({ source: 'expenses', error: expensesResult.error });
     }
     if (incomeResult.error) {
       errors.push({ source: 'income', error: incomeResult.error });
@@ -566,9 +564,9 @@ export const dashboardApi = {
     
     // Don't throw if some repositories failed - allow partial data
     // This makes the dashboard resilient to individual repository failures
-    // (e.g., subscriptions table schema mismatch, missing migrations, etc.)
+    // (e.g., expenses table schema mismatch, missing migrations, etc.)
     // Only throw if ALL repositories failed
-    const allFailed = errors.length === 5; // assets, liabilities, accounts, subscriptions, income
+    const allFailed = errors.length === 5; // assets, liabilities, accounts, expenses, income
     if (allFailed) {
       const errorMessages = errors.map(e => `${e.source}: ${e.error.error} (${e.error.code})`).join('; ');
       throw new Error(`Failed to fetch dashboard data from all repositories: ${errorMessages}`);
@@ -578,7 +576,7 @@ export const dashboardApi = {
     const assetsData = assetsResult.data ?? [];
     const liabilitiesData = liabilitiesResult.data ?? [];
     const accountsData = accountsResult.data ?? [];
-    const subscriptionsData = subscriptionsResult.data ?? [];
+    const expensesData = expensesResult.data ?? [];
     const incomesData = incomeResult.data ?? [];
     
     // Keep using legacy transactionsApi for now (no repository yet)
@@ -586,7 +584,7 @@ export const dashboardApi = {
       transactionsApi.getAll(),
     ]);
 
-    const calculated = calculateDashboardData(assetsData, liabilitiesData, accountsData, subscriptionsData, incomesData);
+    const calculated = calculateDashboardData(assetsData, liabilitiesData, accountsData, expensesData, incomesData);
 
     // Calculate data source counts (existence = count > 0)
     const holdingsCount = assetsData.filter(a => a.type === 'Investments' || a.type === 'Crypto').length;
@@ -595,11 +593,12 @@ export const dashboardApi = {
       ...calculated,
       assets: assetsData,
       liabilities: liabilitiesData,
+      expenses: expensesData,
       dataSources: {
         accountsCount: accountsData.length,
         assetsCount: assetsData.length,
         liabilitiesCount: liabilitiesData.length,
-        subscriptionsCount: subscriptionsData.length,
+        expensesCount: expensesData.length,
         transactionsCount: transactionsResult.total,
         incomeCount: incomesData.length,
         holdingsCount,
@@ -627,71 +626,75 @@ export const marketApi = {
 };
 
 /**
- * Subscriptions API
+ * Expenses API
  */
-export const subscriptionsApi = {
-  async getAll(): Promise<Subscription[]> {
+export const expensesApi = {
+  async getAll(): Promise<Expense[]> {
     await randomDelay();
-    return [...subscriptions];
+    return [...expenses];
   },
 
-  async getById(id: string): Promise<Subscription | undefined> {
+  async getById(id: string): Promise<Expense | undefined> {
     await randomDelay();
-    return subscriptions.find((s) => s.id === id);
+    return expenses.find((e) => e.id === id);
   },
 
-  async create(data: Omit<Subscription, 'id'>): Promise<Subscription> {
+  async create(data: Omit<Expense, 'id'>): Promise<Expense> {
     await randomDelay();
 
     try {
       // Use service layer for business logic validation
-      const validatedSubscription = SubscriptionService.createSubscription(data);
+      const validatedExpense = ExpenseService.createExpense(data);
 
-    const newSubscription: Subscription = {
+    const newExpense: Expense = {
       id: uuidv4(),
-      ...validatedSubscription,
+      ...validatedExpense,
     };
 
-      subscriptions.push(newSubscription);
-      return newSubscription;
+      expenses.push(newExpense);
+      return newExpense;
     } catch (error) {
       // Re-throw with API-specific context
-      throw new Error(`Failed to create subscription: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`Failed to create expense: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   },
 
-  async update(id: string, data: Partial<Subscription>): Promise<Subscription> {
+  async update(id: string, data: Partial<Expense>): Promise<Expense> {
     await randomDelay();
-    const index = subscriptions.findIndex((s) => s.id === id);
+    const index = expenses.findIndex((e) => e.id === id);
     if (index === -1) {
-      throw new Error(`Subscription with id ${id} not found`);
+      throw new Error(`Expense with id ${id} not found`);
     }
 
-    const existing = subscriptions[index]!;
+    const existing = expenses[index]!;
 
     try {
       // Use service layer for business logic validation
-      const validatedSubscription = SubscriptionService.updateSubscription(existing, data);
+      const validatedExpense = ExpenseService.updateExpense(existing, data);
 
-      const updated: Subscription = validatedSubscription;
+      const updated: Expense = validatedExpense;
 
-      subscriptions[index] = updated;
+      expenses[index] = updated;
       return updated;
     } catch (error) {
       // Re-throw with API-specific context
-      throw new Error(`Failed to update subscription: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`Failed to update expense: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   },
 
   async delete(id: string): Promise<void> {
     await randomDelay();
-    const index = subscriptions.findIndex((s) => s.id === id);
+    const index = expenses.findIndex((e) => e.id === id);
     if (index === -1) {
-      throw new Error(`Subscription with id ${id} not found`);
+      throw new Error(`Expense with id ${id} not found`);
     }
-    subscriptions.splice(index, 1);
+    expenses.splice(index, 1);
   },
 };
+
+// Backward compatibility export
+/** @deprecated Use expensesApi instead */
+export const subscriptionsApi = expensesApi;
 
 /**
  * User API

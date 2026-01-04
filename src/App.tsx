@@ -1,6 +1,7 @@
 import { BrowserRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from './contexts/ThemeContext';
+import { LocaleProvider } from './contexts/LocaleContext';
 import { Routes } from './routes';
 import { RouteChangeLogger } from './components/shared/RouteChangeLogger';
 import { DebugOverlay } from './components/shared/DebugOverlay';
@@ -11,6 +12,7 @@ import { useKonamiCode } from './hooks/useKonamiCode';
 import { wrapQueryClientForLogging } from './lib/queryClientLogger';
 import { logger } from './lib/logger';
 import { useState, useEffect } from 'react';
+import './lib/i18n'; // Initialize i18next
 
 if (import.meta.env.VITE_DEBUG_LOGGING === 'true') {
   logger.info('APP:INIT', 'App component loading with debug logging enabled');
@@ -45,16 +47,18 @@ function App() {
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
-        <BrowserRouter>
+        <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
           <RouteChangeLogger />
-          <ThemeProvider>
-            <EnvironmentBanner />
-            <ErrorBoundary>
-              <Routes />
-            </ErrorBoundary>
-            <DebugOverlay />
-            <DebugPanel open={debugPanelOpen} onOpenChange={setDebugPanelOpen} />
-          </ThemeProvider>
+          <LocaleProvider>
+            <ThemeProvider>
+              <EnvironmentBanner />
+              <ErrorBoundary>
+                <Routes />
+              </ErrorBoundary>
+              <DebugOverlay />
+              <DebugPanel open={debugPanelOpen} onOpenChange={setDebugPanelOpen} />
+            </ThemeProvider>
+          </LocaleProvider>
         </BrowserRouter>
       </QueryClientProvider>
     </ErrorBoundary>

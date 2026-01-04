@@ -19,8 +19,36 @@ import { z } from 'zod';
  * Uses Clerk JWT authentication and Row Level Security (RLS) for data isolation.
  */
 export class SupabaseAccountsRepository implements AccountsRepository {
+  // Select actual database column names (snake_case)
+  // Supabase doesn't support column aliasing in select strings, so we map them manually
   private readonly selectColumns =
-    'id, institution, accountName:account_name, balance, availableBalance:available_balance, accountType:account_type, lastUpdated:last_updated, hidden, userId:user_id, createdAt:created_at, updatedAt:updated_at';
+    'id, institution, account_name, balance, account_type, credit_limit, balance_owed, last_updated, hidden, user_id, created_at, updated_at';
+  
+  // Fallback select columns without credit fields (for databases without credit_limit/balance_owed columns)
+  private readonly selectColumnsWithoutCreditFields =
+    'id, institution, account_name, balance, account_type, last_updated, hidden, user_id, created_at, updated_at';
+
+  /**
+   * Maps database row (snake_case) to entity schema (camelCase)
+   * Converts snake_case database columns to camelCase for entity schema validation
+   */
+  private mapDbRowToEntity(row: Record<string, unknown>): z.infer<typeof accountEntitySchema> {
+    return {
+      id: row.id as string,
+      userId: row.user_id as string,
+      institution: row.institution === null ? undefined : (row.institution as string | undefined),
+      accountName: row.account_name as string,
+      balance: row.balance as number,
+      accountType: row.account_type as string,
+      currency: undefined, // Currency field removed from database
+      creditLimit: row.credit_limit === null ? undefined : (row.credit_limit as number | undefined),
+      balanceOwed: row.balance_owed === null ? undefined : (row.balance_owed as number | undefined),
+      lastUpdated: row.last_updated as string,
+      hidden: row.hidden as boolean,
+      createdAt: row.created_at as string,
+      updatedAt: row.updated_at as string,
+    };
+  }
 
   /**
    * Maps account entity (with userId and timestamps) to domain Account type (without userId)
@@ -31,8 +59,10 @@ export class SupabaseAccountsRepository implements AccountsRepository {
       institution: entity.institution,
       accountName: entity.accountName,
       balance: entity.balance,
-      availableBalance: entity.availableBalance,
       accountType: entity.accountType,
+      currency: entity.currency,
+      creditLimit: entity.creditLimit,
+      balanceOwed: entity.balanceOwed,
       lastUpdated: entity.lastUpdated,
       hidden: entity.hidden,
     };
@@ -120,22 +150,110 @@ export class SupabaseAccountsRepository implements AccountsRepository {
 
       const supabase = await createAuthenticatedSupabaseClient(getToken);
 
-      const { data, error } = await supabase
+      // Try with all columns first, fallback if columns don't exist
+      let { data, error } = await supabase
         .from('accounts')
         .select(this.selectColumns)
         .order('account_name', { ascending: true });
 
+      // Handle different error types
+      if (error) {
+        const errorMessage = error.message || '';
+        const errorCode = error.code || '';
+        const errorStatus = (error as any).status;
+        
+        // Check if it's a missing column error (42703) or 400 with column-related message
+        const isMissingColumnError = 
+          errorCode === '42703' ||
+          errorCode === 'PGRST100' ||
+          (errorStatus === 400 && (errorMessage.includes('column') || errorMessage.includes('credit_limit') || errorMessage.includes('balance_owed')));
+        
+        // Check if it's an RLS/permission error
+        const isRLSError = 
+          errorCode === '42501' ||
+          errorMessage.includes('permission denied') ||
+          errorMessage.includes('row-level security');
+        
+        // If we get a 400 error, try fallback query (columns might not exist)
+        // This handles cases where error message format doesn't match expected patterns
+        const shouldTryFallback = isMissingColumnError || (errorStatus === 400 && !isRLSError);
+        
+        if (shouldTryFallback) {
+          // Try fallback query without credit fields
+          logger.warn('DB:ACCOUNT_LIST', 'Attempting fallback query without credit fields', { 
+            originalError: errorMessage,
+            code: errorCode,
+            status: errorStatus,
+          }, correlationId || undefined);
+          
+          const fallbackResult = await supabase
+            .from('accounts')
+            .select(this.selectColumnsWithoutCreditFields)
+            .order('account_name', { ascending: true });
+          
+          if (fallbackResult.error) {
+            // Fallback also failed - log the original error
+            if (isRLSError) {
+              logger.error('DB:ACCOUNT_LIST', 'RLS policy may be blocking query', { 
+                error: errorMessage, 
+                code: errorCode,
+                hint: (error as any).hint,
+                details: (error as any).details,
+              }, correlationId || undefined);
+            } else {
+              logger.error('DB:ACCOUNT_LIST', 'Failed to list accounts from Supabase (fallback also failed)', { 
+                originalError: errorMessage,
+                fallbackError: fallbackResult.error,
+                code: errorCode,
+                status: errorStatus,
+                hint: (error as any).hint,
+                details: (error as any).details,
+              }, correlationId || undefined);
+            }
+            // Keep original error
+          } else {
+            // Fallback succeeded - use fallback data
+            logger.info('DB:ACCOUNT_LIST', 'Fallback query succeeded (credit fields not available)', {}, correlationId || undefined);
+            data = (fallbackResult.data || []).map((row: Record<string, unknown>) => ({
+              ...row,
+              credit_limit: null,
+              balance_owed: null
+            })) as any;
+            error = null;
+          }
+        } else if (isRLSError) {
+          // RLS error - log with more detail
+          logger.error('DB:ACCOUNT_LIST', 'RLS policy may be blocking query', { 
+            error: errorMessage, 
+            code: errorCode,
+            hint: (error as any).hint,
+            details: (error as any).details,
+          }, correlationId || undefined);
+        } else {
+          // Other error - log with full details
+          logger.error('DB:ACCOUNT_LIST', 'Failed to list accounts from Supabase', { 
+            error: errorMessage, 
+            code: errorCode,
+            status: errorStatus,
+            hint: (error as any).hint,
+            details: (error as any).details,
+          }, correlationId || undefined);
+        }
+      }
+
       if (error) {
         console.error('Supabase accounts list error:', error);
-        logger.error('DB:ACCOUNT_LIST', 'Failed to list accounts from Supabase', { error: error.message, code: error.code }, correlationId || undefined);
         return {
           data: [],
           error: this.normalizeSupabaseError(error),
         };
       }
 
+      // Map database rows (snake_case) to entity schema (camelCase)
+      const mappedData = (data || []).map(row => this.mapDbRowToEntity(row));
+
       // Validate response data
-      const validation = accountListSchema.safeParse(data || []);
+      const validation = accountListSchema.safeParse(mappedData);
       if (!validation.success) {
         console.error('Account list validation error:', validation.error);
         return {
@@ -178,11 +296,59 @@ export class SupabaseAccountsRepository implements AccountsRepository {
 
       const supabase = await createAuthenticatedSupabaseClient(getToken);
 
-      const { data, error } = await supabase
+      // Try with all columns first, fallback if columns don't exist
+      let { data, error } = await supabase
         .from('accounts')
         .select(this.selectColumns)
         .eq('id', id)
         .single();
+
+      // Handle missing credit fields with fallback query
+      if (error) {
+        const errorMessage = error.message || '';
+        const errorCode = error.code || '';
+        const errorStatus = (error as any).status;
+        
+        // Check if it's a missing column error (42703) or 400 error
+        const isMissingColumnError = 
+          errorCode === '42703' ||
+          errorCode === 'PGRST100' ||
+          (errorStatus === 400 && (errorMessage.includes('column') || errorMessage.includes('credit_limit') || errorMessage.includes('balance_owed')));
+        
+        // If we get a 400 error or missing column error, try fallback query
+        const shouldTryFallback = isMissingColumnError || (errorStatus === 400);
+        
+        if (shouldTryFallback) {
+          // Try fallback query without credit fields
+          logger.warn('DB:ACCOUNT_GET', 'Attempting fallback query without credit fields', { 
+            accountId: id,
+            originalError: errorMessage,
+            code: errorCode,
+            status: errorStatus,
+          }, correlationId || undefined);
+          
+          const fallbackResult = await supabase
+            .from('accounts')
+            .select(this.selectColumnsWithoutCreditFields)
+            .eq('id', id)
+            .single();
+          
+          if (fallbackResult.error) {
+            // Fallback also failed - keep original error
+            error = fallbackResult.error;
+            data = null;
+          } else {
+            // Fallback succeeded - use fallback data
+            logger.info('DB:ACCOUNT_GET', 'Fallback query succeeded (credit fields not available)', { accountId: id }, correlationId || undefined);
+            data = {
+              ...fallbackResult.data,
+              credit_limit: null,
+              balance_owed: null
+            } as any;
+            error = null;
+          }
+        }
+      }
 
       if (error) {
         console.error('Supabase accounts get error:', error);
@@ -199,8 +365,11 @@ export class SupabaseAccountsRepository implements AccountsRepository {
         };
       }
 
+      // Map database row (snake_case) to entity schema (camelCase)
+      const mappedData = this.mapDbRowToEntity(data);
+
       // Validate response data
-      const validation = accountEntitySchema.safeParse(data);
+      const validation = accountEntitySchema.safeParse(mappedData);
       if (!validation.success) {
         console.error('Account validation error:', validation.error);
         return {
@@ -262,20 +431,67 @@ export class SupabaseAccountsRepository implements AccountsRepository {
       // Map camelCase to snake_case for database
       const dbInput: Record<string, unknown> = {
         user_id: userId, // EXPLICIT: Set user_id from JWT
-        institution: validation.data.institution,
         account_name: validation.data.accountName,
         balance: validation.data.balance,
-        available_balance: validation.data.availableBalance,
         account_type: validation.data.accountType,
         last_updated: validation.data.lastUpdated,
         hidden: validation.data.hidden ?? false,
       };
 
-      const { data, error } = await supabase
+      // Institution is optional
+      if (validation.data.institution !== undefined) {
+        dbInput.institution = validation.data.institution;
+      }
+
+      // Currency is no longer used - removed from form and database
+      // Include credit fields if provided (for credit cards/loans)
+      if (validation.data.creditLimit !== undefined) {
+        dbInput.credit_limit = validation.data.creditLimit;
+      }
+      if (validation.data.balanceOwed !== undefined) {
+        dbInput.balance_owed = validation.data.balanceOwed;
+      }
+
+      // Try insert with all columns first
+      let { data, error } = await supabase
         .from('accounts')
         .insert([dbInput])
         .select(this.selectColumns)
         .single();
+
+      // Handle missing credit fields with fallback query
+      if (error && (error.code === '42703' || error.code === 'PGRST204')) {
+        const errorMessage = error.message || '';
+        const missingCreditFields = errorMessage.includes('credit_limit') || errorMessage.includes('balance_owed');
+        
+        if (missingCreditFields) {
+          // Credit fields missing - retry without them
+          logger.warn('DB:ACCOUNT_INSERT', 'Credit columns not found, retrying without credit fields', { dbInput }, correlationId || undefined);
+          const dbInputWithoutCredit = { ...dbInput };
+          delete dbInputWithoutCredit.credit_limit;
+          delete dbInputWithoutCredit.balance_owed;
+          
+          const fallbackResult = await supabase
+            .from('accounts')
+            .insert([dbInputWithoutCredit])
+            .select(this.selectColumnsWithoutCreditFields)
+            .single();
+          
+          if (fallbackResult.error) {
+            error = fallbackResult.error;
+            data = null;
+          } else {
+            // Fallback succeeded - use fallback data
+            logger.info('DB:ACCOUNT_INSERT', 'Fallback query succeeded (credit fields not available)', {}, correlationId || undefined);
+            data = {
+              ...fallbackResult.data,
+              credit_limit: null,
+              balance_owed: null
+            } as any;
+            error = null;
+          }
+        }
+      }
 
       if (error) {
         console.error('Supabase accounts create error:', error);
@@ -298,8 +514,11 @@ export class SupabaseAccountsRepository implements AccountsRepository {
         };
       }
 
+      // Map database row (snake_case) to entity schema (camelCase)
+      const mappedData = this.mapDbRowToEntity(data);
+
       // Validate response data
-      const responseValidation = accountEntitySchema.safeParse(data);
+      const responseValidation = accountEntitySchema.safeParse(mappedData);
       if (!responseValidation.success) {
         console.error('Account create response validation error:', responseValidation.error);
         logger.error('DB:ACCOUNT_INSERT', 'Account create response validation failed', { errors: responseValidation.error.errors, data }, correlationId || undefined);
@@ -376,10 +595,18 @@ export class SupabaseAccountsRepository implements AccountsRepository {
 
       // Map camelCase to snake_case for database
       const dbInput: Record<string, unknown> = {};
-      if (validation.data.institution !== undefined) dbInput.institution = validation.data.institution;
+      // Handle institution: if explicitly provided in input (even if empty/undefined after validation), include it
+      // This allows clearing the institution field by setting it to null
+      if ('institution' in input) {
+        // If institution was explicitly provided, use the validated value (which may be undefined)
+        // Convert undefined to null for database (to clear the field)
+        dbInput.institution = validation.data.institution ?? null;
+      } else if (validation.data.institution !== undefined) {
+        // If not in original input but validated data has it, include it
+        dbInput.institution = validation.data.institution;
+      }
       if (validation.data.accountName !== undefined) dbInput.account_name = validation.data.accountName;
       if (validation.data.balance !== undefined) dbInput.balance = validation.data.balance;
-      if (validation.data.availableBalance !== undefined) dbInput.available_balance = validation.data.availableBalance;
       if (validation.data.accountType !== undefined) dbInput.account_type = validation.data.accountType;
       if (validation.data.lastUpdated !== undefined) dbInput.last_updated = validation.data.lastUpdated;
       if (validation.data.hidden !== undefined) dbInput.hidden = validation.data.hidden;
@@ -415,8 +642,11 @@ export class SupabaseAccountsRepository implements AccountsRepository {
         };
       }
 
+      // Map database row (snake_case) to entity schema (camelCase)
+      const mappedData = this.mapDbRowToEntity(data);
+
       // Validate response data
-      const responseValidation = accountEntitySchema.safeParse(data);
+      const responseValidation = accountEntitySchema.safeParse(mappedData);
       if (!responseValidation.success) {
         console.error('Account update response validation error:', responseValidation.error);
         logger.error('DB:ACCOUNT_UPDATE', 'Account update response validation failed', { accountId: id, errors: responseValidation.error.errors, data }, correlationId || undefined);

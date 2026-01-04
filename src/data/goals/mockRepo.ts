@@ -33,14 +33,10 @@ export function clearMockGoals(): void {
  * Mock implementation of GoalsRepository
  */
 export class MockGoalsRepository implements GoalsRepository {
-  async list(type?: Goal['type'], _getToken?: () => Promise<string | null>) {
+  async list(_getToken?: () => Promise<string | null>) {
     await randomDelay();
-    let filtered = [...goals];
-    if (type) {
-      filtered = filtered.filter((g) => g.type === type);
-    }
     return {
-      data: filtered,
+      data: [...goals],
       error: undefined,
     };
   }
@@ -98,8 +94,8 @@ export class MockGoalsRepository implements GoalsRepository {
       id: existing.id,
       name: input.name ?? existing.name,
       description: input.description ?? existing.description,
-      type: input.type ?? existing.type,
       source: input.source ?? existing.source,
+      accountId: input.accountId ?? existing.accountId,
       targetAmount: input.targetAmount ?? existing.targetAmount,
       currentAmount: input.currentAmount ?? existing.currentAmount,
       deadline: input.deadline ?? existing.deadline,

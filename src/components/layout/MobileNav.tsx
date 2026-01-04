@@ -15,13 +15,13 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 const navigation = [
-  { name: 'Dashboard', path: '/dashboard', icon: Home },
-  { name: 'Accounts', path: '/accounts', icon: CreditCard },
-  { name: 'Wealth', path: '/wealth', icon: TrendingUp },
-  { name: 'Budget', path: '/budget', icon: Wallet },
-  { name: 'Goals', path: '/goals', icon: Target },
-  { name: 'Simulate', path: '/scenarios', icon: Zap },
-  { name: 'Settings', path: '/settings', icon: Settings },
+  { name: 'Dashboard', path: '/app/dashboard', icon: Home },
+  { name: 'Accounts', path: '/app/accounts', icon: CreditCard },
+  { name: 'Wealth', path: '/app/wealth', icon: TrendingUp },
+  { name: 'Budget', path: '/app/budget', icon: Wallet },
+  { name: 'Goals', path: '/app/goals', icon: Target },
+  { name: 'Simulate', path: '/app/scenarios', icon: Zap },
+  { name: 'Settings', path: '/app/settings', icon: Settings },
 ];
 
 interface MobileNavProps {
@@ -37,11 +37,11 @@ export function MobileNav({ open, onOpenChange }: MobileNavProps) {
   // Map routes to their prefetch functions
   const getPrefetchHandler = (path: string) => {
     switch (path) {
-      case '/wealth':
+      case '/app/wealth':
         return prefetchWealth;
-      case '/budget':
+      case '/app/budget':
         return prefetchBudget;
-      case '/accounts':
+      case '/app/accounts':
         return prefetchAccounts;
       default:
         return undefined;

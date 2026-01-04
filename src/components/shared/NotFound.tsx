@@ -8,7 +8,7 @@ export function NotFound() {
         Page not found. The page you're looking for doesn't exist.
       </p>
       <Link
-        to="/dashboard"
+        to="/app/dashboard"
         className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:opacity-90"
       >
         Return Home

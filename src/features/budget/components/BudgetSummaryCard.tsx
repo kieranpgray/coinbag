@@ -1,22 +1,22 @@
 import { formatCurrency } from '@/lib/utils';
-import type { Subscription } from '@/types/domain';
-import { calculateMonthlyEquivalent } from '@/features/subscriptions/utils';
+import type { Expense } from '@/types/domain';
+import { calculateMonthlyEquivalent } from '@/features/expenses/utils';
 
 interface BudgetSummaryCardProps {
-  subscriptions: Subscription[];
+  expenses: Expense[];
 }
 
 /**
  * Budget summary card component
  * Displays key metrics at the bottom of the expenses section
  */
-export function BudgetSummaryCard({ subscriptions }: BudgetSummaryCardProps) {
-  const totalExpenses = subscriptions.reduce((sum, subscription) => {
-    return sum + calculateMonthlyEquivalent(subscription.amount, subscription.frequency);
+export function BudgetSummaryCard({ expenses }: BudgetSummaryCardProps) {
+  const totalExpenses = expenses.reduce((sum, expense) => {
+    return sum + calculateMonthlyEquivalent(expense.amount, expense.frequency);
   }, 0);
 
-  const categories = new Set(subscriptions.map((s) => s.categoryId)).size;
-  const totalItems = subscriptions.length;
+  const categories = new Set(expenses.map((e) => e.categoryId)).size;
+  const totalItems = expenses.length;
   const avgPerItem = totalItems > 0 ? totalExpenses / totalItems : 0;
 
   return (

@@ -109,6 +109,7 @@ export function SearchableSelect({
       setIsOpen(true);
     } else if (e.key.length === 1 && !isOpen) {
       // Open dropdown when user starts typing
+      e.preventDefault(); // Prevent browser from inserting character into input
       setIsOpen(true);
       setSearchQuery(e.key);
     }

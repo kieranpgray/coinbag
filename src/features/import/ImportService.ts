@@ -16,12 +16,12 @@ import { ensureDefaultCategories } from '@/data/categories/ensureDefaults';
 import { createAccountsRepository } from '@/data/accounts/repo';
 import { createAssetsRepository } from '@/data/assets/repo';
 import { createLiabilitiesRepository } from '@/data/liabilities/repo';
-import { createSubscriptionsRepository } from '@/data/subscriptions/repo';
+import { createExpensesRepository } from '@/data/expenses/repo';
 import { createIncomeRepository } from '@/data/income/repo';
 import { accountCreateSchema } from '@/contracts/accounts';
 import { assetCreateSchema } from '@/contracts/assets';
 import { liabilityCreateSchema } from '@/contracts/liabilities';
-import { subscriptionCreateSchema } from '@/contracts/subscriptionsOrExpenses';
+import { expenseCreateSchema } from '@/contracts/expenses';
 import { incomeCreateSchema } from '@/contracts/income';
 import type { Asset, Income } from '@/types/domain';
 
@@ -62,7 +62,7 @@ export class ImportService {
       accounts?: unknown[];
       assets?: unknown[];
       liabilities?: unknown[];
-      subscriptions?: unknown[];
+      expenses?: unknown[];
       income?: unknown[];
     }
   ): Promise<ValidationResult> {
@@ -186,8 +186,9 @@ export class ImportService {
         accounts: 0,
         assets: 0,
         liabilities: 0,
-        subscriptions: 0,
+        expenses: 0,
         income: 0,
+        subscriptions: 0,
       },
       errors: [],
       duplicates: [],
@@ -212,10 +213,10 @@ export class ImportService {
         validation,
         'liability'
       );
-      const validSubscriptions = this.filterValidRows(
-        data.subscriptions,
+      const validExpenses = this.filterValidRows(
+        data.expenses,
         validation,
-        'subscription'
+        'expense'
       );
       const validIncome = this.filterValidRows(
         data.income,
@@ -228,7 +229,7 @@ export class ImportService {
         validAccounts.length +
         validAssets.length +
         validLiabilities.length +
-        validSubscriptions.length +
+        validExpenses.length +
         validIncome.length;
       
       let overallProgress = 0;
@@ -254,8 +255,8 @@ export class ImportService {
         };
       };
 
-      // Resolve categories for subscriptions
-      const categoryNames = validSubscriptions
+      // Resolve categories for expenses
+      const categoryNames = validExpenses
         .map((row) => (row.data.categoryName as string) || '')
         .filter((name) => name.trim().length > 0);
 
@@ -316,23 +317,23 @@ export class ImportService {
         overallProgress += validLiabilities.length;
       }
 
-      // Import subscriptions
-      if (validSubscriptions.length > 0 && !options.dryRun) {
-        const subscriptionResults = await this.importSubscriptions(
-          validSubscriptions,
+      // Import expenses
+      if (validExpenses.length > 0 && !options.dryRun) {
+        const expenseResults = await this.importExpenses(
+          validExpenses,
           categoryMap,
           {
             ...options,
-            onProgress: createProgressCallback('subscriptions', validSubscriptions.length, overallProgress),
+            onProgress: createProgressCallback('expenses', validExpenses.length, overallProgress),
           }
         );
-        result.imported.subscriptions = subscriptionResults.successes.length;
-        result.errors.push(...this.convertBatchErrorsToRowErrors(subscriptionResults.errors, 'subscription'));
-        // Add validation errors from subscription processing
-        if (subscriptionResults.validationErrors) {
-          result.errors.push(...subscriptionResults.validationErrors);
+        result.imported.expenses = expenseResults.successes.length;
+        result.errors.push(...this.convertBatchErrorsToRowErrors(expenseResults.errors, 'expense'));
+        // Add validation errors from expense processing
+        if (expenseResults.validationErrors) {
+          result.errors.push(...expenseResults.validationErrors);
         }
-        overallProgress += validSubscriptions.length;
+        overallProgress += validExpenses.length;
       }
 
       // Import income
@@ -537,14 +538,14 @@ export class ImportService {
   }
 
   /**
-   * Import subscriptions in batches
+   * Import expenses in batches
    */
-  private async importSubscriptions(
-    rows: ParsedImportData['subscriptions'],
+  private async importExpenses(
+    rows: ParsedImportData['expenses'],
     categoryMap: Map<string, string>,
     options: ImportOptions
   ): Promise<BatchResult<{ rowNumber: number; data: unknown }>> {
-    const subscriptionsRepo = createSubscriptionsRepository();
+    const expensesRepo = createExpensesRepository();
     const errors: RowError[] = [];
     const validData = rows
       .map((row) => {
@@ -555,7 +556,7 @@ export class ImportService {
           // Report as error instead of silently filtering
           errors.push({
             rowNumber: row.rowNumber,
-            entityType: 'subscription',
+            entityType: 'expense',
             fields: [
               {
                 field: 'categoryName',
@@ -574,7 +575,7 @@ export class ImportService {
 
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { categoryName: _, ...restData } = row.data;
-        const validation = subscriptionCreateSchema.safeParse({
+        const validation = expenseCreateSchema.safeParse({
           ...restData,
           categoryId: categoryId || categoryMap.get('Uncategorised') || categoryMap.values().next().value,
         });
@@ -582,7 +583,7 @@ export class ImportService {
         if (!validation.success) {
           errors.push({
             rowNumber: row.rowNumber,
-            entityType: 'subscription',
+            entityType: 'expense',
             fields: validation.error.errors.map((err) => ({
               field: err.path.join('.'),
               message: err.message,
@@ -596,15 +597,15 @@ export class ImportService {
         return { rowNumber: row.rowNumber, data: validation.data };
       })
       .filter(
-        (item): item is { rowNumber: number; data: ReturnType<typeof subscriptionCreateSchema.parse> } =>
+        (item): item is { rowNumber: number; data: ReturnType<typeof expenseCreateSchema.parse> } =>
           item !== null
       );
 
     const batchResult = await this.importBatch(
       validData,
-      (item) => subscriptionsRepo.create(item.data, this.getToken),
-      'importing-subscriptions',
-      'subscriptions',
+      (item) => expensesRepo.create(item.data, this.getToken),
+      'importing-expenses',
+      'expenses',
       options
     );
 

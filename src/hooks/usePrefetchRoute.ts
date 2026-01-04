@@ -2,7 +2,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@clerk/clerk-react';
 import { createAssetsRepository } from '@/data/assets/repo';
 import { createLiabilitiesRepository } from '@/data/liabilities/repo';
-import { createSubscriptionsRepository } from '@/data/subscriptions/repo';
+import { createExpensesRepository } from '@/data/expenses/repo';
 import { createIncomeRepository } from '@/data/income/repo';
 import { createAccountsRepository } from '@/data/accounts/repo';
 import { createCategoriesRepository } from '@/data/categories/repo';
@@ -51,16 +51,16 @@ export function usePrefetchRoute() {
     });
   };
 
-  const prefetchSubscriptions = () => {
+  const prefetchExpenses = () => {
     if (!getToken) return;
     // Skip if data is already cached and fresh
-    const cachedSubs = queryClient.getQueryData(['subscriptions']);
+    const cachedExpenses = queryClient.getQueryData(['expenses']);
     const cachedCats = queryClient.getQueryData(['categories']);
     
-    if (!cachedSubs) {
-      const repository = createSubscriptionsRepository();
+    if (!cachedExpenses) {
+      const repository = createExpensesRepository();
       queryClient.prefetchQuery({
-        queryKey: ['subscriptions'],
+        queryKey: ['expenses'],
         queryFn: async () => {
           const result = await repository.list(getToken);
           if (result.error) throw result.error;
@@ -70,7 +70,7 @@ export function usePrefetchRoute() {
       });
     }
     
-    // Also prefetch categories since subscriptions page uses them
+    // Also prefetch categories since expenses page uses them
     if (!cachedCats) {
       const categoriesRepo = createCategoriesRepository();
       queryClient.prefetchQuery({
@@ -105,9 +105,9 @@ export function usePrefetchRoute() {
 
   const prefetchBudget = () => {
     if (!getToken) return;
-    // Prefetch both income and subscriptions for budget page
+    // Prefetch both income and expenses for budget page
     const cachedIncomes = queryClient.getQueryData(['incomes']);
-    const cachedSubs = queryClient.getQueryData(['subscriptions']);
+    const cachedExpenses = queryClient.getQueryData(['expenses']);
     const cachedCats = queryClient.getQueryData(['categories']);
     
     if (!cachedIncomes) {
@@ -123,12 +123,12 @@ export function usePrefetchRoute() {
       });
     }
     
-    if (!cachedSubs) {
-      const subscriptionsRepo = createSubscriptionsRepository();
+    if (!cachedExpenses) {
+      const expensesRepo = createExpensesRepository();
       queryClient.prefetchQuery({
-        queryKey: ['subscriptions'],
+        queryKey: ['expenses'],
         queryFn: async () => {
-          const result = await subscriptionsRepo.list(getToken);
+          const result = await expensesRepo.list(getToken);
           if (result.error) throw result.error;
           return result.data;
         },
@@ -179,11 +179,13 @@ export function usePrefetchRoute() {
   return {
     prefetchAssets,
     prefetchLiabilities,
-    prefetchSubscriptions,
+    prefetchExpenses,
     prefetchIncome,
     prefetchBudget,
     prefetchAccounts,
     prefetchWealth,
+    // Backward compatibility
+    prefetchSubscriptions: prefetchExpenses,
   };
 }
 

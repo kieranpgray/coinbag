@@ -1,0 +1,19 @@
+{
+  "title": "Transactions",
+  "unableToLoad": "Unable to load transactions",
+  "unableToLoadDescription": "We couldn't load transactions for this account. Please try again.",
+  "noTransactionsYet": "No transactions yet",
+  "noTransactionsDescription": "Transactions will appear here once they are imported or added for this account.",
+  "tableHeaders": {
+    "date": "Date",
+    "description": "Description",
+    "category": "Category",
+    "amount": "Amount",
+    "type": "Type"
+  },
+  "types": {
+    "income": "Income",
+    "expense": "Expense"
+  }
+}
+

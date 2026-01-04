@@ -51,7 +51,6 @@ vi.mock('@/lib/api', () => ({
       darkMode: false,
       taxRate: 20,
       emailNotifications: {},
-      mfaEnabled: false,
     }),
     updateUser: vi.fn(),
   },

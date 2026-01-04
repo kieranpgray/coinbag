@@ -71,11 +71,11 @@ export function useCreateLiability() {
       addLiabilityOptimistically(queryClient, newLiability);
       queryClient.invalidateQueries({ queryKey: ['liabilities'] });
       
-      // Auto-create subscription if liability has repayment info
+      // Auto-create expense if liability has repayment info
       try {
         await createSubscriptionFromLiability(newLiability, getToken);
-        // Invalidate subscriptions and dashboard to reflect new subscription
-        queryClient.invalidateQueries({ queryKey: ['subscriptions'] });
+        // Invalidate expenses and dashboard to reflect new expense
+        queryClient.invalidateQueries({ queryKey: ['expenses'] });
         queryClient.invalidateQueries({ queryKey: ['dashboard'] });
       } catch (error) {
         // Log error but don't fail the liability creation
@@ -120,8 +120,8 @@ export function useUpdateLiability() {
           // Delete subscription if repayment info removed
           await deleteSubscriptionIfNoRepayment(updatedLiability, getToken);
         }
-        // Invalidate subscriptions and dashboard to reflect changes
-        queryClient.invalidateQueries({ queryKey: ['subscriptions'] });
+        // Invalidate expenses and dashboard to reflect changes
+        queryClient.invalidateQueries({ queryKey: ['expenses'] });
         queryClient.invalidateQueries({ queryKey: ['dashboard'] });
       } catch (error) {
         // Log error but don't fail the liability update

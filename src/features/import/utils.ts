@@ -14,8 +14,11 @@ const VALID_INCOME_SOURCES: Income['source'][] = ['Salary', 'Freelance', 'Busine
 /**
  * Parse date string in various formats to YYYY-MM-DD
  * Handles Excel date formats, common variations, and provides better error handling
+ * 
+ * @param dateStr - Date string, number (Excel serial), or Date object
+ * @param locale - Locale code (e.g., 'en-US', 'en-AU') for date format preference
  */
-export function parseDate(dateStr: string | number | Date): string | null {
+export function parseDate(dateStr: string | number | Date, locale: string = 'en-US'): string | null {
   if (!dateStr) {
     return null;
   }
@@ -93,29 +96,41 @@ export function parseDate(dateStr: string | number | Date): string | null {
     }
   }
 
-  // Try MM/DD/YYYY (US format)
-  const mmddyyyy = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(str);
-  if (mmddyyyy && mmddyyyy[1] && mmddyyyy[2] && mmddyyyy[3]) {
-    const month = parseInt(mmddyyyy[1], 10);
-    const day = parseInt(mmddyyyy[2], 10);
-    const year = parseInt(mmddyyyy[3], 10);
-    // Heuristic: if month > 12, it's likely DD/MM/YYYY format
-    if (month <= 12) {
-      const date = new Date(year, month - 1, day);
-      if (!isNaN(date.getTime()) && date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day) {
-        return formatDate(date);
+  // Try MM/DD/YYYY or DD/MM/YYYY (ambiguous format)
+  const slashMatch = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(str);
+  if (slashMatch && slashMatch[1] && slashMatch[2] && slashMatch[3]) {
+    const part1 = parseInt(slashMatch[1], 10);
+    const part2 = parseInt(slashMatch[2], 10);
+    const year = parseInt(slashMatch[3], 10);
+    
+    // Use locale to determine format preference
+    const isUSFormat = locale === 'en-US' || !locale.startsWith('en-AU');
+    
+    // If ambiguous (both parts <= 12), use locale preference
+    // If unambiguous (one part > 12), use that to determine format
+    let month: number;
+    let day: number;
+    
+    if (part1 > 12 && part2 <= 12) {
+      // Unambiguous: first part is day (DD/MM/YYYY)
+      day = part1;
+      month = part2;
+    } else if (part1 <= 12 && part2 > 12) {
+      // Unambiguous: first part is month (MM/DD/YYYY)
+      month = part1;
+      day = part2;
+    } else {
+      // Ambiguous: use locale preference
+      if (isUSFormat) {
+        month = part1;
+        day = part2;
+      } else {
+        day = part1;
+        month = part2;
       }
     }
-  }
-
-  // Try DD/MM/YYYY (European format)
-  const ddmmyyyy = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(str);
-  if (ddmmyyyy && ddmmyyyy[1] && ddmmyyyy[2] && ddmmyyyy[3]) {
-    const day = parseInt(ddmmyyyy[1], 10);
-    const month = parseInt(ddmmyyyy[2], 10);
-    const year = parseInt(ddmmyyyy[3], 10);
-    // Heuristic: if first part > 12, it's likely DD/MM/YYYY
-    if (day <= 31 && month <= 12) {
+    
+    if (month >= 1 && month <= 12 && day >= 1 && day <= 31) {
       const date = new Date(year, month - 1, day);
       if (!isNaN(date.getTime()) && date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day) {
         return formatDate(date);

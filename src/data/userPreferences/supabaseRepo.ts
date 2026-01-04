@@ -10,7 +10,7 @@ import { userPreferencesSchema, type UserPreferences } from '@/contracts/userPre
  */
 export class SupabaseUserPreferencesRepository implements UserPreferencesRepository {
   private readonly selectColumns =
-    'privacyMode:privacy_mode, darkMode:dark_mode, taxRate:tax_rate, emailNotifications:email_notifications, mfaEnabled:mfa_enabled';
+    'privacyMode:privacy_mode, darkMode:dark_mode, taxRate:tax_rate, taxSettingsConfigured:tax_settings_configured, emailNotifications:email_notifications, locale';
 
   async get(
     _userId: string,
@@ -67,8 +67,9 @@ export class SupabaseUserPreferencesRepository implements UserPreferencesReposit
         privacy_mode: validation.data.privacyMode,
         dark_mode: validation.data.darkMode,
         tax_rate: validation.data.taxRate,
+        tax_settings_configured: validation.data.taxSettingsConfigured,
         email_notifications: validation.data.emailNotifications,
-        mfa_enabled: validation.data.mfaEnabled,
+        locale: validation.data.locale,
       };
 
       const { data, error } = await supabase

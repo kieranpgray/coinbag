@@ -310,10 +310,9 @@ describe('Dashboard Reactivity', () => {
       const { result: createAccountResult } = renderHook(() => useCreateAccount(), { wrapper });
       createAccountResult.current.mutate({
         institution: 'Bank D',
-        accountName: 'Checking',
+        accountName: 'Bank Account',
         balance: 10000,
-        availableBalance: 10000,
-        accountType: 'Checking',
+        accountType: 'Bank Account',
         lastUpdated: '2024-01-15',
         hidden: false,
       });
@@ -540,10 +539,9 @@ describe('Dashboard Reactivity', () => {
 
       createAccountResult.current.mutate({
         institution: 'Bank',
-        accountName: 'Checking',
+        accountName: 'Bank Account',
         balance: 5000,
-        availableBalance: 5000,
-        accountType: 'Checking',
+        accountType: 'Bank Account',
         lastUpdated: '2024-01-15',
         hidden: false,
       });

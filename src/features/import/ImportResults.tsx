@@ -1,6 +1,7 @@
 import { CheckCircle2, XCircle, AlertTriangle, Download } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { ROUTES } from '@/lib/constants/routes';
 import type { ImportResult } from './types';
 
 export interface ImportResultsProps {
@@ -18,6 +19,7 @@ export function ImportResults({
     result.imported.accounts +
     result.imported.assets +
     result.imported.liabilities +
+    result.imported.expenses +
     result.imported.subscriptions +
     result.imported.income;
 
@@ -41,7 +43,7 @@ export function ImportResults({
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
               {result.imported.accounts > 0 && (
                 <div>
                   <div className="text-2xl font-bold">{result.imported.accounts}</div>
@@ -58,6 +60,12 @@ export function ImportResults({
                 <div>
                   <div className="text-2xl font-bold">{result.imported.liabilities}</div>
                   <div className="text-sm text-muted-foreground">Liabilities</div>
+                </div>
+              )}
+              {result.imported.expenses > 0 && (
+                <div>
+                  <div className="text-2xl font-bold">{result.imported.expenses}</div>
+                  <div className="text-sm text-muted-foreground">Expenses</div>
                 </div>
               )}
               {result.imported.subscriptions > 0 && (
@@ -175,10 +183,10 @@ export function ImportResults({
         <div className="flex items-center gap-2">
           {totalImported > 0 && (
             <>
-              <Button variant="outline" onClick={() => window.location.href = '/accounts'}>
+              <Button variant="outline" onClick={() => window.location.href = ROUTES.app.accounts}>
                 View Accounts
               </Button>
-              <Button variant="outline" onClick={() => window.location.href = '/assets'}>
+              <Button variant="outline" onClick={() => window.location.href = ROUTES.app.wealth}>
                 View Assets
               </Button>
             </>

@@ -1,13 +1,13 @@
-import type { Liability, Subscription } from '@/types/domain';
-import { createSubscriptionsRepository } from '@/data/subscriptions/repo';
+import type { Liability, Expense } from '@/types/domain';
+import { createExpensesRepository } from '@/data/expenses/repo';
 import { createCategoriesRepository } from '@/data/categories/repo';
-import { calculateNextDueDate } from '@/features/subscriptions/utils';
+import { calculateNextDueDate } from '@/features/expenses/utils';
 import { findUncategorisedCategoryId } from '@/data/categories/ensureDefaults';
 import { logger, getCorrelationId } from '@/lib/logger';
 
 /**
- * Service to manage subscriptions created from liability repayment information
- * Automatically creates/updates/deletes subscriptions when liability repayment fields change
+ * Service to manage expenses created from liability repayment information
+ * Automatically creates/updates/deletes expenses when liability repayment fields change
  */
 
 const LIABILITY_SUBSCRIPTION_PREFIX = 'Liability Repayment: ';
@@ -33,13 +33,13 @@ function createSubscriptionNotes(liability: Liability): string {
 }
 
 /**
- * Find subscription linked to a liability
+ * Find expense linked to a liability
  */
 export async function findLinkedSubscription(
   liabilityId: string,
   getToken: () => Promise<string | null>
-): Promise<Subscription | undefined> {
-  const repository = createSubscriptionsRepository();
+): Promise<Expense | undefined> {
+  const repository = createExpensesRepository();
   const result = await repository.list(getToken);
   
   if (result.error || !result.data) {
@@ -128,9 +128,9 @@ export async function createSubscriptionFromLiability(
       : (new Date().toISOString().split('T')[0] || new Date().toISOString());
     const nextDueDate = calculateNextDueDate(chargeDate, liability.repaymentFrequency!);
 
-    // Create subscription
-    const repository = createSubscriptionsRepository();
-    const subscriptionData: Omit<Subscription, 'id'> = {
+    // Create expense
+    const repository = createExpensesRepository();
+    const expenseData: Omit<Expense, 'id'> = {
       name: `${LIABILITY_SUBSCRIPTION_PREFIX}${liability.name}`,
       amount: liability.repaymentAmount!,
       frequency: liability.repaymentFrequency!,
@@ -140,7 +140,7 @@ export async function createSubscriptionFromLiability(
       notes: createSubscriptionNotes(liability),
     };
 
-    const result = await repository.create(subscriptionData, getToken);
+    const result = await repository.create(expenseData, getToken);
     
     if (result.error) {
       logger.error(
@@ -196,7 +196,7 @@ export async function updateSubscriptionFromLiability(
   }
 
   try {
-    const repository = createSubscriptionsRepository();
+    const repository = createExpensesRepository();
     
     // Calculate dates - we know repaymentFrequency is defined because of the check above
     const chargeDate = liability.dueDate 
@@ -204,7 +204,7 @@ export async function updateSubscriptionFromLiability(
       : (new Date().toISOString().split('T')[0] || new Date().toISOString());
     const nextDueDate = calculateNextDueDate(chargeDate, liability.repaymentFrequency!);
 
-    const updateData: Partial<Subscription> = {
+    const updateData: Partial<Expense> = {
       name: `${LIABILITY_SUBSCRIPTION_PREFIX}${liability.name}`,
       amount: liability.repaymentAmount!,
       frequency: liability.repaymentFrequency!,
@@ -266,7 +266,7 @@ export async function deleteSubscriptionIfNoRepayment(
       return { success: true };
     }
 
-    const repository = createSubscriptionsRepository();
+    const repository = createExpensesRepository();
     const result = await repository.remove(existing.id, getToken);
     
     if (result.error) {

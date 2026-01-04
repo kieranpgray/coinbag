@@ -5,6 +5,7 @@ import type {
   Account,
   Transaction,
   Goal,
+  Expense,
   Subscription,
   SubscriptionCategory,
   Category,
@@ -44,12 +45,12 @@ const LIABILITY_TYPES: Liability['type'][] = ['Loans', 'Credit Cards', 'Other'];
 /**
  * Goal types
  */
-const GOAL_TYPES: Goal['type'][] = ['Grow', 'Save', 'Pay Off', 'Invest'];
+const SOURCE_OPTIONS = ['Cash', 'Savings account', 'Bank account', 'Credit card', 'Loan', 'Investment', 'Other'];
 
 /**
  * Account types
  */
-const ACCOUNT_TYPES = ['Checking', 'Savings', 'Investment', 'Credit Card', 'Loan', 'Crypto'];
+const ACCOUNT_TYPES = ['Bank Account', 'Savings', 'Investment', 'Credit Card', 'Loan', 'Crypto'];
 
 /**
  * Institutions
@@ -163,7 +164,6 @@ export function createAccount(overrides?: Partial<Account>): Account {
   const accountTypeIndex = randomBetween(0, ACCOUNT_TYPES.length - 1);
   const accountType = ACCOUNT_TYPES[accountTypeIndex]!; // Safe: index is guaranteed to be valid
   const balance = randomBetween(1000, 500000);
-  const availableBalance = accountType === 'Credit Card' ? randomBetween(1000, 10000) : balance;
   const institutionIndex = randomBetween(0, INSTITUTIONS.length - 1);
   const institution = INSTITUTIONS[institutionIndex]!; // Safe: index is guaranteed to be valid
   const lastUpdated = randomDate(7);
@@ -173,7 +173,6 @@ export function createAccount(overrides?: Partial<Account>): Account {
     institution,
     accountName: `${accountType} Account ${randomBetween(1, 100)}`,
     balance,
-    availableBalance,
     accountType,
     lastUpdated,
     hidden: false,
@@ -184,8 +183,9 @@ export function createAccount(overrides?: Partial<Account>): Account {
     institution: overrides.institution ?? institution,
     accountName: overrides.accountName ?? account.accountName,
     balance: overrides.balance ?? account.balance,
-    availableBalance: overrides.availableBalance ?? account.availableBalance,
     accountType: overrides.accountType ?? accountType,
+    creditLimit: overrides.creditLimit ?? account.creditLimit,
+    balanceOwed: overrides.balanceOwed ?? account.balanceOwed,
     lastUpdated: overrides.lastUpdated ?? lastUpdated,
     hidden: overrides.hidden ?? account.hidden,
   };
@@ -259,8 +259,8 @@ export function createTransactions(accountIds: string[], count: number): Transac
  * Create a mock Goal
  */
 export function createGoal(overrides?: Partial<Goal>): Goal {
-  const typeIndex = randomBetween(0, GOAL_TYPES.length - 1);
-  const type = GOAL_TYPES[typeIndex]! as Goal['type']; // Safe: index is guaranteed to be valid
+  const sourceIndex = randomBetween(0, SOURCE_OPTIONS.length - 1);
+  const source = SOURCE_OPTIONS[sourceIndex]!;
   const targetAmount = randomBetween(10000, 500000);
   const currentAmount = randomBetween(0, targetAmount * 0.8);
   const status: Goal['status'] =
@@ -274,10 +274,9 @@ export function createGoal(overrides?: Partial<Goal>): Goal {
 
   const goal: Goal = {
     id: uuidv4(),
-    name: `${type} Goal ${randomBetween(1, 100)}`,
-    description: randomBetween(0, 2) === 0 ? `Description for ${type} goal` : undefined,
-    type,
-    source: randomBetween(0, 2) === 0 ? 'Net Worth' : undefined,
+    name: `Goal ${randomBetween(1, 100)}`,
+    description: randomBetween(0, 2) === 0 ? `Description for goal` : undefined,
+    source: randomBetween(0, 2) === 0 ? source : undefined,
     targetAmount,
     currentAmount,
     deadline,
@@ -288,8 +287,8 @@ export function createGoal(overrides?: Partial<Goal>): Goal {
     id: overrides.id ?? goal.id,
     name: overrides.name ?? goal.name,
     description: overrides.description ?? goal.description,
-    type: (overrides.type ?? goal.type) as Goal['type'],
     source: overrides.source ?? goal.source,
+    accountId: overrides.accountId ?? goal.accountId,
     targetAmount: overrides.targetAmount ?? goal.targetAmount,
     currentAmount: overrides.currentAmount ?? goal.currentAmount,
     deadline: overrides.deadline ?? deadline,
@@ -394,7 +393,6 @@ export function createUser(overrides?: Partial<User>): User {
       monthlyReports: false,
       marketingPromotions: false,
     },
-    mfaEnabled: false,
     ...overrides,
   };
 }
@@ -455,7 +453,7 @@ export function createSetupChecklist(
   accountsCount: number,
   assetsCount: number,
   liabilitiesCount: number,
-  subscriptionsCount: number,
+  expensesCount: number,
   incomeCount: number,
   transactionsCount: number,
   holdingsCount: number
@@ -480,10 +478,10 @@ export function createSetupChecklist(
       completed: liabilitiesCount > 0,
     },
     {
-      id: 'subscriptions',
-      label: 'Add a subscription',
+      id: 'expenses',
+      label: 'Add an expense',
       description: 'Recurring expenses',
-      completed: subscriptionsCount > 0,
+      completed: expensesCount > 0,
     },
     {
       id: 'income',
@@ -507,23 +505,23 @@ export function createSetupChecklist(
 }
 
 /**
- * Calculate dashboard data from assets, liabilities, accounts, subscriptions, and incomes
+ * Calculate dashboard data from assets, liabilities, accounts, expenses, and incomes
  * Now uses memoized calculation service for better performance
  */
 export function calculateDashboardData(
   assets: Asset[],
   liabilities: Liability[],
   accounts: Account[],
-  subscriptions: Subscription[] = [],
+  expenses: Expense[] = [],
   incomes: Income[] = []
 ): Partial<DashboardData> {
-  const calculations = DashboardCalculations.calculateAll(assets, liabilities, accounts, subscriptions, incomes);
+  const calculations = DashboardCalculations.calculateAll(assets, liabilities, accounts, expenses, incomes);
 
   // Calculate data source counts (use from calculations.dataSources for consistency)
   const accountsCount = accounts.length;
   const assetsCount = assets.length;
   const liabilitiesCount = liabilities.length;
-  const subscriptionsCount = subscriptions.length;
+  const expensesCount = expenses.length;
   const transactionsCount = 0; // Mock transactions not implemented yet
   const incomeCount = incomes.length; // Use actual income count from incomes array
   const holdingsCount = assets.filter(a => a.type === 'Investments' || a.type === 'Crypto').length;
@@ -532,7 +530,7 @@ export function calculateDashboardData(
     accountsCount,
     assetsCount,
     liabilitiesCount,
-    subscriptionsCount,
+    expensesCount,
     incomeCount,
     transactionsCount,
     holdingsCount

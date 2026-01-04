@@ -69,7 +69,7 @@ export function GoalCard({ goal, onEdit, onDelete }: GoalCardProps) {
             </span>
             {isCompleted && (
               <span className="text-green-600 font-semibold">
-                {goal.type === 'Pay Off' ? 'Debt paid off!' : 'Goal achieved!'}
+                Goal achieved!
               </span>
             )}
           </div>

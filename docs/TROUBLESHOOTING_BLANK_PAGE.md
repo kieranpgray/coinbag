@@ -94,3 +94,4 @@ After fixing `.env`:
 2. **Check Server Logs**: Look at terminal where `pnpm dev` is running
 3. **Verify HTTPS Certificate**: If using HTTPS, make sure you accepted the certificate warning
 
+

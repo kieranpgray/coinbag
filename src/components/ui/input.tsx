@@ -56,6 +56,9 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
     // Combine refs
     React.useImperativeHandle(ref, () => inputRef.current as HTMLInputElement);
 
+    // Check for error state via aria-invalid or className (before spreading props)
+    const hasError = props['aria-invalid'] === 'true' || className?.includes('border-destructive');
+
     const handleFocus = React.useCallback(
       (e: React.FocusEvent<HTMLInputElement>) => {
         // Clear-on-focus logic: only clear on first focus if value matches clearValue
@@ -107,12 +110,17 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
         type={type}
         className={cn(
           // Design system styling: 12px border radius, clean borders, subtle focus states
-          'flex h-10 w-full rounded-[12px] border border-border bg-background px-3 py-2 text-sm text-foreground',
+          'flex h-10 w-full rounded-[12px] border bg-background px-3 py-2 text-sm text-foreground',
+          // Border color: error state takes priority, then default
+          hasError ? 'border-destructive' : 'border-border',
           'placeholder:text-muted-foreground',
-          // Subtle hover state
-          'hover:border-neutral-mid',
+          // Subtle hover state (not on error state)
+          !hasError && 'hover:border-neutral-mid',
           // Subtle focus ring (not heavy)
-          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:ring-offset-0 focus-visible:border-primary',
+          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-0',
+          hasError 
+            ? 'focus-visible:ring-destructive/20 focus-visible:border-destructive' 
+            : 'focus-visible:ring-primary/20 focus-visible:border-primary',
           // Disabled state
           'disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-muted disabled:hover:border-border',
           // File input styling

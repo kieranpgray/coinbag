@@ -2,7 +2,7 @@
  * Import feature types and interfaces
  */
 
-export type EntityType = 'account' | 'asset' | 'liability' | 'subscription' | 'income';
+export type EntityType = 'account' | 'asset' | 'liability' | 'expense' | 'income' | 'subscription';
 
 export interface ParsedRow {
   rowNumber: number;
@@ -14,8 +14,9 @@ export interface ParsedImportData {
   accounts: ParsedRow[];
   assets: ParsedRow[];
   liabilities: ParsedRow[];
-  subscriptions: ParsedRow[];
+  expenses: ParsedRow[];
   income: ParsedRow[];
+  subscriptions: ParsedRow[];
 }
 
 export interface FieldError {
@@ -78,7 +79,7 @@ export type ImportStep =
   | 'importing-accounts'
   | 'importing-assets'
   | 'importing-liabilities'
-  | 'importing-subscriptions'
+  | 'importing-expenses'
   | 'importing-income'
   | 'completed'
   | 'error';
@@ -95,8 +96,9 @@ export interface ImportResult {
     accounts: number;
     assets: number;
     liabilities: number;
-    subscriptions: number;
+    expenses: number;
     income: number;
+    subscriptions: number;
   };
   errors: RowError[];
   duplicates: DuplicateMatch[];

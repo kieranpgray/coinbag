@@ -1,0 +1,23 @@
+{
+  "generic": "An error occurred",
+  "networkError": "Network error. Please check your connection.",
+  "authError": "Authentication required. Please sign in again.",
+  "permissionDenied": "You do not have permission to perform this action.",
+  "validationError": "Please check your input and try again.",
+  "notFound": "Resource not found",
+  "serverError": "Server error. Please try again later.",
+  "unexpectedError": "An unexpected error occurred",
+  "subscriptionNotFound": "Subscription not found",
+  "accountNotFound": "Account not found",
+  "categoryNotFound": "The selected category does not exist",
+  "invalidFrequency": "Invalid frequency value. Must be weekly, fortnightly, monthly, or yearly",
+  "invalidData": "Invalid data provided",
+  "missingRequiredField": "Missing required field: {{field}}",
+  "duplicateSubscription": "A subscription with these details already exists",
+  "uploadFailed": "Upload failed",
+  "fileSizeExceeded": "File size exceeds {{size}}MB limit",
+  "invalidFileType": "Invalid file type. Please upload {{types}}",
+  "fileAlreadyInQueue": "{{fileName}} is already in the queue",
+  "fileError": "{{fileName}}: {{error}}"
+}
+

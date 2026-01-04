@@ -6,13 +6,17 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { SearchableSelect } from '@/components/ui/searchable-select';
+import { DatePicker } from '@/components/ui/date-picker';
+import { useAccounts } from '@/features/accounts/hooks/useAccounts';
+import { useMemo } from 'react';
+import { cn } from '@/lib/utils';
 import type { Goal } from '@/types/domain';
 
 const goalSchema = z.object({
   name: z.string().min(1, 'Goal name is required'),
   description: z.string().optional(),
-  type: z.enum(['Grow', 'Save', 'Pay Off', 'Invest']),
   source: z.string().optional(),
+  accountId: z.string().uuid('Invalid account ID').optional(),
   currentAmount: z.number().min(0, 'Current amount must be non-negative'),
   targetAmount: z.number().min(0.01, 'Target amount must be greater than 0'),
   deadline: z.string().optional(),
@@ -27,18 +31,35 @@ interface GoalFormProps {
   isLoading?: boolean;
 }
 
-const GOAL_TYPES: Goal['type'][] = ['Grow', 'Save', 'Pay Off', 'Invest'];
-
 const SOURCE_OPTIONS = [
   'Cash',
-  'Bank account',
   'Savings account',
+  'Bank account',
   'Credit card',
-  'Shareholdings',
+  'Loan',
+  'Investment',
   'Other',
-];
+] as const;
+
+// Map source types to account types for filtering
+const getAccountTypesForSource = (source: string): string[] => {
+  switch (source) {
+    case 'Savings account':
+      return ['Savings'];
+    case 'Bank account':
+      // Antifragile: handle both 'Bank Account' (current) and 'Checking' (legacy)
+      return ['Bank Account', 'Checking'];
+    case 'Credit card':
+      return ['Credit Card'];
+    case 'Loan':
+      return ['Loan'];
+    default:
+      return [];
+  }
+};
 
 export function GoalForm({ goal, onSubmit, onCancel, isLoading }: GoalFormProps) {
+  const { data: accounts = [] } = useAccounts();
   const {
     register,
     handleSubmit,
@@ -51,26 +72,49 @@ export function GoalForm({ goal, onSubmit, onCancel, isLoading }: GoalFormProps)
       ? {
           name: goal.name,
           description: goal.description,
-          type: goal.type,
           source: goal.source,
+          accountId: goal.accountId,
           currentAmount: goal.currentAmount,
           targetAmount: goal.targetAmount,
           deadline: goal.deadline ? new Date(goal.deadline).toISOString().split('T')[0] : undefined,
         }
       : {
-          type: 'Grow',
           currentAmount: 0,
           targetAmount: 0,
         },
   });
 
-  const type = watch('type') || 'Grow'; // Ensure always defined for controlled Select
-  const source = watch('source') || ''; // Ensure always defined for controlled Select
+  const source = watch('source') || '';
+  const accountId = watch('accountId') || '';
+
+  // Filter accounts based on selected source type
+  const filteredAccounts = useMemo(() => {
+    if (!source) return [];
+    
+    const accountTypes = getAccountTypesForSource(source);
+    if (accountTypes.length === 0) return [];
+    
+    return accounts.filter((account) => accountTypes.includes(account.accountType));
+  }, [accounts, source]);
+
+  // Check if account linking should be shown
+  const showAccountLinking = useMemo(() => {
+    return ['Savings account', 'Bank account', 'Credit card', 'Loan'].includes(source);
+  }, [source]);
+
+  // Clear accountId when source changes to a type that doesn't support linking
+  const handleSourceChange = (value: string | undefined) => {
+    setValue('source', value || undefined);
+    if (!value || !getAccountTypesForSource(value).length) {
+      setValue('accountId', undefined);
+    }
+  };
 
   const onSubmitForm = (data: GoalFormData) => {
     onSubmit({
       ...data,
       deadline: data.deadline ? new Date(data.deadline).toISOString() : undefined,
+      accountId: data.accountId || undefined,
     });
   };
 
@@ -81,11 +125,13 @@ export function GoalForm({ goal, onSubmit, onCancel, isLoading }: GoalFormProps)
         <Input
           id="name"
           placeholder="E.g. Emergency Fund, Net Worth"
-          {...register('name')}
           aria-invalid={errors.name ? 'true' : 'false'}
+          aria-describedby={errors.name ? 'name-error' : undefined}
+          className={errors.name ? 'border-destructive' : ''}
+          {...register('name')}
         />
         {errors.name && (
-          <p className="text-sm text-destructive" role="alert">
+          <p id="name-error" className="text-sm text-destructive" role="alert">
             {errors.name.message}
           </p>
         )}
@@ -101,35 +147,40 @@ export function GoalForm({ goal, onSubmit, onCancel, isLoading }: GoalFormProps)
         />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="type">Goal Type</Label>
-          <SearchableSelect
-            id="type"
-            value={type}
-            onValueChange={(value) => setValue('type', value as Goal['type'])}
-            options={GOAL_TYPES.map((goalType) => ({
-              value: goalType,
-              label: goalType,
-            }))}
-            placeholder="Select type"
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="source">Source</Label>
-          <SearchableSelect
-            id="source"
-            value={source || ''}
-            onValueChange={(value) => setValue('source', value || undefined)}
-            options={SOURCE_OPTIONS.map((option) => ({
-              value: option,
-              label: option,
-            }))}
-            placeholder="Select a source"
-          />
-        </div>
+      <div className="space-y-2">
+        <Label htmlFor="source">Source</Label>
+        <SearchableSelect
+          id="source"
+          value={source || ''}
+          onValueChange={handleSourceChange}
+          options={SOURCE_OPTIONS.map((option) => ({
+            value: option,
+            label: option,
+          }))}
+          placeholder="Select a source"
+        />
       </div>
+
+      {showAccountLinking && (
+        <div className="space-y-2">
+          <Label htmlFor="accountId">Link to Account (Optional)</Label>
+          <SearchableSelect
+            id="accountId"
+            value={accountId || ''}
+            onValueChange={(value) => setValue('accountId', value || undefined)}
+            options={filteredAccounts.map((account) => ({
+              value: account.id,
+              label: `${account.institution} - ${account.accountName}`,
+            }))}
+            placeholder="Select an account to link"
+          />
+          {filteredAccounts.length === 0 && (
+            <p className="text-sm text-muted-foreground">
+              No accounts found for this source type. Create an account first.
+            </p>
+          )}
+        </div>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
@@ -140,16 +191,17 @@ export function GoalForm({ goal, onSubmit, onCancel, isLoading }: GoalFormProps)
               id="currentAmount"
               type="number"
               step="0.01"
-              className="pl-7"
+              className={cn("pl-7", errors.currentAmount && 'border-destructive')}
               placeholder="0.00"
               clearOnFocus
               clearValue={0}
-              {...register('currentAmount', { valueAsNumber: true })}
               aria-invalid={errors.currentAmount ? 'true' : 'false'}
+              aria-describedby={errors.currentAmount ? 'currentAmount-error' : undefined}
+              {...register('currentAmount', { valueAsNumber: true })}
             />
           </div>
           {errors.currentAmount && (
-            <p className="text-sm text-destructive" role="alert">
+            <p id="currentAmount-error" className="text-sm text-destructive" role="alert">
               {errors.currentAmount.message}
             </p>
           )}
@@ -163,16 +215,17 @@ export function GoalForm({ goal, onSubmit, onCancel, isLoading }: GoalFormProps)
               id="targetAmount"
               type="number"
               step="0.01"
-              className="pl-7"
+              className={cn("pl-7", errors.targetAmount && 'border-destructive')}
               placeholder="0.00"
               clearOnFocus
               clearValue={0}
-              {...register('targetAmount', { valueAsNumber: true })}
               aria-invalid={errors.targetAmount ? 'true' : 'false'}
+              aria-describedby={errors.targetAmount ? 'targetAmount-error' : undefined}
+              {...register('targetAmount', { valueAsNumber: true })}
             />
           </div>
           {errors.targetAmount && (
-            <p className="text-sm text-destructive" role="alert">
+            <p id="targetAmount-error" className="text-sm text-destructive" role="alert">
               {errors.targetAmount.message}
             </p>
           )}
@@ -181,14 +234,17 @@ export function GoalForm({ goal, onSubmit, onCancel, isLoading }: GoalFormProps)
 
       <div className="space-y-2">
         <Label htmlFor="deadline">Target Date</Label>
-        <Input
+        <DatePicker
           id="deadline"
-          type="date"
-          {...register('deadline')}
+          shouldShowCalendarButton
+          {...(() => {
+            const { disabled, ...registerProps } = register('deadline');
+            return registerProps;
+          })()}
           aria-invalid={errors.deadline ? 'true' : 'false'}
         />
         {errors.deadline && (
-          <p className="text-sm text-destructive" role="alert">
+          <p id="deadline-error" className="text-sm text-destructive" role="alert">
             {errors.deadline.message}
           </p>
         )}
@@ -205,4 +261,3 @@ export function GoalForm({ goal, onSubmit, onCancel, isLoading }: GoalFormProps)
     </form>
   );
 }
-

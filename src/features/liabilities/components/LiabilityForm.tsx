@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { SearchableSelect } from '@/components/ui/searchable-select';
+import { DatePicker } from '@/components/ui/date-picker';
 import type { Liability, SubscriptionFrequency } from '@/types/domain';
 
 const liabilitySchema = z.object({
@@ -105,8 +106,19 @@ export function LiabilityForm({
         <Label htmlFor="name">
           Name <span className="text-destructive">*</span>
         </Label>
-        <Input id="name" {...register('name')} placeholder="Liability name" />
-        {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
+        <Input
+          id="name"
+          aria-invalid={errors.name ? 'true' : 'false'}
+          aria-describedby={errors.name ? 'name-error' : undefined}
+          className={errors.name ? 'border-destructive' : ''}
+          {...register('name')}
+          placeholder="Liability name"
+        />
+        {errors.name && (
+          <p id="name-error" className="text-sm text-destructive" role="alert">
+            {errors.name.message}
+          </p>
+        )}
       </div>
 
       <div className="space-y-2">
@@ -138,9 +150,16 @@ export function LiabilityForm({
           placeholder="0.00"
           clearOnFocus
           clearValue={0}
+          aria-invalid={errors.balance ? 'true' : 'false'}
+          aria-describedby={errors.balance ? 'balance-error' : undefined}
+          className={errors.balance ? 'border-destructive' : ''}
           {...register('balance', { valueAsNumber: true })}
         />
-        {errors.balance && <p className="text-sm text-destructive">{errors.balance.message}</p>}
+        {errors.balance && (
+          <p id="balance-error" className="text-sm text-destructive" role="alert">
+            {errors.balance.message}
+          </p>
+        )}
       </div>
 
       <div className="space-y-2">
@@ -152,10 +171,15 @@ export function LiabilityForm({
           placeholder="0.00"
           clearOnFocus
           clearValue={0}
+          aria-invalid={errors.interestRate ? 'true' : 'false'}
+          aria-describedby={errors.interestRate ? 'interestRate-error' : undefined}
+          className={errors.interestRate ? 'border-destructive' : ''}
           {...register('interestRate', { valueAsNumber: true })}
         />
         {errors.interestRate && (
-          <p className="text-sm text-destructive">{errors.interestRate.message}</p>
+          <p id="interestRate-error" className="text-sm text-destructive" role="alert">
+            {errors.interestRate.message}
+          </p>
         )}
       </div>
 
@@ -169,10 +193,15 @@ export function LiabilityForm({
             placeholder="0.00"
             clearOnFocus
             clearValue={0}
+            aria-invalid={errors.monthlyPayment ? 'true' : 'false'}
+            aria-describedby={errors.monthlyPayment ? 'monthlyPayment-error' : undefined}
+            className={errors.monthlyPayment ? 'border-destructive' : ''}
             {...register('monthlyPayment', { valueAsNumber: true })}
           />
           {errors.monthlyPayment && (
-            <p className="text-sm text-destructive">{errors.monthlyPayment.message}</p>
+            <p id="monthlyPayment-error" className="text-sm text-destructive" role="alert">
+              {errors.monthlyPayment.message}
+            </p>
           )}
         </div>
       )}
@@ -188,10 +217,15 @@ export function LiabilityForm({
               placeholder="0.00"
               clearOnFocus
               clearValue={0}
+              aria-invalid={errors.repaymentAmount ? 'true' : 'false'}
+              aria-describedby={errors.repaymentAmount ? 'repaymentAmount-error' : undefined}
+              className={errors.repaymentAmount ? 'border-destructive' : ''}
               {...register('repaymentAmount', { valueAsNumber: true })}
             />
             {errors.repaymentAmount && (
-              <p className="text-sm text-destructive">{errors.repaymentAmount.message}</p>
+              <p id="repaymentAmount-error" className="text-sm text-destructive" role="alert">
+                {errors.repaymentAmount.message}
+              </p>
             )}
           </div>
 
@@ -212,7 +246,9 @@ export function LiabilityForm({
               error={errors.repaymentFrequency?.message}
             />
             {errors.repaymentFrequency && (
-              <p className="text-sm text-destructive">{errors.repaymentFrequency.message}</p>
+              <p id="repaymentFrequency-error" className="text-sm text-destructive" role="alert">
+                {errors.repaymentFrequency.message}
+              </p>
             )}
           </div>
         </>
@@ -222,8 +258,19 @@ export function LiabilityForm({
         <Label htmlFor="dueDate">
           Due Date <span className="text-destructive">*</span>
         </Label>
-        <Input id="dueDate" type="date" {...register('dueDate')} />
-        {errors.dueDate && <p className="text-sm text-destructive">{errors.dueDate.message}</p>}
+        <DatePicker
+          id="dueDate"
+          shouldShowCalendarButton
+          {...(() => {
+            const { disabled, ...registerProps } = register('dueDate');
+            return registerProps;
+          })()}
+        />
+        {errors.dueDate && (
+          <p id="dueDate-error" className="text-sm text-destructive" role="alert">
+            {errors.dueDate.message}
+          </p>
+        )}
       </div>
 
       <div className="space-y-2">

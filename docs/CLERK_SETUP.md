@@ -108,6 +108,25 @@ The header includes a `UserButton` component that provides:
 - Sign out functionality
 - Automatic redirect to `/` after sign out (which redirects to sign-in for unauthenticated users)
 
+### Two-Factor Authentication (2FA)
+Two-factor authentication is managed entirely through Clerk:
+
+1. **Enable 2FA in Clerk Dashboard**:
+   - Go to your Clerk Dashboard → Authentication → Multi-factor
+   - Enable TOTP (Time-based One-Time Password) or other MFA methods you want to support
+   - Users can then enroll 2FA through their account settings
+
+2. **User Experience**:
+   - Users can view their 2FA status in Settings → Security
+   - Click "Manage 2FA" to navigate to `/account` page where Clerk's `UserProfile` component provides full 2FA management
+   - After enabling 2FA, users will be automatically prompted for the second factor during sign-in
+   - The `SignIn` component automatically handles MFA challenges - no additional code needed
+
+3. **Implementation Details**:
+   - 2FA status is read from Clerk's `user.twoFactorEnabled` property (not stored in app preferences)
+   - Account management page (`/account`) uses Clerk's `UserProfile` component for enrollment/management
+   - Settings page shows read-only status badge (Enabled/Not enabled) with link to account management
+
 ## User Experience
 
 ### Authentication Flow

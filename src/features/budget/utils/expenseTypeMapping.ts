@@ -153,3 +153,74 @@ export function getExpenseTypeLabelSingular(type: ExpenseType): string {
   return labels[type];
 }
 
+/**
+ * Dynamically discover expense types from actual expense data
+ * Returns only expense types that exist in the user's expenses
+ * @param expenses - Array of expenses to analyze
+ * @param categoryMap - Map of category IDs to category names
+ * @param uncategorisedId - Optional ID of "Uncategorised" category for fallback
+ * @returns Array of expense types that exist in the expenses
+ */
+export function getExpenseTypesFromExpenses(
+  expenses: Array<{ categoryId: string }>,
+  categoryMap: Map<string, string>,
+  uncategorisedId?: string
+): ExpenseType[] {
+  const expenseTypes = new Set<ExpenseType>();
+  
+  for (const expense of expenses) {
+    // Get category name safely
+    const categoryName = categoryMap.get(expense.categoryId) || 
+      (uncategorisedId && expense.categoryId === uncategorisedId ? 'Uncategorised' : '');
+    
+    if (categoryName) {
+      const expenseType = getExpenseType(categoryName);
+      expenseTypes.add(expenseType);
+    }
+  }
+  
+  // Return in a consistent order (same as getAllExpenseTypes)
+  const allTypes = getAllExpenseTypes();
+  return allTypes.filter(type => expenseTypes.has(type));
+}
+
+/**
+ * Get expense type totals (monthly equivalents) from expenses
+ * Returns a record of expense type → total monthly amount
+ * Dynamically handles any expense type, not just hardcoded ones
+ * @param expenses - Array of expenses with amount, frequency, and categoryId
+ * @param categoryMap - Map of category IDs to category names
+ * @param uncategorisedId - Optional ID of "Uncategorised" category for fallback
+ * @param calculateMonthlyEquivalent - Function to calculate monthly equivalent from amount and frequency
+ * @returns Record mapping expense types to total monthly amounts
+ */
+export function getExpenseTypeTotals(
+  expenses: Array<{ amount: number; frequency: string; categoryId: string }>,
+  categoryMap: Map<string, string>,
+  uncategorisedId: string | undefined,
+  calculateMonthlyEquivalent: (amount: number, frequency: string) => number
+): Record<ExpenseType, number> {
+  const totals: Record<string, number> = {};
+  
+  for (const expense of expenses) {
+    // Get category name safely
+    const categoryName = categoryMap.get(expense.categoryId) || 
+      (uncategorisedId && expense.categoryId === uncategorisedId ? 'Uncategorised' : '');
+    
+    if (categoryName) {
+      const expenseType = getExpenseType(categoryName);
+      const monthlyAmount = calculateMonthlyEquivalent(expense.amount, expense.frequency);
+      totals[expenseType] = (totals[expenseType] || 0) + monthlyAmount;
+    }
+  }
+  
+  // Ensure all expense types are present (even if 0)
+  const allTypes = getAllExpenseTypes();
+  const result: Record<ExpenseType, number> = {} as Record<ExpenseType, number>;
+  for (const type of allTypes) {
+    result[type] = totals[type] || 0;
+  }
+  
+  return result;
+}
+

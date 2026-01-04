@@ -9,6 +9,8 @@ import { Button } from '@/components/ui/button';
 import { AssetsSection } from './components/AssetsSection';
 import { LiabilitiesSection } from './components/LiabilitiesSection';
 import { VisualDivider } from '@/features/budget/components/VisualDivider';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import { WealthBreakdown } from './components/WealthBreakdown';
 import { CreateAssetModal } from '@/features/assets/components/CreateAssetModal';
 import { EditAssetModal } from '@/features/assets/components/EditAssetModal';
@@ -24,6 +26,9 @@ import type { Liability } from '@/types/domain';
  * Unified view for assets and liabilities
  */
 export function WealthPage() {
+  // View mode state
+  const [viewMode, setViewMode] = useState<'list' | 'cards'>('cards');
+
   // Data hooks
   const { data: assets = [], isLoading: assetsLoading, error: assetsError, refetch: refetchAssets } = useAssets();
   const { data: liabilities = [], isLoading: liabilitiesLoading, error: liabilitiesError, refetch: refetchLiabilities } = useLiabilities();
@@ -189,8 +194,22 @@ export function WealthPage() {
   return (
     <div className="space-y-12">
       {/* Wealth Header */}
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Wealth</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Wealth</h1>
+        <div className="flex items-center gap-3">
+          <Label htmlFor="view-mode-wealth" className="text-sm text-muted-foreground">
+            List view
+          </Label>
+          <Switch
+            id="view-mode-wealth"
+            checked={viewMode === 'cards'}
+            onCheckedChange={(checked) => setViewMode(checked ? 'cards' : 'list')}
+            aria-label="Toggle between list view and card view"
+          />
+          <Label htmlFor="view-mode-wealth" className="text-sm text-muted-foreground">
+            Card view
+          </Label>
+        </div>
       </div>
 
       {/* Wealth Breakdown */}
@@ -226,6 +245,7 @@ export function WealthPage() {
           onCreate={() => setCreateAssetModalOpen(true)}
           onEdit={handleEditAsset}
           onDelete={handleDeleteAsset}
+          viewMode={viewMode}
         />
       )}
 
@@ -258,6 +278,7 @@ export function WealthPage() {
           onCreate={() => setCreateLiabilityModalOpen(true)}
           onEdit={handleEditLiability}
           onDelete={handleDeleteLiability}
+          viewMode={viewMode}
         />
       )}
 

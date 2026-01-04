@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Link, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
+import { ROUTES } from '@/lib/constants/routes';
 import type { LucideIcon } from 'lucide-react';
 
 interface CardData {
@@ -23,7 +24,7 @@ const cards: CardData[] = [
     description: 'Connect your bank or add manually',
     color: 'blue',
     action: 'Add account',
-    href: '/accounts',
+    href: ROUTES.app.accounts,
   },
   {
     icon: Coins,
@@ -31,7 +32,7 @@ const cards: CardData[] = [
     description: 'Track investments, crypto, and more',
     color: 'emerald',
     action: 'Add asset',
-    href: '/wealth?create=asset',
+    href: ROUTES.wealth.createAsset(),
   },
   {
     icon: Target,
@@ -39,7 +40,7 @@ const cards: CardData[] = [
     description: 'Save for something meaningful',
     color: 'purple',
     action: 'Create goal',
-    href: '/goals',
+    href: ROUTES.app.goals,
   },
   {
     icon: PiggyBank,
@@ -47,7 +48,7 @@ const cards: CardData[] = [
     description: 'Take control of your spending',
     color: 'pink',
     action: 'Set budget',
-    href: '/budget',
+    href: ROUTES.app.budget,
   },
 ];
 
@@ -178,4 +179,3 @@ export function CardBasedFlow() {
     </div>
   );
 }
-

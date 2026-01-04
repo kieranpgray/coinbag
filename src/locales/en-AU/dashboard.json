@@ -1,0 +1,48 @@
+{
+  "title": "Dashboard",
+  "noDataAvailable": "No data available",
+  "getStarted": "Get started by adding your first asset, liability, or account.",
+  "netWorth": {
+    "title": "Net Worth",
+    "empty": "Add assets and liabilities to calculate your net worth"
+  },
+  "totalCash": {
+    "title": "Total Cash",
+    "empty": "Add bank accounts to track your cash"
+  },
+  "totalDebts": {
+    "title": "Total Debts",
+    "empty": "Add liabilities to track your debts"
+  },
+  "investments": {
+    "title": "Investments",
+    "empty": "Add investments to track your portfolio value.",
+    "emptyCta": "Add investment"
+  },
+  "superannuation": {
+    "title": "Superannuation",
+    "empty": "Add superannuation to track your retirement savings.",
+    "emptyCta": "Add superannuation"
+  },
+  "assets": {
+    "title": "Assets Breakdown",
+    "empty": "Add assets to see your asset breakdown"
+  },
+  "liabilities": {
+    "title": "Liabilities Breakdown",
+    "empty": "Add liabilities to see your liability breakdown"
+  },
+  "expenses": {
+    "title": "Expense Breakdown",
+    "empty": "Add subscriptions to see your expense breakdown"
+  },
+  "income": {
+    "title": "Income Breakdown",
+    "empty": "Add income sources to see your income breakdown"
+  },
+  "setupProgress": {
+    "title": "Setup Progress",
+    "description": "Complete a few more steps to unlock your full financial picture"
+  }
+}
+

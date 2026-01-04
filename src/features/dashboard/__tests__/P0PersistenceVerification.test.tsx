@@ -405,10 +405,9 @@ describe('P0 Persistence Verification', () => {
       const baselineAccount: Account = {
         id: 'account-1',
         institution: 'Bank B',
-        accountName: 'Checking',
+        accountName: 'Bank Account',
         balance: 10000,
-        availableBalance: 10000,
-        accountType: 'Checking',
+        accountType: 'Bank Account',
         lastUpdated: '2024-01-01',
         hidden: false,
       };
@@ -460,7 +459,6 @@ describe('P0 Persistence Verification', () => {
         institution: 'Bank D',
         accountName: 'Savings',
         balance: 50000,
-        availableBalance: 50000,
         accountType: 'Savings',
         lastUpdated: '2024-01-15',
         hidden: false,

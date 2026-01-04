@@ -1,0 +1,44 @@
+{
+  "title": "Accounts",
+  "addNewAccount": "Add New Account",
+  "addNewAccountButton": "ADD NEW ACCOUNT",
+  "backToAccounts": "Back to Accounts",
+  "searchPlaceholder": "Search accounts...",
+  "noAccountsFound": "No accounts found",
+  "unableToLoad": "Unable to load accounts",
+  "unableToLoadDescription": "We couldn't load your accounts. Please try again.",
+  "accountNotFound": "Account not found",
+  "accountNotFoundDescription": "The account you're looking for doesn't exist or has been deleted.",
+  "accountTypes": {
+    "all": "All Types",
+    "bankAccount": "Bank Account",
+    "savings": "Savings",
+    "creditCard": "Credit Card",
+    "loan": "Loan",
+    "other": "Other"
+  },
+  "tableHeaders": {
+    "institution": "Institution",
+    "accountName": "Account Name",
+    "accountType": "Account Type",
+    "balance": "Balance",
+    "lastUpdated": "Last Updated",
+    "hidden": "Hidden",
+    "actions": "Actions"
+  },
+  "labels": {
+    "type": "Type",
+    "balance": "Balance",
+    "lastUpdated": "Last Updated"
+  },
+  "ariaLabels": {
+    "deleteAccount": "Delete account"
+  },
+  "createModal": {
+    "addNewAccount": "Add New Account",
+    "uploadStatements": "Upload Statements",
+    "createDescription": "Create a new account to track your finances and import statements.",
+    "uploadDescription": "Optionally upload statement files to import transactions."
+  }
+}
+

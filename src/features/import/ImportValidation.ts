@@ -24,12 +24,12 @@ import {
   liabilityCreateSchema,
 } from '@/contracts/liabilities';
 import {
-  subscriptionCreateSchema,
-} from '@/contracts/subscriptionsOrExpenses';
+  expenseCreateSchema,
+} from '@/contracts/expenses';
 import {
   incomeCreateSchema,
 } from '@/contracts/income';
-import type { Account, Asset, Liability, Subscription, Income } from '@/types/domain';
+import type { Account, Asset, Liability, Expense, Income } from '@/types/domain';
 
 /**
  * Check if a value is an Excel error value
@@ -46,7 +46,7 @@ function isExcelError(value: unknown): boolean {
  * Check for Excel error values in row data and add to errors
  */
 function checkExcelErrors(
-  row: ParsedImportData['accounts'][0] | ParsedImportData['assets'][0] | ParsedImportData['liabilities'][0] | ParsedImportData['subscriptions'][0] | ParsedImportData['income'][0],
+  row: ParsedImportData['accounts'][0] | ParsedImportData['assets'][0] | ParsedImportData['liabilities'][0] | ParsedImportData['expenses'][0] | ParsedImportData['income'][0],
   _entityType: EntityType
 ): FieldError[] {
   const errors: FieldError[] = [];
@@ -71,7 +71,7 @@ export class ImportValidation {
   private existingAccounts: Account[] = [];
   private existingAssets: Asset[] = [];
   private existingLiabilities: Liability[] = [];
-  private existingSubscriptions: Subscription[] = [];
+  private existingExpenses: Expense[] = [];
   private existingIncome: Income[] = [];
 
   /**
@@ -81,13 +81,13 @@ export class ImportValidation {
     accounts?: Account[];
     assets?: Asset[];
     liabilities?: Liability[];
-    subscriptions?: Subscription[];
+    expenses?: Expense[];
     income?: Income[];
   }) {
     this.existingAccounts = data.accounts || [];
     this.existingAssets = data.assets || [];
     this.existingLiabilities = data.liabilities || [];
-    this.existingSubscriptions = data.subscriptions || [];
+    this.existingExpenses = data.expenses || [];
     this.existingIncome = data.income || [];
   }
 
@@ -117,11 +117,11 @@ export class ImportValidation {
     warnings.push(...liabilityResults.warnings);
     duplicates.push(...liabilityResults.duplicates);
 
-    // Validate subscriptions
-    const subscriptionResults = this.validateSubscriptions(data.subscriptions);
-    errors.push(...subscriptionResults.errors);
-    warnings.push(...subscriptionResults.warnings);
-    duplicates.push(...subscriptionResults.duplicates);
+    // Validate expenses
+    const expenseResults = this.validateExpenses(data.expenses);
+    errors.push(...expenseResults.errors);
+    warnings.push(...expenseResults.warnings);
+    duplicates.push(...expenseResults.duplicates);
 
     // Validate income
     const incomeResults = this.validateIncome(data.income);
@@ -134,7 +134,7 @@ export class ImportValidation {
       data.accounts.length +
       data.assets.length +
       data.liabilities.length +
-      data.subscriptions.length +
+      data.expenses.length +
       data.income.length;
 
     const errorRowNumbers = new Set(errors.map((e) => e.rowNumber));
@@ -197,7 +197,7 @@ export class ImportValidation {
             // Type guard for ZodIssue input property (may not exist in all Zod versions)
             const errInput = 'input' in err ? (err as { input?: unknown }).input : undefined;
             if (err.path[0] === 'accountType' && typeof errInput === 'string') {
-              message = `${err.message}. Valid values: Checking, Savings, Credit Card, Investment, Other`;
+              message = `${err.message}. Valid values: Bank Account, Savings, Credit Card, Investment, Other`;
             }
             return {
               field: err.path.join('.'),
@@ -213,11 +213,12 @@ export class ImportValidation {
       // Duplicate detection
       const duplicate = this.findDuplicateAccount(validation.data);
       if (duplicate) {
+        const institutionText = validation.data.institution ? ` at "${validation.data.institution}"` : '';
         duplicates.push({
           rowNumber: row.rowNumber,
           entityType: 'account',
           existingId: duplicate.id,
-          matchReason: `Account "${validation.data.accountName}" at "${validation.data.institution}" already exists`,
+          matchReason: `Account "${validation.data.accountName}"${institutionText} already exists`,
           rawData: row.data,
         });
       }
@@ -373,10 +374,10 @@ export class ImportValidation {
   }
 
   /**
-   * Validate subscriptions
+   * Validate expenses
    */
-  private validateSubscriptions(
-    rows: ParsedImportData['subscriptions']
+  private validateExpenses(
+    rows: ParsedImportData['expenses']
   ): {
     errors: RowError[];
     warnings: RowWarning[];
@@ -388,11 +389,11 @@ export class ImportValidation {
 
     rows.forEach((row) => {
       // Check for Excel error values first
-      const excelErrors = checkExcelErrors(row, 'subscription');
+      const excelErrors = checkExcelErrors(row, 'expense');
       if (excelErrors.length > 0) {
         errors.push({
           rowNumber: row.rowNumber,
-          entityType: 'subscription',
+          entityType: 'expense',
           fields: excelErrors,
           rawData: row.data,
         });
@@ -405,7 +406,7 @@ export class ImportValidation {
       
       // Create a temporary validation object without categoryId
       // Use a valid UUID format for validation (categoryId will be resolved during import)
-      const validation = subscriptionCreateSchema.safeParse({
+      const validation = expenseCreateSchema.safeParse({
         ...restData,
         categoryId: 'ffffffff-ffff-ffff-ffff-ffffffffffff', // Valid UUID format placeholder
       });
@@ -419,7 +420,7 @@ export class ImportValidation {
         if (relevantErrors.length > 0) {
           errors.push({
             rowNumber: row.rowNumber,
-            entityType: 'subscription',
+            entityType: 'expense',
             fields: relevantErrors.map((err) => {
               let message = err.message;
               // Enhance error messages with suggestions for frequency field
@@ -447,7 +448,7 @@ export class ImportValidation {
         if (!categoryName || categoryName.trim() === '') {
           errors.push({
             rowNumber: row.rowNumber,
-            entityType: 'subscription',
+            entityType: 'expense',
             fields: [
               {
                 field: 'categoryName',
@@ -461,7 +462,7 @@ export class ImportValidation {
       }
 
       // Duplicate detection - use data without categoryId for matching
-      const duplicate = this.findDuplicateSubscription({
+      const duplicate = this.findDuplicateExpense({
         name: validation.data.name,
         amount: validation.data.amount,
         frequency: validation.data.frequency,
@@ -473,9 +474,9 @@ export class ImportValidation {
       if (duplicate) {
         duplicates.push({
           rowNumber: row.rowNumber,
-          entityType: 'subscription',
+          entityType: 'expense',
           existingId: duplicate.id,
-          matchReason: `Subscription "${validation.data.name}" with amount ${validation.data.amount} and frequency ${validation.data.frequency} already exists`,
+          matchReason: `Expense "${validation.data.name}" with amount ${validation.data.amount} and frequency ${validation.data.frequency} already exists`,
           rawData: row.data,
         });
       }
@@ -567,8 +568,10 @@ export class ImportValidation {
   /**
    * Normalize string for comparison (lowercase, trim, normalize whitespace)
    * Handles edge cases like multiple spaces, tabs, newlines, etc.
+   * Handles undefined/null values by converting them to empty string for comparison
    */
-  private normalizeForComparison(str: string): string {
+  private normalizeForComparison(str: string | undefined | null): string {
+    if (!str) return '';
     return str
       .toLowerCase()
       .trim()
@@ -625,18 +628,18 @@ export class ImportValidation {
   }
 
   /**
-   * Find duplicate subscription
+   * Find duplicate expense
    */
-  private findDuplicateSubscription(
-    subscription: ReturnType<typeof subscriptionCreateSchema.parse>
-  ): Subscription | undefined {
-    const normalizedName = this.normalizeForComparison(subscription.name);
+  private findDuplicateExpense(
+    expense: ReturnType<typeof expenseCreateSchema.parse>
+  ): Expense | undefined {
+    const normalizedName = this.normalizeForComparison(expense.name);
 
-    return this.existingSubscriptions.find(
+    return this.existingExpenses.find(
       (existing) =>
         this.normalizeForComparison(existing.name) === normalizedName &&
-        existing.amount === subscription.amount &&
-        existing.frequency === subscription.frequency
+        existing.amount === expense.amount &&
+        existing.frequency === expense.frequency
     );
   }
 

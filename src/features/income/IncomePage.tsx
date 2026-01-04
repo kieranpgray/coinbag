@@ -22,6 +22,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { SearchableSelect } from '@/components/ui/searchable-select';
 import { Textarea } from '@/components/ui/textarea';
+import { DatePicker } from '@/components/ui/date-picker';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -287,8 +288,19 @@ export function IncomePage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="name">Name</Label>
-                <Input id="name" {...register('name')} placeholder="e.g., Main Salary" />
-                {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
+                <Input
+                  id="name"
+                  aria-invalid={errors.name ? 'true' : 'false'}
+                  aria-describedby={errors.name ? 'name-error' : undefined}
+                  className={errors.name ? 'border-destructive' : ''}
+                  {...register('name')}
+                  placeholder="e.g., Main Salary"
+                />
+                {errors.name && (
+                  <p id="name-error" className="text-sm text-destructive" role="alert">
+                    {errors.name.message}
+                  </p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="source">Source</Label>
@@ -319,9 +331,16 @@ export function IncomePage() {
                   placeholder="0.00"
                   clearOnFocus
                   clearValue={0}
+                  aria-invalid={errors.amount ? 'true' : 'false'}
+                  aria-describedby={errors.amount ? 'amount-error' : undefined}
+                  className={errors.amount ? 'border-destructive' : ''}
                   {...register('amount', { valueAsNumber: true })} 
                 />
-                {errors.amount && <p className="text-sm text-destructive">{errors.amount.message}</p>}
+                {errors.amount && (
+                  <p id="amount-error" className="text-sm text-destructive" role="alert">
+                    {errors.amount.message}
+                  </p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="frequency">Frequency</Label>
@@ -343,13 +362,28 @@ export function IncomePage() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="nextPaymentDate">Next Payment Date</Label>
-              <Input id="nextPaymentDate" type="date" {...register('nextPaymentDate')} />
-              {errors.nextPaymentDate && <p className="text-sm text-destructive">{errors.nextPaymentDate.message}</p>}
+              <DatePicker
+                id="nextPaymentDate"
+                shouldShowCalendarButton
+                {...(() => {
+                  const { disabled, ...registerProps } = register('nextPaymentDate');
+                  return registerProps;
+                })()}
+              />
+              {errors.nextPaymentDate && (
+                <p id="nextPaymentDate-error" className="text-sm text-destructive" role="alert">
+                  {errors.nextPaymentDate.message}
+                </p>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="notes">Notes (Optional)</Label>
               <Textarea id="notes" {...register('notes')} placeholder="Any additional notes" rows={3} />
-              {errors.notes && <p className="text-sm text-destructive">{errors.notes.message}</p>}
+              {errors.notes && (
+                <p id="notes-error" className="text-sm text-destructive" role="alert">
+                  {errors.notes.message}
+                </p>
+              )}
             </div>
             <div className="flex justify-end space-x-2">
               <Button type="button" variant="outline" onClick={() => setCreateModalOpen(false)}>
@@ -375,8 +409,18 @@ export function IncomePage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="edit-name">Name</Label>
-                  <Input id="edit-name" {...register('name')} />
-                  {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
+                  <Input
+                    id="edit-name"
+                    aria-invalid={errors.name ? 'true' : 'false'}
+                    aria-describedby={errors.name ? 'edit-name-error' : undefined}
+                    className={errors.name ? 'border-destructive' : ''}
+                    {...register('name')}
+                  />
+                  {errors.name && (
+                    <p id="edit-name-error" className="text-sm text-destructive" role="alert">
+                      {errors.name.message}
+                    </p>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="edit-source">Source</Label>
@@ -406,9 +450,16 @@ export function IncomePage() {
                     placeholder="0.00"
                     clearOnFocus
                     clearValue={0}
+                    aria-invalid={errors.amount ? 'true' : 'false'}
+                    aria-describedby={errors.amount ? 'edit-amount-error' : undefined}
+                    className={errors.amount ? 'border-destructive' : ''}
                     {...register('amount', { valueAsNumber: true })} 
                   />
-                  {errors.amount && <p className="text-sm text-destructive">{errors.amount.message}</p>}
+                  {errors.amount && (
+                    <p id="edit-amount-error" className="text-sm text-destructive" role="alert">
+                      {errors.amount.message}
+                    </p>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="edit-frequency">Frequency</Label>
@@ -428,8 +479,19 @@ export function IncomePage() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="edit-nextPaymentDate">Next Payment Date</Label>
-                <Input id="edit-nextPaymentDate" type="date" {...register('nextPaymentDate')} />
-                {errors.nextPaymentDate && <p className="text-sm text-destructive">{errors.nextPaymentDate.message}</p>}
+                <DatePicker
+                  id="edit-nextPaymentDate"
+                  shouldShowCalendarButton
+                  {...(() => {
+                    const { disabled, ...registerProps } = register('nextPaymentDate');
+                    return registerProps;
+                  })()}
+                />
+                {errors.nextPaymentDate && (
+                  <p id="edit-nextPaymentDate-error" className="text-sm text-destructive" role="alert">
+                    {errors.nextPaymentDate.message}
+                  </p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="edit-notes">Notes (Optional)</Label>

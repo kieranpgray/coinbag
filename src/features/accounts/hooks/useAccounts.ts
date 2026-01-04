@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { createAccountsRepository } from '@/data/accounts/repo';
 import { useAuth } from '@clerk/clerk-react';
 import type { Account } from '@/types/domain';
+import type { AccountCreate } from '@/contracts/accounts';
 import {
   addAccountOptimistically,
   updateAccountOptimistically,
@@ -52,8 +53,20 @@ export function useCreateAccount() {
   const repository = createAccountsRepository();
 
   return useMutation({
-    mutationFn: async (data: Omit<Account, 'id'>) => {
-      const result = await repository.create(data, getToken);
+    mutationFn: async (data: AccountCreate) => {
+      // Convert AccountCreate to Account format (currency is optional, not required)
+      const accountData: Omit<Account, 'id'> = {
+        institution: data.institution,
+        accountName: data.accountName,
+        balance: data.balance,
+        accountType: data.accountType,
+        currency: data.currency, // Currency is optional, don't set default
+        creditLimit: data.creditLimit,
+        balanceOwed: data.balanceOwed,
+        lastUpdated: data.lastUpdated,
+        hidden: data.hidden ?? false,
+      };
+      const result = await repository.create(accountData, getToken);
       if (result.error) {
         throw result.error;
       }

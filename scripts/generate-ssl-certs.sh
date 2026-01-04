@@ -44,3 +44,4 @@ echo "   1. Restart your dev server: pnpm dev"
 echo "   2. Access your app at: https://localhost:5173"
 echo "   3. Accept the certificate warning in your browser"
 
+

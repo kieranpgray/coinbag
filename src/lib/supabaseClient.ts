@@ -57,8 +57,10 @@ export const getClerkToken = async (getToken: () => Promise<string | null>): Pro
 
 // Cache authenticated clients per token to avoid creating multiple instances
 // Note: Tokens can expire, so we use a simple cache with token as key
+// Using a more aggressive cache to reduce GoTrueClient instance warnings
 const authenticatedClientCache = new Map<string, { client: SupabaseClient; timestamp: number }>();
-const CLIENT_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+const CLIENT_CACHE_TTL_MS = 10 * 60 * 1000; // 10 minutes (increased from 5 to reduce instance creation)
+const MAX_CACHE_SIZE = 5; // Reduced from 10 to keep cache smaller and more focused
 
 /**
  * Create an authenticated Supabase client for a specific request
@@ -133,11 +135,20 @@ export const createAuthenticatedSupabaseClient = async (
     }
   }
 
-  // Check cache first
+  // Check cache first - reuse existing client if available
   const cached = authenticatedClientCache.get(token);
   const now = Date.now();
-  if (cached && (now - cached.timestamp) < CLIENT_CACHE_TTL_MS) {
-    return cached.client;
+  if (cached) {
+    // Extend cache TTL if still within reasonable time
+    if ((now - cached.timestamp) < CLIENT_CACHE_TTL_MS) {
+      return cached.client;
+    }
+    // If slightly expired but token hasn't changed, still reuse (token refresh will handle expiration)
+    if ((now - cached.timestamp) < CLIENT_CACHE_TTL_MS * 1.5) {
+      // Update timestamp to extend cache life
+      cached.timestamp = now;
+      return cached.client;
+    }
   }
 
   // Create a new client instance with custom headers for this request
@@ -170,11 +181,23 @@ export const createAuthenticatedSupabaseClient = async (
   authenticatedClientCache.set(token, { client, timestamp: now });
 
   // Clean up old cache entries (keep cache size reasonable)
-  if (authenticatedClientCache.size > 10) {
-    for (const [key, value] of authenticatedClientCache.entries()) {
-      if ((now - value.timestamp) >= CLIENT_CACHE_TTL_MS) {
-        authenticatedClientCache.delete(key);
-      }
+  // More aggressive cleanup to reduce memory usage and instance count
+  if (authenticatedClientCache.size > MAX_CACHE_SIZE) {
+    // Sort by timestamp and remove oldest entries
+    const entries = Array.from(authenticatedClientCache.entries())
+      .sort((a, b) => a[1].timestamp - b[1].timestamp);
+    
+    // Remove oldest entries until we're under the limit
+    const toRemove = entries.slice(0, entries.length - MAX_CACHE_SIZE);
+    for (const [key] of toRemove) {
+      authenticatedClientCache.delete(key);
+    }
+  }
+  
+  // Also clean up expired entries periodically
+  for (const [key, value] of authenticatedClientCache.entries()) {
+    if ((now - value.timestamp) >= CLIENT_CACHE_TTL_MS * 2) {
+      authenticatedClientCache.delete(key);
     }
   }
 

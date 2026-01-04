@@ -51,11 +51,11 @@ export const ExpenseBreakdown = memo(function ExpenseBreakdownComponent({
         </CardHeader>
         <CardContent>
           <p className="text-sm text-muted-foreground mb-4">
-            Add subscriptions or transactions to see where your money goes.
+            Add expenses or transactions to see where your money goes.
           </p>
           <div className="flex gap-2">
             <Button asChild size="sm">
-              <Link to="/budget?create=expense">Add subscription</Link>
+              <Link to="/budget?create=expense">Add expense</Link>
             </Button>
             <Button asChild size="sm" variant="outline">
               <Link to="/transactions">Add transaction</Link>
@@ -95,7 +95,7 @@ export const ExpenseBreakdown = memo(function ExpenseBreakdownComponent({
           ))}
         </div>
         <Link
-          to="/budget"
+          to="/app/budget"
           className="mt-4 inline-block text-sm text-primary hover:underline"
         >
           View all expenses →

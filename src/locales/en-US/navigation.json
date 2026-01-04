@@ -1,0 +1,14 @@
+{
+  "dashboard": "Dashboard",
+  "accounts": "Accounts",
+  "assets": "Assets",
+  "liabilities": "Liabilities",
+  "income": "Income",
+  "subscriptions": "Subscriptions",
+  "transactions": "Transactions",
+  "goals": "Goals",
+  "budget": "Budget",
+  "settings": "Settings",
+  "import": "Import"
+}
+

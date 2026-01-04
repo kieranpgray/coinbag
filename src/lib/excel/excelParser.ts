@@ -50,8 +50,9 @@ function parseWorkbook(workbook: XLSX.WorkBook): ParsedImportData {
     accounts: [],
     assets: [],
     liabilities: [],
-    subscriptions: [],
+    expenses: [],
     income: [],
+    subscriptions: [],
   };
 
   // Map sheet names to entity types
@@ -59,7 +60,7 @@ function parseWorkbook(workbook: XLSX.WorkBook): ParsedImportData {
     Accounts: 'account',
     Assets: 'asset',
     Liabilities: 'liability',
-    Subscriptions: 'subscription',
+    Expenses: 'expense',
     Income: 'income',
   };
 
@@ -149,8 +150,6 @@ function normalizeRowData(
       account_name: 'accountName',
       'account name': 'accountName',
       balance: 'balance',
-      available_balance: 'availableBalance',
-      'available balance': 'availableBalance',
       account_type: 'accountType',
       'account type': 'accountType',
       last_updated: 'lastUpdated',
@@ -195,6 +194,19 @@ function normalizeRowData(
       category: 'categoryName',
       notes: 'notes',
     },
+    expense: {
+      name: 'name',
+      amount: 'amount',
+      frequency: 'frequency',
+      charge_date: 'chargeDate',
+      'charge date': 'chargeDate',
+      next_due_date: 'nextDueDate',
+      'next due date': 'nextDueDate',
+      category_name: 'categoryName',
+      'category name': 'categoryName',
+      category: 'categoryName',
+      notes: 'notes',
+    },
     income: {
       name: 'name',
       source: 'source',
@@ -214,7 +226,6 @@ function normalizeRowData(
       institution: 'string',
       accountName: 'string',
       balance: 'number',
-      availableBalance: 'number',
       accountType: 'string',
       lastUpdated: 'date',
       hidden: 'boolean',
@@ -239,6 +250,15 @@ function normalizeRowData(
       institution: 'string',
     },
     subscription: {
+      name: 'string',
+      amount: 'number',
+      frequency: 'string',
+      chargeDate: 'date',
+      nextDueDate: 'date',
+      categoryName: 'string',
+      notes: 'string',
+    },
+    expense: {
       name: 'string',
       amount: 'number',
       frequency: 'string',

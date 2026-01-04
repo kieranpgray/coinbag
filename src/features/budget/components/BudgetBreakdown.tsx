@@ -5,9 +5,9 @@ import { convertToFrequency, type Frequency, FREQUENCY_OPTIONS } from '../utils/
 
 interface BudgetBreakdownProps {
   totalIncome: number; // monthly equivalent
-  totalExpenses: number; // monthly equivalent, excluding savings and repayments
-  totalSavings: number; // monthly equivalent
-  totalRepayments: number; // monthly equivalent
+  totalExpenses: number; // monthly equivalent, ALL expenses (includes all categories)
+  totalSavings: number; // monthly equivalent (for display only, already included in totalExpenses)
+  totalRepayments: number; // monthly equivalent (for display only, already included in totalExpenses)
   remaining: number; // monthly equivalent
   frequency: Frequency;
   onFrequencyChange: (frequency: Frequency) => void;

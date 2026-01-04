@@ -73,7 +73,7 @@ export const AssetsBreakdown = memo(function AssetsBreakdown({ breakdown, totalV
           ))}
         </div>
         <Link
-          to="/wealth"
+          to="/app/wealth"
           className="mt-4 inline-block text-sm text-primary hover:underline"
         >
           View all assets →

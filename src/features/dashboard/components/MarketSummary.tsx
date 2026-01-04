@@ -37,7 +37,7 @@ export function MarketSummary({ data, isLoading, isUnavailable }: MarketSummaryP
             Connect market data to see market insights.
           </p>
           <Button asChild size="sm">
-            <Link to="/settings">Connect market data</Link>
+            <Link to="/app/settings">Connect market data</Link>
           </Button>
         </CardContent>
       </Card>

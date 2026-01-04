@@ -19,7 +19,7 @@ export const userPreferencesSchema = z.object({
   taxRate: z.number(),
   taxSettingsConfigured: z.boolean(),
   emailNotifications: emailNotificationsSchema,
-  mfaEnabled: z.boolean(),
+  locale: z.string().default('en-US'), // Locale preference (en-US, en-AU, etc.)
 });
 
 export type UserPreferences = z.infer<typeof userPreferencesSchema>;
@@ -29,6 +29,7 @@ export const defaultUserPreferences: UserPreferences = {
   darkMode: false,
   taxRate: 20,
   taxSettingsConfigured: false,
+  locale: 'en-US',
   emailNotifications: {
     portfolioSummary: true,
     spendingAlerts: true,
@@ -37,7 +38,6 @@ export const defaultUserPreferences: UserPreferences = {
     monthlyReports: false,
     marketingPromotions: false,
   },
-  mfaEnabled: false,
 };
 
 

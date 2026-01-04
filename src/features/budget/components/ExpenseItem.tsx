@@ -1,40 +1,40 @@
-import { Edit2, Trash2 } from 'lucide-react';
+import { Pencil, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { formatCurrency } from '@/lib/utils';
 import { format } from 'date-fns';
-import type { Subscription } from '@/types/domain';
+import type { Expense } from '@/types/domain';
 import { convertToFrequency, getFrequencyLabelForDisplay, normalizeToFrequency, type Frequency } from '../utils/frequencyConversion';
 
 interface ExpenseItemProps {
-  subscription: Subscription;
+  expense: Expense;
   categoryName: string;
-  onEdit: (subscription: Subscription) => void;
-  onDelete: (subscription: Subscription) => void;
+  onEdit: (expense: Expense) => void;
+  onDelete: (expense: Expense) => void;
   isHighlight?: boolean;
   displayFrequency?: Frequency;
 }
 
 /**
  * Individual expense item component
- * Displays subscription information with edit/delete actions
+ * Displays expense information with edit/delete actions
  */
 export function ExpenseItem({
-  subscription,
+  expense,
   categoryName,
   onEdit,
   onDelete,
   isHighlight = false,
   displayFrequency,
 }: ExpenseItemProps) {
-  const nextDueDate = format(new Date(subscription.nextDueDate), 'MMM dd, yyyy');
+  const nextDueDate = format(new Date(expense.nextDueDate), 'MMM dd, yyyy');
   
   // Convert amount to display frequency if provided, otherwise use original
   const displayAmount = displayFrequency
-    ? convertToFrequency(subscription.amount, normalizeToFrequency(subscription.frequency), displayFrequency)
-    : subscription.amount;
+    ? convertToFrequency(expense.amount, normalizeToFrequency(expense.frequency), displayFrequency)
+    : expense.amount;
   const displayFreqLabel = displayFrequency
     ? getFrequencyLabelForDisplay(displayFrequency)
-    : subscription.frequency.toLowerCase();
+    : expense.frequency.toLowerCase();
   
   return (
     <div
@@ -56,7 +56,7 @@ export function ExpenseItem({
 
         {/* Info */}
         <div className="flex-1 min-w-0">
-          <h4 className="text-neutral-900 mb-0.5 truncate">{subscription.name}</h4>
+          <h4 className="text-neutral-900 mb-0.5 truncate">{expense.name}</h4>
           <div className="flex items-center gap-2 text-xs text-neutral-500">
             <span>{categoryName}</span>
             <span>•</span>
@@ -78,17 +78,17 @@ export function ExpenseItem({
             variant="ghost"
             size="sm"
             className="h-8 w-8 p-0"
-            onClick={() => onEdit(subscription)}
-            aria-label={`Edit ${subscription.name}`}
+            onClick={() => onEdit(expense)}
+            aria-label={`Edit ${expense.name}`}
           >
-            <Edit2 className="h-3.5 w-3.5 text-neutral-500" />
+            <Pencil className="h-3.5 w-3.5 text-neutral-500" />
           </Button>
           <Button
             variant="ghost"
             size="sm"
             className="h-8 w-8 p-0"
-            onClick={() => onDelete(subscription)}
-            aria-label={`Delete ${subscription.name}`}
+            onClick={() => onDelete(expense)}
+            aria-label={`Delete ${expense.name}`}
           >
             <Trash2 className="h-3.5 w-3.5 text-red-500" />
           </Button>
@@ -100,17 +100,17 @@ export function ExpenseItem({
             variant="ghost"
             size="sm"
             className="h-8 w-8 p-0"
-            onClick={() => onEdit(subscription)}
-            aria-label={`Edit ${subscription.name}`}
+            onClick={() => onEdit(expense)}
+            aria-label={`Edit ${expense.name}`}
           >
-            <Edit2 className="h-3.5 w-3.5 text-neutral-500" />
+            <Pencil className="h-3.5 w-3.5 text-neutral-500" />
           </Button>
           <Button
             variant="ghost"
             size="sm"
             className="h-8 w-8 p-0"
-            onClick={() => onDelete(subscription)}
-            aria-label={`Delete ${subscription.name}`}
+            onClick={() => onDelete(expense)}
+            aria-label={`Delete ${expense.name}`}
           >
             <Trash2 className="h-3.5 w-3.5 text-red-500" />
           </Button>

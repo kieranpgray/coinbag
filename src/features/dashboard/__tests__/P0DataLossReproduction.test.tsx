@@ -150,10 +150,9 @@ describe('P0 Data Loss Reproduction', () => {
     const baselineAccount: Account = {
       id: 'account-baseline-1',
       institution: 'Bank B',
-      accountName: 'Baseline Checking',
+      accountName: 'Baseline Bank Account',
       balance: 10000,
-      availableBalance: 10000,
-      accountType: 'Checking',
+      accountType: 'Bank Account',
       lastUpdated: '2024-01-01',
       hidden: false,
     };
@@ -431,7 +430,6 @@ describe('P0 Data Loss Reproduction', () => {
         institution: 'Bank D',
         accountName: 'New Savings',
         balance: 50000,
-        availableBalance: 50000,
         accountType: 'Savings',
         lastUpdated: '2024-01-15',
         hidden: false,

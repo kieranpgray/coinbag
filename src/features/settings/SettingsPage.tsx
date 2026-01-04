@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useUser as useClerkUser } from '@clerk/clerk-react';
 import { useUserPreferences, useUpdateUserPreferences } from '@/hooks/useUserPreferences';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,11 +9,17 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import type { UserPreferences } from '@/contracts/userPreferences';
 import { ImportPage } from '@/features/import/ImportPage';
+import { useLocale } from '@/contexts/LocaleContext';
+import { getSupportedLocales } from '@/lib/localeRegistry';
+import { useTranslation } from 'react-i18next';
+import { detectCountryFromIP } from '@/lib/ipDetection';
 
 const profileSchema = z.object({
   firstName: z.string().optional(),
@@ -28,9 +34,32 @@ export function SettingsPage() {
   const { user: clerkUser, isLoaded: isClerkLoaded } = useClerkUser();
   const { data: prefs, isLoading: isPrefsLoading } = useUserPreferences();
   const updatePrefs = useUpdateUserPreferences();
+  const { locale, setLocale: setLocaleContext } = useLocale();
+  const { t } = useTranslation(['settings', 'common']);
   const [isSavingProfile, setIsSavingProfile] = useState(false);
+  const [detectedCountry, setDetectedCountry] = useState<string | null>(null);
   const [searchParams, setSearchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'profile');
+  const navigate = useNavigate();
+  
+  // Detect country on mount for display
+  useEffect(() => {
+    detectCountryFromIP().then((country) => {
+      if (country) {
+        // Map country code to country name for display
+        const countryNames: Record<string, string> = {
+          'US': 'United States',
+          'AU': 'Australia',
+        };
+        setDetectedCountry(countryNames[country] || country);
+      }
+    }).catch(() => {
+      // Ignore errors
+    });
+  }, []);
+
+  // Get 2FA status from Clerk (source of truth)
+  const twoFactorEnabled = clerkUser?.twoFactorEnabled ?? false;
 
   const {
     register,
@@ -45,7 +74,6 @@ export function SettingsPage() {
   const [darkMode, setDarkMode] = useState(false);
   const [taxRate, setTaxRate] = useState(20);
   const [taxSettingsConfigured, setTaxSettingsConfigured] = useState(false);
-  const [mfaEnabled, setMfaEnabled] = useState(false);
   const [emailNotifications, setEmailNotifications] = useState({
     portfolioSummary: true,
     spendingAlerts: true,
@@ -87,7 +115,6 @@ export function SettingsPage() {
       setDarkMode(prefs.darkMode);
       setTaxRate(prefs.taxRate);
       setTaxSettingsConfigured(prefs.taxSettingsConfigured);
-      setMfaEnabled(prefs.mfaEnabled);
       setEmailNotifications({
         ...prefs.emailNotifications,
         monthlyReports: prefs.emailNotifications.monthlyReports ?? false,
@@ -124,11 +151,6 @@ export function SettingsPage() {
     setTaxRate(value);
     setTaxSettingsConfigured(true);
     updatePrefs.mutate({ taxRate: value, taxSettingsConfigured: true });
-  };
-
-  const handleMfaChange = (checked: boolean) => {
-    setMfaEnabled(checked);
-    updatePrefs.mutate({ mfaEnabled: checked });
   };
 
   const handleEmailNotificationChange = (key: keyof typeof emailNotifications, checked: boolean) => {
@@ -239,6 +261,34 @@ export function SettingsPage() {
                   aria-label="Enable dark mode theme"
                 />
               </div>
+              
+              {/* Locale Selector */}
+              <div className="pt-6 border-t">
+                <div className="space-y-3">
+                  <Label htmlFor="locale-select" className="text-base font-medium">
+                    {t('locale.label', { ns: 'settings' })}
+                  </Label>
+                  
+                  <Select value={locale} onValueChange={(value) => setLocaleContext(value)}>
+                    <SelectTrigger id="locale-select" className="w-full sm:w-[320px] h-11">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {getSupportedLocales().map((localeOption) => (
+                        <SelectItem key={localeOption.code} value={localeOption.code}>
+                          {localeOption.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  
+                  {detectedCountry && (
+                    <p className="text-xs text-muted-foreground">
+                      {t('locale.detected', { ns: 'settings', country: detectedCountry })}
+                    </p>
+                  )}
+                </div>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
@@ -259,6 +309,9 @@ export function SettingsPage() {
                   min="0"
                   max="100"
                   step="0.1"
+                  placeholder="0.0"
+                  clearOnFocus
+                  clearValue={0}
                   value={taxRate}
                   onChange={(e) => handleTaxRateChange(parseFloat(e.target.value) || 0)}
                 />
@@ -379,19 +432,29 @@ export function SettingsPage() {
               <CardDescription>Manage your account security</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                <div className="space-y-0.5">
-                  <Label htmlFor="mfa-enabled">Two-Factor Authentication</Label>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <Label htmlFor="mfa-status">Two-Factor Authentication</Label>
+                    {isClerkLoaded ? (
+                      <Badge variant={twoFactorEnabled ? 'default' : 'secondary'}>
+                        {twoFactorEnabled ? 'Enabled' : 'Not enabled'}
+                      </Badge>
+                    ) : (
+                      <Skeleton className="h-5 w-20" />
+                    )}
+                  </div>
                   <p className="text-sm text-muted-foreground">
-                    Add an extra layer of security to your account
+                    Two-factor authentication is managed through your account settings.
                   </p>
                 </div>
-                <Switch 
-                  id="mfa-enabled"
-                  checked={mfaEnabled} 
-                  onCheckedChange={handleMfaChange}
-                  aria-label="Enable two-factor authentication"
-                />
+                <Button
+                  onClick={() => navigate('/account')}
+                  variant="outline"
+                  disabled={!isClerkLoaded}
+                >
+                  Manage 2FA
+                </Button>
               </div>
             </CardContent>
           </Card>

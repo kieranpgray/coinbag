@@ -19,8 +19,35 @@ import { z } from 'zod';
  * Uses Clerk JWT authentication and Row Level Security (RLS) for data isolation.
  */
 export class SupabaseGoalsRepository implements GoalsRepository {
+  // Select actual database column names (snake_case)
+  // Supabase doesn't support column aliasing in select strings, so we map them manually
   private readonly selectColumns =
-    'id, name, description, type, source, targetAmount:target_amount, currentAmount:current_amount, deadline, status, userId:user_id, createdAt:created_at, updatedAt:updated_at';
+    'id, name, description, source, target_amount, current_amount, deadline, status, account_id, user_id, created_at, updated_at';
+  
+  // Fallback select columns without account_id (for databases without account_id column)
+  private readonly selectColumnsWithoutAccountId =
+    'id, name, description, source, target_amount, current_amount, deadline, status, user_id, created_at, updated_at';
+
+  /**
+   * Maps database row (snake_case) to entity schema (camelCase)
+   * Converts snake_case database columns to camelCase for entity schema validation
+   */
+  private mapDbRowToEntity(row: Record<string, unknown>): z.infer<typeof goalEntitySchema> {
+    return {
+      id: row.id as string,
+      name: row.name as string,
+      description: row.description === null ? undefined : (row.description as string | undefined),
+      source: row.source === null ? undefined : (row.source as string | undefined),
+      targetAmount: row.target_amount as number,
+      currentAmount: row.current_amount as number,
+      deadline: row.deadline === null ? undefined : (row.deadline ? String(row.deadline).split('T')[0] : undefined) as string | undefined,
+      status: row.status as 'active' | 'completed' | 'paused',
+      accountId: row.account_id === null ? undefined : (row.account_id as string | undefined),
+      userId: row.user_id as string,
+      createdAt: row.created_at as string,
+      updatedAt: row.updated_at as string,
+    };
+  }
 
   /**
    * Maps goal entity (with userId and timestamps) to domain Goal type (without userId)
@@ -37,12 +64,12 @@ export class SupabaseGoalsRepository implements GoalsRepository {
       id: entity.id,
       name: entity.name,
       description: entity.description,
-      type: entity.type,
       source: entity.source,
       targetAmount: entity.targetAmount,
       currentAmount: entity.currentAmount,
       deadline,
       status: entity.status,
+      accountId: entity.accountId,
     };
   }
 
@@ -121,10 +148,10 @@ export class SupabaseGoalsRepository implements GoalsRepository {
     };
   }
 
-  async list(type?: Goal['type'], getToken?: () => Promise<string | null>) {
+  async list(getToken?: () => Promise<string | null>) {
     try {
       const correlationId = getCorrelationId();
-      logger.debug('DB:GOALS_LIST', 'SupabaseGoalsRepository.list called', { type, repoType: 'SupabaseGoalsRepository' }, correlationId || undefined);
+      logger.debug('DB:GOALS_LIST', 'SupabaseGoalsRepository.list called', { repoType: 'SupabaseGoalsRepository' }, correlationId || undefined);
 
       if (!getToken) {
         return {
@@ -138,28 +165,55 @@ export class SupabaseGoalsRepository implements GoalsRepository {
 
       const supabase = await createAuthenticatedSupabaseClient(getToken);
 
-      let query = supabase
+      // Try with all columns first, fallback if account_id column doesn't exist
+      let { data, error } = await supabase
         .from('goals')
         .select(this.selectColumns)
         .order('created_at', { ascending: false });
 
-      if (type) {
-        query = query.eq('type', type);
+      // Handle missing account_id column with fallback query
+      if (error && error.code === '42703') {
+        const errorMessage = error.message || '';
+        const missingAccountId = errorMessage.includes('account_id');
+        
+        if (missingAccountId) {
+          // account_id column missing - use fallback query
+          logger.warn('DB:GOALS_LIST', 'account_id column not found, using fallback query (migration may not have been run)', {}, correlationId || undefined);
+          const fallbackResult = await supabase
+            .from('goals')
+            .select(this.selectColumnsWithoutAccountId)
+            .order('created_at', { ascending: false });
+          
+          if (fallbackResult.error) {
+            error = fallbackResult.error;
+            data = null;
+          } else {
+            // Success with fallback columns
+            // Map to entities and then back to unknown records to satisfy the logic below
+            // or just use the raw data and let the mapping happen once at the end
+            data = (fallbackResult.data || []).map((row: Record<string, unknown>) => ({
+              ...row,
+              account_id: null // Explicitly add missing column as null
+            })) as any;
+            error = null;
+          }
+        }
       }
-
-      const { data, error } = await query;
 
       if (error) {
         console.error('Supabase goals list error:', error);
-        logger.error('DB:GOALS_LIST', 'Failed to list goals from Supabase', { error: error.message, code: error.code, type }, correlationId || undefined);
+        logger.error('DB:GOALS_LIST', 'Failed to list goals from Supabase', { error: error.message, code: error.code }, correlationId || undefined);
         return {
           data: [],
           error: this.normalizeSupabaseError(error),
         };
       }
 
+      // Map database rows (snake_case) to entity schema (camelCase)
+      const mappedData = (data || []).map(row => this.mapDbRowToEntity(row));
+
       // Validate response data
-      const validation = goalListSchema.safeParse(data || []);
+      const validation = goalListSchema.safeParse(mappedData);
       if (!validation.success) {
         console.error('Goals list validation error:', validation.error);
         return {
@@ -174,7 +228,7 @@ export class SupabaseGoalsRepository implements GoalsRepository {
       // Map entity schema to domain Goal type
       const goals = validation.data.map(this.mapEntityToGoal);
 
-      logger.info('DB:GOALS_LIST', 'Goals listed successfully from Supabase', { count: goals.length, type }, correlationId || undefined);
+      logger.info('DB:GOALS_LIST', 'Goals listed successfully from Supabase', { count: goals.length }, correlationId || undefined);
       return { data: goals };
     } catch (error) {
       console.error('List goals error:', error);
@@ -202,11 +256,40 @@ export class SupabaseGoalsRepository implements GoalsRepository {
 
       const supabase = await createAuthenticatedSupabaseClient(getToken);
 
-      const { data, error } = await supabase
+      // Try with all columns first, fallback if account_id column doesn't exist
+      let { data, error } = await supabase
         .from('goals')
         .select(this.selectColumns)
         .eq('id', id)
         .single();
+
+      // Handle missing account_id column with fallback query
+      if (error && error.code === '42703') {
+        const errorMessage = error.message || '';
+        const missingAccountId = errorMessage.includes('account_id');
+        
+        if (missingAccountId) {
+          // account_id column missing - use fallback query
+          logger.warn('DB:GOALS_GET', 'account_id column not found, using fallback query (migration may not have been run)', { goalId: id }, correlationId || undefined);
+          const fallbackResult = await supabase
+            .from('goals')
+            .select(this.selectColumnsWithoutAccountId)
+            .eq('id', id)
+            .single();
+          
+          if (fallbackResult.error) {
+            error = fallbackResult.error;
+            data = null;
+          } else {
+            // Success with fallback columns
+            data = {
+              ...fallbackResult.data,
+              account_id: null // Explicitly add missing column as null
+            } as any;
+            error = null;
+          }
+        }
+      }
 
       if (error) {
         console.error('Supabase goals get error:', error);
@@ -223,8 +306,11 @@ export class SupabaseGoalsRepository implements GoalsRepository {
         };
       }
 
+      // Map database row (snake_case) to entity schema (camelCase)
+      const mappedData = this.mapDbRowToEntity(data);
+
       // Validate response data
-      const validation = goalEntitySchema.safeParse(data);
+      const validation = goalEntitySchema.safeParse(mappedData);
       if (!validation.success) {
         console.error('Goal validation error:', validation.error);
         return {
@@ -255,7 +341,7 @@ export class SupabaseGoalsRepository implements GoalsRepository {
         'SupabaseGoalsRepository.create called',
         {
           inputName: input.name,
-          inputType: input.type,
+          inputAccountId: input.accountId,
           inputTargetAmount: input.targetAmount,
           repoType: 'SupabaseGoalsRepository',
         },
@@ -287,7 +373,6 @@ export class SupabaseGoalsRepository implements GoalsRepository {
       const dbInput: Record<string, unknown> = {
         user_id: userId, // EXPLICIT: Set user_id from JWT
         name: validation.data.name,
-        type: validation.data.type,
         target_amount: validation.data.targetAmount,
         current_amount: validation.data.currentAmount ?? 0,
         status: validation.data.status ?? 'active',
@@ -302,12 +387,49 @@ export class SupabaseGoalsRepository implements GoalsRepository {
       if (validation.data.deadline !== undefined) {
         dbInput.deadline = validation.data.deadline;
       }
+      // Only include account_id if it's provided and the column exists
+      // We'll try without it first if there's an error
+      if (validation.data.accountId !== undefined) {
+        dbInput.account_id = validation.data.accountId;
+      }
 
-      const { data, error } = await supabase
+      // Try insert with all columns first
+      let { data, error } = await supabase
         .from('goals')
         .insert([dbInput])
         .select(this.selectColumns)
         .single();
+
+      // Handle missing account_id column with fallback insert
+      if (error && (error.code === '42703' || error.code === 'PGRST204')) {
+        const errorMessage = error.message || '';
+        const missingAccountId = errorMessage.includes('account_id');
+        
+        if (missingAccountId && validation.data.accountId !== undefined) {
+          // account_id column missing - remove it and retry
+          logger.warn('DB:GOALS_INSERT', 'account_id column not found, creating without account link (migration may not have been run)', { accountId: validation.data.accountId }, correlationId || undefined);
+          const dbInputWithoutAccountId = { ...dbInput };
+          delete dbInputWithoutAccountId.account_id;
+          
+          const fallbackResult = await supabase
+            .from('goals')
+            .insert([dbInputWithoutAccountId])
+            .select(this.selectColumnsWithoutAccountId)
+            .single();
+          
+          if (fallbackResult.error) {
+            error = fallbackResult.error;
+            data = null;
+          } else {
+            // Success with fallback columns
+            data = {
+              ...fallbackResult.data,
+              account_id: null
+            } as any;
+            error = null;
+          }
+        }
+      }
 
       if (error) {
         console.error('Supabase goals create error:', error);
@@ -330,8 +452,11 @@ export class SupabaseGoalsRepository implements GoalsRepository {
         };
       }
 
+      // Map database row (snake_case) to entity schema (camelCase)
+      const mappedData = this.mapDbRowToEntity(data);
+
       // Validate response data
-      const responseValidation = goalEntitySchema.safeParse(data);
+      const responseValidation = goalEntitySchema.safeParse(mappedData);
       if (!responseValidation.success) {
         console.error('Goal create response validation error:', responseValidation.error);
         logger.error('DB:GOALS_INSERT', 'Goal create response validation failed', { errors: responseValidation.error.errors, data }, correlationId || undefined);
@@ -355,7 +480,7 @@ export class SupabaseGoalsRepository implements GoalsRepository {
         {
           createdGoalId: goal.id,
           goalName: goal.name,
-          goalType: goal.type,
+          goalAccountId: goal.accountId,
           userId: responseValidation.data.userId,
           userIdMatches: responseValidation.data.userId === userId,
         },
@@ -410,7 +535,6 @@ export class SupabaseGoalsRepository implements GoalsRepository {
       const dbInput: Record<string, unknown> = {};
       if (validation.data.name !== undefined) dbInput.name = validation.data.name;
       if (validation.data.description !== undefined) dbInput.description = validation.data.description;
-      if (validation.data.type !== undefined) dbInput.type = validation.data.type;
       if (validation.data.source !== undefined) dbInput.source = validation.data.source;
       if (validation.data.targetAmount !== undefined) dbInput.target_amount = validation.data.targetAmount;
       if (validation.data.currentAmount !== undefined) dbInput.current_amount = validation.data.currentAmount;
@@ -418,13 +542,50 @@ export class SupabaseGoalsRepository implements GoalsRepository {
         dbInput.deadline = validation.data.deadline;
       }
       if (validation.data.status !== undefined) dbInput.status = validation.data.status;
+      // Only include account_id if it's provided
+      if (validation.data.accountId !== undefined) {
+        dbInput.account_id = validation.data.accountId === null ? null : validation.data.accountId;
+      }
 
-      const { data, error } = await supabase
+      // Try update with all columns first
+      let { data, error } = await supabase
         .from('goals')
         .update(dbInput)
         .eq('id', id)
         .select(this.selectColumns)
         .single();
+
+      // Handle missing account_id column with fallback update
+      if (error && (error.code === '42703' || error.code === 'PGRST204')) {
+        const errorMessage = error.message || '';
+        const missingAccountId = errorMessage.includes('account_id');
+        
+        if (missingAccountId && validation.data.accountId !== undefined) {
+          // account_id column missing - remove it and retry
+          logger.warn('DB:GOALS_UPDATE', 'account_id column not found, updating without account link (migration may not have been run)', { goalId: id, accountId: validation.data.accountId }, correlationId || undefined);
+          const dbInputWithoutAccountId = { ...dbInput };
+          delete dbInputWithoutAccountId.account_id;
+          
+          const fallbackResult = await supabase
+            .from('goals')
+            .update(dbInputWithoutAccountId)
+            .eq('id', id)
+            .select(this.selectColumnsWithoutAccountId)
+            .single();
+          
+          if (fallbackResult.error) {
+            error = fallbackResult.error;
+            data = null;
+          } else {
+            // Success with fallback columns
+            data = {
+              ...fallbackResult.data,
+              account_id: null
+            } as any;
+            error = null;
+          }
+        }
+      }
 
       if (error) {
         if (error.code === 'PGRST116') {
@@ -450,8 +611,11 @@ export class SupabaseGoalsRepository implements GoalsRepository {
         };
       }
 
+      // Map database row (snake_case) to entity schema (camelCase)
+      const mappedData = this.mapDbRowToEntity(data);
+
       // Validate response data
-      const responseValidation = goalEntitySchema.safeParse(data);
+      const responseValidation = goalEntitySchema.safeParse(mappedData);
       if (!responseValidation.success) {
         console.error('Goal update response validation error:', responseValidation.error);
         logger.error('DB:GOALS_UPDATE', 'Goal update response validation failed', { goalId: id, errors: responseValidation.error.errors, data }, correlationId || undefined);
@@ -469,7 +633,7 @@ export class SupabaseGoalsRepository implements GoalsRepository {
       logger.info(
         'DB:GOALS_UPDATE',
         'Goal updated successfully in Supabase',
-        { updatedGoalId: goal.id, goalName: goal.name, goalType: goal.type },
+        { updatedGoalId: goal.id, goalName: goal.name, goalAccountId: goal.accountId },
         correlationId || undefined
       );
 

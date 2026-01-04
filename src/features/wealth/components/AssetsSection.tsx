@@ -3,8 +3,6 @@ import { TrendingUp, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
 import { formatCurrency } from '@/lib/utils';
 import { AssetCard } from '@/features/assets/components/AssetCard';
 import { AssetList } from '@/features/assets/components/AssetList';
@@ -16,6 +14,7 @@ interface AssetsSectionProps {
   onCreate: () => void;
   onEdit: (asset: Asset) => void;
   onDelete: (asset: Asset) => void;
+  viewMode?: 'list' | 'cards';
 }
 
 /**
@@ -28,8 +27,8 @@ export function AssetsSection({
   onCreate,
   onEdit,
   onDelete,
+  viewMode = 'cards',
 }: AssetsSectionProps) {
-  const [viewMode, setViewMode] = useState<'list' | 'cards'>('cards');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
 
   const assetCategories: Array<{ value: string; label: string }> = [
@@ -53,21 +52,21 @@ export function AssetsSection({
   return (
     <section className="space-y-6" aria-label="Assets section">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <div className="flex items-center gap-3 mb-2">
             <div className="h-10 w-10 rounded-full bg-emerald-100 flex items-center justify-center">
               <TrendingUp className="h-5 w-5 text-emerald-600" />
             </div>
-            <h1 className="text-neutral-600 text-2xl font-semibold">Assets</h1>
+            <h1 className="text-neutral-600 text-xl sm:text-2xl font-semibold">Assets</h1>
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-4xl font-bold">
+            <span className="text-3xl sm:text-4xl font-bold">
               {formatCurrency(totalAssets)}
             </span>
           </div>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-col items-start sm:items-end gap-3">
           <Button
             size="sm"
             className="bg-blue-600 hover:bg-blue-700 text-white"
@@ -78,22 +77,6 @@ export function AssetsSection({
             Add Asset
           </Button>
         </div>
-      </div>
-
-      {/* View Toggle */}
-      <div className="flex items-center gap-3">
-        <Label htmlFor="view-mode" className="text-sm text-muted-foreground">
-          List view
-        </Label>
-        <Switch
-          id="view-mode"
-          checked={viewMode === 'cards'}
-          onCheckedChange={(checked) => setViewMode(checked ? 'cards' : 'list')}
-          aria-label="Toggle between list view and card view"
-        />
-        <Label htmlFor="view-mode" className="text-sm text-muted-foreground">
-          Card view
-        </Label>
       </div>
 
       {/* Category Tabs */}

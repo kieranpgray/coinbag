@@ -13,11 +13,6 @@ const VALIDATION_LIMITS = {
   amount: { max: 99999999.99 }, // Matches numeric(10,2)
 } as const;
 
-// Goal type enum
-const goalTypeSchema = z.enum(['Grow', 'Save', 'Pay Off', 'Invest'], {
-  errorMap: () => ({ message: 'Invalid goal type' }),
-});
-
 // Goal status enum
 const goalStatusSchema = z.enum(['active', 'completed', 'paused'], {
   errorMap: () => ({ message: 'Invalid goal status' }),
@@ -84,7 +79,6 @@ export const goalCreateSchema = z.object({
     .trim()
     .optional()
     .transform(e => e === '' ? undefined : e), // Convert empty string to undefined
-  type: goalTypeSchema,
   source: z.string()
     .max(VALIDATION_LIMITS.source.max, `Source must be less than ${VALIDATION_LIMITS.source.max} characters`)
     .trim()
@@ -94,6 +88,7 @@ export const goalCreateSchema = z.object({
   currentAmount: amountSchema.optional().default(0),
   deadline: deadlineSchema,
   status: goalStatusSchema.optional().default('active'),
+  accountId: z.string().uuid('Invalid account ID format').optional(),
 });
 
 export const goalUpdateSchema = z.object({
@@ -103,7 +98,6 @@ export const goalUpdateSchema = z.object({
     .trim()
     .optional()
     .transform(e => e === '' ? null : e), // Convert empty string to null for DB
-  type: goalTypeSchema.optional(),
   source: z.string()
     .max(VALIDATION_LIMITS.source.max, `Source must be less than ${VALIDATION_LIMITS.source.max} characters`)
     .trim()
@@ -113,6 +107,7 @@ export const goalUpdateSchema = z.object({
   currentAmount: amountSchema.optional(),
   deadline: deadlineSchema,
   status: goalStatusSchema.optional(),
+  accountId: z.string().uuid('Invalid account ID format').optional().nullable(),
 });
 
 // Helper to handle nullable strings from database (transform null to undefined)
@@ -153,18 +148,25 @@ const datetimeSchema = z.string()
   .datetime({ offset: true })
   .or(z.string().transform(s => new Date(s).toISOString()));
 
+// Helper to handle nullable UUIDs from database (transform null to undefined)
+const nullableUuidSchema = z.string()
+  .uuid('Invalid account ID format')
+  .nullable()
+  .optional()
+  .transform(val => val === null ? undefined : val);
+
 // API response schemas
 export const goalEntitySchema = z.object({
   id: z.string().uuid('Invalid goal ID format'),
   userId: z.string().min(1, 'User ID is required'),
   name: goalNameSchema,
   description: nullableStringSchema,
-  type: goalTypeSchema,
   source: nullableStringSchema,
   targetAmount: amountSchema,
   currentAmount: amountSchema,
   deadline: nullableDateSchema.optional(),
   status: goalStatusSchema,
+  accountId: nullableUuidSchema,
   createdAt: datetimeSchema,
   updatedAt: datetimeSchema,
 });

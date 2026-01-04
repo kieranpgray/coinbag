@@ -6,7 +6,7 @@
  */
 
 /**
- * Category entity representing a user-defined subscription category
+ * Category entity representing a user-defined expense category
  */
 export interface Category {
   id: string;
@@ -44,7 +44,7 @@ export interface Liability {
   dueDate?: string;
   institution?: string;
   repaymentAmount?: number;
-  repaymentFrequency?: SubscriptionFrequency;
+  repaymentFrequency?: ExpenseFrequency;
 }
 
 /**
@@ -52,11 +52,13 @@ export interface Liability {
  */
 export interface Account {
   id: string;
-  institution: string;
+  institution?: string; // Optional institution name
   accountName: string;
   balance: number;
-  availableBalance: number;
   accountType: string;
+  currency?: string; // Optional for backward compatibility
+  creditLimit?: number; // Credit limit for credit cards/loans
+  balanceOwed?: number; // Balance owed for credit cards/loans (positive number)
   lastUpdated: string;
   hidden: boolean;
 }
@@ -81,23 +83,24 @@ export interface Goal {
   id: string;
   name: string;
   description?: string;
-  type: 'Grow' | 'Save' | 'Pay Off' | 'Invest';
   source?: string; // e.g., "Net Worth", "Total Cash", "ANZ CC", etc.
   targetAmount: number;
   currentAmount: number;
   deadline?: string; // ISO date string
   status: 'active' | 'completed' | 'paused';
+  accountId?: string; // Linked account ID for bidirectional sync
 }
 
 /**
- * Subscription frequency options
+ * Expense frequency options
  */
-export type SubscriptionFrequency = 'weekly' | 'fortnightly' | 'monthly' | 'quarterly' | 'yearly';
+export type ExpenseFrequency = 'weekly' | 'fortnightly' | 'monthly' | 'quarterly' | 'yearly';
 
 /**
- * Predefined subscription categories
+ * Predefined expense categories
+ * @deprecated Use categories from the categories table instead
  */
-export type SubscriptionCategory =
+export type ExpenseCategory =
   | 'Utilities'
   | 'Entertainment'
   | 'Software'
@@ -111,18 +114,34 @@ export type SubscriptionCategory =
   | 'Other';
 
 /**
- * Subscription entity representing a recurring subscription
+ * Expense entity representing a recurring expense
+ * Includes subscriptions, bills, savings, repayments, living, and lifestyle expenses
  */
-export interface Subscription {
+export interface Expense {
   id: string;
   name: string;
   amount: number;
-  frequency: SubscriptionFrequency;
+  frequency: ExpenseFrequency;
   chargeDate: string;
   nextDueDate: string;
   categoryId: string;
   notes?: string;
 }
+
+/**
+ * @deprecated Use Expense instead
+ */
+export type SubscriptionFrequency = ExpenseFrequency;
+
+/**
+ * @deprecated Use ExpenseCategory instead
+ */
+export type SubscriptionCategory = ExpenseCategory;
+
+/**
+ * @deprecated Use Expense instead
+ */
+export interface Subscription extends Expense {}
 
 /**
  * Scenario entity representing a financial scenario
@@ -215,7 +234,6 @@ export interface User {
     monthlyReports: boolean;
     marketingPromotions: boolean;
   };
-  mfaEnabled: boolean;
 }
 
 /**
@@ -236,7 +254,7 @@ export interface DashboardDataSources {
   accountsCount: number;
   assetsCount: number;
   liabilitiesCount: number;
-  subscriptionsCount: number;
+  expensesCount: number;
   transactionsCount: number;
   incomeCount: number;
   holdingsCount: number; // Count of Investments or Crypto assets
@@ -266,7 +284,7 @@ export interface DashboardData {
   assets: Asset[];
   liabilities: Liability[];
   accounts: Account[];
-  subscriptions: Subscription[];
+  expenses: Expense[];
   expenseBreakdown: ExpenseBreakdown[];
   incomeBreakdown: IncomeBreakdown[];
   setupProgress: number;

@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { RefreshCw, AlertTriangle } from 'lucide-react';
 import { useCategories } from './hooks';
-import { useSubscriptions } from '@/features/subscriptions/hooks';
+import { useExpenses } from '@/features/expenses/hooks';
 import type { Category } from '@/types/domain';
 import { CreateCategoryModal } from './components/CreateCategoryModal';
 import { EditCategoryModal } from './components/EditCategoryModal';
@@ -13,7 +13,7 @@ import { DeleteCategoryDialog } from './components/DeleteCategoryDialog';
 
 export function CategoriesPage() {
   const { data: categories = [], isLoading, error, refetch } = useCategories();
-  const { data: subscriptions = [] } = useSubscriptions();
+  const { data: expenses = [] } = useExpenses();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [deletingCategory, setDeletingCategory] = useState<Category | null>(null);
@@ -169,7 +169,7 @@ export function CategoriesPage() {
         category={deletingCategory}
         dependentSubscriptionsCount={
           deletingCategory
-            ? subscriptions.filter((s) => s.categoryId === deletingCategory.id).length
+            ? expenses.filter((e) => e.categoryId === deletingCategory.id).length
             : 0
         }
       />

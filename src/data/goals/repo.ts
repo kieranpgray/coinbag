@@ -5,9 +5,9 @@ import type { Goal } from '@/types/domain';
  */
 export interface GoalsRepository {
   /**
-   * List all goals for the current user, optionally filtered by type
+   * List all goals for the current user
    */
-  list(type?: Goal['type'], getToken?: () => Promise<string | null>): Promise<{
+  list(getToken?: () => Promise<string | null>): Promise<{
     data: Goal[];
     error?: { error: string; code: string };
   }>;

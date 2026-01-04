@@ -4,8 +4,8 @@
  */
 
 import type { Income } from '@/types/domain';
-import type { Subscription } from '@/types/domain';
-import { calculateMonthlyEquivalent } from '@/features/subscriptions/utils';
+import type { Expense } from '@/types/domain';
+import { calculateMonthlyEquivalent } from '@/features/expenses/utils';
 
 /**
  * Calculate total monthly income from income sources
@@ -25,12 +25,12 @@ export function calculateMonthlyIncome(incomes: Income[]): number {
 }
 
 /**
- * Calculate total monthly expenses from subscriptions
+ * Calculate total monthly expenses from expenses
  * Uses the existing calculateMonthlyEquivalent utility
  */
-export function calculateMonthlyExpenses(subscriptions: Subscription[]): number {
-  return subscriptions.reduce((sum, subscription) => {
-    return sum + calculateMonthlyEquivalent(subscription.amount, subscription.frequency);
+export function calculateMonthlyExpenses(expenses: Expense[]): number {
+  return expenses.reduce((sum, expense) => {
+    return sum + calculateMonthlyEquivalent(expense.amount, expense.frequency);
   }, 0);
 }
 

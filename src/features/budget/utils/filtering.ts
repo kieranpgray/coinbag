@@ -1,68 +1,72 @@
 /**
  * Expense filtering and grouping utilities
- * Filters subscriptions by expense type and groups by category
+ * Filters expenses by expense type and groups by category
  */
 
-import type { Subscription } from '@/types/domain';
+import type { Expense } from '@/types/domain';
 import { getExpenseType, type ExpenseType } from './expenseTypeMapping';
 import { getCategoryNameSafe } from './categoryHelpers';
 
 /**
- * Filter subscriptions by expense type
- * @param subscriptions - Array of subscriptions to filter
- * @param type - The expense type to filter by ('all' returns all subscriptions)
+ * Filter expenses by expense type
+ * @param expenses - Array of expenses to filter
+ * @param type - The expense type to filter by ('all' returns all expenses)
  * @param categoryMap - Map of category IDs to category names
  * @param uncategorisedId - Optional ID of "Uncategorised" category for fallback
  */
 export function filterByExpenseType(
-  subscriptions: Subscription[],
+  expenses: Expense[],
   type: ExpenseType | 'all',
   categoryMap: Map<string, string>,
   uncategorisedId?: string
-): Subscription[] {
+): Expense[] {
   if (type === 'all') {
-    return subscriptions;
+    return expenses;
   }
   
-  return subscriptions.filter((subscription) => {
+  return expenses.filter((expense) => {
     // Use safe lookup - deprecated categories will be treated as "Uncategorised"
-    const categoryName = getCategoryNameSafe(subscription.categoryId, categoryMap, uncategorisedId);
+    const categoryName = getCategoryNameSafe(expense.categoryId, categoryMap, uncategorisedId);
     const expenseType = getExpenseType(categoryName);
     return expenseType === type;
   });
 }
 
 /**
- * Group subscriptions by category
- * @param subscriptions - Array of subscriptions to group
+ * Group expenses by category
+ * @param expenses - Array of expenses to group
  * @param categoryMap - Map of category IDs to category names
  * @param uncategorisedId - Optional ID of "Uncategorised" category for fallback
- * @returns Record mapping category names to arrays of subscriptions
+ * @returns Record mapping category names to arrays of expenses
  */
 export function groupByCategory(
-  subscriptions: Subscription[],
+  expenses: Expense[],
   categoryMap: Map<string, string>,
   uncategorisedId?: string
-): Record<string, Subscription[]> {
-  return subscriptions.reduce((acc, subscription) => {
+): Record<string, Expense[]> {
+  return expenses.reduce((acc, expense) => {
     // Use safe lookup - deprecated categories will be grouped under "Uncategorised"
-    const categoryName = getCategoryNameSafe(subscription.categoryId, categoryMap, uncategorisedId);
+    const categoryName = getCategoryNameSafe(expense.categoryId, categoryMap, uncategorisedId);
     
     if (!acc[categoryName]) {
       acc[categoryName] = [];
     }
     
-    acc[categoryName].push(subscription);
+    acc[categoryName].push(expense);
     return acc;
-  }, {} as Record<string, Subscription[]>);
+  }, {} as Record<string, Expense[]>);
 }
 
 /**
- * Calculate total amount for a group of subscriptions
+ * Calculate total amount for a group of expenses
  */
-export function calculateGroupTotal(subscriptions: Subscription[]): number {
-  return subscriptions.reduce((sum, subscription) => {
-    return sum + subscription.amount;
+export function calculateGroupTotal(expenses: Expense[]): number {
+  return expenses.reduce((sum, expense) => {
+    return sum + expense.amount;
   }, 0);
 }
+
+// Backward compatibility exports
+/** @deprecated Use Expense[] instead of Subscription[] */
+export type Subscription = Expense;
 

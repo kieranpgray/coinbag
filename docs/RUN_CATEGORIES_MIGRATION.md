@@ -40,3 +40,4 @@ This will apply all pending migrations.
 2. The red console errors should disappear
 3. Categories should load correctly
 
+
