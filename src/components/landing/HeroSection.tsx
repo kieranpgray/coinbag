@@ -8,33 +8,30 @@ interface HeroSectionProps {
 
 const HERO_CONFIGS = {
   A: {
-    staticText: 'Ask your finances…',
+    staticText: 'Ask your money about',
     phrases: [
-      'anything.',
-      'what happens if markets drop 10%?',
-      'why your spending changed last month.',
-      'how exposed you are to risk.',
-      'what matters most right now.',
+      'coffee habits',
+      'subscriptions',
+      'spending trends',
     ],
-    subheadline: 'Connect your accounts, track income and expenses, and model assets and liabilities — then use AI to understand, simulate, and monitor your entire financial picture.',
-    typeSpeed: 56, // Reduced speed by further 10% (cumulative ~28% reduction)
-    deleteSpeed: 28, // Reduced speed by further 10%
-    pauseAfterComplete: 1200,
-    pauseBeforeNext: 400,
+    subheadline: 'Connect your accounts and let AI surface patterns, explain changes, and answer everyday questions about where your money is really going.',
+    typeSpeed: 65,
+    deleteSpeed: 50,
+    pauseAfterComplete: 1500, // 1.5 seconds - pause after typing completes, before deletion starts
+    pauseBeforeNext: 500, // 0.5 seconds - pause after deletion completes, before next phrase starts typing
   },
   B: {
-    staticText: 'Your AI copilot for…',
+    staticText: 'Your AI copilot for',
     phrases: [
-      'better financial decisions.',
-      'understanding your money.',
-      'when the market shifts.',
-      'income, spending, and wealth.',
+      'budgeting better',
+      'understanding money',
+      'planning ahead',
     ],
     subheadline: 'Connect your accounts, upload statements, and track assets and liabilities. Your AI copilot helps you interpret change, simulate scenarios, and stay ahead of what matters.',
-    typeSpeed: 61, // Reduced speed by further 10%
-    deleteSpeed: 31, // Reduced speed by further 10%
-    pauseAfterComplete: 1300,
-    pauseBeforeNext: 300,
+    typeSpeed: 65,
+    deleteSpeed: 50,
+    pauseAfterComplete: 1500, // 1.5 seconds - pause after typing completes, before deletion starts
+    pauseBeforeNext: 500, // 0.5 seconds - pause after deletion completes, before next phrase starts typing
   },
 } as const;
 

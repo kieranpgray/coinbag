@@ -109,7 +109,7 @@ export function ImportPreview({
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="accounts" className="w-full">
-            <TabsList className="grid w-full grid-cols-6">
+            <TabsList className="grid w-full grid-cols-5">
               <TabsTrigger value="accounts">
                 Accounts ({parsedData.accounts.length})
               </TabsTrigger>
@@ -119,8 +119,8 @@ export function ImportPreview({
               <TabsTrigger value="liabilities">
                 Liabilities ({parsedData.liabilities.length})
               </TabsTrigger>
-              <TabsTrigger value="subscriptions">
-                Subscriptions ({parsedData.subscriptions.length})
+              <TabsTrigger value="expenses">
+                Expenses ({parsedData.expenses.length + parsedData.subscriptions.length})
               </TabsTrigger>
               <TabsTrigger value="income">
                 Income ({parsedData.income.length})
@@ -160,12 +160,12 @@ export function ImportPreview({
               />
             </TabsContent>
 
-            <TabsContent value="subscriptions" className="mt-4">
+            <TabsContent value="expenses" className="mt-4">
               <EntityTypePreview
-                entityType="subscription"
-                rows={parsedData.subscriptions}
-                errors={validation.errors.filter((e) => e.entityType === 'subscription')}
-                duplicates={validation.duplicates.filter((d) => d.entityType === 'subscription')}
+                entityType="expense"
+                rows={[...parsedData.expenses, ...parsedData.subscriptions]}
+                errors={validation.errors.filter((e) => e.entityType === 'expense' || e.entityType === 'subscription')}
+                duplicates={validation.duplicates.filter((d) => d.entityType === 'expense' || d.entityType === 'subscription')}
                 expandedErrors={expandedErrors}
                 onToggleError={toggleError}
               />

@@ -44,10 +44,24 @@ export function LandingPage() {
 }
 
 /**
- * Get hero variant based on rotation logic
- * Alternates between 'A' and 'B' per visit using localStorage
+ * Get hero variant based on URL parameter or rotation logic
+ * URL parameter takes precedence, otherwise alternates between 'A' and 'B' per visit using localStorage
  */
 function getHeroVariant(): 'A' | 'B' {
+  // Check for URL override first
+  try {
+    const urlParams = new URLSearchParams(window.location.search);
+    const variantParam = urlParams.get('variant')?.toUpperCase();
+
+    if (variantParam === 'A' || variantParam === 'B') {
+      return variantParam as 'A' | 'B';
+    }
+  } catch (error) {
+    // URL parsing failed, continue with localStorage logic
+    console.warn('URL parameter parsing failed:', error);
+  }
+
+  // Fall back to localStorage rotation logic
   try {
     const lastVariant = localStorage.getItem(HERO_STORAGE_KEY);
 

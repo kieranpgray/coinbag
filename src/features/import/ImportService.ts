@@ -214,7 +214,7 @@ export class ImportService {
         'liability'
       );
       const validExpenses = this.filterValidRows(
-        data.expenses,
+        [...data.expenses, ...data.subscriptions],
         validation,
         'expense'
       );

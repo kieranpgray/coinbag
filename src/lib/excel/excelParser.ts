@@ -109,6 +109,8 @@ function parseWorkbook(workbook: XLSX.WorkBook): ParsedImportData {
       result.assets = parsedRows;
     } else if (entityType === 'liability') {
       result.liabilities = parsedRows;
+    } else if (entityType === 'expense') {
+      result.expenses = parsedRows;
     } else if (entityType === 'subscription') {
       result.subscriptions = parsedRows;
     } else if (entityType === 'income') {
@@ -121,6 +123,7 @@ function parseWorkbook(workbook: XLSX.WorkBook): ParsedImportData {
     result.accounts.length +
     result.assets.length +
     result.liabilities.length +
+    result.expenses.length +
     result.subscriptions.length +
     result.income.length;
 

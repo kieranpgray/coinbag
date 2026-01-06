@@ -117,8 +117,8 @@ export class ImportValidation {
     warnings.push(...liabilityResults.warnings);
     duplicates.push(...liabilityResults.duplicates);
 
-    // Validate expenses
-    const expenseResults = this.validateExpenses(data.expenses);
+    // Validate expenses (merging legacy subscriptions)
+    const expenseResults = this.validateExpenses([...data.expenses, ...data.subscriptions]);
     errors.push(...expenseResults.errors);
     warnings.push(...expenseResults.warnings);
     duplicates.push(...expenseResults.duplicates);
@@ -135,6 +135,7 @@ export class ImportValidation {
       data.assets.length +
       data.liabilities.length +
       data.expenses.length +
+      data.subscriptions.length +
       data.income.length;
 
     const errorRowNumbers = new Set(errors.map((e) => e.rowNumber));

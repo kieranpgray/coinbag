@@ -43,7 +43,7 @@ export function ImportResults({
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
               {result.imported.accounts > 0 && (
                 <div>
                   <div className="text-2xl font-bold">{result.imported.accounts}</div>
@@ -62,16 +62,10 @@ export function ImportResults({
                   <div className="text-sm text-muted-foreground">Liabilities</div>
                 </div>
               )}
-              {result.imported.expenses > 0 && (
+              {(result.imported.expenses > 0 || result.imported.subscriptions > 0) && (
                 <div>
-                  <div className="text-2xl font-bold">{result.imported.expenses}</div>
+                  <div className="text-2xl font-bold">{result.imported.expenses + result.imported.subscriptions}</div>
                   <div className="text-sm text-muted-foreground">Expenses</div>
-                </div>
-              )}
-              {result.imported.subscriptions > 0 && (
-                <div>
-                  <div className="text-2xl font-bold">{result.imported.subscriptions}</div>
-                  <div className="text-sm text-muted-foreground">Subscriptions</div>
                 </div>
               )}
               {result.imported.income > 0 && (
