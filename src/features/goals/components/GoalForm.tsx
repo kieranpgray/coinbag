@@ -15,6 +15,9 @@ import type { Goal } from '@/types/domain';
 const goalSchema = z.object({
   name: z.string().min(1, 'Goal name is required'),
   description: z.string().optional(),
+  type: z.enum(['Grow', 'Save', 'Pay Off', 'Invest'], {
+    errorMap: () => ({ message: 'Please select a goal type' }),
+  }),
   source: z.string().optional(),
   accountId: z.string().uuid('Invalid account ID').optional(),
   currentAmount: z.number().min(0, 'Current amount must be non-negative'),
@@ -72,6 +75,7 @@ export function GoalForm({ goal, onSubmit, onCancel, isLoading }: GoalFormProps)
       ? {
           name: goal.name,
           description: goal.description,
+          type: goal.type || 'Grow',
           source: goal.source,
           accountId: goal.accountId,
           currentAmount: goal.currentAmount,
@@ -79,11 +83,13 @@ export function GoalForm({ goal, onSubmit, onCancel, isLoading }: GoalFormProps)
           deadline: goal.deadline ? new Date(goal.deadline).toISOString().split('T')[0] : undefined,
         }
       : {
+          type: 'Grow',
           currentAmount: 0,
           targetAmount: 0,
         },
   });
 
+  const selectedType = watch('type');
   const source = watch('source') || '';
   const accountId = watch('accountId') || '';
 
@@ -147,18 +153,39 @@ export function GoalForm({ goal, onSubmit, onCancel, isLoading }: GoalFormProps)
         />
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="source">Source</Label>
-        <SearchableSelect
-          id="source"
-          value={source || ''}
-          onValueChange={handleSourceChange}
-          options={SOURCE_OPTIONS.map((option) => ({
-            value: option,
-            label: option,
-          }))}
-          placeholder="Select a source"
-        />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="type">Goal Type</Label>
+          <SearchableSelect
+            id="type"
+            value={selectedType || ''}
+            onValueChange={(value) => setValue('type', value as any)}
+            options={[
+              { value: 'Grow', label: 'Grow' },
+              { value: 'Save', label: 'Save' },
+              { value: 'Pay Off', label: 'Pay Off' },
+              { value: 'Invest', label: 'Invest' },
+            ]}
+            placeholder="Select type"
+          />
+          {errors.type && (
+            <p className="text-sm text-destructive">{errors.type.message}</p>
+          )}
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="source">Source</Label>
+          <SearchableSelect
+            id="source"
+            value={source || ''}
+            onValueChange={handleSourceChange}
+            options={SOURCE_OPTIONS.map((option) => ({
+              value: option,
+              label: option,
+            }))}
+            placeholder="Select a source"
+          />
+        </div>
       </div>
 
       {showAccountLinking && (

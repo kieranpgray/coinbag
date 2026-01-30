@@ -16,7 +16,7 @@ import { z } from 'zod';
  */
 export class SupabaseExpensesRepository implements ExpensesRepository {
   private readonly selectColumns =
-    'id, name, amount, frequency, chargeDate:charge_date, nextDueDate:next_due_date, categoryId:category_id, notes, createdAt:created_at, updatedAt:updated_at, userId:user_id';
+    'id, name, amount, frequency, chargeDate:charge_date, nextDueDate:next_due_date, categoryId:category_id, paidFromAccountId:paid_from_account_id, createdAt:created_at, updatedAt:updated_at, userId:user_id';
 
   /**
    * Maps expense entity (with userId and timestamps) to domain Expense type (without userId)
@@ -27,10 +27,10 @@ export class SupabaseExpensesRepository implements ExpensesRepository {
       name: entity.name,
       amount: entity.amount,
       frequency: entity.frequency,
-      chargeDate: entity.chargeDate,
-      nextDueDate: entity.nextDueDate,
+      chargeDate: entity.chargeDate || undefined,
+      nextDueDate: entity.nextDueDate || undefined,
       categoryId: entity.categoryId,
-      notes: entity.notes,
+      paidFromAccountId: entity.paidFromAccountId,
     };
   }
 
@@ -131,6 +131,9 @@ export class SupabaseExpensesRepository implements ExpensesRepository {
     error?: { error: string; code: string };
   }> {
     try {
+      console.log('🗄️ SupabaseExpensesRepository: Creating expense with data:', input);
+      console.log('🔗 SupabaseExpensesRepository: paidFromAccountId:', input.paidFromAccountId);
+
       // Validate input
       const validated = expenseCreateSchema.parse({
         name: input.name,
@@ -139,8 +142,10 @@ export class SupabaseExpensesRepository implements ExpensesRepository {
         chargeDate: input.chargeDate,
         nextDueDate: input.nextDueDate,
         categoryId: input.categoryId,
-        notes: input.notes,
+        paidFromAccountId: input.paidFromAccountId,
       });
+
+      console.log('✅ SupabaseExpensesRepository: Validation passed, validated data:', validated);
 
       const supabase = await createAuthenticatedSupabaseClient(getToken);
 
@@ -160,14 +165,23 @@ export class SupabaseExpensesRepository implements ExpensesRepository {
         charge_date: validated.chargeDate,
         next_due_date: validated.nextDueDate,
         category_id: validated.categoryId, // Database uses 'category_id' column (uuid), not 'category'
-        notes: validated.notes,
+        paid_from_account_id: validated.paidFromAccountId,
       };
+
+      console.log('📤 SupabaseExpensesRepository: Sending to database:', dbInput);
 
       const { data, error } = await supabase
         .from('expenses')
         .insert(dbInput)
         .select(this.selectColumns)
         .single();
+
+      if (error) {
+        console.error('❌ SupabaseExpensesRepository: Database error:', error);
+        return { error: this.normalizeSupabaseError(error) };
+      }
+
+      console.log('✅ SupabaseExpensesRepository: Database insert successful, returned data:', data);
 
       if (error) {
         return { error: this.normalizeSupabaseError(error) };
@@ -227,7 +241,7 @@ export class SupabaseExpensesRepository implements ExpensesRepository {
         chargeDate: input.chargeDate,
         nextDueDate: input.nextDueDate,
         categoryId: input.categoryId,
-        notes: input.notes,
+        paidFromAccountId: input.paidFromAccountId,
       });
 
       const supabase = await createAuthenticatedSupabaseClient(getToken);
@@ -238,9 +252,9 @@ export class SupabaseExpensesRepository implements ExpensesRepository {
       if (validated.amount !== undefined) dbInput.amount = validated.amount;
       if (validated.frequency !== undefined) dbInput.frequency = validated.frequency;
       if (validated.chargeDate !== undefined) dbInput.charge_date = validated.chargeDate;
-      if (validated.nextDueDate !== undefined) dbInput.next_due_date = validated.nextDueDate;
+      if (validated.nextDueDate !== undefined) dbInput.next_due_date = validated.nextDueDate ?? null;
       if (validated.categoryId !== undefined) dbInput.category_id = validated.categoryId; // Database uses 'category_id' column (uuid), not 'category'
-      if (validated.notes !== undefined) dbInput.notes = validated.notes;
+      if (validated.paidFromAccountId !== undefined) dbInput.paid_from_account_id = validated.paidFromAccountId;
 
       const { data, error } = await supabase
         .from('expenses')

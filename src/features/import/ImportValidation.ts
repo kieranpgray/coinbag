@@ -470,7 +470,7 @@ export class ImportValidation {
         chargeDate: validation.data.chargeDate,
         nextDueDate: validation.data.nextDueDate,
         categoryId: 'placeholder', // Not used for duplicate detection
-        notes: validation.data.notes,
+        paidFromAccountId: validation.data.paidFromAccountId,
       });
       if (duplicate) {
         duplicates.push({

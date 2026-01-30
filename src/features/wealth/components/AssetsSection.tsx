@@ -58,10 +58,10 @@ export function AssetsSection({
             <div className="h-10 w-10 rounded-full bg-emerald-100 flex items-center justify-center">
               <TrendingUp className="h-5 w-5 text-emerald-600" />
             </div>
-            <h1 className="text-neutral-600 text-xl sm:text-2xl font-semibold">Assets</h1>
+            <h1 className="text-neutral-600 text-h2-sm sm:text-h2-md lg:text-h2-lg font-semibold">Assets</h1>
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-3xl sm:text-4xl font-bold">
+            <span className="text-lg font-bold">
               {formatCurrency(totalAssets)}
             </span>
           </div>

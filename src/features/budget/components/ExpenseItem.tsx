@@ -26,7 +26,9 @@ export function ExpenseItem({
   isHighlight = false,
   displayFrequency,
 }: ExpenseItemProps) {
-  const nextDueDate = format(new Date(expense.nextDueDate), 'MMM dd, yyyy');
+  const nextDueDate = expense.nextDueDate
+    ? format(new Date(expense.nextDueDate), 'MMM dd, yyyy')
+    : 'No date set';
   
   // Convert amount to display frequency if provided, otherwise use original
   const displayAmount = displayFrequency
@@ -40,8 +42,8 @@ export function ExpenseItem({
     <div
       className={`group flex items-center justify-between p-4 rounded-xl border transition-all cursor-pointer ${
         isHighlight
-          ? 'border-orange-200 bg-orange-50/50'
-          : 'border-neutral-200 bg-white hover:border-neutral-300 hover:shadow-sm'
+          ? 'border-orange-200 bg-orange-50/50 dark:border-orange-300 dark:bg-orange-900/20'
+          : 'border-border bg-card hover:border-border hover:shadow-sm'
       }`}
       onClick={() => onEdit(expense)}
       role="button"
@@ -58,7 +60,7 @@ export function ExpenseItem({
         {/* Icon */}
         <div
           className={`h-10 w-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
-            isHighlight ? 'bg-orange-100' : 'bg-neutral-100'
+            isHighlight ? 'bg-orange-100 dark:bg-orange-900/40' : 'bg-muted'
           }`}
         >
           <span className="text-lg">💳</span>
@@ -66,8 +68,8 @@ export function ExpenseItem({
 
         {/* Info */}
         <div className="flex-1 min-w-0">
-          <h4 className="text-neutral-900 mb-0.5 truncate">{expense.name}</h4>
-          <div className="flex items-center gap-2 text-xs text-neutral-500">
+          <h4 className="text-foreground mb-0.5 truncate">{expense.name}</h4>
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <span>{categoryName}</span>
             <span>•</span>
             <span>Due {nextDueDate}</span>
@@ -75,11 +77,11 @@ export function ExpenseItem({
         </div>
       </div>
 
-      {/* Amount and Actions */}
+        {/* Amount and Actions */}
       <div className="flex items-center gap-4 ml-4">
         <div className="text-right">
-          <div className="text-neutral-900">{formatCurrency(displayAmount)}</div>
-          <div className="text-xs text-neutral-500">/ {displayFreqLabel}</div>
+          <div className="text-foreground">{formatCurrency(displayAmount)}</div>
+          <div className="text-xs text-muted-foreground">/ {displayFreqLabel}</div>
         </div>
 
         {/* Action buttons - shown on hover (desktop) */}
@@ -94,7 +96,7 @@ export function ExpenseItem({
             onClick={() => onEdit(expense)}
             aria-label={`Edit ${expense.name}`}
           >
-            <Pencil className="h-3.5 w-3.5 text-neutral-500" />
+            <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
           </Button>
           <Button
             variant="ghost"
@@ -103,7 +105,7 @@ export function ExpenseItem({
             onClick={() => onDelete(expense)}
             aria-label={`Delete ${expense.name}`}
           >
-            <Trash2 className="h-3.5 w-3.5 text-red-500" />
+            <Trash2 className="h-3.5 w-3.5 text-destructive" />
           </Button>
         </div>
 
@@ -119,7 +121,7 @@ export function ExpenseItem({
             onClick={() => onEdit(expense)}
             aria-label={`Edit ${expense.name}`}
           >
-            <Pencil className="h-3.5 w-3.5 text-neutral-500" />
+            <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
           </Button>
           <Button
             variant="ghost"
@@ -128,7 +130,7 @@ export function ExpenseItem({
             onClick={() => onDelete(expense)}
             aria-label={`Delete ${expense.name}`}
           >
-            <Trash2 className="h-3.5 w-3.5 text-red-500" />
+            <Trash2 className="h-3.5 w-3.5 text-destructive" />
           </Button>
         </div>
       </div>

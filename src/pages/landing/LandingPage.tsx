@@ -5,6 +5,7 @@ import { LandingNav } from '@/components/landing/LandingNav';
 import { HeroSection } from '@/components/landing/HeroSection';
 import { FeaturesSection } from '@/components/landing/FeaturesSection';
 import { CTASection } from '@/components/landing/CTASection';
+import { Footer } from '@/components/layout/Footer';
 
 const HERO_STORAGE_KEY = 'coinbag_last_hero_variant';
 
@@ -32,13 +33,14 @@ export function LandingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background flex flex-col">
       <LandingNav />
-      <main>
+      <main className="flex-1">
         <HeroSection variant={heroVariant} />
         <FeaturesSection />
         <CTASection />
       </main>
+      <Footer />
     </div>
   );
 }

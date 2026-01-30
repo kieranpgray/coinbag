@@ -23,7 +23,12 @@ export function isValidExpenseId(id: string): boolean {
 /**
  * Business logic validation
  */
-export function validateExpenseDates(chargeDate: string, nextDueDate: string): boolean {
+export function validateExpenseDates(chargeDate?: string | null, nextDueDate?: string | null): boolean {
+  // If either date is missing, no validation needed
+  if (!chargeDate || !nextDueDate) {
+    return true;
+  }
+
   try {
     const charge = new Date(chargeDate);
     const nextDue = new Date(nextDueDate);
@@ -76,8 +81,8 @@ export function validateExpenseIntegrity(expense: {
   name: string;
   amount: number;
   frequency: ExpenseFrequency;
-  chargeDate: string;
-  nextDueDate: string;
+  chargeDate?: string;
+  nextDueDate?: string | null;
   categoryId: string;
 }): { isValid: boolean; errors: string[] } {
   const errors: string[] = [];
@@ -103,7 +108,7 @@ export function validateExpenseIntegrity(expense: {
     errors.push(`Amount must be between ${ranges[expense.frequency]} for ${expense.frequency} frequency`);
   }
 
-  // Date validation
+  // Date validation (only if dates are provided)
   if (!validateExpenseDates(expense.chargeDate, expense.nextDueDate)) {
     errors.push('Invalid date configuration. Next due date must be after charge date and within reasonable ranges.');
   }
@@ -115,21 +120,23 @@ export function validateExpenseIntegrity(expense: {
     errors.push('Invalid category selected');
   }
 
-  // Business rule: Check if next due date aligns with frequency
-  try {
-    const calculatedNextDue = calculateNextDueDate(expense.chargeDate, expense.frequency);
-    const actualNextDue = new Date(expense.nextDueDate);
-    const calculatedDate = new Date(calculatedNextDue);
+  // Business rule: Check if next due date aligns with frequency (only if both dates exist)
+  if (expense.chargeDate && expense.nextDueDate) {
+    try {
+      const calculatedNextDue = calculateNextDueDate(expense.chargeDate, expense.frequency);
+      const actualNextDue = new Date(expense.nextDueDate);
+      const calculatedDate = new Date(calculatedNextDue);
 
-    // Allow for small discrepancies (e.g., manual adjustments)
-    const diffTime = Math.abs(actualNextDue.getTime() - calculatedDate.getTime());
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      // Allow for small discrepancies (e.g., manual adjustments)
+      const diffTime = Math.abs(actualNextDue.getTime() - calculatedDate.getTime());
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-    if (diffDays > 7) { // More than a week difference might indicate an error
-      errors.push('Next due date seems inconsistent with the selected frequency. Consider using auto-calculation.');
+      if (diffDays > 7) { // More than a week difference might indicate an error
+        errors.push('Next due date seems inconsistent with the selected frequency. Consider using auto-calculation.');
+      }
+    } catch (error) {
+      errors.push('Unable to validate date consistency');
     }
-  } catch (error) {
-    errors.push('Unable to validate date consistency');
   }
 
   return {

@@ -5,27 +5,34 @@ const VALIDATION_LIMITS = {
   institution: { min: 1, max: 100 },
 } as const;
 
-// Test the new schema
-const institutionSchema = z.string()
-  .trim()
-  .max(VALIDATION_LIMITS.institution.max, `Institution name must be less than ${VALIDATION_LIMITS.institution.max} characters`)
-  .optional()
-  .transform((val) => {
-    // Convert empty/null/undefined to undefined
-    // Value is already trimmed by the chain above, so just check for empty string
-    if (val === undefined || val === null || val === '') return undefined;
+// Test the new schema (matching the contracts implementation)
+const institutionSchema = z.preprocess(
+  (val) => {
+    // Handle null/undefined values before string validation
+    if (val === null || val === undefined) return '';
     return val;
-  });
+  },
+  z.string()
+    .max(VALIDATION_LIMITS.institution.max, `Institution name must be less than ${VALIDATION_LIMITS.institution.max} characters`)
+    .trim()
+    .optional()
+    .or(z.literal(''))
+    .transform((val) => {
+      // Convert empty string to undefined for consistent TypeScript types
+      if (val === '') return undefined;
+      return val;
+    })
+);
 
 // Test cases
 const testCases = [
-  { name: 'Empty string', value: '', expected: 'should pass (undefined)' },
-  { name: 'Whitespace only', value: '   ', expected: 'should pass (undefined)' },
-  { name: 'Undefined', value: undefined, expected: 'should pass (undefined)' },
-  { name: 'Null', value: null, expected: 'should pass (undefined)' },
-  { name: 'Valid string', value: 'ANZ', expected: 'should pass ("ANZ")' },
-  { name: 'String with whitespace', value: '  ANZ  ', expected: 'should pass ("ANZ")' },
-  { name: 'Too long', value: 'a'.repeat(101), expected: 'should fail' },
+  { name: 'Empty string', value: '', expected: 'should pass (undefined)', expectedOutput: undefined },
+  { name: 'Whitespace only', value: '   ', expected: 'should pass (undefined)', expectedOutput: undefined },
+  { name: 'Undefined', value: undefined, expected: 'should pass (undefined)', expectedOutput: undefined },
+  { name: 'Null', value: null, expected: 'should pass (undefined)', expectedOutput: undefined },
+  { name: 'Valid string', value: 'ANZ', expected: 'should pass ("ANZ")', expectedOutput: 'ANZ' },
+  { name: 'String with whitespace', value: '  ANZ  ', expected: 'should pass ("ANZ")', expectedOutput: 'ANZ' },
+  { name: 'Too long', value: 'a'.repeat(101), expected: 'should fail', expectedOutput: null },
 ];
 
 console.log('Testing institutionSchema:\n');
@@ -35,22 +42,15 @@ let failed = 0;
 
 for (const testCase of testCases) {
   const result = institutionSchema.safeParse(testCase.value);
-  
+
   if (result.success) {
     const output = result.data;
     console.log(`✓ ${testCase.name}: "${testCase.value}" → ${JSON.stringify(output)}`);
-    
-    // Check if empty strings/whitespace convert to undefined
-    if ((testCase.value === '' || testCase.value === '   ') && output === undefined) {
-      passed++;
-    } else if (testCase.value === 'ANZ' && output === 'ANZ') {
-      passed++;
-    } else if (testCase.value === '  ANZ  ' && output === 'ANZ') {
-      passed++;
-    } else if (testCase.value === undefined && output === undefined) {
+
+    if (output === testCase.expectedOutput) {
       passed++;
     } else {
-      console.log(`  ⚠ Unexpected output: ${JSON.stringify(output)}`);
+      console.log(`  ⚠ Unexpected output: expected ${JSON.stringify(testCase.expectedOutput)}, got ${JSON.stringify(output)}`);
       failed++;
     }
   } else {

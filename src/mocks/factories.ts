@@ -200,6 +200,15 @@ export function createAccounts(count: number): Account[] {
 
 /**
  * Create a mock Transaction
+ * 
+ * WARNING: This function generates mock/fake transaction data for testing ONLY.
+ * 
+ * CRITICAL: DO NOT use this in production code paths. Use the transactions repository
+ * pattern instead to ensure only factual statement-extracted transactions are displayed.
+ * 
+ * @param accountId - Account ID for the mock transaction
+ * @param overrides - Optional overrides for transaction fields
+ * @returns A mock Transaction object
  */
 export function createTransaction(accountId: string, overrides?: Partial<Transaction>): Transaction {
   const type: Transaction['type'] = randomBetween(0, 1) === 0 ? 'expense' : 'income';
@@ -306,7 +315,7 @@ export function createGoals(count: number): Goal[] {
 /**
  * Create a mock Subscription
  */
-export function createSubscription(overrides?: Partial<Subscription>): Subscription {
+export function createExpense(overrides?: Partial<Expense>): Expense {
   const frequencies: Subscription['frequency'][] = ['monthly', 'yearly', 'weekly', 'fortnightly'];
   const categoryNames: SubscriptionCategory[] = ['Utilities', 'Entertainment', 'Software', 'Streaming', 'Cloud Storage', 'Insurance'];
   const frequencyIndex = randomBetween(0, frequencies.length - 1);
@@ -336,9 +345,9 @@ export function createSubscription(overrides?: Partial<Subscription>): Subscript
 
   const chargeDate = randomDate(365); // Charge date within the past year
   const nextDueDate = randomDate(-30); // Next due date within the next 30 days
-  const notes = randomBetween(0, 2) === 0 ? `Notes for ${categoryName.toLowerCase()} subscription` : undefined;
+  const paidFromAccountId = randomBetween(0, 2) === 0 ? uuidv4() : undefined; // Sometimes has an account
 
-  const subscription: Subscription = {
+  const expense: Expense = {
     id: uuidv4(),
     name: `${categoryName} Subscription ${randomBetween(1, 100)}`,
     amount,
@@ -346,30 +355,30 @@ export function createSubscription(overrides?: Partial<Subscription>): Subscript
     chargeDate,
     nextDueDate,
     categoryId: uuidv4(),
-    notes,
+    paidFromAccountId,
   };
 
   // Ensure all required fields are present when merging overrides
   if (overrides) {
     return {
-      id: overrides.id ?? subscription.id,
-      name: overrides.name ?? subscription.name,
-      amount: overrides.amount ?? subscription.amount,
-      frequency: (overrides.frequency ?? frequency) as Subscription['frequency'],
+      id: overrides.id ?? expense.id,
+      name: overrides.name ?? expense.name,
+      amount: overrides.amount ?? expense.amount,
+      frequency: (overrides.frequency ?? frequency) as Expense['frequency'],
       chargeDate: overrides.chargeDate ?? chargeDate,
       nextDueDate: overrides.nextDueDate ?? nextDueDate,
-      categoryId: overrides.categoryId ?? subscription.categoryId,
-      notes: overrides.notes ?? notes,
+      categoryId: overrides.categoryId ?? expense.categoryId,
+      paidFromAccountId: overrides.paidFromAccountId ?? paidFromAccountId,
     };
   }
-  return subscription;
+  return expense;
 }
 
 /**
  * Create multiple mock Subscriptions
  */
-export function createSubscriptions(count: number): Subscription[] {
-  return Array.from({ length: count }, () => createSubscription());
+export function createExpenses(count: number): Expense[] {
+  return Array.from({ length: count }, () => createExpense());
 }
 
 /**

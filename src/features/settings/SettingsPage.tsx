@@ -170,7 +170,7 @@ export function SettingsPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold">Settings</h1>
+      <h1 className="text-h1-sm sm:text-h1-md lg:text-h1-lg font-bold">Settings</h1>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList>

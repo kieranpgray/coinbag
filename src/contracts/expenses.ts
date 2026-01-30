@@ -26,6 +26,9 @@ export const expenseFrequencySchema = z.enum(['weekly', 'fortnightly', 'monthly'
 // Category ID schema - references categories table
 export const categoryIdSchema = z.string().uuid('Invalid category ID format');
 
+// Account ID schema - references accounts table (optional for paid from account)
+export const accountIdSchema = z.string().uuid('Invalid account ID format');
+
 // Reusable validation schemas
 const validDateString = z.string().refine(
   (date) => !isNaN(Date.parse(date)),
@@ -61,12 +64,10 @@ const baseExpenseFields = {
     .trim(),
   amount: validAmount,
   frequency: expenseFrequencySchema,
-  chargeDate: validDateString,
-  nextDueDate: validDateString,
+  chargeDate: validDateString.optional().nullable(),
+  nextDueDate: validDateString.optional().nullable(),
   categoryId: categoryIdSchema,
-  notes: z.string()
-    .max(VALIDATION_LIMITS.notes.max, `Notes must be less than ${VALIDATION_LIMITS.notes.max} characters`)
-    .optional(),
+  paidFromAccountId: accountIdSchema.optional(),
 };
 
 // Helper to handle nullable strings from database (transform null to undefined)
@@ -92,11 +93,12 @@ export const expenseEntitySchema = z.object({
   id: z.string().uuid('Invalid expense ID format'),
   userId: z.string().min(1, 'User ID is required'),
   ...baseExpenseFields,
-  notes: nullableStringSchema, // Override notes to handle null from DB
+  paidFromAccountId: nullableStringSchema, // Override paidFromAccountId to handle null from DB
   createdAt: datetimeSchema,
   updatedAt: datetimeSchema,
 }).superRefine((data, ctx) => {
-  if (!validateDateOrder(data.chargeDate, data.nextDueDate)) {
+  // Only validate date order if both dates are provided
+  if (data.chargeDate && data.nextDueDate && !validateDateOrder(data.chargeDate, data.nextDueDate)) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
       message: 'Next due date must be after or equal to charge date',
@@ -116,7 +118,8 @@ export const expenseEntitySchema = z.object({
 // Create schema - input for creating new expenses (excludes id)
 export const expenseCreateSchema = z.object(baseExpenseFields)
   .superRefine((data, ctx) => {
-    if (!validateDateOrder(data.chargeDate, data.nextDueDate)) {
+    // Only validate date order if both dates are provided
+    if (data.chargeDate && data.nextDueDate && !validateDateOrder(data.chargeDate, data.nextDueDate)) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: 'Next due date must be after or equal to charge date',
@@ -139,9 +142,9 @@ export const expenseUpdateSchema = z.object({
   amount: baseExpenseFields.amount.optional(),
   frequency: expenseFrequencySchema.optional(),
   chargeDate: validDateString.optional(),
-  nextDueDate: validDateString.optional(),
+  nextDueDate: validDateString.nullable().optional(),
   categoryId: categoryIdSchema.optional(),
-  notes: baseExpenseFields.notes,
+  paidFromAccountId: baseExpenseFields.paidFromAccountId,
 }).superRefine((data, ctx) => {
   // If both dates are provided, validate next due date is after charge date
   if (data.chargeDate && data.nextDueDate) {

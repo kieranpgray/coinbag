@@ -438,10 +438,8 @@ export class SupabaseAccountsRepository implements AccountsRepository {
         hidden: validation.data.hidden ?? false,
       };
 
-      // Institution is optional
-      if (validation.data.institution !== undefined) {
-        dbInput.institution = validation.data.institution;
-      }
+      // Institution is optional - explicitly handle undefined to null for database
+      dbInput.institution = validation.data.institution ?? null;
 
       // Currency is no longer used - removed from form and database
       // Include credit fields if provided (for credit cards/loans)
@@ -597,13 +595,11 @@ export class SupabaseAccountsRepository implements AccountsRepository {
       const dbInput: Record<string, unknown> = {};
       // Handle institution: if explicitly provided in input (even if empty/undefined after validation), include it
       // This allows clearing the institution field by setting it to null
+      // Explicitly handle undefined to null for consistent database mapping
       if ('institution' in input) {
         // If institution was explicitly provided, use the validated value (which may be undefined)
         // Convert undefined to null for database (to clear the field)
         dbInput.institution = validation.data.institution ?? null;
-      } else if (validation.data.institution !== undefined) {
-        // If not in original input but validated data has it, include it
-        dbInput.institution = validation.data.institution;
       }
       if (validation.data.accountName !== undefined) dbInput.account_name = validation.data.accountName;
       if (validation.data.balance !== undefined) dbInput.balance = validation.data.balance;

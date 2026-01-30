@@ -73,7 +73,8 @@ export interface Transaction {
   amount: number;
   category: string;
   accountId: string;
-  type: 'income' | 'expense';
+  type: 'income' | 'expense' | 'credit' | 'debit';
+  status?: 'completed' | 'pending';
 }
 
 /**
@@ -84,6 +85,7 @@ export interface Goal {
   name: string;
   description?: string;
   source?: string; // e.g., "Net Worth", "Total Cash", "ANZ CC", etc.
+  type?: 'Grow' | 'Save' | 'Pay Off' | 'Invest';
   targetAmount: number;
   currentAmount: number;
   deadline?: string; // ISO date string
@@ -122,10 +124,10 @@ export interface Expense {
   name: string;
   amount: number;
   frequency: ExpenseFrequency;
-  chargeDate: string;
-  nextDueDate: string;
+  chargeDate?: string;
+  nextDueDate?: string | null;
   categoryId: string;
-  notes?: string;
+  paidFromAccountId?: string;
 }
 
 /**
@@ -210,8 +212,8 @@ export interface Income {
   source: 'Salary' | 'Freelance' | 'Business' | 'Investments' | 'Rental' | 'Other';
   amount: number;
   frequency: 'weekly' | 'fortnightly' | 'monthly' | 'yearly';
-  nextPaymentDate: string;
-  notes?: string;
+  nextPaymentDate?: string;
+  paidToAccountId?: string;
 }
 
 /**

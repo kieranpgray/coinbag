@@ -94,3 +94,6 @@ $$ language 'plpgsql';
 COMMENT ON FUNCTION rollback_subscriptions_user_id_type_migration() IS 'Rollback function for subscriptions user_id type fix - call with SELECT rollback_subscriptions_user_id_type_migration();';
 
 
+
+
+

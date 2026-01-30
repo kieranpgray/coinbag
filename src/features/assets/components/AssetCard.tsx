@@ -16,25 +16,27 @@ export function AssetCard({ asset, onEdit, onDelete }: AssetCardProps) {
       <CardHeader>
         <div className="flex items-start justify-between">
           <div>
-            <CardTitle className="text-lg">{asset.name}</CardTitle>
+            <CardTitle>{asset.name}</CardTitle>
             <p className="text-sm text-muted-foreground mt-1">{asset.type}</p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-1">
             <Button
               variant="ghost"
               size="icon"
+              className="h-8 w-8 p-0"
               onClick={() => onEdit(asset)}
               aria-label="Edit asset"
             >
-              <Pencil className="h-4 w-4" />
+              <Pencil className="h-4 w-4 text-neutral-500" />
             </Button>
             <Button
               variant="ghost"
               size="icon"
+              className="h-8 w-8 p-0"
               onClick={() => onDelete(asset)}
               aria-label="Delete asset"
             >
-              <Trash2 className="h-4 w-4" />
+              <Trash2 className="h-4 w-4 text-red-500" />
             </Button>
           </div>
         </div>

@@ -144,12 +144,12 @@ export function CategoryInput({ id, value, onChange, placeholder = "Select categ
         aria-haspopup="listbox"
         className={cn(
           // Atlassian Design System styling: clean borders, subtle focus states
-          "w-full justify-between h-10 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900",
-          "hover:border-gray-400 hover:bg-gray-50",
-          "focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:ring-offset-0 focus:border-blue-500",
-          "disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-gray-50 disabled:hover:border-gray-300",
-          error && "border-red-500",
-          !selectedCategory && "text-gray-400"
+          "w-full justify-between h-10 rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground",
+          "hover:border-neutral-mid hover:bg-muted/50",
+          "focus:outline-none focus:ring-2 focus:ring-primary/20 focus:ring-offset-0 focus:border-primary",
+          "disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-muted disabled:hover:border-border",
+          error && "border-destructive",
+          !selectedCategory && "text-muted-foreground"
         )}
         onClick={handleToggleOpen}
         onKeyDown={handleKeyDown}
@@ -167,14 +167,14 @@ export function CategoryInput({ id, value, onChange, placeholder = "Select categ
         ) : (
           placeholder
         )}
-        {!isLoading && <ChevronDown className={cn("h-4 w-4 text-gray-500 transition-transform", isOpen && "rotate-180")} />}
+        {!isLoading && <ChevronDown className={cn("h-4 w-4 text-muted-foreground transition-transform", isOpen && "rotate-180")} />}
       </Button>
 
       {isOpen && (
         <div
           ref={dropdownRef}
           role="listbox"
-          className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-sm max-h-80 overflow-hidden flex flex-col"
+          className="absolute z-10 w-full mt-1 bg-background border border-border rounded-md shadow-sm max-h-80 overflow-hidden flex flex-col"
         >
           {loadError ? (
             <div className="px-3 py-2 text-sm text-destructive">
@@ -183,9 +183,9 @@ export function CategoryInput({ id, value, onChange, placeholder = "Select categ
           ) : categories.length > 0 ? (
             <>
               {/* Search input */}
-              <div className="p-2 border-b border-gray-200">
+              <div className="p-2 border-b border-border">
                 <div className="relative">
-                  <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     ref={searchInputRef}
                     type="text"
@@ -216,10 +216,10 @@ export function CategoryInput({ id, value, onChange, placeholder = "Select categ
                         aria-selected={category.id === value}
                         className={cn(
                           // Atlassian Design System styling: improved hover states, better selected state indication
-                          "w-full px-3 py-2 text-left text-sm text-gray-900 rounded-sm flex items-center justify-between",
-                          "hover:bg-gray-100",
-                          "focus:bg-blue-50 focus:outline-none",
-                          category.id === value && "bg-blue-50"
+                          "w-full px-3 py-2 text-left text-sm text-foreground rounded-sm flex items-center justify-between",
+                          "hover:bg-muted",
+                          "focus:bg-primary/10 focus:outline-none",
+                          category.id === value && "bg-primary/10"
                         )}
                         onClick={() => handleCategorySelect(category.id)}
                       >
@@ -236,10 +236,10 @@ export function CategoryInput({ id, value, onChange, placeholder = "Select categ
               </div>
 
               {/* Create new category button */}
-              <div className="border-t border-gray-200">
+              <div className="border-t border-border">
                 <button
                   type="button"
-                  className="w-full px-3 py-2 text-left hover:bg-gray-100 text-blue-600 rounded-sm text-sm"
+                  className="w-full px-3 py-2 text-left hover:bg-muted text-primary rounded-sm text-sm"
                   onClick={handleOpenCreateDialog}
                 >
                   + Create new category

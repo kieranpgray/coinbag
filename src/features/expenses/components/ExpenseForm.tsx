@@ -1,4 +1,4 @@
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useEffect, useState } from 'react';
@@ -6,10 +6,10 @@ import { logger } from '@/lib/logger';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { SearchableSelect } from '@/components/ui/searchable-select';
 import { DatePicker } from '@/components/ui/date-picker';
 import { CategoryInput } from './CategoryInput';
+import { AccountSelect } from '@/components/shared/AccountSelect';
 import type { Expense, ExpenseFrequency } from '@/types/domain';
 import {
   validateExpenseDates,
@@ -20,6 +20,7 @@ import {
 import { format } from 'date-fns';
 import { useCategories } from '@/features/categories/hooks';
 import { findUncategorisedCategoryId } from '@/data/categories/ensureDefaults';
+import { useAccountLinking } from '@/hooks/useAccountLinking';
 
 const expenseSchema = z.object({
   name: z.string()
@@ -32,17 +33,20 @@ const expenseSchema = z.object({
     .refine((val) => Number.isFinite(val), 'Amount must be a valid number'),
   frequency: z.enum(['weekly', 'fortnightly', 'monthly', 'quarterly', 'yearly'] as const),
   chargeDate: z.string()
-    .min(1, 'Charge date is required')
-    .refine((date) => !isNaN(Date.parse(date)), 'Invalid date format'),
+    .optional()
+    .nullable()
+    .refine((date) => !date || !isNaN(Date.parse(date)), 'Invalid date format'),
   nextDueDate: z.string()
-    .min(1, 'Next due date is required')
-    .refine((date) => !isNaN(Date.parse(date)), 'Invalid date format'),
+    .optional()
+    .nullable()
+    .refine((date) => !date || !isNaN(Date.parse(date)), 'Invalid date format'),
   categoryId: z.string()
     .min(1, 'Category is required')
     .uuid('Invalid category selected'),
-  notes: z.string().max(500, 'Notes must be less than 500 characters').optional(),
+  paidFromAccountId: z.string().uuid('Invalid account selected').optional(),
 }).superRefine((data, ctx) => {
-  if (!validateExpenseDates(data.chargeDate, data.nextDueDate)) {
+  // Only validate date order if both dates are provided
+  if (data.chargeDate && data.nextDueDate && !validateExpenseDates(data.chargeDate, data.nextDueDate)) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
       message: 'Next due date must be after or equal to charge date',
@@ -52,12 +56,12 @@ const expenseSchema = z.object({
 
   if (!validateExpenseAmount(data.amount, data.frequency)) {
       const ranges: Record<ExpenseFrequency, string> = {
-      weekly: '$0-2000',
-      fortnightly: '$0-4000',
-      monthly: '$0-10000',
-      quarterly: '$0-30000',
-      yearly: '$0-50000',
-    };
+        weekly: '$0-2000',
+        fortnightly: '$0-4000',
+        monthly: '$0-10000',
+        quarterly: '$0-30000',
+        yearly: '$0-50000',
+      };
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
       message: `Amount must be between ${ranges[data.frequency]} for ${data.frequency} frequency`,
@@ -85,6 +89,15 @@ const FREQUENCIES = [
 export function ExpenseForm({ defaultValues, onSubmit, isSubmitting }: ExpenseFormProps) {
   const { data: categories = [], refetch: refetchCategories } = useCategories();
   const [categoriesReady, setCategoriesReady] = useState(false);
+
+  // Use custom hook for account linking state management
+  const {
+    isAccountBeingCreated,
+    handleAccountChange,
+    handleAccountCreationStateChange,
+    getFinalAccountId,
+    shouldPreventSubmission,
+  } = useAccountLinking(defaultValues?.paidFromAccountId);
   
   // Find uncategorised category or use first available
   const uncategorisedId = findUncategorisedCategoryId(categories);
@@ -96,6 +109,7 @@ export function ExpenseForm({ defaultValues, onSubmit, isSubmitting }: ExpenseFo
     handleSubmit,
     setValue,
     watch,
+    control,
     formState: { errors },
   } = useForm<ExpenseFormData>({
     resolver: zodResolver(expenseSchema),
@@ -103,10 +117,10 @@ export function ExpenseForm({ defaultValues, onSubmit, isSubmitting }: ExpenseFo
       name: defaultValues?.name || defaultExpense.name,
       amount: defaultValues?.amount || defaultExpense.amount,
       frequency: defaultValues?.frequency || defaultExpense.frequency,
-      chargeDate: defaultValues?.chargeDate ? format(new Date(defaultValues.chargeDate), 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd'),
-      nextDueDate: defaultValues?.nextDueDate ? format(new Date(defaultValues.nextDueDate), 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd'),
+      chargeDate: defaultValues?.chargeDate ? format(new Date(defaultValues.chargeDate), 'yyyy-MM-dd') : undefined,
+      nextDueDate: defaultValues?.nextDueDate ? format(new Date(defaultValues.nextDueDate), 'yyyy-MM-dd') : undefined,
       categoryId: defaultCategoryId,
-      notes: defaultValues?.notes || defaultExpense.notes || '',
+      paidFromAccountId: defaultValues?.paidFromAccountId,
     },
   });
 
@@ -124,6 +138,7 @@ export function ExpenseForm({ defaultValues, onSubmit, isSubmitting }: ExpenseFo
   const watchedFrequency = watch('frequency') || ''; // Ensure always defined for controlled Select
   const watchedChargeDate = watch('chargeDate') || ''; // Ensure always defined for controlled Select
   const watchedCategoryId = watch('categoryId') || ''; // Ensure always defined for controlled Select
+  const watchedPaidFromAccountId = watch('paidFromAccountId') || ''; // Ensure always defined for controlled Select
 
   // Auto-calculate next due date when frequency or charge date changes
   useEffect(() => {
@@ -139,19 +154,39 @@ export function ExpenseForm({ defaultValues, onSubmit, isSubmitting }: ExpenseFo
   }, [watchedFrequency, watchedChargeDate, setValue, defaultValues?.nextDueDate]);
 
   const handleFormSubmit = (data: ExpenseFormData) => {
-    onSubmit({
+    // Prevent submission if account is being created
+    if (shouldPreventSubmission()) {
+      return;
+    }
+
+    // Use hook's utility to get final account ID with fallback
+    const finalAccountId = getFinalAccountId(data.paidFromAccountId);
+
+    const expenseData = {
       name: data.name,
       amount: data.amount,
       frequency: data.frequency,
-      chargeDate: data.chargeDate,
-      nextDueDate: data.nextDueDate,
+      chargeDate: data.chargeDate || undefined,
+      nextDueDate: data.nextDueDate ?? null,
       categoryId: data.categoryId,
-      notes: data.notes || undefined,
-    });
+      paidFromAccountId: finalAccountId,
+    } as Omit<Expense, 'id'>;
+
+    onSubmit(expenseData);
   };
 
   return (
-    <form onSubmit={handleSubmit(handleFormSubmit as (data: ExpenseFormData) => void)} className="space-y-4">
+    <form
+      onSubmit={(e) => {
+        if (shouldPreventSubmission()) {
+          e.preventDefault();
+          return;
+        }
+
+        handleSubmit(handleFormSubmit)(e);
+      }}
+      className={`space-y-4 ${isAccountBeingCreated ? 'opacity-60 pointer-events-none' : ''}`}
+    >
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="name">Name</Label>
@@ -224,14 +259,23 @@ export function ExpenseForm({ defaultValues, onSubmit, isSubmitting }: ExpenseFo
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="chargeDate">Charge Date</Label>
-          <DatePicker
-            id="chargeDate"
-            shouldShowCalendarButton
-            {...(() => {
-              const { disabled, ...registerProps } = register('chargeDate');
-              return registerProps;
-            })()}
+          <Label htmlFor="chargeDate">Charge Date (Optional)</Label>
+          <Controller
+            name="chargeDate"
+            control={control}
+            render={({ field }) => (
+              <DatePicker
+                id="chargeDate"
+                value={field.value || undefined} // ISO format from form state, convert null to undefined
+                onChange={(e) => {
+                  // DatePicker emits ISO format in e.target.value
+                  field.onChange(e.target.value);
+                }}
+                shouldShowCalendarButton
+                allowClear={true}
+                placeholder="No charge date (optional)"
+              />
+            )}
           />
           {errors.chargeDate && (
             <p id="chargeDate-error" className="text-sm text-destructive" role="alert">
@@ -241,14 +285,23 @@ export function ExpenseForm({ defaultValues, onSubmit, isSubmitting }: ExpenseFo
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="nextDueDate">Next Due Date</Label>
-          <DatePicker
-            id="nextDueDate"
-            shouldShowCalendarButton
-            {...(() => {
-              const { disabled, ...registerProps } = register('nextDueDate');
-              return registerProps;
-            })()}
+          <Label htmlFor="nextDueDate">Next Due Date (Optional)</Label>
+          <Controller
+            name="nextDueDate"
+            control={control}
+            render={({ field }) => (
+              <DatePicker
+                id="nextDueDate"
+                value={field.value || undefined} // ISO format from form state, convert null to undefined
+                onChange={(e) => {
+                  // DatePicker emits ISO format in e.target.value
+                  field.onChange(e.target.value);
+                }}
+                shouldShowCalendarButton
+                allowClear={true}
+                placeholder="No next due date (optional)"
+              />
+            )}
           />
           {errors.nextDueDate && (
             <p id="nextDueDate-error" className="text-sm text-destructive" role="alert">
@@ -259,23 +312,33 @@ export function ExpenseForm({ defaultValues, onSubmit, isSubmitting }: ExpenseFo
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="notes">Notes (Optional)</Label>
-        <Textarea
-          id="notes"
-          {...register('notes')}
-          placeholder="Additional notes about this expense"
-          rows={3}
+        <Label htmlFor="paidFromAccountId">Paid from (Optional)</Label>
+        <AccountSelect
+          id="paidFromAccountId"
+          value={watchedPaidFromAccountId}
+          onChange={(value) => {
+            setValue('paidFromAccountId', value);
+            handleAccountChange(value);
+          }}
+          onAccountCreationStateChange={handleAccountCreationStateChange}
+          onAccountCreationError={(_error) => {
+            // Handle account creation errors if needed
+          }}
+          placeholder="Select account this expense is paid from"
+          error={errors.paidFromAccountId?.message}
+          context="expense"
         />
-        {errors.notes && (
-          <p id="notes-error" className="text-sm text-destructive" role="alert">
-            {errors.notes.message}
-          </p>
-        )}
       </div>
 
       <div className="flex justify-end space-x-2 pt-4">
-        <Button type="submit" disabled={isSubmitting || !categoriesReady}>
-          {isSubmitting ? 'Saving...' : 'Save Expense'}
+        <Button
+          type="submit"
+          disabled={isSubmitting || !categoriesReady || isAccountBeingCreated}
+          onClick={() => {
+            // Button click handler - disabled state already prevents clicks
+          }}
+        >
+          {isSubmitting ? 'Saving...' : isAccountBeingCreated ? 'Creating Account...' : 'Save Expense'}
         </Button>
       </div>
     </form>

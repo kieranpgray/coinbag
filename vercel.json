@@ -2,7 +2,12 @@
   "buildCommand": "pnpm build",
   "installCommand": "pnpm install",
   "framework": "vite",
-  "ignoreCommand": "git diff --quiet HEAD^ HEAD .",
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ],
   "headers": [
     {
       "source": "/(.*)",
@@ -29,11 +34,11 @@
         },
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.clerk.accounts.dev https://*.clerk.com https://clerk.coinbag.app; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; style-src-elem 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://*.clerk.accounts.dev https://*.clerk.com https://clerk.coinbag.app https://*.supabase.co https://*.supabase.in wss://*.supabase.co; frame-src 'self' https://*.clerk.accounts.dev https://*.clerk.com;"
+          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.clerk.accounts.dev https://*.clerk.com https://clerk.coinbag.app https://vercel.live https://*.vercel-scripts.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; style-src-elem 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https: https://vercel.com https://*.vercel.com; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://*.clerk.accounts.dev https://*.clerk.com https://clerk.coinbag.app https://*.supabase.co https://*.supabase.in wss://*.supabase.co https://vercel.live https://*.vercel.live; frame-src 'self' https://*.clerk.accounts.dev https://*.clerk.com https://vercel.live;"
         },
         {
           "key": "Permissions-Policy",
-          "value": "geolocation=(), microphone=(), camera=(), browsing-topics=()"
+          "value": "geolocation=(), microphone=(), camera=()"
         }
       ]
     }

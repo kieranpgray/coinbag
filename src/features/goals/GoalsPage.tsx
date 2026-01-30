@@ -3,12 +3,10 @@ import { Button } from '@/components/ui/button';
 import { GoalCard } from '@/features/goals/components/GoalCard';
 import { CreateGoalModal } from '@/features/goals/components/CreateGoalModal';
 import { EditGoalModal } from '@/features/goals/components/EditGoalModal';
-import { DeleteGoalDialog } from '@/features/goals/components/DeleteGoalDialog';
 import {
   useGoals,
   useCreateGoal,
   useUpdateGoal,
-  useDeleteGoal,
 } from '@/features/goals/hooks';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent } from '@/components/ui/card';
@@ -21,11 +19,9 @@ export function GoalsPage() {
   const { data: goals = [], isLoading, error, refetch } = useGoals();
   const createMutation = useCreateGoal();
   const updateMutation = useUpdateGoal();
-  const deleteMutation = useDeleteGoal();
 
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedGoal, setSelectedGoal] = useState<Goal | null>(null);
 
   const handleCreate = (data: GoalFormData) => {
@@ -54,20 +50,6 @@ export function GoalsPage() {
     );
   };
 
-  const handleDeleteClick = (goal: Goal) => {
-    setSelectedGoal(goal);
-    setDeleteDialogOpen(true);
-  };
-
-  const confirmDelete = () => {
-    if (!selectedGoal) return;
-    deleteMutation.mutate(selectedGoal.id, {
-      onSuccess: () => {
-        setDeleteDialogOpen(false);
-        setSelectedGoal(null);
-      },
-    });
-  };
 
   const emptyState = (
     <Card>
@@ -87,7 +69,7 @@ export function GoalsPage() {
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold">Goals</h1>
+          <h1 className="text-h1-sm sm:text-h1-md lg:text-h1-lg font-bold">Goals</h1>
           <Button onClick={() => setCreateModalOpen(true)} disabled>
             <Plus className="h-4 w-4 mr-2" />
             Add Goal
@@ -117,7 +99,7 @@ export function GoalsPage() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-2xl sm:text-3xl font-bold">Goals</h1>
+        <h1 className="text-h1-sm sm:text-h1-md lg:text-h1-lg font-bold">Goals</h1>
         <Button onClick={() => setCreateModalOpen(true)} className="w-full sm:w-auto">
           <Plus className="h-4 w-4 mr-2" />
           Add Goal
@@ -125,7 +107,7 @@ export function GoalsPage() {
       </div>
 
       {isLoading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {[1, 2, 3].map((i) => (
             <Card key={i}>
               <CardContent className="p-6 space-y-4">
@@ -140,13 +122,12 @@ export function GoalsPage() {
       ) : goals.length === 0 ? (
         emptyState
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {goals.map((goal) => (
             <GoalCard
               key={goal.id}
               goal={goal}
               onEdit={handleEdit}
-              onDelete={handleDeleteClick}
             />
           ))}
         </div>
@@ -160,22 +141,13 @@ export function GoalsPage() {
       />
 
       {selectedGoal && (
-        <>
-          <EditGoalModal
-            open={editModalOpen}
-            onOpenChange={setEditModalOpen}
-            goal={selectedGoal}
-            onSubmit={handleUpdate}
-            isLoading={updateMutation.isPending}
-          />
-          <DeleteGoalDialog
-            open={deleteDialogOpen}
-            onOpenChange={setDeleteDialogOpen}
-            goal={selectedGoal}
-            onConfirm={confirmDelete}
-            isLoading={deleteMutation.isPending}
-          />
-        </>
+        <EditGoalModal
+          open={editModalOpen}
+          onOpenChange={setEditModalOpen}
+          goal={selectedGoal}
+          onSubmit={handleUpdate}
+          isLoading={updateMutation.isPending}
+        />
       )}
     </div>
   );

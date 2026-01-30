@@ -18,6 +18,11 @@ const goalStatusSchema = z.enum(['active', 'completed', 'paused'], {
   errorMap: () => ({ message: 'Invalid goal status' }),
 });
 
+// Goal type enum
+const goalTypeSchema = z.enum(['Grow', 'Save', 'Pay Off', 'Invest'], {
+  errorMap: () => ({ message: 'Invalid goal type' }),
+});
+
 // Base goal name validation
 const goalNameSchema = z.string()
   .min(VALIDATION_LIMITS.name.min, `Name must be at least ${VALIDATION_LIMITS.name.min} character`)
@@ -84,6 +89,7 @@ export const goalCreateSchema = z.object({
     .trim()
     .optional()
     .transform(e => e === '' ? undefined : e), // Convert empty string to undefined
+  type: goalTypeSchema.optional(),
   targetAmount: amountSchema,
   currentAmount: amountSchema.optional().default(0),
   deadline: deadlineSchema,
@@ -103,6 +109,7 @@ export const goalUpdateSchema = z.object({
     .trim()
     .optional()
     .transform(e => e === '' ? null : e), // Convert empty string to null for DB
+  type: goalTypeSchema.optional(),
   targetAmount: amountSchema.optional(),
   currentAmount: amountSchema.optional(),
   deadline: deadlineSchema,
@@ -162,6 +169,7 @@ export const goalEntitySchema = z.object({
   name: goalNameSchema,
   description: nullableStringSchema,
   source: nullableStringSchema,
+  type: goalTypeSchema.optional(),
   targetAmount: amountSchema,
   currentAmount: amountSchema,
   deadline: nullableDateSchema.optional(),

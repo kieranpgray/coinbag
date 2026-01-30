@@ -13,7 +13,7 @@ export function AccountPage() {
     <div className="min-h-screen flex items-center justify-center bg-background py-8">
       <div className="w-full max-w-4xl">
         <div className="mb-6">
-          <h1 className="text-3xl font-bold">Account Settings</h1>
+          <h1 className="text-h1-sm sm:text-h1-md lg:text-h1-lg font-bold">Account Settings</h1>
           <p className="text-muted-foreground mt-2">
             Manage your account, security, and authentication settings
           </p>

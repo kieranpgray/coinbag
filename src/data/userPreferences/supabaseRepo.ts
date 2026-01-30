@@ -1,6 +1,6 @@
 import { createAuthenticatedSupabaseClient } from '@/lib/supabaseClient';
 import type { UserPreferencesRepository } from './repo';
-import { userPreferencesSchema, type UserPreferences } from '@/contracts/userPreferences';
+import { userPreferencesSchema, defaultUserPreferences, type UserPreferences } from '@/contracts/userPreferences';
 
 /**
  * Supabase-backed preferences repository.
@@ -10,7 +10,22 @@ import { userPreferencesSchema, type UserPreferences } from '@/contracts/userPre
  */
 export class SupabaseUserPreferencesRepository implements UserPreferencesRepository {
   private readonly selectColumns =
-    'privacyMode:privacy_mode, darkMode:dark_mode, taxRate:tax_rate, taxSettingsConfigured:tax_settings_configured, emailNotifications:email_notifications, locale';
+    'privacy_mode, dark_mode, tax_rate, tax_settings_configured, email_notifications, locale, hide_setup_checklist';
+
+  /**
+   * Map database row (snake_case) to UserPreferences (camelCase)
+   */
+  private mapDbRowToPreferences(row: any): UserPreferences {
+    return {
+      privacyMode: row.privacy_mode ?? false,
+      darkMode: row.dark_mode ?? false,
+      taxRate: row.tax_rate ?? 20,
+      taxSettingsConfigured: row.tax_settings_configured ?? false,
+      emailNotifications: row.email_notifications ?? defaultUserPreferences.emailNotifications,
+      locale: row.locale ?? 'en-US',
+      hideSetupChecklist: row.hide_setup_checklist ?? false,
+    };
+  }
 
   async get(
     _userId: string,
@@ -20,10 +35,52 @@ export class SupabaseUserPreferencesRepository implements UserPreferencesReposit
       const supabase = await createAuthenticatedSupabaseClient(getToken);
 
       // RLS scopes to the current user; there should be at most one row.
-      const { data, error } = await supabase
+      // Progressive fallback for schema compatibility: try all columns, then without newer columns
+      let { data, error } = await supabase
         .from('user_preferences')
         .select(this.selectColumns)
         .maybeSingle();
+
+      // First fallback: try without hide_setup_checklist (if migration not run)
+      if (error && (error.message?.includes('hide_setup_checklist') || error.message?.includes('schema cache'))) {
+        const fallbackColumns = 'privacy_mode, dark_mode, tax_rate, tax_settings_configured, email_notifications, locale';
+        const fallbackResult = await supabase
+          .from('user_preferences')
+          .select(fallbackColumns)
+          .maybeSingle();
+
+        if (fallbackResult.error) {
+          // Second fallback: try without both hide_setup_checklist AND locale (if locale migration not run)
+          if (fallbackResult.error.message?.includes('locale') || fallbackResult.error.message?.includes('schema cache')) {
+            const baseColumns = 'privacy_mode, dark_mode, tax_rate, tax_settings_configured, email_notifications';
+            const baseResult = await supabase
+              .from('user_preferences')
+              .select(baseColumns)
+              .maybeSingle();
+
+            if (baseResult.error) {
+              return { error: this.normalizeSupabaseError(baseResult.error) };
+            }
+
+            // Map and add defaults for missing columns
+            data = baseResult.data ? {
+              ...baseResult.data,
+              locale: 'en-US',
+              hide_setup_checklist: false
+            } as any : null;
+            error = null;
+          } else {
+            return { error: this.normalizeSupabaseError(fallbackResult.error) };
+          }
+        } else {
+          // Map and add default for hide_setup_checklist
+          data = fallbackResult.data ? {
+            ...fallbackResult.data,
+            hide_setup_checklist: false
+          } as any : null;
+          error = null;
+        }
+      }
 
       if (error) {
         return { error: this.normalizeSupabaseError(error) };
@@ -33,7 +90,9 @@ export class SupabaseUserPreferencesRepository implements UserPreferencesReposit
         return { data: undefined };
       }
 
-      const validation = userPreferencesSchema.safeParse(data);
+      // Map snake_case to camelCase before validation
+      const mappedData = this.mapDbRowToPreferences(data);
+      const validation = userPreferencesSchema.safeParse(mappedData);
       if (!validation.success) {
         return { error: { error: 'Invalid preferences data received from server', code: 'VALIDATION_ERROR' } };
       }
@@ -63,7 +122,7 @@ export class SupabaseUserPreferencesRepository implements UserPreferencesReposit
       const supabase = await createAuthenticatedSupabaseClient(getToken);
 
       // user_id is derived via DEFAULT (auth.jwt() ->> 'sub') on insert.
-      const dbInput = {
+      const dbInput: Record<string, unknown> = {
         privacy_mode: validation.data.privacyMode,
         dark_mode: validation.data.darkMode,
         tax_rate: validation.data.taxRate,
@@ -72,17 +131,74 @@ export class SupabaseUserPreferencesRepository implements UserPreferencesReposit
         locale: validation.data.locale,
       };
 
-      const { data, error } = await supabase
+      // Progressive fallback for schema compatibility: try with newer columns, fall back to older schemas
+      const dbInputWithChecklist = {
+        ...dbInput,
+        hide_setup_checklist: validation.data.hideSetupChecklist,
+      };
+
+      let { data, error } = await supabase
         .from('user_preferences')
-        .upsert(dbInput, { onConflict: 'user_id' })
+        .upsert(dbInputWithChecklist, { onConflict: 'user_id' })
         .select(this.selectColumns)
         .single();
+
+      // First fallback: try without hide_setup_checklist (if migration not run)
+      if (error && (error.message?.includes('hide_setup_checklist') || error.message?.includes('schema cache'))) {
+        const fallbackResult = await supabase
+          .from('user_preferences')
+          .upsert(dbInput, { onConflict: 'user_id' })
+          .select('privacy_mode, dark_mode, tax_rate, tax_settings_configured, email_notifications, locale')
+          .single();
+
+        if (fallbackResult.error) {
+          // Second fallback: try without both hide_setup_checklist AND locale (if locale migration not run)
+          if (fallbackResult.error.message?.includes('locale') || fallbackResult.error.message?.includes('schema cache')) {
+            const baseInput = {
+              privacy_mode: validation.data.privacyMode,
+              dark_mode: validation.data.darkMode,
+              tax_rate: validation.data.taxRate,
+              tax_settings_configured: validation.data.taxSettingsConfigured,
+              email_notifications: validation.data.emailNotifications,
+            };
+
+            const baseResult = await supabase
+              .from('user_preferences')
+              .upsert(baseInput, { onConflict: 'user_id' })
+              .select('privacy_mode, dark_mode, tax_rate, tax_settings_configured, email_notifications')
+              .single();
+
+            if (baseResult.error) {
+              return { error: this.normalizeSupabaseError(baseResult.error) };
+            }
+
+            // Map and add defaults for missing columns
+            data = baseResult.data ? {
+              ...baseResult.data,
+              locale: validation.data.locale,
+              hide_setup_checklist: validation.data.hideSetupChecklist
+            } as any : null;
+            error = null;
+          } else {
+            return { error: this.normalizeSupabaseError(fallbackResult.error) };
+          }
+        } else {
+          // Map and add default for hide_setup_checklist in response
+          data = fallbackResult.data ? {
+            ...fallbackResult.data,
+            hide_setup_checklist: false
+          } as any : null;
+          error = null;
+        }
+      }
 
       if (error) {
         return { error: this.normalizeSupabaseError(error) };
       }
 
-      const parsed = userPreferencesSchema.safeParse(data);
+      // Map snake_case to camelCase before validation
+      const mappedData = this.mapDbRowToPreferences(data);
+      const parsed = userPreferencesSchema.safeParse(mappedData);
       if (!parsed.success) {
         return { error: { error: 'Invalid preferences data received from server', code: 'VALIDATION_ERROR' } };
       }

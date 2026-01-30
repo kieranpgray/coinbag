@@ -5,11 +5,15 @@ import type { TransactionEntity } from '@/contracts/transactions';
  */
 export interface TransactionsRepository {
   /**
-   * List all transactions for the current user, optionally filtered by account
+   * List all transactions for the current user, optionally filtered by account and/or statement import
+   * @param accountId - Optional account ID to filter transactions
+   * @param statementImportId - Optional statement import ID to filter transactions by provenance
+   * @param getToken - Function to get authentication token
    */
   list(
     accountId?: string,
-    getToken?: () => Promise<string | null>
+    getToken?: () => Promise<string | null>,
+    statementImportId?: string
   ): Promise<{
     data: TransactionEntity[];
     error?: { error: string; code: string };

@@ -116,7 +116,7 @@ export function ReviewScreen({
         <CardContent className="pt-6">
           <div className="text-center py-12">
             <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold mb-2">{t('noTransactionsFound', { ns: 'import' })}</h3>
+            <h3 className="text-h3 font-semibold mb-2">{t('noTransactionsFound', { ns: 'import' })}</h3>
             <p className="text-sm text-muted-foreground mb-4">
               {t('noTransactionsDescription', { ns: 'import' })}
             </p>
@@ -158,19 +158,19 @@ export function ReviewScreen({
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div>
               <p className="text-sm text-muted-foreground">Selected</p>
-              <p className="text-2xl font-bold">{summary.total}</p>
+              <p className="text-balance font-bold">{summary.total}</p>
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Income</p>
-              <p className="text-2xl font-bold text-green-600">{formatCurrency(summary.income)}</p>
+              <p className="text-balance font-bold text-green-600">{formatCurrency(summary.income)}</p>
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Expenses</p>
-              <p className="text-2xl font-bold text-red-600">{formatCurrency(summary.expenses)}</p>
+              <p className="text-balance font-bold text-red-600">{formatCurrency(summary.expenses)}</p>
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Net</p>
-              <p className={`text-2xl font-bold ${summary.net >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+              <p className={`text-balance font-bold ${summary.net >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                 {formatCurrency(summary.net)}
               </p>
             </div>

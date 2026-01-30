@@ -279,8 +279,18 @@ export class SupabaseCategoriesRepository implements CategoriesRepository {
       code?: unknown;
       message?: unknown;
       details?: unknown;
+      status?: unknown;
     };
     const errorCode = typeof err.code === 'string' ? err.code : undefined;
+    const statusCode = typeof err.status === 'number' ? err.status : undefined;
+
+    // Handle HTTP 409 Conflict (duplicate entry)
+    if (statusCode === 409) {
+      return {
+        error: 'A category with this name already exists.',
+        code: 'DUPLICATE_ENTRY',
+      };
+    }
 
     // Handle known PostgreSQL/Supabase error codes
     if (errorCode === '23505') {
@@ -306,6 +316,15 @@ export class SupabaseCategoriesRepository implements CategoriesRepository {
 
     // Handle specific Supabase error patterns
     const message = typeof err.message === 'string' ? err.message : undefined;
+
+    // Additional duplicate detection patterns
+    if (message?.includes('duplicate key value') || message?.includes('already exists')) {
+      return {
+        error: 'A category with this name already exists.',
+        code: 'DUPLICATE_ENTRY',
+      };
+    }
+
     if (message?.includes('JWT')) {
       return {
         error: 'Authentication token expired. Please sign in again.',

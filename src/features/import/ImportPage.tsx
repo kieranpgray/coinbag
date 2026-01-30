@@ -192,7 +192,7 @@ export function ImportPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Import Data</h1>
+          <h1 className="text-h1-sm sm:text-h1-md lg:text-h1-lg font-bold">Import Data</h1>
           <p className="text-muted-foreground mt-2">
             Import your financial data from an Excel spreadsheet
           </p>

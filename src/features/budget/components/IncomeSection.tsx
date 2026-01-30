@@ -12,6 +12,7 @@ import { IncomeList } from '@/features/income/components/IncomeList';
 interface IncomeSectionProps {
   totalIncome: number; // monthly equivalent
   incomeSources: Income[];
+  accountMap?: Map<string, string>;
   onCreate: () => void;
   onEdit: (income: Income) => void;
   onDelete: (income: Income) => void;
@@ -27,6 +28,7 @@ interface IncomeSectionProps {
 export function IncomeSection({
   totalIncome,
   incomeSources,
+  accountMap,
   onCreate,
   onEdit,
   onDelete,
@@ -68,10 +70,10 @@ export function IncomeSection({
             <div className="h-10 w-10 rounded-full bg-emerald-100 flex items-center justify-center">
               <TrendingUp className="h-5 w-5 text-emerald-600" />
             </div>
-            <h1 className="text-neutral-600 text-xl sm:text-2xl font-semibold">Income</h1>
+            <h1 className="text-neutral-600 text-h2-sm sm:text-h2-md lg:text-h2-lg font-semibold">Income</h1>
           </div>
           <div className="flex flex-col sm:flex-row sm:items-baseline gap-2">
-            <span className="text-3xl sm:text-4xl font-bold">
+            <span className="text-balance font-bold">
               {formatCurrency(displayIncome)}
             </span>
             <span className="text-neutral-500">per {getFrequencyLabelForDisplay(displayFrequency)}</span>
@@ -123,6 +125,7 @@ export function IncomeSection({
       ) : viewMode === 'list' ? (
         <IncomeList
           incomes={incomeSources}
+          accountMap={accountMap}
           onEdit={onEdit}
           onDelete={onDelete}
           onCreate={onCreate}
@@ -137,7 +140,7 @@ export function IncomeSection({
               <CardHeader>
                 <div className="flex items-start justify-between">
                   <div>
-                    <CardTitle className="text-lg">{source.name}</CardTitle>
+                    <CardTitle>{source.name}</CardTitle>
                     <p className="text-sm text-muted-foreground mt-1">{source.source}</p>
                   </div>
                   <div className="flex gap-2">
@@ -174,7 +177,7 @@ export function IncomeSection({
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-muted-foreground">Next Payment</span>
-                    <span className="text-sm">{format(new Date(source.nextPaymentDate), 'MMM d, yyyy')}</span>
+                    <span className="text-sm">{source.nextPaymentDate ? format(new Date(source.nextPaymentDate), 'MMM d, yyyy') : '-'}</span>
                   </div>
                 </div>
               </CardContent>

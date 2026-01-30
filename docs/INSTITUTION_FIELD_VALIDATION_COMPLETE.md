@@ -174,3 +174,6 @@ The database migration `20251231000004_remove_available_balance_and_make_institu
 - The duplicate detection logic correctly handles accounts with and without institutions, treating accounts with the same name but different institution presence as different accounts
 
 
+
+
+

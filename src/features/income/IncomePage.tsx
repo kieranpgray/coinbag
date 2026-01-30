@@ -1,15 +1,18 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useIncomes, useCreateIncome, useUpdateIncome, useDeleteIncome } from '@/features/income/hooks';
+import { useAccounts } from '@/features/accounts/hooks';
+import { useViewMode } from '@/hooks/useViewMode';
 import { Button } from '@/components/ui/button';
-import { Switch } from '@/components/ui/switch';
 import { Card, CardContent } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { AlertCircle } from 'lucide-react';
 import { RefreshCw, AlertTriangle, Plus } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { formatCurrency } from '@/lib/utils';
 import { IncomeCard } from '@/features/income/components/IncomeCard';
 import { IncomeList } from '@/features/income/components/IncomeList';
+import { ViewModeToggle } from '@/components/shared/ViewModeToggle';
 import type { Income } from '@/types/domain';
 import { 
   Dialog,
@@ -21,35 +24,57 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { SearchableSelect } from '@/components/ui/searchable-select';
-import { Textarea } from '@/components/ui/textarea';
 import { DatePicker } from '@/components/ui/date-picker';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { format } from 'date-fns';
+import { AccountSelect } from '@/components/shared/AccountSelect';
+import { useAccountLinking } from '@/hooks/useAccountLinking';
 
 const incomeSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   source: z.enum(['Salary', 'Freelance', 'Business', 'Investments', 'Rental', 'Other']),
   amount: z.number().min(0.01, 'Amount must be greater than 0'),
   frequency: z.enum(['weekly', 'fortnightly', 'monthly', 'yearly']),
-  nextPaymentDate: z.string().min(1, 'Next payment date is required'),
-  notes: z.string().optional(),
+  nextPaymentDate: z.string().optional().nullable().transform((val) => {
+    // Convert empty strings to null for consistency
+    return (val === '') ? null : val;
+  }),
+  paidToAccountId: z.string().uuid('Invalid account selected').optional(),
 });
 
 type IncomeFormData = z.infer<typeof incomeSchema>;
 
 export function IncomePage() {
   const { data: incomes = [], isLoading, error, refetch } = useIncomes();
+  const { data: accounts = [] } = useAccounts();
   const createMutation = useCreateIncome();
   const updateMutation = useUpdateIncome();
   const deleteMutation = useDeleteIncome();
   const [searchParams, setSearchParams] = useSearchParams();
+  const [viewMode, setViewMode] = useViewMode();
 
-  const [viewMode, setViewMode] = useState<'list' | 'cards'>('cards');
+  // Create account map for quick lookups
+  const accountMap = useMemo(() => {
+    return new Map(accounts.map((a) => [a.id, a.accountName]));
+  }, [accounts]);
+
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [editingIncome, setEditingIncome] = useState<Income | null>(null);
   const [deletingIncome, setDeletingIncome] = useState<Income | null>(null);
+  const [createError, setCreateError] = useState<string | null>(null);
+  const [updateError, setUpdateError] = useState<string | null>(null);
+
+  // Use custom hook for account linking state management
+  const {
+    isAccountBeingCreated,
+    linkedAccountIdRef,
+    handleAccountChange,
+    handleAccountCreationStateChange,
+    getFinalAccountId,
+    shouldPreventSubmission,
+  } = useAccountLinking(editingIncome?.paidToAccountId);
 
   // Handle query params for auto-opening create modal
   useEffect(() => {
@@ -60,6 +85,20 @@ export function IncomePage() {
       setSearchParams({});
     }
   }, [searchParams, setSearchParams]);
+
+  // Clear errors when modals open
+  useEffect(() => {
+    if (createModalOpen) {
+      setCreateError(null);
+    }
+  }, [createModalOpen]);
+
+  // Sync ref with defaultValues (for editing existing income)
+  useEffect(() => {
+    if (editingIncome?.paidToAccountId) {
+      linkedAccountIdRef.current = editingIncome.paidToAccountId;
+    }
+  }, [editingIncome?.paidToAccountId]);
 
   // Calculate total monthly income
   const totalMonthlyIncome = useMemo(() => {
@@ -88,43 +127,93 @@ export function IncomePage() {
       source: 'Salary',
       amount: 0,
       frequency: 'monthly',
-      nextPaymentDate: format(new Date(), 'yyyy-MM-dd'),
-      notes: '',
+      nextPaymentDate: undefined,
+      paidToAccountId: undefined,
     },
   });
 
   const watchedSource = watch('source') || ''; // Ensure always defined for controlled Select
   const watchedFrequency = watch('frequency') || ''; // Ensure always defined for controlled Select
+  const watchedPaidToAccountId = watch('paidToAccountId') || ''; // Ensure always defined for controlled Select
 
   const handleCreate = (data: IncomeFormData) => {
-    createMutation.mutate(data, {
+    const finalAccountId = getFinalAccountId(data.paidToAccountId);
+
+    // Keep null as null (don't convert to undefined) so repository can include it in insert
+    // Type assertion needed because Income type uses string | undefined, but schema accepts null
+    const payload = {
+      ...data,
+      nextPaymentDate: data.nextPaymentDate ?? null,
+      paidToAccountId: finalAccountId,
+    } as Omit<Income, 'id'>;
+
+    createMutation.mutate(payload, {
       onSuccess: () => {
         setCreateModalOpen(false);
+        setCreateError(null);
         reset();
+      },
+      onError: (error: any) => {
+        setCreateError(error?.error || 'Failed to create income');
       },
     });
   };
 
   const handleEdit = (income: Income) => {
+    // Safely format the date (optional field)
+    let formattedDate: string | undefined;
+    if (income.nextPaymentDate) {
+      try {
+        const dateObj = new Date(income.nextPaymentDate);
+        if (isNaN(dateObj.getTime())) {
+          // If invalid date, leave undefined (optional)
+          formattedDate = undefined;
+        } else {
+          formattedDate = format(dateObj, 'yyyy-MM-dd');
+        }
+      } catch (error) {
+        formattedDate = undefined;
+      }
+    }
+
     setEditingIncome(income);
+    setUpdateError(null); // Clear any previous errors
     reset({
       name: income.name,
       source: income.source,
       amount: income.amount,
       frequency: income.frequency,
-      nextPaymentDate: format(new Date(income.nextPaymentDate), 'yyyy-MM-dd'),
-      notes: income.notes || '',
+      nextPaymentDate: formattedDate,
+      paidToAccountId: income.paidToAccountId,
     });
   };
 
   const handleUpdate = (data: IncomeFormData) => {
     if (!editingIncome) return;
+
+    const finalAccountId = getFinalAccountId(data.paidToAccountId);
+
+    // Keep null as null (don't convert to undefined) so repository can include it in update
+    // Type assertion needed because Income type uses string | undefined, but schema accepts null
+    const updateData = {
+      ...data,
+      nextPaymentDate: data.nextPaymentDate ?? null,
+      paidToAccountId: finalAccountId
+    } as Partial<Income>;
+
     updateMutation.mutate(
-      { id: editingIncome.id, data },
+      {
+        id: editingIncome.id,
+        data: updateData
+      },
       {
         onSuccess: () => {
           setEditingIncome(null);
+          setUpdateError(null);
           reset();
+        },
+        onError: (error: any) => {
+          setUpdateError(error?.error || 'Failed to update income');
         },
       }
     );
@@ -148,9 +237,9 @@ export function IncomePage() {
       <div className="space-y-8">
         <div className="flex items-start justify-between">
           <div className="space-y-1">
-            <h1 className="text-3xl font-bold tracking-tight">Income</h1>
+            <h1 className="text-h1-sm sm:text-h1-md lg:text-h1-lg font-bold tracking-tight">Income</h1>
             <div className="space-y-0.5">
-              <div className="text-4xl font-bold mb-4">
+              <div className="text-data-lg-sm sm:text-data-lg-md lg:text-data-lg-lg font-bold mb-4">
                 {formatCurrency(totalMonthlyIncome)}
               </div>
               <p className="text-sm text-muted-foreground">Total monthly income</p>
@@ -205,9 +294,9 @@ export function IncomePage() {
       {/* Header with Total Value */}
       <div className="flex items-start justify-between">
         <div className="space-y-1">
-          <h1 className="text-3xl font-bold tracking-tight">Income</h1>
+          <h1 className="text-h1-sm sm:text-h1-md lg:text-h1-lg font-bold tracking-tight">Income</h1>
           <div className="space-y-0.5">
-            <div className="text-4xl font-bold mb-4">
+            <div className="text-data-lg-sm sm:text-data-lg-md lg:text-data-lg-lg font-bold mb-4">
               {formatCurrency(totalMonthlyIncome)}
             </div>
             <p className="text-sm text-muted-foreground">Total monthly income</p>
@@ -218,20 +307,7 @@ export function IncomePage() {
             <Plus className="h-4 w-4 mr-2" />
             Add Income
           </Button>
-          <div className="flex items-center gap-3">
-            <Label htmlFor="view-mode" className="text-sm text-muted-foreground">
-              List view
-            </Label>
-            <Switch
-              id="view-mode"
-              checked={viewMode === 'cards'}
-              onCheckedChange={(checked) => setViewMode(checked ? 'cards' : 'list')}
-              aria-label="Toggle between list view and card view"
-            />
-            <Label htmlFor="view-mode" className="text-sm text-muted-foreground">
-              Card view
-            </Label>
-          </div>
+          <ViewModeToggle viewMode={viewMode} onViewModeChange={setViewMode} />
         </div>
       </div>
 
@@ -240,6 +316,7 @@ export function IncomePage() {
         {viewMode === 'list' ? (
           <IncomeList
             incomes={incomes}
+            accountMap={accountMap}
             onEdit={handleEdit}
             onDelete={handleDelete}
             onCreate={() => setCreateModalOpen(true)}
@@ -284,7 +361,23 @@ export function IncomePage() {
             <DialogTitle>Add Income Source</DialogTitle>
             <DialogDescription>Add a new source of income to track your earnings.</DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleSubmit(handleCreate)} className="space-y-4">
+          {createError && (
+            <Alert className="border-destructive bg-destructive/10">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle className="text-destructive">Error</AlertTitle>
+              <AlertDescription className="text-destructive">{createError}</AlertDescription>
+            </Alert>
+          )}
+          <form
+            onSubmit={(e) => {
+              if (shouldPreventSubmission()) {
+                e.preventDefault();
+                return;
+              }
+              handleSubmit(handleCreate)(e);
+            }}
+            className={`space-y-4 ${isAccountBeingCreated ? 'opacity-60 pointer-events-none' : ''}`}
+          >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="name">Name</Label>
@@ -365,32 +458,41 @@ export function IncomePage() {
               <DatePicker
                 id="nextPaymentDate"
                 shouldShowCalendarButton
-                {...(() => {
-                  const { disabled, ...registerProps } = register('nextPaymentDate');
-                  return registerProps;
-                })()}
+                allowClear={true}
+                placeholder="No next payment date (optional)"
+                {...register('nextPaymentDate')}
               />
               {errors.nextPaymentDate && (
                 <p id="nextPaymentDate-error" className="text-sm text-destructive" role="alert">
                   {errors.nextPaymentDate.message}
                 </p>
               )}
+              <p className="text-sm text-muted-foreground">Optional: Leave empty if payment date is unknown</p>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="notes">Notes (Optional)</Label>
-              <Textarea id="notes" {...register('notes')} placeholder="Any additional notes" rows={3} />
-              {errors.notes && (
-                <p id="notes-error" className="text-sm text-destructive" role="alert">
-                  {errors.notes.message}
-                </p>
-              )}
+              <Label htmlFor="paidToAccountId">Paid to (Optional)</Label>
+              <AccountSelect
+                id="paidToAccountId"
+                value={watchedPaidToAccountId}
+                onChange={(value) => {
+                  setValue('paidToAccountId', value);
+                  handleAccountChange(value);
+                }}
+                onAccountCreationStateChange={handleAccountCreationStateChange}
+                onAccountCreationError={(_error) => {
+                  // Handle account creation errors if needed
+                }}
+                placeholder="Select account this income is paid to"
+                error={errors.paidToAccountId?.message}
+                context="income"
+              />
             </div>
             <div className="flex justify-end space-x-2">
               <Button type="button" variant="outline" onClick={() => setCreateModalOpen(false)}>
                 Cancel
               </Button>
-              <Button type="submit" disabled={createMutation.isPending}>
-                {createMutation.isPending ? 'Adding...' : 'Add Income'}
+              <Button type="submit" disabled={createMutation.isPending || isAccountBeingCreated}>
+                {createMutation.isPending ? 'Adding...' : isAccountBeingCreated ? 'Creating Account...' : 'Add Income'}
               </Button>
             </div>
           </form>
@@ -405,7 +507,23 @@ export function IncomePage() {
               <DialogTitle>Edit Income Source</DialogTitle>
               <DialogDescription>Update your income source details.</DialogDescription>
             </DialogHeader>
-            <form onSubmit={handleSubmit(handleUpdate)} className="space-y-4">
+            {updateError && (
+              <Alert className="border-destructive bg-destructive/10">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle className="text-destructive">Error</AlertTitle>
+                <AlertDescription className="text-destructive">{updateError}</AlertDescription>
+              </Alert>
+            )}
+            <form
+              onSubmit={(e) => {
+                if (shouldPreventSubmission()) {
+                  e.preventDefault();
+                  return;
+                }
+                handleSubmit(handleUpdate)(e);
+              }}
+              className={`space-y-4 ${isAccountBeingCreated ? 'opacity-60 pointer-events-none' : ''}`}
+            >
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="edit-name">Name</Label>
@@ -479,30 +597,44 @@ export function IncomePage() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="edit-nextPaymentDate">Next Payment Date</Label>
-                <DatePicker
-                  id="edit-nextPaymentDate"
-                  shouldShowCalendarButton
-                  {...(() => {
-                    const { disabled, ...registerProps } = register('nextPaymentDate');
-                    return registerProps;
-                  })()}
-                />
+              <DatePicker
+                id="edit-nextPaymentDate"
+                shouldShowCalendarButton
+                allowClear={true}
+                placeholder="No next payment date (optional)"
+                {...register('nextPaymentDate')}
+              />
                 {errors.nextPaymentDate && (
                   <p id="edit-nextPaymentDate-error" className="text-sm text-destructive" role="alert">
                     {errors.nextPaymentDate.message}
                   </p>
                 )}
+                <p className="text-sm text-muted-foreground">Optional: Leave empty if payment date is unknown</p>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="edit-notes">Notes (Optional)</Label>
-                <Textarea id="edit-notes" {...register('notes')} rows={3} />
+                <Label htmlFor="edit-paidToAccountId">Paid to (Optional)</Label>
+                <AccountSelect
+                  id="edit-paidToAccountId"
+                  value={watchedPaidToAccountId}
+                  onChange={(value) => {
+                    setValue('paidToAccountId', value);
+                    handleAccountChange(value);
+                  }}
+                  onAccountCreationStateChange={handleAccountCreationStateChange}
+                  onAccountCreationError={(_error) => {
+                    // Handle account creation errors if needed
+                  }}
+                  placeholder="Select account this income is paid to"
+                  error={errors.paidToAccountId?.message}
+                  context="income"
+                />
               </div>
               <div className="flex justify-end space-x-2">
                 <Button type="button" variant="outline" onClick={() => setEditingIncome(null)}>
                   Cancel
                 </Button>
-                <Button type="submit" disabled={updateMutation.isPending}>
-                  {updateMutation.isPending ? 'Saving...' : 'Save Changes'}
+                <Button type="submit" disabled={updateMutation.isPending || isAccountBeingCreated}>
+                  {updateMutation.isPending ? 'Saving...' : isAccountBeingCreated ? 'Creating Account...' : 'Save Changes'}
                 </Button>
               </div>
             </form>

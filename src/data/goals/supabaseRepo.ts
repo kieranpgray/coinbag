@@ -22,11 +22,11 @@ export class SupabaseGoalsRepository implements GoalsRepository {
   // Select actual database column names (snake_case)
   // Supabase doesn't support column aliasing in select strings, so we map them manually
   private readonly selectColumns =
-    'id, name, description, source, target_amount, current_amount, deadline, status, account_id, user_id, created_at, updated_at';
-  
+    'id, name, description, source, type, target_amount, current_amount, deadline, status, account_id, user_id, created_at, updated_at';
+
   // Fallback select columns without account_id (for databases without account_id column)
   private readonly selectColumnsWithoutAccountId =
-    'id, name, description, source, target_amount, current_amount, deadline, status, user_id, created_at, updated_at';
+    'id, name, description, source, type, target_amount, current_amount, deadline, status, user_id, created_at, updated_at';
 
   /**
    * Maps database row (snake_case) to entity schema (camelCase)
@@ -38,6 +38,7 @@ export class SupabaseGoalsRepository implements GoalsRepository {
       name: row.name as string,
       description: row.description === null ? undefined : (row.description as string | undefined),
       source: row.source === null ? undefined : (row.source as string | undefined),
+      type: row.type === null ? undefined : (row.type as 'Grow' | 'Save' | 'Pay Off' | 'Invest' | undefined),
       targetAmount: row.target_amount as number,
       currentAmount: row.current_amount as number,
       deadline: row.deadline === null ? undefined : (row.deadline ? String(row.deadline).split('T')[0] : undefined) as string | undefined,
@@ -59,12 +60,13 @@ export class SupabaseGoalsRepository implements GoalsRepository {
     if (deadline && deadline.includes('T')) {
       deadline = deadline.split('T')[0];
     }
-    
+
     return {
       id: entity.id,
       name: entity.name,
       description: entity.description,
       source: entity.source,
+      type: entity.type,
       targetAmount: entity.targetAmount,
       currentAmount: entity.currentAmount,
       deadline,
@@ -384,6 +386,9 @@ export class SupabaseGoalsRepository implements GoalsRepository {
       if (validation.data.source !== undefined) {
         dbInput.source = validation.data.source;
       }
+      if (validation.data.type !== undefined) {
+        dbInput.type = validation.data.type;
+      }
       if (validation.data.deadline !== undefined) {
         dbInput.deadline = validation.data.deadline;
       }
@@ -536,6 +541,7 @@ export class SupabaseGoalsRepository implements GoalsRepository {
       if (validation.data.name !== undefined) dbInput.name = validation.data.name;
       if (validation.data.description !== undefined) dbInput.description = validation.data.description;
       if (validation.data.source !== undefined) dbInput.source = validation.data.source;
+      if (validation.data.type !== undefined) dbInput.type = validation.data.type;
       if (validation.data.targetAmount !== undefined) dbInput.target_amount = validation.data.targetAmount;
       if (validation.data.currentAmount !== undefined) dbInput.current_amount = validation.data.currentAmount;
       if (validation.data.deadline !== undefined) {

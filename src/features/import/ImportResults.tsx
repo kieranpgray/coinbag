@@ -46,31 +46,31 @@ export function ImportResults({
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
               {result.imported.accounts > 0 && (
                 <div>
-                  <div className="text-2xl font-bold">{result.imported.accounts}</div>
+                  <div className="text-balance font-bold">{result.imported.accounts}</div>
                   <div className="text-sm text-muted-foreground">Accounts</div>
                 </div>
               )}
               {result.imported.assets > 0 && (
                 <div>
-                  <div className="text-2xl font-bold">{result.imported.assets}</div>
+                  <div className="text-xl font-bold">{result.imported.assets}</div>
                   <div className="text-sm text-muted-foreground">Assets</div>
                 </div>
               )}
               {result.imported.liabilities > 0 && (
                 <div>
-                  <div className="text-2xl font-bold">{result.imported.liabilities}</div>
+                  <div className="text-xl font-bold">{result.imported.liabilities}</div>
                   <div className="text-sm text-muted-foreground">Liabilities</div>
                 </div>
               )}
               {(result.imported.expenses > 0 || result.imported.subscriptions > 0) && (
                 <div>
-                  <div className="text-2xl font-bold">{result.imported.expenses + result.imported.subscriptions}</div>
+                  <div className="text-xl font-bold">{result.imported.expenses + result.imported.subscriptions}</div>
                   <div className="text-sm text-muted-foreground">Expenses</div>
                 </div>
               )}
               {result.imported.income > 0 && (
                 <div>
-                  <div className="text-2xl font-bold">{result.imported.income}</div>
+                  <div className="text-xl font-bold">{result.imported.income}</div>
                   <div className="text-sm text-muted-foreground">Income</div>
                 </div>
               )}

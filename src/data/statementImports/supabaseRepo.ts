@@ -19,7 +19,7 @@ import { z } from 'zod';
  */
 export class SupabaseStatementImportsRepository implements StatementImportsRepository {
   private readonly selectColumns =
-    'id, userId:user_id, accountId:account_id, fileName:file_name, filePath:file_path, fileHash:file_hash, fileSize:file_size, mimeType:mime_type, status, parsingMethod:parsing_method, totalTransactions:total_transactions, importedTransactions:imported_transactions, failedTransactions:failed_transactions, confidenceScore:confidence_score, errorMessage:error_message, metadata, createdAt:created_at, updatedAt:updated_at, completedAt:completed_at';
+    'id, userId:user_id, accountId:account_id, fileName:file_name, filePath:file_path, fileHash:file_hash, fileSize:file_size, mimeType:mime_type, status, parsingMethod:parsing_method, totalTransactions:total_transactions, importedTransactions:imported_transactions, failedTransactions:failed_transactions, confidenceScore:confidence_score, errorMessage:error_message, metadata, correlationId:correlation_id, createdAt:created_at, updatedAt:updated_at, completedAt:completed_at';
 
   /**
    * Normalize Supabase errors to user-friendly messages
@@ -247,6 +247,7 @@ export class SupabaseStatementImportsRepository implements StatementImportsRepos
         file_size: validation.data.fileSize,
         mime_type: validation.data.mimeType,
         status: 'pending',
+        correlation_id: validation.data.correlationId || correlationId || null, // Use provided correlationId or fallback to current
       };
 
       const { data, error } = await supabase

@@ -217,7 +217,7 @@ export function DashboardPage() {
   if (hasError) {
     return (
       <div className="space-y-6">
-        <h1 className="text-3xl font-bold">Dashboard</h1>
+        <h1 className="text-h1-sm sm:text-h1-md lg:text-h1-lg font-bold">Dashboard</h1>
         <Alert>
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>Unable to load dashboard</AlertTitle>
@@ -242,7 +242,7 @@ export function DashboardPage() {
   if (!dashboardData) {
     return (
       <div className="space-y-6">
-        <h1 className="text-3xl font-bold">{t('title', { ns: 'dashboard' })}</h1>
+        <h1 className="text-h1-sm sm:text-h1-md lg:text-h1-lg font-bold">{t('title', { ns: 'dashboard' })}</h1>
         <Alert>
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>{t('noDataAvailable', { ns: 'dashboard' })}</AlertTitle>
@@ -277,7 +277,7 @@ export function DashboardPage() {
     <div className="space-y-6">
         {/* Header section with greeting */}
         <header>
-          <h1 className="text-3xl font-bold">Dashboard</h1>
+          <h1 className="text-h1-sm sm:text-h1-md lg:text-h1-lg font-bold">Dashboard</h1>
         </header>
 
         {/* Setup Progress - pinned sidebar overlay */}

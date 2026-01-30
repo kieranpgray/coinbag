@@ -16,6 +16,7 @@ import { convertToFrequency, getFrequencyLabelForDisplay, normalizeToFrequency, 
 interface ExpenseListProps {
   expenses: Expense[];
   categoryMap: Map<string, string>;
+  accountMap: Map<string, string>;
   uncategorisedId?: string;
   onEdit: (expense: Expense) => void;
   onDelete: (expense: Expense) => void;
@@ -30,6 +31,7 @@ interface ExpenseListProps {
 export function ExpenseList({
   expenses,
   categoryMap,
+  accountMap,
   uncategorisedId,
   onEdit,
   onDelete,
@@ -50,7 +52,7 @@ export function ExpenseList({
             <TableHead className="text-right">Amount</TableHead>
             <TableHead>Frequency</TableHead>
             <TableHead>Next Due Date</TableHead>
-            <TableHead>Notes</TableHead>
+            <TableHead>Paid From</TableHead>
             <TableHead className="text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
@@ -100,8 +102,8 @@ export function ExpenseList({
                   <TableCell>{getCategoryName(expense.categoryId)}</TableCell>
                   <TableCell className="text-right">{formatCurrency(displayAmount)}</TableCell>
                   <TableCell className="capitalize">{displayFreqLabel}</TableCell>
-                  <TableCell>{format(new Date(expense.nextDueDate), 'MMM d, yyyy')}</TableCell>
-                  <TableCell>{expense.notes || '-'}</TableCell>
+                  <TableCell>{expense.nextDueDate ? format(new Date(expense.nextDueDate), 'MMM d, yyyy') : '-'}</TableCell>
+                  <TableCell>{expense.paidFromAccountId ? (accountMap.get(expense.paidFromAccountId) || 'Unknown Account') : '-'}</TableCell>
                   <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
                     <div className="flex justify-end gap-2">
                       <Button

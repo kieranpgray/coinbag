@@ -52,6 +52,9 @@ const confidenceScoreSchema = z.number()
   .optional()
   .nullable();
 
+// Correlation ID validation (optional, but recommended)
+const correlationIdSchema = z.string().max(200).trim().optional();
+
 // API request schemas
 export const statementImportCreateSchema = z.object({
   accountId: uuidSchema,
@@ -60,6 +63,7 @@ export const statementImportCreateSchema = z.object({
   fileHash: fileHashSchema,
   fileSize: z.number().int().positive('File size must be positive'),
   mimeType: mimeTypeSchema,
+  correlationId: correlationIdSchema,
 });
 
 export const statementImportUpdateSchema = z.object({
@@ -72,6 +76,7 @@ export const statementImportUpdateSchema = z.object({
   errorMessage: z.string().max(VALIDATION_LIMITS.errorMessage.max).trim().optional().nullable(),
   metadata: z.record(z.unknown()).optional(),
   completedAt: z.string().optional().nullable(),
+  correlationId: correlationIdSchema,
 });
 
 // API response schemas
@@ -92,6 +97,7 @@ export const statementImportEntitySchema = z.object({
   confidenceScore: confidenceScoreSchema,
   errorMessage: z.string().trim().optional().nullable(),
   metadata: z.record(z.unknown()),
+  correlationId: z.string().optional().nullable(),
   createdAt: z.string(),
   updatedAt: z.string(),
   completedAt: z.string().optional().nullable(),

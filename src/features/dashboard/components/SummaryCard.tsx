@@ -83,7 +83,7 @@ export const SummaryCard = memo(function SummaryCard({
     return (
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">{title}</CardTitle>
+          <CardTitle>{title}</CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-sm text-muted-foreground mb-4">{emptyText}</p>
@@ -98,10 +98,10 @@ export const SummaryCard = memo(function SummaryCard({
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-lg">{title}</CardTitle>
+        <CardTitle>{title}</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="text-2xl font-bold mb-2">
+        <div className="text-xl font-bold mb-2">
           <PrivacyWrapper value={value} />
         </div>
         <div className="flex gap-4 text-xs">

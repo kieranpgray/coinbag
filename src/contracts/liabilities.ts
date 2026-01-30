@@ -15,6 +15,26 @@ const VALIDATION_LIMITS = {
   institution: { max: 100 },
 } as const;
 
+// Base institution validation (optional)
+// Standardized across all contracts to handle empty strings consistently
+const institutionSchema = z.preprocess(
+  (val) => {
+    // Handle null/undefined values before string validation
+    if (val === null || val === undefined) return '';
+    return val;
+  },
+  z.string()
+    .max(VALIDATION_LIMITS.institution.max, `Institution name must be less than ${VALIDATION_LIMITS.institution.max} characters`)
+    .trim()
+    .optional()
+    .or(z.literal(''))
+    .transform((val) => {
+      // Convert empty string to undefined for consistent TypeScript types
+      if (val === '') return undefined;
+      return val;
+    })
+);
+
 // Liability type enum
 const liabilityTypeSchema = z.enum(['Loans', 'Credit Cards', 'Other'], {
   errorMap: () => ({ message: 'Invalid liability type' }),
@@ -107,11 +127,7 @@ export const liabilityCreateSchema = z.object({
   interestRate: interestRateSchema,
   monthlyPayment: monthlyPaymentSchema,
   dueDate: dueDateSchema,
-  institution: z.string()
-    .max(VALIDATION_LIMITS.institution.max, `Institution name must be less than ${VALIDATION_LIMITS.institution.max} characters`)
-    .trim()
-    .optional()
-    .transform(e => e === '' ? undefined : e), // Convert empty string to undefined
+  institution: institutionSchema,
   // Note: repaymentAmount and repaymentFrequency are not included in create schema
   // as they are only used for update operations and the database columns may not exist
 });
@@ -123,11 +139,7 @@ export const liabilityUpdateSchema = z.object({
   interestRate: interestRateSchema,
   monthlyPayment: monthlyPaymentSchema,
   dueDate: dueDateSchema,
-  institution: z.string()
-    .max(VALIDATION_LIMITS.institution.max, `Institution name must be less than ${VALIDATION_LIMITS.institution.max} characters`)
-    .trim()
-    .optional()
-    .transform(e => e === '' ? null : e), // Convert empty string to null for DB
+  institution: institutionSchema,
   repaymentAmount: repaymentAmountSchema,
   repaymentFrequency: repaymentFrequencySchema,
 });

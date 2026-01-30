@@ -57,6 +57,8 @@ const migrations = [
   { file: '20251228160000_create_goals_table.sql', name: 'Goals Table' },
   { file: '20251228170000_test_jwt_extraction_function.sql', name: 'JWT Extraction Test Function' },
   { file: '20251228180000_data_recovery_fix_user_ids.sql', name: 'Data Recovery Fix' },
+  { file: '20251231000004_remove_available_balance_and_make_institution_optional.sql', name: 'Remove Available Balance & Make Institution Optional' },
+  { file: '20260106000000_ensure_institution_is_optional.sql', name: 'Ensure Institution Optional (Safeguard)' },
 ];
 
 async function runMigration(supabase, migrationFile, migrationName) {

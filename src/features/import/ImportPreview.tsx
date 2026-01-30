@@ -50,7 +50,7 @@ export function ImportPreview({
             <CardTitle className="text-sm font-medium">Total Rows</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{summary.totalRows}</div>
+            <div className="text-balance font-bold">{summary.totalRows}</div>
           </CardContent>
         </Card>
 
@@ -59,7 +59,7 @@ export function ImportPreview({
             <CardTitle className="text-sm font-medium">Valid</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">
+            <div className="text-balance font-bold text-green-600">
               {summary.validRows}
             </div>
           </CardContent>
@@ -70,7 +70,7 @@ export function ImportPreview({
             <CardTitle className="text-sm font-medium">Errors</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-600">
+            <div className="text-balance font-bold text-red-600">
               {summary.errorRows}
             </div>
           </CardContent>
@@ -81,7 +81,7 @@ export function ImportPreview({
             <CardTitle className="text-sm font-medium">Duplicates</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-yellow-600">
+            <div className="text-balance font-bold text-yellow-600">
               {summary.duplicateRows}
             </div>
           </CardContent>
@@ -92,7 +92,7 @@ export function ImportPreview({
             <CardTitle className="text-sm font-medium">Warnings</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-yellow-600">
+            <div className="text-balance font-bold text-yellow-600">
               {summary.warningRows}
             </div>
           </CardContent>

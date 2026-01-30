@@ -22,7 +22,7 @@ export function WealthBreakdown({
       <CardContent className="p-0">
         {/* Header */}
         <div className="flex items-center justify-between p-4">
-          <h2 className="text-lg font-semibold text-foreground">
+          <h2 className="text-h2-sm sm:text-h2-md lg:text-h2-lg font-semibold text-foreground">
             Breakdown
           </h2>
         </div>
@@ -32,10 +32,10 @@ export function WealthBreakdown({
           {/* Assets Row */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Assets</span>
+              <span className="text-body-sm text-muted-foreground">Assets</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-xl font-bold text-foreground">
+              <span className="text-body-lg font-bold text-foreground">
                 {formatCurrency(totalAssets)}
               </span>
               <div className="h-2 w-2 rounded-full bg-success" aria-label="Positive status" />
@@ -45,10 +45,10 @@ export function WealthBreakdown({
           {/* Liabilities Row */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Liabilities</span>
+              <span className="text-body-sm text-muted-foreground">Liabilities</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-xl font-bold text-foreground">
+              <span className="text-body-lg font-bold text-foreground">
                 -{formatCurrency(totalLiabilities)}
               </span>
               <div className="h-2 w-2 rounded-full bg-error" aria-label="Liability status" />
@@ -61,10 +61,10 @@ export function WealthBreakdown({
           {/* Net Worth Row */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Net Worth</span>
+              <span className="text-body-sm text-muted-foreground">Net Worth</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-xl font-bold text-foreground">
+              <span className="text-body-lg font-bold text-foreground">
                 {formatCurrency(netWorth)}
               </span>
               <div

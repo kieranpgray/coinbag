@@ -23,7 +23,7 @@ export function CategoriesPage() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">Categories</h1>
+            <h1 className="text-h1-sm sm:text-h1-md lg:text-h1-lg font-bold tracking-tight">Categories</h1>
             <p className="text-muted-foreground">
               Organize your subscriptions with custom categories
             </p>
@@ -75,7 +75,7 @@ export function CategoriesPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Categories</h1>
+          <h1 className="text-h1-sm sm:text-h1-md lg:text-h1-lg font-bold tracking-tight">Categories</h1>
           <p className="text-muted-foreground">
             Organize your subscriptions with custom categories
           </p>
@@ -108,7 +108,7 @@ export function CategoriesPage() {
                   />
                 </svg>
               </div>
-              <h3 className="text-lg font-medium text-foreground mb-2">No categories yet</h3>
+              <h3 className="text-h3 font-medium text-foreground mb-2">No categories yet</h3>
               <p className="text-muted-foreground mb-6 max-w-sm mx-auto">
                 Create categories to organize your subscriptions and track expenses more effectively.
               </p>

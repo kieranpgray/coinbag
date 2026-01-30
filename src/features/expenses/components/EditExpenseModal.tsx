@@ -52,3 +52,6 @@ export function EditExpenseModal({ expense, open, onOpenChange }: EditExpenseMod
 }
 
 
+
+
+

@@ -93,12 +93,76 @@ export class SupabaseTransactionsRepository implements TransactionsRepository {
     };
   }
 
-  async list(accountId?: string, getToken?: () => Promise<string | null>) {
+  async list(accountId?: string, getToken?: () => Promise<string | null>, statementImportId?: string) {
     try {
       const correlationId = getCorrelationId();
+      const isProduction = import.meta.env.MODE === 'production' || import.meta.env.PROD === true;
+      const dataSource = import.meta.env.VITE_DATA_SOURCE || 'supabase';
+      
+      // CRITICAL: Verify we're using Supabase, not mock data
+      if (dataSource === 'mock') {
+        logger.error('DB:TRANSACTION_LIST', 'CRITICAL: Mock data source detected! Transactions will not persist.', {
+          dataSource,
+          accountId,
+          statementImportId,
+          note: 'Set VITE_DATA_SOURCE=supabase in environment variables'
+        }, correlationId || undefined);
+        throw new Error('Mock data source is not supported for transactions. Set VITE_DATA_SOURCE=supabase');
+      }
       
       if (!getToken) {
         throw new Error('getToken function is required');
+      }
+
+      logger.info('DB:TRANSACTION_LIST', 'Fetching transactions from Supabase', {
+        dataSource,
+        accountId,
+        statementImportId,
+        isProduction
+      }, correlationId || undefined);
+
+      // Dev-only: Log auth context for RLS diagnostics
+      if (import.meta.env.DEV || import.meta.env.VITE_DEBUG_LOGGING === 'true') {
+        try {
+          const { getUserIdFromToken } = await import('@/lib/supabaseClient');
+          const userId = await getUserIdFromToken(getToken);
+          const { data: sessionData } = await (await import('@/lib/supabase/supabaseBrowserClient')).getSupabaseBrowserClient().auth.getSession();
+          const sessionUserId = sessionData?.session?.user?.id;
+          
+          console.log("[TX Fetch]", {
+            correlationId,
+            userId,
+            sessionUserId,
+            accountId,
+            statementImportId,
+            hasSession: !!sessionData?.session,
+          });
+          
+          logger.debug(
+            'DB:TRANSACTION_LIST:AUTH',
+            'Auth context for transaction fetch',
+            {
+              correlationId,
+              userId,
+              sessionUserId,
+              accountId,
+              statementImportId,
+              hasSession: !!sessionData?.session,
+            },
+            correlationId || undefined
+          );
+        } catch (authError) {
+          // Non-fatal - just log and continue
+          logger.debug(
+            'DB:TRANSACTION_LIST:AUTH',
+            'Could not get auth context for diagnostics',
+            {
+              correlationId,
+              error: authError instanceof Error ? authError.message : String(authError),
+            },
+            correlationId || undefined
+          );
+        }
       }
 
       const supabase = await createAuthenticatedSupabaseClient(getToken);
@@ -112,7 +176,39 @@ export class SupabaseTransactionsRepository implements TransactionsRepository {
         query = query.eq('account_id', accountId);
       }
 
+      // CRITICAL: Filter by statement_import_id if provided (provenance filtering)
+      if (statementImportId) {
+        query = query.eq('statement_import_id', statementImportId);
+        logger.info('DB:TRANSACTION_LIST', 'Filtering transactions by statement_import_id', { accountId, statementImportId }, correlationId || undefined);
+      }
+
+      // CRITICAL: In production, only show transactions with statement_import_id (provenance from OCR)
+      // This prevents showing test/manual transactions in production views
+      // Allow null in dev/test for manual testing
+      if (isProduction && !statementImportId) {
+        query = query.not('statement_import_id', 'is', null);
+        logger.info('DB:TRANSACTION_LIST', 'Production mode: filtering out transactions without statement_import_id', { accountId }, correlationId || undefined);
+      }
+
       const { data, error } = await query;
+
+      // === CHECKPOINT 6: API RESPONSE ===
+      const transactionsReturned = data?.length || 0
+      console.log('=== CHECKPOINT 6: API RESPONSE ===')
+      console.log('File: src/data/transactions/supabaseRepo.ts:193')
+      console.log('Query parameters:', { accountId, statementImportId })
+      console.log('Transactions returned to UI:', transactionsReturned)
+      console.log('Sample transactions (first 3):', data?.slice(0, 3))
+      console.log('Status:', transactionsReturned >= 40 ? `✅ ${transactionsReturned} transactions (expected ~43)` : `❌ Only ${transactionsReturned} transactions (expected 43)`)
+      
+      logger.info('CHECKPOINT:API_RESPONSE', 'API response checkpoint', {
+        file: 'src/data/transactions/supabaseRepo.ts:193',
+        queryParameters: { accountId, statementImportId },
+        transactionsReturned: transactionsReturned,
+        sampleTransactions: data?.slice(0, 3),
+        status: transactionsReturned >= 40 ? 'OK' : 'LOSS_DETECTED',
+        expectedCount: 43
+      }, correlationId || undefined)
 
       if (error) {
         console.error('Supabase transactions list error:', error);
@@ -142,8 +238,73 @@ export class SupabaseTransactionsRepository implements TransactionsRepository {
         };
       }
 
-      logger.info('DB:TRANSACTION_LIST', 'Transactions listed successfully from Supabase', { count: validation.data.length, accountId }, correlationId || undefined);
-      return { data: validation.data };
+      // CRITICAL: Runtime validation - filter out any transactions without statement_import_id in production
+      // This is a safety net in case the query filter didn't work as expected
+      let validatedTransactions = validation.data;
+      if (isProduction && !statementImportId) {
+        const beforeCount = validatedTransactions.length;
+        validatedTransactions = validatedTransactions.filter(tx => tx.statementImportId !== null && tx.statementImportId !== undefined);
+        const filteredCount = beforeCount - validatedTransactions.length;
+        if (filteredCount > 0) {
+          logger.warn('DB:TRANSACTION_LIST', 'Filtered out transactions without statement_import_id (runtime safety check)', { 
+            accountId, 
+            beforeCount, 
+            afterCount: validatedTransactions.length,
+            filteredCount 
+          }, correlationId || undefined);
+        }
+      }
+
+      // CRITICAL: If statementImportId was provided, ensure ALL returned transactions match
+      // This prevents data leakage if query filter fails
+      if (statementImportId) {
+        const mismatched = validatedTransactions.filter(tx => tx.statementImportId !== statementImportId);
+        if (mismatched.length > 0) {
+          logger.error('DB:TRANSACTION_LIST', 'CRITICAL: Transactions returned with mismatched statement_import_id', { 
+            accountId, 
+            expectedStatementImportId: statementImportId,
+            mismatchedCount: mismatched.length,
+            mismatchedIds: mismatched.map(tx => tx.id)
+          }, correlationId || undefined);
+          // In production, filter them out for safety
+          if (isProduction) {
+            validatedTransactions = validatedTransactions.filter(tx => tx.statementImportId === statementImportId);
+          }
+        }
+      }
+
+      logger.info('DB:TRANSACTION_LIST', 'Transactions listed successfully from Supabase', { 
+        count: validatedTransactions.length, 
+        accountId, 
+        statementImportId,
+        hasProvenanceFilter: !!statementImportId || (isProduction && !statementImportId)
+      }, correlationId || undefined);
+      
+      // CRITICAL: Log query results for debugging
+      const incomeCount = validatedTransactions.filter(tx => tx.type === 'income').length;
+      const expenseCount = validatedTransactions.filter(tx => tx.type === 'expense').length;
+      const positiveAmountCount = validatedTransactions.filter(tx => tx.amount > 0).length;
+      const negativeAmountCount = validatedTransactions.filter(tx => tx.amount < 0).length;
+      
+      logger.info('DB:TRANSACTION_LIST:QUERY_RESULT', 'Transaction query results with sample data', {
+        accountId,
+        statementImportId,
+        totalCount: validatedTransactions.length,
+        incomeCount,
+        expenseCount,
+        positiveAmountCount,
+        negativeAmountCount,
+        sampleTransactions: validatedTransactions.slice(0, 5).map(tx => ({
+          id: tx.id,
+          amount: tx.amount,
+          type: tx.type,
+          description: tx.description?.substring(0, 50),
+          date: tx.date,
+          amountSignMatchesType: (tx.type === 'income' && tx.amount > 0) || (tx.type === 'expense' && tx.amount < 0)
+        }))
+      }, correlationId || undefined);
+      
+      return { data: validatedTransactions };
     } catch (error) {
       console.error('List transactions error:', error);
       return { error: this.normalizeSupabaseError(error), data: [] };

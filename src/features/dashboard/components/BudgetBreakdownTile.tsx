@@ -52,7 +52,7 @@ export const BudgetBreakdownTile = memo(function BudgetBreakdownTile({
       <Card className="border border-neutral-200">
         <CardContent className="p-0">
           <div className="p-4">
-            <h2 className="text-lg font-semibold text-foreground mb-4">In and Out</h2>
+            <h2 className="text-h2-sm sm:text-h2-md lg:text-h2-lg font-semibold text-foreground mb-4">In and Out</h2>
             <p className="text-sm text-muted-foreground mb-4">
               Add income and expenses to see your in and out breakdown.
             </p>
@@ -75,7 +75,7 @@ export const BudgetBreakdownTile = memo(function BudgetBreakdownTile({
       <CardContent className="p-0">
         {/* Header */}
         <div className="p-4">
-          <h2 className="text-lg font-semibold text-foreground">
+          <h2 className="text-h2-sm sm:text-h2-md lg:text-h2-lg font-semibold text-foreground">
             In and Out
           </h2>
         </div>
@@ -85,10 +85,10 @@ export const BudgetBreakdownTile = memo(function BudgetBreakdownTile({
           {/* Income Row */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Income</span>
+              <span className="text-body-sm text-muted-foreground">Income</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-xl font-bold text-foreground">
+              <span className="text-body-lg font-bold text-foreground">
                 <PrivacyWrapper value={totalIncome} />
               </span>
               <div className="h-2 w-2 rounded-full bg-success" aria-label="Positive status" />
@@ -98,10 +98,10 @@ export const BudgetBreakdownTile = memo(function BudgetBreakdownTile({
           {/* Outgoing Row (combined expenses, savings, repayments) */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Outgoing</span>
+              <span className="text-body-sm text-muted-foreground">Outgoing</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-xl font-bold text-foreground">
+              <span className="text-body-lg font-bold text-foreground">
                 -<PrivacyWrapper value={totalOutgoing} />
               </span>
               <div className="h-2 w-2 rounded-full bg-error" aria-label="Outgoing status" />
@@ -114,10 +114,10 @@ export const BudgetBreakdownTile = memo(function BudgetBreakdownTile({
           {/* Remaining Row */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Remaining</span>
+              <span className="text-body-sm text-muted-foreground">Remaining</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-xl font-bold text-foreground">
+              <span className="text-body-lg font-bold text-foreground">
                 <PrivacyWrapper value={remaining} />
               </span>
               <div

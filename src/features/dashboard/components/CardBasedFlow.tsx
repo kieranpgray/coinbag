@@ -89,16 +89,16 @@ export function CardBasedFlow() {
         className="text-center mb-12"
       >
         {/* Welcome Badge */}
-        <div className="inline-flex items-center gap-2 bg-blue-50 text-blue-600 rounded-full px-4 py-2 mb-6">
+        <div className="inline-flex items-center gap-2 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full px-4 py-2 mb-6">
           <Sparkles className="w-4 h-4" />
           <span className="text-sm">Welcome to Coinbag</span>
         </div>
 
         {/* Main Heading */}
-        <h2 className="mb-3">Let's get your finances organized</h2>
+        <h2 className="text-h2-sm sm:text-h2-md lg:text-h2-lg font-semibold mb-3">Let's get your finances organized</h2>
 
         {/* Subheading */}
-        <p className="text-gray-600 max-w-md mx-auto">
+        <p className="text-muted-foreground max-w-md mx-auto">
           Choose any action below to start tracking your wealth and building better financial habits
         </p>
       </motion.div>
@@ -148,8 +148,8 @@ export function CardBasedFlow() {
 
                   {/* Text Content */}
                   <div className="flex-1 text-left">
-                    <h3 className="mb-1">{card.title}</h3>
-                    <p className="text-sm text-gray-600 mb-4">{card.description}</p>
+                    <h3 className="text-h3 mb-1 text-foreground">{card.title}</h3>
+                    <p className="text-sm text-muted-foreground mb-4">{card.description}</p>
 
                     {/* Action Button */}
                     <Button

@@ -12,23 +12,28 @@ export function Layout() {
   return (
     <>
       <SignedIn>
-        <div className="min-h-screen flex flex-col">
+        <div className="h-screen overflow-hidden flex">
           <a href="#main-content" className="skip-to-content">
             Skip to main content
           </a>
-          <Header />
-          <div className="flex flex-1 flex-col md:flex-row">
-            {/* Persistent sidebar with theme-aware background and border for visual separation */}
-            <Sidebar />
-            {/* Main content area with neutral background hosting page-level containers */}
-            <main id="main-content" className="flex-1 bg-background focus:outline-none" tabIndex={-1}>
-              {/* Global container wrapper for all pages - provides centered, padded, max-width layout */}
-              <div className="container pt-8">
-                <Outlet />
-              </div>
-            </main>
+          {/* Fixed left sidebar - full viewport height */}
+          <Sidebar />
+          {/* Main container - header + scrollable content area */}
+          <div className="flex-1 flex flex-col min-w-0">
+            {/* Fixed top header */}
+            <Header />
+            {/* Scrollable content area */}
+            <div className="flex-1 overflow-y-auto flex flex-col">
+              {/* Main content area with neutral background hosting page-level containers */}
+              <main id="main-content" className="bg-background focus:outline-none flex-1" tabIndex={-1}>
+                {/* Global container wrapper for all pages - provides centered, padded, max-width layout */}
+                <div className="container pt-8">
+                  <Outlet />
+                </div>
+              </main>
+              <Footer />
+            </div>
           </div>
-          <Footer />
         </div>
       </SignedIn>
       <SignedOut>

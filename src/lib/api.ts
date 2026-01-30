@@ -274,6 +274,16 @@ export const accountsApi = {
 
 /**
  * Transactions API
+ * 
+ * @deprecated This API uses in-memory mock data and should NOT be used in production code.
+ * Use the transactions repository pattern instead:
+ * - `createTransactionsRepository()` from `@/data/transactions/repo`
+ * - `useTransactions()` hook from `@/features/transactions/hooks`
+ * 
+ * CRITICAL: This API can return mock/fake transaction data.
+ * The repository pattern ensures only factual transactions from statement imports are returned.
+ * 
+ * Currently only used by `dashboardApi.getData()` which should be migrated to use the repository.
  */
 export const transactionsApi = {
   async getAll(params?: {
@@ -282,6 +292,11 @@ export const transactionsApi = {
     dateRange?: string;
     accountId?: string;
   }): Promise<{ data: Transaction[]; total: number }> {
+    // CRITICAL: Warn in production if this is accidentally used
+    if (import.meta.env.MODE === 'production' || import.meta.env.PROD === true) {
+      console.error('[DEPRECATED] transactionsApi.getAll() called in production! This uses mock data. Use transactions repository instead.');
+    }
+    
     await randomDelay();
     let filtered = [...transactions];
 
@@ -392,7 +407,7 @@ export const incomeApi = {
       amount: data.amount,
       frequency: data.frequency,
       nextPaymentDate: data.nextPaymentDate,
-      notes: data.notes,
+      paidToAccountId: data.paidToAccountId,
     };
     incomes.push(newIncome);
     return newIncome;
@@ -415,7 +430,7 @@ export const incomeApi = {
       amount: data.amount ?? existing.amount,
       frequency: data.frequency ?? existing.frequency,
       nextPaymentDate: data.nextPaymentDate ?? existing.nextPaymentDate,
-      notes: data.notes ?? existing.notes,
+      paidToAccountId: data.paidToAccountId ?? existing.paidToAccountId,
     };
     incomes[index] = updated;
     return updated;
@@ -579,7 +594,10 @@ export const dashboardApi = {
     const expensesData = expensesResult.data ?? [];
     const incomesData = incomeResult.data ?? [];
     
-    // Keep using legacy transactionsApi for now (no repository yet)
+    // TODO: Migrate to transactions repository pattern
+    // Currently using legacy transactionsApi which uses in-memory mock data.
+    // Should use: createTransactionsRepository().list() for production data.
+    // Note: This only affects transaction counts in dashboard, not the transaction list UI.
     const [transactionsResult] = await Promise.all([
       transactionsApi.getAll(),
     ]);

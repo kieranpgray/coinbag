@@ -57,7 +57,7 @@ export const IncomeBreakdown = memo(function IncomeBreakdownComponent({
       </CardHeader>
       <CardContent>
         <div className="mb-4">
-          <div className="text-2xl font-bold mb-2">
+          <div className="text-xl font-bold mb-2">
             <PrivacyWrapper value={totalAmount} />
           </div>
           <p className="text-sm text-muted-foreground">Monthly recurring income</p>

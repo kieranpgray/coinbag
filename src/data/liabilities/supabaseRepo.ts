@@ -168,38 +168,40 @@ export class SupabaseLiabilitiesRepository implements LiabilitiesRepository {
       // Handle different error types
       if (error) {
         const errorMessage = error?.message || '';
-        const errorCode = typeof error === 'object' && error !== null && 'code' in error 
-          ? String((error as { code?: unknown }).code) 
+        const errorCode = typeof error === 'object' && error !== null && 'code' in error
+          ? String((error as { code?: unknown }).code)
           : '';
         const errorStatus = typeof error === 'object' && error !== null && 'status' in error
           ? (error as { status?: unknown }).status
           : undefined;
-        
-        // Check if it's a missing column error
-        const isMissingColumnError = 
-          errorMessage.includes('column') || 
+
+        // Check if it's specifically a missing column error (be more conservative)
+        const isMissingColumnError =
+          errorMessage.includes('column') && (errorMessage.includes('repayment_amount') || errorMessage.includes('repayment_frequency')) ||
           errorCode === '42703' ||
-          errorCode === 'PGRST100' ||
-          (errorStatus === 400 && (errorMessage.includes('repayment_amount') || errorMessage.includes('repayment_frequency')));
-        
+          errorCode === 'PGRST100';
+
         // Check if it's an RLS/permission error
-        const isRLSError = 
+        const isRLSError =
           errorCode === '42501' ||
+          errorCode === 'PGRST301' ||
           errorMessage.includes('permission denied') ||
-          errorMessage.includes('row-level security');
-        
+          errorMessage.includes('row-level security') ||
+          errorMessage.includes('JWT') ||
+          errorMessage.includes('policy');
+
         if (isMissingColumnError) {
-          logger.warn('DB:LIABILITY_LIST', 'Repayment columns may not exist, trying without them', { 
+          logger.warn('DB:LIABILITY_LIST', 'Repayment columns may not exist, trying without them', {
             error: errorMessage,
             code: errorCode,
-            status: typeof errorStatus === 'number' ? errorStatus : undefined,
+            status: errorStatus,
           }, correlationId || undefined);
-          
+
           const retry = await supabase
             .from('liabilities')
             .select(this.selectColumnsBasic)
             .order('created_at', { ascending: false });
-          
+
           if (retry.error) {
             // Still an error, use the original error
             error = retry.error;
@@ -213,22 +215,56 @@ export class SupabaseLiabilitiesRepository implements LiabilitiesRepository {
             error = null;
           }
         } else if (isRLSError) {
-          // RLS error - log with more detail
-          logger.error('DB:LIABILITY_LIST', 'RLS policy may be blocking query', { 
-            error: errorMessage, 
+          // RLS error - log with more detail and don't retry
+          logger.error('DB:LIABILITY_LIST', 'RLS policy or authentication error blocking query', {
+            error: errorMessage,
             code: errorCode,
+            status: errorStatus,
             hint: (error as any).hint,
             details: (error as any).details,
           }, correlationId || undefined);
         } else {
-          // Other error - log with full details
-          logger.error('DB:LIABILITY_LIST', 'Failed to list liabilities from Supabase', { 
-            error: errorMessage, 
+          // Other error - log with full details and check if it's a 400 that should be retried
+          logger.error('DB:LIABILITY_LIST', 'Failed to list liabilities from Supabase', {
+            error: errorMessage,
             code: errorCode,
             status: typeof errorStatus === 'number' ? errorStatus : undefined,
             hint: (error as any).hint,
             details: (error as any).details,
           }, correlationId || undefined);
+
+          // For 400 errors that might be due to query structure issues, try fallback as last resort
+          if (errorStatus === 400 && !errorMessage.includes('JWT') && !errorMessage.includes('auth')) {
+            logger.warn('DB:LIABILITY_LIST', '400 error detected, trying fallback query as last resort', {
+              error: errorMessage,
+              code: errorCode,
+              status: errorStatus,
+            }, correlationId || undefined);
+
+            const fallbackRetry = await supabase
+              .from('liabilities')
+              .select(this.selectColumnsBasic)
+              .order('created_at', { ascending: false });
+
+            if (fallbackRetry.error) {
+              // Still failed, keep original error
+              logger.error('DB:LIABILITY_LIST', 'Fallback query also failed', {
+                fallbackError: fallbackRetry.error.message,
+                originalError: errorMessage,
+              }, correlationId || undefined);
+            } else {
+              // Fallback succeeded - use it
+              logger.info('DB:LIABILITY_LIST', 'Fallback query succeeded for 400 error', {
+                count: fallbackRetry.data?.length || 0,
+              }, correlationId || undefined);
+              data = (fallbackRetry.data || []).map((row: Record<string, unknown>) => ({
+                ...row,
+                repayment_amount: null,
+                repayment_frequency: null,
+              })) as typeof data;
+              error = null;
+            }
+          }
         }
       }
 
@@ -302,36 +338,33 @@ export class SupabaseLiabilitiesRepository implements LiabilitiesRepository {
         .eq('id', id)
         .single();
 
-      // If error suggests missing columns, try without repayment fields
+      // If error suggests missing columns, try without repayment fields (be more conservative)
       const errorMessage = error?.message || '';
-      const errorCode = typeof error === 'object' && error !== null && 'code' in error 
-        ? String((error as { code?: unknown }).code) 
+      const errorCode = typeof error === 'object' && error !== null && 'code' in error
+        ? String((error as { code?: unknown }).code)
         : '';
       const errorStatus = typeof error === 'object' && error !== null && 'status' in error
         ? (error as { status?: unknown }).status
         : undefined;
-      const isMissingColumnError = 
-        errorMessage.includes('column') || 
+      const isMissingColumnError =
+        errorMessage.includes('column') && (errorMessage.includes('repayment_amount') || errorMessage.includes('repayment_frequency')) ||
         errorCode === '42703' ||
-        errorCode === 'PGRST100' ||
-        errorStatus === 400 ||
-        errorMessage.includes('repayment_amount') ||
-        errorMessage.includes('repayment_frequency');
-      
+        errorCode === 'PGRST100';
+
       if (error && isMissingColumnError) {
-        logger.warn('DB:LIABILITY_GET', 'Repayment columns may not exist, trying without them', { 
+        logger.warn('DB:LIABILITY_GET', 'Repayment columns may not exist, trying without them', {
           liabilityId: id,
           error: errorMessage,
           code: errorCode,
           status: typeof errorStatus === 'number' ? errorStatus : undefined,
         }, correlationId || undefined);
-        
+
         const retry = await supabase
           .from('liabilities')
           .select(this.selectColumnsBasic)
           .eq('id', id)
           .single();
-        
+
         if (retry.error) {
           // Still an error, use the original error
           error = retry.error;
@@ -342,6 +375,40 @@ export class SupabaseLiabilitiesRepository implements LiabilitiesRepository {
             repayment_amount: null,
             repayment_frequency: null,
           } : null) as typeof data;
+          error = null;
+        }
+      } else if (error && errorStatus === 400 && !errorMessage.includes('JWT') && !errorMessage.includes('auth')) {
+        // For 400 errors that might be due to query structure issues, try fallback as last resort
+        logger.warn('DB:LIABILITY_GET', '400 error detected in get, trying fallback query', {
+          liabilityId: id,
+          error: errorMessage,
+          code: errorCode,
+          status: errorStatus,
+        }, correlationId || undefined);
+
+        const fallbackRetry = await supabase
+          .from('liabilities')
+          .select(this.selectColumnsBasic)
+          .eq('id', id)
+          .single();
+
+        if (fallbackRetry.error) {
+          // Still failed, keep original error
+          logger.error('DB:LIABILITY_GET', 'Fallback query also failed', {
+            liabilityId: id,
+            fallbackError: fallbackRetry.error.message,
+            originalError: errorMessage,
+          }, correlationId || undefined);
+        } else {
+          // Fallback succeeded - use it
+          logger.info('DB:LIABILITY_GET', 'Fallback query succeeded for 400 error', {
+            liabilityId: id,
+          }, correlationId || undefined);
+          data = {
+            ...fallbackRetry.data,
+            repayment_amount: null,
+            repayment_frequency: null,
+          } as typeof data;
           error = null;
         }
       }
@@ -448,9 +515,8 @@ export class SupabaseLiabilitiesRepository implements LiabilitiesRepository {
       if (validation.data.dueDate !== undefined) {
         dbInput.due_date = validation.data.dueDate;
       }
-      if (validation.data.institution !== undefined) {
-        dbInput.institution = validation.data.institution;
-      }
+      // Institution is optional - explicitly handle undefined to null for database
+      dbInput.institution = validation.data.institution ?? null;
       // Note: repaymentAmount and repaymentFrequency are not included in create operations
       // as the database columns may not exist. They are only used in update operations.
 
@@ -570,9 +636,8 @@ export class SupabaseLiabilitiesRepository implements LiabilitiesRepository {
       if (validation.data.dueDate !== undefined) {
         dbInput.due_date = validation.data.dueDate;
       }
-      if (validation.data.institution !== undefined) {
-        dbInput.institution = validation.data.institution;
-      }
+      // Institution is optional - explicitly handle undefined to null for database
+      dbInput.institution = validation.data.institution ?? null;
       if (validation.data.repaymentAmount !== undefined) {
         dbInput.repayment_amount = validation.data.repaymentAmount;
       }

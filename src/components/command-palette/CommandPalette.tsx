@@ -136,16 +136,16 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
         <div className="flex items-center justify-between border-t px-4 py-2 text-xs text-muted-foreground">
           <div className="flex items-center gap-4">
             <span className="flex items-center gap-1">
-              <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100">
+              <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-caption font-medium opacity-100">
                 <span className="text-xs">↑</span>
               </kbd>
-              <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100">
+              <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-caption font-medium opacity-100">
                 <span className="text-xs">↓</span>
               </kbd>
               <span>Navigate</span>
             </span>
             <span className="flex items-center gap-1">
-              <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100">
+              <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-caption font-medium opacity-100">
                 Enter
               </kbd>
               <span>Select</span>

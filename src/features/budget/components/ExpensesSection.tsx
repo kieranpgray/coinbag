@@ -20,6 +20,7 @@ import { convertToFrequency, getFrequencyLabelForDisplay, type Frequency, FREQUE
 interface ExpensesSectionProps {
   expenses: Expense[];
   categoryMap: Map<string, string>;
+  accountMap: Map<string, string>;
   uncategorisedId?: string;
   onCreate: (expenseType?: ExpenseType) => void;
   onEdit: (expense: Expense) => void;
@@ -36,6 +37,7 @@ interface ExpensesSectionProps {
 export function ExpensesSection({
   expenses,
   categoryMap,
+  accountMap,
   uncategorisedId,
   onCreate,
   onEdit,
@@ -111,16 +113,16 @@ export function ExpensesSection({
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <div className="flex items-center gap-3 mb-2">
-            <div className="h-10 w-10 rounded-full bg-red-100 flex items-center justify-center">
-              <TrendingDown className="h-5 w-5 text-red-600" />
+            <div className="h-10 w-10 rounded-full bg-red-100 dark:bg-red-900/20 flex items-center justify-center">
+              <TrendingDown className="h-5 w-5 text-red-600 dark:text-red-400" />
             </div>
-            <h2 className="text-neutral-600 text-xl sm:text-2xl font-semibold">Expenses</h2>
+            <h2 className="text-muted-foreground text-h2-sm sm:text-h2-md lg:text-h2-lg font-semibold">Expenses</h2>
           </div>
           <div className="flex flex-col sm:flex-row sm:items-baseline gap-2">
-            <span className="text-3xl sm:text-4xl font-bold">
+            <span className="text-balance font-bold text-foreground">
               {formatCurrency(displayExpenses)}
             </span>
-            <span className="text-neutral-500">per {getFrequencyLabelForDisplay(displayFrequency)}</span>
+            <span className="text-muted-foreground">per {getFrequencyLabelForDisplay(displayFrequency)}</span>
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-3">
@@ -150,12 +152,12 @@ export function ExpensesSection({
 
       {/* Category Tabs */}
       <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as ExpenseType | 'all')} className="w-full">
-        <TabsList className="bg-neutral-100 p-1">
-          <TabsTrigger value="all" className="data-[state=active]:bg-white">
+        <TabsList className="bg-muted p-1">
+          <TabsTrigger value="all" className="data-[state=active]:bg-background">
             All
           </TabsTrigger>
           {availableExpenseTypes.map((type) => (
-            <TabsTrigger key={type} value={type} className="data-[state=active]:bg-white">
+            <TabsTrigger key={type} value={type} className="data-[state=active]:bg-background">
               {getExpenseTypeLabel(type)}
             </TabsTrigger>
           ))}
@@ -167,6 +169,7 @@ export function ExpensesSection({
             <ExpenseList
               expenses={expenses}
               categoryMap={categoryMap}
+              accountMap={accountMap}
               uncategorisedId={uncategorisedId}
               onEdit={onEdit}
               onDelete={onDelete}
@@ -175,11 +178,11 @@ export function ExpensesSection({
             />
           ) : Object.keys(expensesByCategory).length === 0 ? (
             <div className="text-center py-12">
-              <div className="h-16 w-16 rounded-full bg-neutral-100 flex items-center justify-center mx-auto mb-4">
-                <TrendingDown className="h-8 w-8 text-neutral-400" />
+              <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
+                <TrendingDown className="h-8 w-8 text-muted-foreground" />
               </div>
-              <h3 className="text-neutral-900 mb-2">No expenses yet</h3>
-              <p className="text-neutral-500 text-sm mb-4">
+              <h3 className="text-h3 text-foreground mb-2">No expenses yet</h3>
+              <p className="text-muted-foreground text-sm mb-4">
                 Add your first expense to start tracking your spending
               </p>
                 <Button size="sm" onClick={() => onCreate()}>
@@ -198,8 +201,8 @@ export function ExpensesSection({
                 return (
                   <div key={category}>
                     <div className="flex items-baseline justify-between mb-3">
-                      <h3 className="text-neutral-700 capitalize font-semibold">{category}</h3>
-                      <span className="text-sm text-neutral-500">
+                      <h3 className="text-h3 text-foreground capitalize font-semibold">{category}</h3>
+                      <span className="text-sm text-muted-foreground">
                         {items.length} {items.length === 1 ? 'item' : 'items'} • {formatCurrency(categoryTotalDisplay)}
                       </span>
                     </div>
@@ -230,6 +233,7 @@ export function ExpensesSection({
                 <ExpenseList
                   expenses={filteredExpenses}
                   categoryMap={categoryMap}
+                  accountMap={accountMap}
                   uncategorisedId={uncategorisedId}
                   onEdit={onEdit}
                   onDelete={onDelete}
@@ -252,11 +256,11 @@ export function ExpensesSection({
               )
             ) : (
               <div className="text-center py-12">
-                <div className="h-16 w-16 rounded-full bg-neutral-100 flex items-center justify-center mx-auto mb-4">
-                  <TrendingDown className="h-8 w-8 text-neutral-400" />
+                <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
+                  <TrendingDown className="h-8 w-8 text-muted-foreground" />
                 </div>
-                <h3 className="text-neutral-900 mb-2">No {getExpenseTypeLabelPlural(category)} added yet</h3>
-                <p className="text-neutral-500 text-sm mb-4">
+                <h3 className="text-h3 text-foreground mb-2">No {getExpenseTypeLabelPlural(category)} added yet</h3>
+                <p className="text-muted-foreground text-sm mb-4">
                   Add your first {getExpenseTypeLabelSingular(category)} to start tracking
                 </p>
                 <Button size="sm" variant="outline" onClick={() => onCreate(category)}>

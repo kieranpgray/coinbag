@@ -23,7 +23,7 @@ export function PostCreatePrompt({
               <FileText className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <CardTitle className="text-lg">Import Statement</CardTitle>
+              <CardTitle>Import Statement</CardTitle>
               <CardDescription className="mt-1">
                 Import transactions from a statement for {account.accountName}
               </CardDescription>

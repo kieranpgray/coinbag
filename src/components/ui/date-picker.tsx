@@ -2,7 +2,7 @@ import * as React from 'react';
 import * as Popover from '@radix-ui/react-popover';
 import { format, parse, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, isSameMonth, isSameDay, isToday, addMonths, subMonths, isValid, parseISO, type Locale } from 'date-fns';
 import { enUS, enAU } from 'date-fns/locale';
-import { Calendar as CalendarIcon, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { cn, getDateFormat, getWeekStartDay } from '@/lib/utils';
 import { useLocale } from '@/contexts/LocaleContext';
 import { Button } from '@/components/ui/button';
@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 
 export interface DatePickerProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'type'> {
   shouldShowCalendarButton?: boolean;
+  allowClear?: boolean; // Whether to show clear button for optional fields
   minDate?: string; // ISO date string
   maxDate?: string; // ISO date string
   disabledDates?: string[]; // Array of ISO date strings
@@ -24,6 +25,7 @@ const DatePicker = React.forwardRef<HTMLInputElement, DatePickerProps>(
       value,
       onChange: onChangeProp,
       shouldShowCalendarButton = false,
+      allowClear = false,
       minDate,
       maxDate,
       disabledDates = [],
@@ -54,7 +56,7 @@ const DatePicker = React.forwardRef<HTMLInputElement, DatePickerProps>(
       dateFormat = dateFormatProp || getDateFormat(localeContext);
       weekStartDay = weekStartDayProp !== undefined ? (weekStartDayProp as 0 | 1) : getWeekStartDay(localeContext);
     }
-    
+
     // Get date-fns locale object
     dateFnsLocale = localeContext === 'en-AU' ? enAU : enUS;
     const [isOpen, setIsOpen] = React.useState(false);
@@ -112,7 +114,7 @@ const DatePicker = React.forwardRef<HTMLInputElement, DatePickerProps>(
     const handleDateSelect = (date: Date) => {
       const isoDate = format(date, 'yyyy-MM-dd');
       setInputValue(format(date, dateFormat));
-      
+
       // Call onChange with synthetic event for react-hook-form compatibility
       if (onChangeProp && inputRef.current) {
         const syntheticEvent = {
@@ -121,7 +123,24 @@ const DatePicker = React.forwardRef<HTMLInputElement, DatePickerProps>(
         } as React.ChangeEvent<HTMLInputElement>;
         onChangeProp(syntheticEvent);
       }
-      
+
+      setIsOpen(false);
+      inputRef.current?.focus();
+    };
+
+    const handleClear = () => {
+      setInputValue('');
+      setCalendarMonth(new Date());
+
+      // Call onChange with synthetic event containing empty string
+      if (onChangeProp && inputRef.current) {
+        const syntheticEvent = {
+          target: { ...inputRef.current, value: '' },
+          currentTarget: { ...inputRef.current, value: '' },
+        } as React.ChangeEvent<HTMLInputElement>;
+        onChangeProp(syntheticEvent);
+      }
+
       setIsOpen(false);
       inputRef.current?.focus();
     };
@@ -269,6 +288,7 @@ const DatePicker = React.forwardRef<HTMLInputElement, DatePickerProps>(
               value={inputValue}
               onChange={handleInputChange}
               onBlur={handleInputBlur}
+              onClick={() => setIsOpen(true)}
               onFocus={(e) => {
                 // Always open popup on focus (tab or click)
                 setIsOpen(true);
@@ -279,17 +299,32 @@ const DatePicker = React.forwardRef<HTMLInputElement, DatePickerProps>(
               }}
               placeholder={placeholder}
               className={cn(
-                shouldShowCalendarButton && 'pr-10'
+                (shouldShowCalendarButton || (allowClear && inputValue)) && 'pr-20'
               )}
               {...props}
             />
+            {(allowClear && inputValue) && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="absolute right-10 h-10 w-10 rounded-none border-l-0"
+                aria-label="Clear date"
+                onClick={handleClear}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            )}
             {shouldShowCalendarButton && (
               <Popover.Trigger asChild>
                 <Button
                   type="button"
                   variant="ghost"
                   size="icon"
-                  className="absolute right-0 h-10 w-10 rounded-l-none border-l-0"
+                  className={cn(
+                    "absolute right-0 h-10 w-10 rounded-l-none border-l-0",
+                    allowClear && inputValue && "rounded-none"
+                  )}
                   aria-label="Open calendar"
                   onClick={() => setIsOpen(true)}
                 >

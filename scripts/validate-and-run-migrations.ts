@@ -135,6 +135,73 @@ const MIGRATIONS = [
     }
   },
   {
+    file: '20251231000004_remove_available_balance_and_make_institution_optional.sql',
+    name: 'Remove Available Balance & Make Institution Optional',
+    check: async (supabase: any) => {
+      // Check if available_balance column was removed and institution is nullable
+      try {
+        // Check if available_balance column exists
+        const { data: availableBalanceData, error: availableBalanceError } = await supabase
+          .from('information_schema.columns')
+          .select('column_name')
+          .eq('table_name', 'accounts')
+          .eq('column_name', 'available_balance');
+
+        if (availableBalanceError) {
+          return false;
+        }
+
+        // If available_balance still exists, migration hasn't run
+        if (availableBalanceData && availableBalanceData.length > 0) {
+          return false;
+        }
+
+        // Check if institution is nullable
+        const { data: institutionData, error: institutionError } = await supabase
+          .from('information_schema.columns')
+          .select('is_nullable')
+          .eq('table_name', 'accounts')
+          .eq('column_name', 'institution');
+
+        if (institutionError || !institutionData || institutionData.length === 0) {
+          return false;
+        }
+
+        return institutionData[0].is_nullable === 'YES';
+      } catch {
+        return false;
+      }
+    }
+  },
+  {
+    file: '20260106000000_ensure_institution_is_optional.sql',
+    name: 'Make Institution Optional',
+    check: async (supabase: any) => {
+      // Check if institution columns are nullable in accounts, assets, and liabilities
+      try {
+        const tables = ['accounts', 'assets', 'liabilities'];
+        for (const table of tables) {
+          const { data, error } = await supabase
+            .from('information_schema.columns')
+            .select('is_nullable')
+            .eq('table_name', table)
+            .eq('column_name', 'institution');
+
+          if (error || !data || data.length === 0) {
+            return false;
+          }
+
+          if (data[0].is_nullable !== 'YES') {
+            return false;
+          }
+        }
+        return true;
+      } catch {
+        return false;
+      }
+    }
+  },
+  {
     file: '20251229160000_add_liability_repayment_fields.sql',
     name: 'Add Liability Repayment Fields',
     check: async (supabase: any) => {

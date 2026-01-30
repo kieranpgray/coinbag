@@ -17,7 +17,7 @@ export function IncomeCard({ income, onEdit, onDelete }: IncomeCardProps) {
       <CardHeader>
         <div className="flex items-start justify-between">
           <div>
-            <CardTitle className="text-lg">{income.name}</CardTitle>
+            <CardTitle>{income.name}</CardTitle>
             <p className="text-sm text-muted-foreground mt-1">{income.source}</p>
           </div>
           <div className="flex gap-2">
@@ -52,11 +52,11 @@ export function IncomeCard({ income, onEdit, onDelete }: IncomeCardProps) {
           </div>
           <div className="flex justify-between">
             <span className="text-sm text-muted-foreground">Next Payment</span>
-            <span className="text-sm">{format(new Date(income.nextPaymentDate), 'MMM d, yyyy')}</span>
+            <span className="text-sm">{income.nextPaymentDate ? format(new Date(income.nextPaymentDate), 'MMM d, yyyy') : '-'}</span>
           </div>
-          {income.notes && (
+          {income.paidToAccountId && (
             <div className="pt-2 border-t">
-              <span className="text-sm text-muted-foreground">{income.notes}</span>
+              <span className="text-sm text-muted-foreground">Paid to account: {income.paidToAccountId}</span>
             </div>
           )}
         </div>

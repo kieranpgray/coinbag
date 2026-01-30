@@ -12,6 +12,26 @@ const VALIDATION_LIMITS = {
   notes: { max: 1000 },
 } as const;
 
+// Base institution validation (optional)
+// Standardized across all contracts to handle empty strings consistently
+const institutionSchema = z.preprocess(
+  (val) => {
+    // Handle null/undefined values before string validation
+    if (val === null || val === undefined) return '';
+    return val;
+  },
+  z.string()
+    .max(VALIDATION_LIMITS.institution.max, `Institution name must be less than ${VALIDATION_LIMITS.institution.max} characters`)
+    .trim()
+    .optional()
+    .or(z.literal(''))
+    .transform((val) => {
+      // Convert empty string to undefined for consistent TypeScript types
+      if (val === '') return undefined;
+      return val;
+    })
+);
+
 // Asset type enum
 const assetTypeSchema = z.enum(['Real Estate', 'Investments', 'Vehicles', 'Crypto', 'Cash', 'Superannuation', 'Other'], {
   errorMap: () => ({ message: 'Invalid asset type' }),
@@ -99,11 +119,7 @@ export const assetCreateSchema = z.object({
   change1D: changePercentageSchema,
   change1W: changePercentageSchema,
   dateAdded: dateAddedSchema,
-  institution: z.string()
-    .max(VALIDATION_LIMITS.institution.max, `Institution name must be less than ${VALIDATION_LIMITS.institution.max} characters`)
-    .trim()
-    .optional()
-    .or(z.literal('')),
+  institution: institutionSchema,
   notes: z.string()
     .max(VALIDATION_LIMITS.notes.max, `Notes must be less than ${VALIDATION_LIMITS.notes.max} characters`)
     .optional()
@@ -117,11 +133,7 @@ export const assetUpdateSchema = z.object({
   change1D: changePercentageSchema,
   change1W: changePercentageSchema,
   dateAdded: dateAddedSchema.optional(),
-  institution: z.string()
-    .max(VALIDATION_LIMITS.institution.max, `Institution name must be less than ${VALIDATION_LIMITS.institution.max} characters`)
-    .trim()
-    .optional()
-    .or(z.literal('')),
+  institution: institutionSchema,
   notes: z.string()
     .max(VALIDATION_LIMITS.notes.max, `Notes must be less than ${VALIDATION_LIMITS.notes.max} characters`)
     .optional()

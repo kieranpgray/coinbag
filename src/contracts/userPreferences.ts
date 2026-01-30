@@ -20,6 +20,7 @@ export const userPreferencesSchema = z.object({
   taxSettingsConfigured: z.boolean(),
   emailNotifications: emailNotificationsSchema,
   locale: z.string().default('en-US'), // Locale preference (en-US, en-AU, etc.)
+  hideSetupChecklist: z.boolean().default(false),
 });
 
 export type UserPreferences = z.infer<typeof userPreferencesSchema>;
@@ -30,6 +31,7 @@ export const defaultUserPreferences: UserPreferences = {
   taxRate: 20,
   taxSettingsConfigured: false,
   locale: 'en-US',
+  hideSetupChecklist: false,
   emailNotifications: {
     portfolioSummary: true,
     spendingAlerts: true,

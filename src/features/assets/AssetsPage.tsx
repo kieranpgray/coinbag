@@ -1,16 +1,16 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useAssets, useCreateAsset, useUpdateAsset, useDeleteAsset } from '@/features/assets/hooks';
+import { useViewMode } from '@/hooks/useViewMode';
 import { useSearchParams } from 'react-router-dom';
 import { logger, getCorrelationId } from '@/lib/logger';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
 import { AssetList } from '@/features/assets/components/AssetList';
 import { AssetCard } from '@/features/assets/components/AssetCard';
 import { CreateAssetModal } from '@/features/assets/components/CreateAssetModal';
 import { EditAssetModal } from '@/features/assets/components/EditAssetModal';
 import { DeleteAssetDialog } from '@/features/assets/components/DeleteAssetDialog';
+import { ViewModeToggle } from '@/components/shared/ViewModeToggle';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -24,9 +24,9 @@ export function AssetsPage() {
   const updateMutation = useUpdateAsset();
   const deleteMutation = useDeleteAsset();
   const [searchParams, setSearchParams] = useSearchParams();
+  const [viewMode, setViewMode] = useViewMode();
 
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
-  const [viewMode, setViewMode] = useState<'list' | 'cards'>('cards');
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -180,9 +180,9 @@ export function AssetsPage() {
       <div className="space-y-8">
         <div className="flex items-start justify-between">
           <div className="space-y-1">
-            <h1 className="text-3xl font-bold tracking-tight">Assets</h1>
+            <h1 className="text-h1-sm sm:text-h1-md lg:text-h1-lg font-bold tracking-tight">Assets</h1>
             <div className="space-y-0.5">
-              <div className="text-4xl font-bold mb-4">
+              <div className="text-data-lg-sm sm:text-data-lg-md lg:text-data-lg-lg font-bold mb-4">
                 {formatCurrency(totalAssetValue)}
               </div>
               <p className="text-sm text-muted-foreground">Total asset value</p>
@@ -238,9 +238,9 @@ export function AssetsPage() {
       {/* Header with Total Value */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="space-y-1">
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Assets</h1>
+            <h1 className="text-h1-sm sm:text-h1-md lg:text-h1-lg font-bold tracking-tight">Assets</h1>
             <div className="space-y-0.5">
-              <div className="text-3xl sm:text-4xl font-bold mb-4">
+              <div className="text-data-lg-sm sm:text-data-lg-md lg:text-data-lg-lg font-bold mb-4">
                 {formatCurrency(totalAssetValue)}
               </div>
               <p className="text-sm text-muted-foreground">Total asset value</p>
@@ -251,20 +251,7 @@ export function AssetsPage() {
             <Plus className="h-4 w-4 mr-2" />
             Add New Asset
           </Button>
-          <div className="flex items-center gap-3">
-            <Label htmlFor="view-mode" className="text-sm text-muted-foreground">
-              List view
-            </Label>
-            <Switch
-              id="view-mode"
-              checked={viewMode === 'cards'}
-              onCheckedChange={(checked) => setViewMode(checked ? 'cards' : 'list')}
-              aria-label="Toggle between list view and card view"
-            />
-            <Label htmlFor="view-mode" className="text-sm text-muted-foreground">
-              Card view
-            </Label>
-          </div>
+          <ViewModeToggle viewMode={viewMode} onViewModeChange={setViewMode} />
         </div>
       </div>
 

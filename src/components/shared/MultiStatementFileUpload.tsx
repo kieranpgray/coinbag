@@ -9,9 +9,15 @@ import { AlertCircle } from 'lucide-react';
 export interface FileWithStatus {
   file: File;
   id: string;
-  status: 'pending' | 'uploading' | 'success' | 'error';
+  status: 'pending' | 'uploading' | 'processing' | 'success' | 'error' | 'timeout';
   progress?: number;
   error?: string;
+  processingStatus?: string; // 'pending' | 'processing' | 'completed' | 'failed'
+  transactionCount?: number;
+  totalTransactions?: number;
+  statementImportId?: string; // For debugging and retry
+  correlationId?: string; // For debugging
+  canRetry?: boolean; // Whether user can retry this import
 }
 
 export interface MultiStatementFileUploadProps {
@@ -235,6 +241,7 @@ export function MultiStatementFileUpload({
             variant="outline"
             onClick={handleClick}
             disabled={disabled}
+            className="rounded-full h-12 px-6"
           >
             Select Files
           </Button>
@@ -283,6 +290,12 @@ export function MultiStatementFileUpload({
                         {fileWithStatus.error || 'Error'}
                       </span>
                     )}
+                    {fileWithStatus.status === 'timeout' && (
+                      <span className="text-xs text-yellow-600">Still processing...</span>
+                    )}
+                    {fileWithStatus.status === 'processing' && (
+                      <span className="text-xs text-blue-600">Processing...</span>
+                    )}
                   </div>
                   {fileWithStatus.status === 'uploading' &&
                     fileWithStatus.progress !== undefined && (
@@ -296,6 +309,24 @@ export function MultiStatementFileUpload({
                       <AlertCircle className="h-4 w-4 text-destructive" />
                       <AlertDescription className="text-destructive text-xs">
                         {fileWithStatus.error}
+                        {fileWithStatus.canRetry && (
+                          <span className="block mt-1 text-xs">
+                            You can refresh the page to check the status again.
+                          </span>
+                        )}
+                      </AlertDescription>
+                    </Alert>
+                  )}
+                  {fileWithStatus.status === 'timeout' && fileWithStatus.error && (
+                    <Alert className="mt-2 border-yellow-500 bg-yellow-50 dark:bg-yellow-900/20">
+                      <AlertCircle className="h-4 w-4 text-yellow-600" />
+                      <AlertDescription className="text-yellow-800 dark:text-yellow-200 text-xs">
+                        {fileWithStatus.error}
+                        {fileWithStatus.canRetry && (
+                          <span className="block mt-1">
+                            You can refresh the page to check if processing has completed.
+                          </span>
+                        )}
                       </AlertDescription>
                     </Alert>
                   )}

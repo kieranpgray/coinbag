@@ -57,7 +57,7 @@ export const LiabilitiesBreakdown = memo(function LiabilitiesBreakdown({
       </CardHeader>
       <CardContent>
         <div className="mb-4">
-          <div className="text-2xl font-bold mb-2">
+          <div className="text-xl font-bold mb-2">
             <PrivacyWrapper value={totalBalance} />
           </div>
         </div>

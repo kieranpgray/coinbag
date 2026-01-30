@@ -11,45 +11,47 @@ import { logger, getCorrelationId } from '@/lib/logger';
  */
 
 const LIABILITY_SUBSCRIPTION_PREFIX = 'Liability Repayment: ';
-const LIABILITY_ID_MARKER = 'linkedLiabilityId:';
+// const LIABILITY_ID_MARKER = 'linkedLiabilityId:'; // TODO: Commented out - needs reimplementation
 
 /**
- * Extract liability ID from subscription notes
+ * TODO: Liability linking functionality was previously stored in notes field.
+ * This needs to be reimplemented using a dedicated field (liabilityId) on the Expense type.
+ * For now, this functionality is disabled.
  */
-function extractLiabilityIdFromNotes(notes?: string): string | undefined {
-  if (!notes) return undefined;
-  const markerIndex = notes.indexOf(LIABILITY_ID_MARKER);
-  if (markerIndex === -1) return undefined;
-  const idStart = markerIndex + LIABILITY_ID_MARKER.length;
-  const idEnd = notes.indexOf('\n', idStart);
-  return notes.substring(idStart, idEnd === -1 ? notes.length : idEnd);
-}
 
-/**
- * Create notes for subscription linking to liability
- */
-function createSubscriptionNotes(liability: Liability): string {
-  return `${LIABILITY_ID_MARKER}${liability.id}\n\nAuto-created from liability: ${liability.name}`;
-}
+// function extractLiabilityIdFromNotes(notes?: string): string | undefined {
+//   if (!notes) return undefined;
+//   const markerIndex = notes.indexOf(LIABILITY_ID_MARKER);
+//   if (markerIndex === -1) return undefined;
+//   const idStart = markerIndex + LIABILITY_ID_MARKER.length;
+//   const idEnd = notes.indexOf('\n', idStart);
+//   return notes.substring(idStart, idEnd === -1 ? notes.length : idEnd);
+// }
+
+// function createSubscriptionNotes(liability: Liability): string {
+//   return `${LIABILITY_ID_MARKER}${liability.id}\n\nAuto-created from liability: ${liability.name}`;
+// }
 
 /**
  * Find expense linked to a liability
  */
 export async function findLinkedSubscription(
-  liabilityId: string,
-  getToken: () => Promise<string | null>
+  _liabilityId: string,
+  _getToken: () => Promise<string | null>
 ): Promise<Expense | undefined> {
   const repository = createExpensesRepository();
-  const result = await repository.list(getToken);
+  const result = await repository.list(_getToken);
   
   if (result.error || !result.data) {
     return undefined;
   }
 
-  return result.data.find((sub) => {
-    const linkedId = extractLiabilityIdFromNotes(sub.notes);
-    return linkedId === liabilityId;
-  });
+  // TODO: Liability linking is temporarily disabled - needs reimplementation
+  // return result.data.find((sub) => {
+  //   const linkedId = extractLiabilityIdFromNotes(sub.notes);
+  //   return linkedId === liabilityId;
+  // });
+  return undefined;
 }
 
 /**
@@ -137,7 +139,8 @@ export async function createSubscriptionFromLiability(
       chargeDate,
       nextDueDate,
       categoryId,
-      notes: createSubscriptionNotes(liability),
+      // TODO: Liability linking notes removed - needs reimplementation
+      // notes: createSubscriptionNotes(liability),
     };
 
     const result = await repository.create(expenseData, getToken);
@@ -210,7 +213,8 @@ export async function updateSubscriptionFromLiability(
       frequency: liability.repaymentFrequency!,
       chargeDate,
       nextDueDate,
-      notes: createSubscriptionNotes(liability),
+      // TODO: Liability linking notes removed - needs reimplementation
+      // notes: createSubscriptionNotes(liability),
     };
 
     const result = await repository.update(subscriptionId, updateData, getToken);

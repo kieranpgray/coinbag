@@ -13,8 +13,14 @@ export function useExpenseMutations() {
 
   const createMutation = useMutation({
     mutationFn: async (data: Omit<Expense, 'id'>) => {
+      console.log('📡 useExpenseMutations: Creating expense with data:', data);
+      console.log('🔗 useExpenseMutations: paidFromAccountId:', data.paidFromAccountId);
       const result = await repository.create(data, getToken);
-      if (result.error) throw result.error;
+      if (result.error) {
+        console.error('❌ useExpenseMutations: Error creating expense:', result.error);
+        throw result.error;
+      }
+      console.log('✅ useExpenseMutations: Expense created successfully:', result.data);
       return result.data!;
     },
     onSuccess: (newExpense) => {
@@ -36,20 +42,10 @@ export function useExpenseMutations() {
       if (result.error) throw result.error;
       return result.data!;
     },
-    onSuccess: (updatedExpense, variables) => {
-      // Update cache optimistically
-      queryClient.setQueryData<Expense[]>(
-        ['expenses'],
-        (oldData) =>
-          oldData?.map((exp) =>
-            exp.id === variables.id ? updatedExpense : exp
-          ) || []
-      );
-
-      // Update individual expense cache
-      queryClient.setQueryData(['expenses', variables.id], updatedExpense);
-
-      // Invalidate dashboard
+    onSuccess: (_, variables) => {
+      // Invalidate queries to ensure fresh data from server
+      queryClient.invalidateQueries({ queryKey: ['expenses'] });
+      queryClient.invalidateQueries({ queryKey: ['expenses', variables.id] });
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
     },
   });

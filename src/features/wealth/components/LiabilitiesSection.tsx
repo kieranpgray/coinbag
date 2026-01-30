@@ -54,10 +54,10 @@ export function LiabilitiesSection({
             <div className="h-10 w-10 rounded-full bg-red-100 flex items-center justify-center">
               <TrendingDown className="h-5 w-5 text-red-600" />
             </div>
-            <h2 className="text-neutral-600 text-xl sm:text-2xl font-semibold">Liabilities</h2>
+            <h2 className="text-neutral-600 text-h2-sm sm:text-h2-md lg:text-h2-lg font-semibold">Liabilities</h2>
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-3xl sm:text-4xl font-bold">
+            <span className="text-lg font-bold">
               {formatCurrency(totalLiabilities)}
             </span>
           </div>

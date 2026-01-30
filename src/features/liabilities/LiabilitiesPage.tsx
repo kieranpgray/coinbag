@@ -5,18 +5,18 @@ import {
   useUpdateLiability,
   useDeleteLiability,
 } from '@/features/liabilities/hooks';
+import { useViewMode } from '@/hooks/useViewMode';
 import { useSearchParams } from 'react-router-dom';
 import { logger, getCorrelationId } from '@/lib/logger';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
 import { formatCurrency } from '@/lib/utils';
 import { LiabilityList } from '@/features/liabilities/components/LiabilityList';
 import { LiabilityCard } from '@/features/liabilities/components/LiabilityCard';
 import { CreateLiabilityModal } from '@/features/liabilities/components/CreateLiabilityModal';
 import { EditLiabilityModal } from '@/features/liabilities/components/EditLiabilityModal';
 import { DeleteLiabilityDialog } from '@/features/liabilities/components/DeleteLiabilityDialog';
+import { ViewModeToggle } from '@/components/shared/ViewModeToggle';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent } from '@/components/ui/card';
 import { Plus } from 'lucide-react';
@@ -29,8 +29,8 @@ export function LiabilitiesPage() {
   const deleteMutation = useDeleteLiability();
   const [searchParams, setSearchParams] = useSearchParams();
   const correlationId = getCorrelationId();
+  const [viewMode, setViewMode] = useViewMode();
 
-  const [viewMode, setViewMode] = useState<'list' | 'cards'>('cards');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
@@ -226,9 +226,9 @@ export function LiabilitiesPage() {
       {/* Header with Total Value */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="space-y-1">
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Liabilities</h1>
+          <h1 className="text-h1-sm sm:text-h1-md lg:text-h1-lg font-bold tracking-tight">Liabilities</h1>
           <div className="space-y-0.5">
-            <div className="text-3xl sm:text-4xl font-bold mb-4">
+            <div className="text-data-lg-sm sm:text-data-lg-md lg:text-data-lg-lg font-bold mb-4">
               {formatCurrency(totalLiabilityBalance)}
             </div>
             <p className="text-sm text-muted-foreground">Total debt balance</p>
@@ -249,20 +249,7 @@ export function LiabilitiesPage() {
             <Plus className="h-4 w-4 mr-2" />
             Add New Liability
           </Button>
-          <div className="flex items-center gap-3">
-            <Label htmlFor="view-mode" className="text-sm text-muted-foreground">
-              List view
-            </Label>
-            <Switch
-              id="view-mode"
-              checked={viewMode === 'cards'}
-              onCheckedChange={(checked) => setViewMode(checked ? 'cards' : 'list')}
-              aria-label="Toggle between list view and card view"
-            />
-            <Label htmlFor="view-mode" className="text-sm text-muted-foreground">
-              Card view
-            </Label>
-          </div>
+          <ViewModeToggle viewMode={viewMode} onViewModeChange={setViewMode} />
         </div>
       </div>
 

@@ -326,17 +326,16 @@ export class SupabaseAssetsRepository implements AssetsRepository {
         date_added: validation.data.dateAdded,
       };
 
-      // Add optional fields only if they are defined and not empty strings
+      // Add optional fields only if they are defined
       if (validation.data.change1D !== undefined) {
         dbInput.change_1d = validation.data.change1D;
       }
       if (validation.data.change1W !== undefined) {
         dbInput.change_1w = validation.data.change1W;
       }
+      // Institution is optional - explicitly handle undefined to null for database
+      dbInput.institution = validation.data.institution ?? null;
       // Normalize empty strings to null for optional text fields
-      if (validation.data.institution !== undefined) {
-        dbInput.institution = validation.data.institution === '' ? null : validation.data.institution;
-      }
       if (validation.data.notes !== undefined) {
         dbInput.notes = validation.data.notes === '' ? null : validation.data.notes;
       }
@@ -519,9 +518,8 @@ export class SupabaseAssetsRepository implements AssetsRepository {
       if (validation.data.dateAdded !== undefined) dbInput.date_added = validation.data.dateAdded;
       if (validation.data.change1D !== undefined) dbInput.change_1d = validation.data.change1D;
       if (validation.data.change1W !== undefined) dbInput.change_1w = validation.data.change1W;
-      if (validation.data.institution !== undefined) {
-        dbInput.institution = validation.data.institution === '' ? null : validation.data.institution;
-      }
+      // Institution is optional - explicitly handle undefined to null for database
+      dbInput.institution = validation.data.institution ?? null;
       if (validation.data.notes !== undefined) {
         dbInput.notes = validation.data.notes === '' ? null : validation.data.notes;
       }

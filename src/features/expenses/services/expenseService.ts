@@ -17,13 +17,16 @@ export class ExpenseService {
     name: string;
     amount: number;
     frequency: ExpenseFrequency;
-    chargeDate: string;
-    nextDueDate?: string; // Optional, will auto-calculate if not provided
+    chargeDate?: string;
+    nextDueDate?: string | null;
     categoryId: string;
-    notes?: string;
+    paidFromAccountId?: string;
   }): Omit<Expense, 'id'> {
-    // Auto-calculate next due date if not provided
-    const nextDueDate = data.nextDueDate || calculateNextDueDate(data.chargeDate, data.frequency);
+    // Auto-calculate next due date if chargeDate is provided but nextDueDate is not
+    let nextDueDate = data.nextDueDate;
+    if (data.chargeDate && !nextDueDate) {
+      nextDueDate = calculateNextDueDate(data.chargeDate, data.frequency);
+    }
 
     const expenseData = {
       name: data.name,
@@ -32,7 +35,7 @@ export class ExpenseService {
       chargeDate: data.chargeDate,
       nextDueDate,
       categoryId: data.categoryId,
-      notes: data.notes,
+      paidFromAccountId: data.paidFromAccountId,
     };
 
     // Validate business rules
@@ -55,9 +58,9 @@ export class ExpenseService {
       amount: number;
       frequency: ExpenseFrequency;
       chargeDate: string;
-      nextDueDate: string;
+      nextDueDate: string | null;
       categoryId: string;
-      notes: string;
+      paidFromAccountId: string;
     }>
   ): Expense {
     // Merge updates with existing data
@@ -67,7 +70,9 @@ export class ExpenseService {
     if (updates.frequency || updates.chargeDate) {
       const chargeDate = updates.chargeDate || existing.chargeDate;
       const frequency = updates.frequency || existing.frequency;
-      updatedData.nextDueDate = calculateNextDueDate(chargeDate, frequency);
+      if (chargeDate) {
+        updatedData.nextDueDate = calculateNextDueDate(chargeDate, frequency);
+      }
     }
 
     // Validate updated data
@@ -107,6 +112,7 @@ export class ExpenseService {
     const nextWeek = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
 
     const dueSoon = expenses.filter(exp => {
+      if (!exp.nextDueDate) return false;
       const dueDate = new Date(exp.nextDueDate);
       return dueDate >= now && dueDate <= nextWeek;
     });
@@ -170,7 +176,7 @@ export class ExpenseService {
         chargeDate: String(obj.chargeDate || ''),
         nextDueDate: String(obj.nextDueDate || ''),
         categoryId: String(obj.categoryId || ''),
-        notes: obj.notes ? String(obj.notes).trim() : undefined,
+        paidFromAccountId: obj.paidFromAccountId ? String(obj.paidFromAccountId).trim() : undefined,
       };
 
       const validation = validateExpenseIntegrity(normalized);

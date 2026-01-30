@@ -59,3 +59,6 @@ export function CreateExpenseModal({ open, onOpenChange, defaultCategoryId }: Cr
 }
 
 
+
+
+

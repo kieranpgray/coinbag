@@ -13,18 +13,25 @@ const VALIDATION_LIMITS = {
 } as const;
 
 // Base institution validation (optional)
-// Uses asset schema pattern with .or(z.literal('')) to explicitly allow empty strings
+// Standardized across all contracts to handle empty strings consistently
 // This ensures React Hook Form doesn't show validation errors for empty values
-const institutionSchema = z.string()
-  .max(VALIDATION_LIMITS.institution.max, `Institution name must be less than ${VALIDATION_LIMITS.institution.max} characters`)
-  .trim()
-  .optional()
-  .or(z.literal(''))
-  .transform((val) => {
-    // Convert empty string to undefined
-    if (val === '' || val === undefined || val === null) return undefined;
+const institutionSchema = z.preprocess(
+  (val) => {
+    // Handle null/undefined values before string validation
+    if (val === null || val === undefined) return '';
     return val;
-  });
+  },
+  z.string()
+    .max(VALIDATION_LIMITS.institution.max, `Institution name must be less than ${VALIDATION_LIMITS.institution.max} characters`)
+    .trim()
+    .optional()
+    .or(z.literal(''))
+    .transform((val) => {
+      // Convert empty string to undefined for consistent TypeScript types
+      if (val === '') return undefined;
+      return val;
+    })
+);
 
 // Base account name validation
 const accountNameSchema = z.string()

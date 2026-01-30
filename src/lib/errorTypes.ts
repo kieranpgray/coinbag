@@ -26,6 +26,34 @@ export interface SupabaseError {
 }
 
 /**
+ * Statement Import Error Codes
+ */
+export const STATEMENT_IMPORT_ERROR_CODES = {
+  UPLOAD_FAILED: 'UPLOAD_FAILED',
+  PROCESSING_FAILED: 'PROCESSING_FAILED',
+  OCR_FAILED: 'OCR_FAILED',
+  PARSING_FAILED: 'PARSING_FAILED',
+  TIMEOUT: 'TIMEOUT',
+  FILE_TOO_LARGE: 'FILE_TOO_LARGE',
+  INVALID_FORMAT: 'INVALID_FORMAT',
+  RATE_LIMITED: 'RATE_LIMITED',
+} as const;
+
+/**
+ * Statement Import Error Messages
+ */
+export const STATEMENT_IMPORT_ERROR_MESSAGES = {
+  UPLOAD_FAILED: 'Failed to upload file. Please check your internet connection and try again.',
+  PROCESSING_FAILED: 'Failed to process statement. Please try again or contact support.',
+  OCR_FAILED: 'Could not read statement text. The file may be corrupted or password-protected.',
+  PARSING_FAILED: 'Could not extract transactions. The statement format may not be supported.',
+  TIMEOUT: 'Processing timed out. Please try again with a smaller file.',
+  FILE_TOO_LARGE: 'File is too large. Please use a file smaller than 10MB.',
+  INVALID_FORMAT: 'Invalid file format. Please upload a PDF or image file.',
+  RATE_LIMITED: 'Too many requests. Please wait a few minutes and try again.',
+} as const;
+
+/**
  * Type guard to check if an error is a Supabase error
  */
 export function isSupabaseError(error: unknown): error is SupabaseError {

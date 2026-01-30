@@ -594,12 +594,16 @@ export class ImportService {
           return null;
         }
 
-        return { rowNumber: row.rowNumber, data: validation.data };
+        return {
+          rowNumber: row.rowNumber,
+          data: {
+            ...validation.data,
+            chargeDate: validation.data.chargeDate || undefined,
+            nextDueDate: validation.data.nextDueDate || undefined,
+          }
+        };
       })
-      .filter(
-        (item): item is { rowNumber: number; data: ReturnType<typeof expenseCreateSchema.parse> } =>
-          item !== null
-      );
+      .filter((item) => item !== null);
 
     const batchResult = await this.importBatch(
       validData,

@@ -12,7 +12,7 @@ export function StubPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold">{pageName}</h1>
+      <h1 className="text-h1-sm sm:text-h1-md lg:text-h1-lg font-bold">{pageName}</h1>
       <Card>
         <CardHeader>
           <CardTitle>Coming Soon</CardTitle>

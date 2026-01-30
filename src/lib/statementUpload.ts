@@ -4,11 +4,15 @@
  * Handles uploading statement files to Supabase Storage and creating statement import records.
  */
 
-import { createAuthenticatedSupabaseClient } from './supabaseClient';
+import { createAuthenticatedSupabaseClient, getUserIdFromToken } from './supabaseClient';
 import { computeFileHash } from './fileHash';
 import { createStatementImportsRepository } from '@/data/statementImports/repo';
 import type { StatementImportCreate } from '@/contracts/statementImports';
-import { logger, getCorrelationId } from './logger';
+import { logger, getCorrelationId, setCorrelationId } from './logger';
+import { makeCorrelationId } from './telemetry/correlation';
+
+// Get Supabase URL for error logging
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
 
 export interface UploadProgress {
   loaded: number;
@@ -35,29 +39,31 @@ export async function uploadStatementFile(
   accountId: string,
   getToken: () => Promise<string | null>
 ): Promise<{ data?: UploadResult; error?: UploadError }> {
+  // Generate correlation ID at the start of upload flow
+  const correlationId = getCorrelationId() || makeCorrelationId("ui");
+  setCorrelationId(correlationId);
+  
   try {
-    const correlationId = getCorrelationId();
-    
     logger.info(
-      'UPLOAD:STATEMENT',
+      'UploadFlow:start',
       'Starting statement file upload',
       {
+        correlationId,
         fileName: file.name,
         fileSize: file.size,
         mimeType: file.type,
         accountId,
       },
-      correlationId || undefined
+      correlationId
     );
 
     // Compute file hash for deduplication
     const fileHash = await computeFileHash(file);
     
-    // Get user ID for folder structure
-    const supabase = await createAuthenticatedSupabaseClient(getToken);
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    if (!user) {
+    // Get user ID for folder structure (extract from JWT token directly)
+    const userId = await getUserIdFromToken(getToken);
+
+    if (!userId) {
       return {
         error: {
           error: 'User not authenticated.',
@@ -66,12 +72,88 @@ export async function uploadStatementFile(
       };
     }
 
-    const userId = user.id;
+    const supabase = await createAuthenticatedSupabaseClient(getToken);
+    
+    // Try to check if the statements bucket exists (non-blocking)
+    // Note: listBuckets() may fail for authenticated users due to permissions
+    // We'll attempt the upload anyway and let the upload error tell us if bucket is missing
+    logger.info(
+      'UPLOAD:STATEMENT',
+      'Checking if statements bucket exists (non-blocking)',
+      {},
+      correlationId || undefined
+    );
+    
+    let bucketCheckResult: { exists?: boolean; error?: string } = {};
+    
+    try {
+      const { data: buckets, error: listBucketsError } = await supabase.storage.listBuckets();
+      
+      if (listBucketsError) {
+        // This is expected - authenticated users may not have permission to list buckets
+        logger.info(
+          'UPLOAD:STATEMENT',
+          'Cannot list buckets (may require admin permissions) - proceeding with upload attempt',
+          { 
+            error: listBucketsError.message,
+            note: 'This is normal for authenticated users. Upload will proceed.',
+          },
+          correlationId || undefined
+        );
+        bucketCheckResult.error = listBucketsError.message;
+      } else {
+        const bucketExists = buckets?.some(bucket => bucket.id === 'statements' || bucket.name === 'statements');
+        bucketCheckResult.exists = bucketExists;
+        
+        logger.info(
+          'UPLOAD:STATEMENT',
+          'Bucket existence check complete',
+          { 
+            bucketExists,
+            availableBuckets: buckets?.map(b => ({ id: b.id, name: b.name })) || [],
+          },
+          correlationId || undefined
+        );
+        
+        if (!bucketExists) {
+          logger.warn(
+            'UPLOAD:STATEMENT',
+            'Bucket not found in list - will attempt upload anyway',
+            { 
+              availableBuckets: buckets?.map(b => ({ id: b.id, name: b.name })) || [],
+            },
+            correlationId || undefined
+          );
+        }
+      }
+    } catch (error) {
+      // Non-fatal - we'll try the upload anyway
+      logger.info(
+        'UPLOAD:STATEMENT',
+        'Bucket check failed (non-fatal) - proceeding with upload',
+        { error: error instanceof Error ? error.message : String(error) },
+        correlationId || undefined
+      );
+    }
+    
+    // Don't block on bucket check - proceed with upload attempt
+    // The upload itself will fail with a clear error if bucket doesn't exist
     
     // Create file path: {userId}/{accountId}/{timestamp}-{filename}
     const timestamp = Date.now();
     const sanitizedFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
     const filePath = `${userId}/${accountId}/${timestamp}-${sanitizedFileName}`;
+
+    logger.info(
+      'UPLOAD:STATEMENT',
+      'Attempting file upload to storage',
+      { 
+        filePath,
+        bucketId: 'statements',
+        contentType: file.type,
+      },
+      correlationId || undefined
+    );
 
     // Upload file to Supabase Storage
     const { data: uploadData, error: uploadError } = await supabase.storage
@@ -79,22 +161,96 @@ export async function uploadStatementFile(
       .upload(filePath, file, {
         cacheControl: '3600',
         upsert: false, // Don't overwrite existing files
+        contentType: file.type, // Explicitly set content type
       });
 
     if (uploadError) {
+      // Extract all possible error details for comprehensive debugging
+      const errorObj = uploadError as any;
+      
+      // Try multiple ways to get response body
+      let responseBody: any = null;
+      try {
+        responseBody = 
+          errorObj.response?.data || 
+          errorObj.response?.body || 
+          errorObj.data || 
+          errorObj.body ||
+          (errorObj.response && await errorObj.response.clone().json().catch(() => null)) ||
+          null;
+      } catch {
+        // Ignore errors extracting response body
+      }
+
+      const errorDetails = {
+        message: uploadError.message,
+        statusCode: errorObj.statusCode || errorObj.status,
+        statusText: errorObj.statusText,
+        error: errorObj.error,
+        name: errorObj.name,
+        code: errorObj.code,
+        hint: errorObj.hint,
+        details: errorObj.details,
+        responseBody: responseBody,
+        context: errorObj.context,
+        // Full error serialization for deep debugging
+        fullError: JSON.stringify(uploadError, Object.getOwnPropertyNames(uploadError)),
+      };
+      
       logger.error(
         'UPLOAD:STATEMENT',
         'Failed to upload file to Supabase Storage',
-        { error: uploadError.message, filePath },
+        { 
+          ...errorDetails,
+          filePath,
+          fileName: file.name,
+          fileSize: file.size,
+          mimeType: file.type,
+          userId,
+          accountId,
+          requestUrl: `${supabaseUrl}/storage/v1/object/${filePath}`,
+          requestMethod: 'POST',
+        },
         correlationId || undefined
       );
       
+      // Always log to console for visibility, even if debug logging is disabled
+      console.error('[UPLOAD:STATEMENT] Upload error details:', {
+        message: uploadError.message,
+        statusCode: errorDetails.statusCode,
+        statusText: errorDetails.statusText,
+        error: errorDetails.error,
+        code: errorDetails.code,
+        hint: errorDetails.hint,
+        details: errorDetails.details,
+        responseBody: errorDetails.responseBody,
+        filePath,
+        bucketId: 'statements',
+        userId,
+        accountId,
+        correlationId,
+        requestUrl: `${supabaseUrl}/storage/v1/object/${filePath}`,
+      });
+      
       // Handle specific storage errors
-      if (uploadError.message.includes('already exists')) {
+      if (uploadError.message.includes('already exists') || uploadError.message.includes('duplicate')) {
         return {
           error: {
             error: 'A file with this name already exists. Please rename the file and try again.',
             code: 'DUPLICATE_FILE',
+          },
+        };
+      }
+      
+      // Check for bucket not found errors (in case bucket was deleted after check)
+      if (
+        uploadError.message.includes('bucket') && 
+        (uploadError.message.includes('not found') || uploadError.message.includes('does not exist'))
+      ) {
+        return {
+          error: {
+            error: 'Storage bucket "statements" not found. Please contact support.',
+            code: 'BUCKET_NOT_FOUND',
           },
         };
       }
@@ -116,7 +272,7 @@ export async function uploadStatementFile(
       };
     }
 
-    // Create statement import record
+    // Create statement import record with correlation ID
     const repository = await createStatementImportsRepository();
     const createInput: StatementImportCreate = {
       accountId,
@@ -125,7 +281,19 @@ export async function uploadStatementFile(
       fileHash,
       fileSize: file.size,
       mimeType: file.type,
+      correlationId,
     };
+
+    logger.info(
+      'UploadFlow:creating_record',
+      'Creating statement import record',
+      {
+        correlationId,
+        accountId,
+        fileName: file.name,
+      },
+      correlationId
+    );
 
     const createResult = await repository.create(createInput, getToken);
 
@@ -158,14 +326,15 @@ export async function uploadStatementFile(
     }
 
     logger.info(
-      'UPLOAD:STATEMENT',
+      'UploadFlow:got_statementImportId',
       'Statement file uploaded successfully',
       {
+        correlationId,
         statementImportId: createResult.data.id,
         filePath: uploadData.path,
         fileHash,
       },
-      correlationId || undefined
+      correlationId
     );
 
     return {

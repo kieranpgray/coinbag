@@ -15,6 +15,9 @@ module.exports = {
       { allowConstantExport: true },
     ],
     '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+    // Typography: Prefer design tokens (text-h1, text-h2, text-data-lg, etc.) over raw Tailwind classes
+    // See docs/DESIGN_SYSTEM_TYPOGRAPHY.md for guidelines
+    // Future: Add custom rule to flag text-xl, text-2xl, text-3xl, text-4xl and arbitrary values like text-[30px]
   },
   overrides: [
     {

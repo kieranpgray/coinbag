@@ -132,3 +132,6 @@ console.log(`trim().max().optional(): ${r1.success ? `✓ ${JSON.stringify(r1.da
 console.log(`max().trim().optional(): ${r2.success ? `✓ ${JSON.stringify(r2.data)}` : `✗ ${r2.error.errors[0]?.message}`}`);
 
 
+
+
+

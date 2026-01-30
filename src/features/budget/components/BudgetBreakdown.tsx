@@ -39,7 +39,7 @@ export function BudgetBreakdown({
       <CardContent className="p-0">
         {/* Header */}
         <div className="flex items-center justify-between p-4">
-          <h2 className="text-lg font-semibold text-foreground">
+          <h2 className="text-h2-sm sm:text-h2-md lg:text-h2-lg font-semibold text-foreground">
             In and Out
           </h2>
           <Select value={frequency} onValueChange={(value) => onFrequencyChange(value as Frequency)}>
@@ -61,10 +61,10 @@ export function BudgetBreakdown({
           {/* Income Row */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Income</span>
+              <span className="text-body-sm text-muted-foreground">Income</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-xl font-bold text-foreground">
+              <span className="text-body-lg font-bold text-foreground">
                 {formatCurrency(incomeDisplay)}
               </span>
               <div className="h-2 w-2 rounded-full bg-success" aria-label="Positive status" />
@@ -74,10 +74,10 @@ export function BudgetBreakdown({
           {/* Expenses Row */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Expenses</span>
+              <span className="text-body-sm text-muted-foreground">Expenses</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-xl font-bold text-foreground">
+              <span className="text-body-lg font-bold text-foreground">
                 -{formatCurrency(expensesDisplay)}
               </span>
               <div className="h-2 w-2 rounded-full bg-error" aria-label="Expense status" />
@@ -87,10 +87,10 @@ export function BudgetBreakdown({
           {/* Savings Row */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Savings</span>
+              <span className="text-body-sm text-muted-foreground">Savings</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-xl font-bold text-foreground">
+              <span className="text-body-lg font-bold text-foreground">
                 -{formatCurrency(savingsDisplay)}
               </span>
               <div className="h-2 w-2 rounded-full bg-error" aria-label="Savings status" />
@@ -100,10 +100,10 @@ export function BudgetBreakdown({
           {/* Repayments Row */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Repayments</span>
+              <span className="text-body-sm text-muted-foreground">Repayments</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-xl font-bold text-foreground">
+              <span className="text-body-lg font-bold text-foreground">
                 -{formatCurrency(repaymentsDisplay)}
               </span>
               <div className="h-2 w-2 rounded-full bg-error" aria-label="Repayment status" />
@@ -116,10 +116,10 @@ export function BudgetBreakdown({
           {/* Remaining Row */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Remaining</span>
+              <span className="text-body-sm text-muted-foreground">Remaining</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-xl font-bold text-foreground">
+              <span className="text-body-lg font-bold text-foreground">
                 {formatCurrency(remainingDisplay)}
               </span>
               <div

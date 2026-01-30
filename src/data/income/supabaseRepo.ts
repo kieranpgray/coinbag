@@ -20,28 +20,15 @@ import { z } from 'zod';
  */
 export class SupabaseIncomeRepository implements IncomeRepository {
   private readonly selectColumns =
-    'id, name, source, amount, frequency, nextPaymentDate:next_payment_date, notes, userId:user_id, createdAt:created_at, updatedAt:updated_at';
+    'id, name, source, amount, frequency, nextPaymentDate:next_payment_date, paidToAccountId:paid_to_account_id, userId:user_id, createdAt:created_at, updatedAt:updated_at';
 
   /**
    * Maps income entity (with userId and timestamps) to domain Income type (without userId)
-   * Converts nextPaymentDate from database format (ISO string or YYYY-MM-DD) to YYYY-MM-DD format
+   * Handles date conversion from various formats to consistent YYYY-MM-DD
    */
   private mapEntityToIncome(entity: z.infer<typeof incomeEntitySchema>): Income {
-    // Convert nextPaymentDate to YYYY-MM-DD format if it's in ISO format
-    const entityNextPaymentDate = entity.nextPaymentDate;
-    const defaultDate = new Date().toISOString().split('T')[0] || '2000-01-01';
-    let nextPaymentDate: string = defaultDate;
-    if (entityNextPaymentDate !== undefined && entityNextPaymentDate !== null && typeof entityNextPaymentDate === 'string') {
-      if (entityNextPaymentDate.includes('T')) {
-        const parts = entityNextPaymentDate.split('T');
-        const extracted = parts[0];
-        if (extracted && extracted.length > 0) {
-          nextPaymentDate = extracted;
-        }
-      } else {
-        nextPaymentDate = entityNextPaymentDate;
-      }
-    }
+    // nextPaymentDate is optional, convert null to undefined for domain type
+    const nextPaymentDate = entity.nextPaymentDate === null ? undefined : entity.nextPaymentDate;
     
     return {
       id: entity.id,
@@ -51,7 +38,7 @@ export class SupabaseIncomeRepository implements IncomeRepository {
       // Type assertion: incomeFrequencySchema includes 'quarterly', matching SubscriptionFrequency
       frequency: entity.frequency as Income['frequency'],
       nextPaymentDate,
-      notes: entity.notes,
+      paidToAccountId: entity.paidToAccountId,
     };
   }
 
@@ -282,11 +269,13 @@ export class SupabaseIncomeRepository implements IncomeRepository {
         source: validation.data.source,
         amount: validation.data.amount,
         frequency: validation.data.frequency,
-        next_payment_date: validation.data.nextPaymentDate,
+        paid_to_account_id: validation.data.paidToAccountId,
       };
 
-      if (validation.data.notes !== undefined) {
-        dbInput.notes = validation.data.notes;
+      // Include next_payment_date if provided (optional field), use null for cleared dates
+      if (validation.data.nextPaymentDate !== undefined) {
+        dbInput.next_payment_date = validation.data.nextPaymentDate ?? null;
+        logger.debug('DB:INCOME_CREATE', 'Setting next_payment_date in create', { nextPaymentDate: validation.data.nextPaymentDate, dbValue: dbInput.next_payment_date }, correlationId || undefined);
       }
 
       const { data, error } = await supabase
@@ -399,10 +388,11 @@ export class SupabaseIncomeRepository implements IncomeRepository {
       if (validation.data.amount !== undefined) dbInput.amount = validation.data.amount;
       if (validation.data.frequency !== undefined) dbInput.frequency = validation.data.frequency;
       if (validation.data.nextPaymentDate !== undefined) {
-        dbInput.next_payment_date = validation.data.nextPaymentDate;
+        dbInput.next_payment_date = validation.data.nextPaymentDate ?? null;
+        logger.debug('DB:INCOME_UPDATE', 'Setting next_payment_date in update', { nextPaymentDate: validation.data.nextPaymentDate, dbValue: dbInput.next_payment_date }, correlationId || undefined);
       }
-      if (validation.data.notes !== undefined) {
-        dbInput.notes = validation.data.notes;
+      if (validation.data.paidToAccountId !== undefined) {
+        dbInput.paid_to_account_id = validation.data.paidToAccountId;
       }
 
       const { data, error } = await supabase

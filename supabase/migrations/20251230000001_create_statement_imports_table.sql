@@ -88,6 +88,15 @@ CREATE POLICY "Users can delete their own statement imports" ON statement_import
   FOR DELETE
   USING ((auth.jwt() ->> 'sub') = user_id);
 
+-- Create function for updating updated_at timestamp (reuse existing function if it exists)
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = now();
+  RETURN NEW;
+END;
+$$ language 'plpgsql';
+
 -- Create trigger for automatic updated_at updates on statement_imports
 CREATE TRIGGER update_statement_imports_updated_at
   BEFORE UPDATE ON statement_imports

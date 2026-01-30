@@ -1,28 +1,35 @@
-import { useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
-  Home,
-  CreditCard,
-  TrendingUp,
-  Zap,
-  Target,
-  Settings,
+  LayoutDashboard,
   Wallet,
+  TrendingUp,
+  CreditCard,
+  Target,
+  BarChart3,
+  Settings,
   X,
 } from 'lucide-react';
 import { usePrefetchRoute } from '@/hooks/usePrefetchRoute';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { NAVIGATION_ITEMS, ROUTES } from '@/lib/constants/routes';
 
-const navigation = [
-  { name: 'Dashboard', path: '/app/dashboard', icon: Home },
-  { name: 'Accounts', path: '/app/accounts', icon: CreditCard },
-  { name: 'Wealth', path: '/app/wealth', icon: TrendingUp },
-  { name: 'Budget', path: '/app/budget', icon: Wallet },
-  { name: 'Goals', path: '/app/goals', icon: Target },
-  { name: 'Simulate', path: '/app/scenarios', icon: Zap },
-  { name: 'Settings', path: '/app/settings', icon: Settings },
-];
+const navigation = NAVIGATION_ITEMS.map(item => ({
+  ...item,
+  icon: (() => {
+    switch (item.path) {
+      case ROUTES.app.dashboard: return LayoutDashboard;
+      case ROUTES.app.accounts: return Wallet;
+      case ROUTES.app.wealth: return TrendingUp;
+      case ROUTES.app.budget: return CreditCard;
+      case ROUTES.app.goals: return Target;
+      case ROUTES.app.scenarios: return BarChart3;
+      case ROUTES.app.settings: return Settings;
+      default: return LayoutDashboard;
+    }
+  })(),
+}));
 
 interface MobileNavProps {
   open: boolean;
@@ -62,7 +69,13 @@ export function MobileNav({ open, onOpenChange }: MobileNavProps) {
         <div className="flex h-full flex-col">
           {/* Header */}
           <div className="flex items-center justify-between border-b border-border p-4">
-            <h2 className="text-lg font-semibold">Menu</h2>
+            <Link 
+              to={ROUTES.app.dashboard} 
+              className="text-xl font-semibold text-foreground"
+              onClick={() => onOpenChange(false)}
+            >
+              Coinbag
+            </Link>
             <Button
               variant="ghost"
               size="icon"
@@ -91,15 +104,13 @@ export function MobileNav({ open, onOpenChange }: MobileNavProps) {
                       }
                     }}
                     className={cn(
-                      'flex w-full items-center gap-3 rounded-md px-4 py-3 text-left transition-colors focus:outline-none focus:ring-2 focus:ring-primary/30 focus:ring-offset-2',
-                      isActive
-                        ? 'bg-primary text-primary-foreground'
-                        : 'hover:bg-muted'
+                      'nav-item nav-item-default nav-item-hover w-full justify-start focus:outline-none focus:ring-2 focus:ring-primary/30 focus:ring-offset-2',
+                      isActive && 'nav-item-active'
                     )}
                     aria-current={isActive ? 'page' : undefined}
                   >
-                    <item.icon className="h-5 w-5 flex-shrink-0" />
-                    <span className="text-base font-medium">{item.name}</span>
+                    <item.icon className="h-4 w-4 flex-shrink-0" />
+                    <span className="text-sm font-medium">{item.name}</span>
                   </button>
                 );
               })}

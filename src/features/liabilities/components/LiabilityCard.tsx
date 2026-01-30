@@ -16,25 +16,27 @@ export function LiabilityCard({ liability, onEdit, onDelete }: LiabilityCardProp
       <CardHeader>
         <div className="flex items-start justify-between">
           <div>
-            <CardTitle className="text-lg">{liability.name}</CardTitle>
+            <CardTitle>{liability.name}</CardTitle>
             <p className="text-sm text-muted-foreground mt-1">{liability.type}</p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-1">
             <Button
               variant="ghost"
               size="icon"
+              className="h-8 w-8 p-0"
               onClick={() => onEdit(liability)}
               aria-label="Edit liability"
             >
-              <Pencil className="h-4 w-4" />
+              <Pencil className="h-4 w-4 text-neutral-500" />
             </Button>
             <Button
               variant="ghost"
               size="icon"
+              className="h-8 w-8 p-0"
               onClick={() => onDelete(liability)}
               aria-label="Delete liability"
             >
-              <Trash2 className="h-4 w-4" />
+              <Trash2 className="h-4 w-4 text-red-500" />
             </Button>
           </div>
         </div>

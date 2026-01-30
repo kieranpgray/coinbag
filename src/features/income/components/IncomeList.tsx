@@ -14,12 +14,13 @@ import type { Income } from '@/types/domain';
 
 interface IncomeListProps {
   incomes: Income[];
+  accountMap?: Map<string, string>;
   onEdit: (income: Income) => void;
   onDelete: (income: Income) => void;
   onCreate: () => void;
 }
 
-export function IncomeList({ incomes, onEdit, onDelete, onCreate }: IncomeListProps) {
+export function IncomeList({ incomes, accountMap, onEdit, onDelete, onCreate }: IncomeListProps) {
   return (
     <div className="rounded-md border border-border">
       <Table>
@@ -30,7 +31,7 @@ export function IncomeList({ incomes, onEdit, onDelete, onCreate }: IncomeListPr
             <TableHead className="text-right">Amount</TableHead>
             <TableHead>Frequency</TableHead>
             <TableHead>Next Payment</TableHead>
-            <TableHead>Notes</TableHead>
+            <TableHead>Paid To</TableHead>
             <TableHead className="text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
@@ -59,8 +60,8 @@ export function IncomeList({ incomes, onEdit, onDelete, onCreate }: IncomeListPr
                 <TableCell>{income.source}</TableCell>
                 <TableCell className="text-right">{formatCurrency(income.amount)}</TableCell>
                 <TableCell className="capitalize">{income.frequency}</TableCell>
-                <TableCell>{format(new Date(income.nextPaymentDate), 'MMM d, yyyy')}</TableCell>
-                <TableCell>{income.notes || '-'}</TableCell>
+                <TableCell>{income.nextPaymentDate ? format(new Date(income.nextPaymentDate), 'MMM d, yyyy') : '-'}</TableCell>
+                <TableCell>{income.paidToAccountId ? (accountMap?.get(income.paidToAccountId) || 'Unknown Account') : '-'}</TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
                     <Button

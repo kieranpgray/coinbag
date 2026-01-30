@@ -3,16 +3,20 @@ import { useSearchParams } from 'react-router-dom';
 import { useIncomes, useCreateIncome, useUpdateIncome, useDeleteIncome } from '@/features/income/hooks';
 import { useExpenses } from '@/features/expenses/hooks';
 import { useCategories } from '@/features/categories/hooks';
+import { useAccounts } from '@/features/accounts/hooks';
+import { AccountSelect } from '@/components/shared/AccountSelect';
+import { useAccountLinking } from '@/hooks/useAccountLinking';
+import { useViewMode } from '@/hooks/useViewMode';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { RefreshCw, AlertTriangle } from 'lucide-react';
+import { RefreshCw, AlertTriangle, AlertCircle } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
-import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { IncomeSection } from './components/IncomeSection';
 import { ExpensesSection } from './components/ExpensesSection';
 import { VisualDivider } from './components/VisualDivider';
 import { BudgetBreakdown } from './components/BudgetBreakdown';
+import { ViewModeToggle } from '@/components/shared/ViewModeToggle';
 import { calculateMonthlyIncome } from './utils/calculations';
 import { filterByExpenseType } from './utils/filtering';
 import { calculateMonthlyEquivalent } from '@/features/expenses/utils';
@@ -29,8 +33,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { DatePicker } from '@/components/ui/date-picker';
 import { SearchableSelect } from '@/components/ui/searchable-select';
-import { Textarea } from '@/components/ui/textarea';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { format } from 'date-fns';
@@ -46,8 +49,11 @@ const incomeSchema = z.object({
   source: z.enum(['Salary', 'Freelance', 'Business', 'Investments', 'Rental', 'Other']),
   amount: z.number().min(0.01, 'Amount must be greater than 0'),
   frequency: z.enum(['weekly', 'fortnightly', 'monthly', 'yearly']),
-  nextPaymentDate: z.string().min(1, 'Next payment date is required'),
-  notes: z.string().optional(),
+  nextPaymentDate: z.string().optional().nullable().transform((val) => {
+    // Convert empty strings to null for consistency
+    return (val === '') ? null : val;
+  }),
+  paidToAccountId: z.string().uuid('Invalid account selected').optional(),
 });
 
 type IncomeFormData = z.infer<typeof incomeSchema>;
@@ -61,6 +67,7 @@ export function BudgetPage() {
   const { data: incomes = [], isLoading: incomesLoading, error: incomesError, refetch: refetchIncomes } = useIncomes();
   const { data: expenses = [], isLoading: expensesLoading, error: expensesError, refetch: refetchExpenses } = useExpenses();
   const { data: categories = [] } = useCategories();
+  const { data: accounts = [] } = useAccounts();
 
   // Mutations
   const createIncomeMutation = useCreateIncome();
@@ -72,6 +79,8 @@ export function BudgetPage() {
   const [createIncomeModalOpen, setCreateIncomeModalOpen] = useState(false);
   const [editingIncome, setEditingIncome] = useState<Income | null>(null);
   const [deletingIncome, setDeletingIncome] = useState<Income | null>(null);
+  const [createIncomeError, setCreateIncomeError] = useState<string | null>(null);
+  const [updateIncomeError, setUpdateIncomeError] = useState<string | null>(null);
   const [createExpenseModalOpen, setCreateExpenseModalOpen] = useState(false);
   const [defaultCategoryId, setDefaultCategoryId] = useState<string | undefined>(undefined);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
@@ -83,7 +92,7 @@ export function BudgetPage() {
   const [expensesFrequency, setExpensesFrequency] = useState<Frequency | undefined>(undefined);
   
   // View mode state
-  const [viewMode, setViewMode] = useState<'list' | 'cards'>('cards');
+  const [viewMode, setViewMode] = useViewMode();
 
   // Handle query params for auto-opening create modal
   useEffect(() => {
@@ -101,6 +110,11 @@ export function BudgetPage() {
   const categoryMap = useMemo(() => {
     return new Map(categories.map((c) => [c.id, c.name]));
   }, [categories]);
+
+  // Create account map for quick lookups
+  const accountMap = useMemo(() => {
+    return new Map(accounts.map((a) => [a.id, a.accountName]));
+  }, [accounts]);
 
   // Get Uncategorised category ID for fallback handling
   const uncategorisedId = useMemo(() => {
@@ -136,6 +150,16 @@ export function BudgetPage() {
     }, 0);
   }, [expenses]);
 
+  // Use custom hook for account linking state management
+  const {
+    isAccountBeingCreated,
+    linkedAccountIdRef,
+    handleAccountChange,
+    handleAccountCreationStateChange,
+    getFinalAccountId,
+    shouldPreventSubmission,
+  } = useAccountLinking(editingIncome?.paidToAccountId);
+
   // Form handling for income
   const {
     register: registerIncome,
@@ -144,6 +168,7 @@ export function BudgetPage() {
     reset: resetIncome,
     setValue: setIncomeValue,
     watch: watchIncome,
+    control,
   } = useForm<IncomeFormData>({
     resolver: zodResolver(incomeSchema),
     defaultValues: {
@@ -151,44 +176,92 @@ export function BudgetPage() {
       source: 'Salary',
       amount: 0,
       frequency: 'monthly',
-      nextPaymentDate: format(new Date(), 'yyyy-MM-dd'),
-      notes: '',
+      nextPaymentDate: undefined,
+      paidToAccountId: undefined,
     },
   });
 
   const watchedSource = watchIncome('source') || '';
   const watchedFrequency = watchIncome('frequency') || '';
+  const watchedPaidToAccountId = watchIncome('paidToAccountId') || '';
+
+  // Sync ref with defaultValues (for editing existing income)
+  useEffect(() => {
+    if (editingIncome?.paidToAccountId) {
+      linkedAccountIdRef.current = editingIncome.paidToAccountId;
+    }
+  }, [editingIncome?.paidToAccountId]);
+
+  // Clear errors when income modals open
+  useEffect(() => {
+    if (createIncomeModalOpen) {
+      setCreateIncomeError(null);
+    }
+  }, [createIncomeModalOpen]);
 
   // Income handlers
   const handleCreateIncome = (data: IncomeFormData) => {
-    createIncomeMutation.mutate(data, {
+    const finalAccountId = getFinalAccountId(data.paidToAccountId);
+
+    // Keep null as null (don't convert to undefined) so repository can include it in insert
+    // Type assertion needed because Income type uses string | undefined, but schema accepts null
+    const payload = {
+      ...data,
+      nextPaymentDate: data.nextPaymentDate ?? null,
+      paidToAccountId: finalAccountId,
+    } as Omit<Income, 'id'>;
+
+    createIncomeMutation.mutate(payload, {
       onSuccess: () => {
         setCreateIncomeModalOpen(false);
+        setCreateIncomeError(null);
         resetIncome();
+      },
+      onError: (error: any) => {
+        setCreateIncomeError(error?.error || 'Failed to create income');
       },
     });
   };
 
   const handleEditIncome = (income: Income) => {
     setEditingIncome(income);
+    setUpdateIncomeError(null); // Clear any previous errors
     resetIncome({
       name: income.name,
       source: income.source,
       amount: income.amount,
       frequency: income.frequency,
-      nextPaymentDate: format(new Date(income.nextPaymentDate), 'yyyy-MM-dd'),
-      notes: income.notes || '',
+      nextPaymentDate: income.nextPaymentDate ? format(new Date(income.nextPaymentDate), 'yyyy-MM-dd') : undefined,
+      paidToAccountId: income.paidToAccountId,
     });
   };
 
   const handleUpdateIncome = (data: IncomeFormData) => {
     if (!editingIncome) return;
+
+    const finalAccountId = getFinalAccountId(data.paidToAccountId);
+
+    // Keep null as null (don't convert to undefined) so repository can include it in update
+    // Type assertion needed because Income type uses string | undefined, but schema accepts null
+    const updateData = {
+      ...data,
+      nextPaymentDate: data.nextPaymentDate ?? null,
+      paidToAccountId: finalAccountId
+    } as Partial<Income>;
+
     updateIncomeMutation.mutate(
-      { id: editingIncome.id, data },
+      {
+        id: editingIncome.id,
+        data: updateData
+      },
       {
         onSuccess: () => {
           setEditingIncome(null);
+          setUpdateIncomeError(null);
           resetIncome();
+        },
+        onError: (error: any) => {
+          setUpdateIncomeError(error?.error || 'Failed to update income');
         },
       }
     );
@@ -255,20 +328,9 @@ export function BudgetPage() {
     <div className="space-y-12">
       {/* Budget Header */}
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Budget</h1>
+        <h1 className="text-h1-sm sm:text-h1-md lg:text-h1-lg font-bold tracking-tight">Budget</h1>
         <div className="flex items-center gap-3">
-          <Label htmlFor="view-mode-budget" className="text-sm text-muted-foreground">
-            List view
-          </Label>
-          <Switch
-            id="view-mode-budget"
-            checked={viewMode === 'cards'}
-            onCheckedChange={(checked) => setViewMode(checked ? 'cards' : 'list')}
-            aria-label="Toggle between list view and card view"
-          />
-          <Label htmlFor="view-mode-budget" className="text-sm text-muted-foreground">
-            Card view
-          </Label>
+          <ViewModeToggle viewMode={viewMode} onViewModeChange={setViewMode} id="view-mode-budget" />
         </div>
       </div>
 
@@ -315,6 +377,7 @@ export function BudgetPage() {
         <IncomeSection
           totalIncome={totalMonthlyIncome}
           incomeSources={incomes}
+          accountMap={accountMap}
           onCreate={() => setCreateIncomeModalOpen(true)}
           onEdit={handleEditIncome}
           onDelete={handleDeleteIncome}
@@ -350,6 +413,7 @@ export function BudgetPage() {
         <ExpensesSection
           expenses={expenses}
           categoryMap={categoryMap}
+          accountMap={accountMap}
           uncategorisedId={uncategorisedId}
           onCreate={handleCreateExpense}
           onEdit={handleEditExpense}
@@ -361,13 +425,43 @@ export function BudgetPage() {
       )}
 
       {/* Income Create Modal */}
-      <Dialog open={createIncomeModalOpen} onOpenChange={setCreateIncomeModalOpen}>
+      <Dialog
+        open={createIncomeModalOpen}
+        onOpenChange={(open) => {
+          setCreateIncomeModalOpen(open);
+          if (!open) {
+            // Reset form when closing
+            resetIncome();
+            setCreateIncomeError(null);
+          } else if (!editingIncome) {
+            // Reset form when opening for new income (not editing)
+            resetIncome();
+            setCreateIncomeError(null);
+          }
+        }}
+      >
         <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
             <DialogTitle>Add Income Source</DialogTitle>
             <DialogDescription>Add a new source of income to track your earnings.</DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleSubmitIncome(handleCreateIncome)} className="space-y-4">
+          {createIncomeError && (
+            <Alert className="border-destructive bg-destructive/10">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle className="text-destructive">Error</AlertTitle>
+              <AlertDescription className="text-destructive">{createIncomeError}</AlertDescription>
+            </Alert>
+          )}
+          <form
+            onSubmit={(e) => {
+              if (shouldPreventSubmission()) {
+                e.preventDefault();
+                return;
+              }
+              handleSubmitIncome(handleCreateIncome)(e);
+            }}
+            className={`space-y-4 ${isAccountBeingCreated ? 'opacity-60 pointer-events-none' : ''}`}
+          >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="name">Name</Label>
@@ -444,30 +538,54 @@ export function BudgetPage() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="nextPaymentDate">Next Payment Date</Label>
-              <DatePicker
-                id="nextPaymentDate"
-                shouldShowCalendarButton
-                {...(() => {
-                  const { disabled, ...registerProps } = registerIncome('nextPaymentDate');
-                  return registerProps;
-                })()}
+                  <Controller
+                name="nextPaymentDate"
+                control={control}
+                render={({ field }) => (
+                  <DatePicker
+                    id="nextPaymentDate"
+                    value={field.value || undefined} // ISO format from form state, convert null to undefined
+                    onChange={(e) => {
+                      // DatePicker emits ISO format in e.target.value
+                      field.onChange(e.target.value);
+                    }}
+                    shouldShowCalendarButton
+                    allowClear={true}
+                    placeholder="No next payment date (optional)"
+                  />
+                )}
               />
               {incomeErrors.nextPaymentDate && (
                 <p id="nextPaymentDate-error" className="text-sm text-destructive" role="alert">
                   {incomeErrors.nextPaymentDate.message}
                 </p>
               )}
+              <p className="text-sm text-muted-foreground">Optional: Leave empty if payment date is unknown</p>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="notes">Notes (Optional)</Label>
-              <Textarea id="notes" {...registerIncome('notes')} placeholder="Any additional notes" rows={3} />
+              <Label htmlFor="paidToAccountId">Paid to (Optional)</Label>
+              <AccountSelect
+                id="paidToAccountId"
+                value={watchedPaidToAccountId}
+                onChange={(value) => {
+                  setIncomeValue('paidToAccountId', value);
+                  handleAccountChange(value);
+                }}
+                onAccountCreationStateChange={handleAccountCreationStateChange}
+                onAccountCreationError={(_error) => {
+                  // Handle account creation errors if needed
+                }}
+                placeholder="Select account this income is paid to"
+                error={incomeErrors.paidToAccountId?.message}
+                context="income"
+              />
             </div>
             <div className="flex justify-end space-x-2">
               <Button type="button" variant="outline" onClick={() => setCreateIncomeModalOpen(false)}>
                 Cancel
               </Button>
-              <Button type="submit" disabled={createIncomeMutation.isPending}>
-                {createIncomeMutation.isPending ? 'Adding...' : 'Add Income'}
+              <Button type="submit" disabled={createIncomeMutation.isPending || isAccountBeingCreated}>
+                {createIncomeMutation.isPending ? 'Adding...' : isAccountBeingCreated ? 'Creating Account...' : 'Add Income'}
               </Button>
             </div>
           </form>
@@ -482,7 +600,23 @@ export function BudgetPage() {
               <DialogTitle>Edit Income Source</DialogTitle>
               <DialogDescription>Update your income source details.</DialogDescription>
             </DialogHeader>
-            <form onSubmit={handleSubmitIncome(handleUpdateIncome)} className="space-y-4">
+            {updateIncomeError && (
+              <Alert className="border-destructive bg-destructive/10">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle className="text-destructive">Error</AlertTitle>
+                <AlertDescription className="text-destructive">{updateIncomeError}</AlertDescription>
+              </Alert>
+            )}
+            <form
+              onSubmit={(e) => {
+                if (shouldPreventSubmission()) {
+                  e.preventDefault();
+                  return;
+                }
+                handleSubmitIncome(handleUpdateIncome)(e);
+              }}
+              className={`space-y-4 ${isAccountBeingCreated ? 'opacity-60 pointer-events-none' : ''}`}
+            >
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="edit-name">Name</Label>
@@ -556,30 +690,54 @@ export function BudgetPage() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="edit-nextPaymentDate">Next Payment Date</Label>
-                <DatePicker
-                  id="edit-nextPaymentDate"
-                  shouldShowCalendarButton
-                  {...(() => {
-                    const { disabled, ...registerProps } = registerIncome('nextPaymentDate');
-                    return registerProps;
-                  })()}
+                <Controller
+                  name="nextPaymentDate"
+                  control={control}
+                  render={({ field }) => (
+                    <DatePicker
+                      id="edit-nextPaymentDate"
+                      value={field.value || undefined} // ISO format from form state, convert null to undefined
+                      onChange={(e) => {
+                        // DatePicker emits ISO format in e.target.value
+                        field.onChange(e.target.value);
+                      }}
+                      shouldShowCalendarButton
+                      allowClear={true}
+                      placeholder="No next payment date (optional)"
+                    />
+                  )}
                 />
                 {incomeErrors.nextPaymentDate && (
                   <p id="edit-nextPaymentDate-error" className="text-sm text-destructive" role="alert">
                     {incomeErrors.nextPaymentDate.message}
                   </p>
                 )}
+                <p className="text-sm text-muted-foreground">Optional: Leave empty if payment date is unknown</p>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="edit-notes">Notes (Optional)</Label>
-                <Textarea id="edit-notes" {...registerIncome('notes')} rows={3} />
+                <Label htmlFor="edit-paidToAccountId">Paid to (Optional)</Label>
+                <AccountSelect
+                  id="edit-paidToAccountId"
+                  value={watchedPaidToAccountId}
+                  onChange={(value) => {
+                    setIncomeValue('paidToAccountId', value);
+                    handleAccountChange(value);
+                  }}
+                  onAccountCreationStateChange={handleAccountCreationStateChange}
+                  onAccountCreationError={(_error) => {
+                    // Handle account creation errors if needed
+                  }}
+                  placeholder="Select account this income is paid to"
+                  error={incomeErrors.paidToAccountId?.message}
+                  context="income"
+                />
               </div>
               <div className="flex justify-end space-x-2">
                 <Button type="button" variant="outline" onClick={() => setEditingIncome(null)}>
                   Cancel
                 </Button>
-                <Button type="submit" disabled={updateIncomeMutation.isPending}>
-                  {updateIncomeMutation.isPending ? 'Saving...' : 'Save Changes'}
+                <Button type="submit" disabled={updateIncomeMutation.isPending || isAccountBeingCreated}>
+                  {updateIncomeMutation.isPending ? 'Saving...' : isAccountBeingCreated ? 'Creating Account...' : 'Save Changes'}
                 </Button>
               </div>
             </form>
