@@ -84,6 +84,7 @@ export function Routes() {
       <Route path="/" element={<RootRouteHandler />} />
       <Route path="/sign-in/*" element={<Suspense fallback={<RouteLoadingFallback />}><SignInPage /></Suspense>} />
       <Route path="/sign-up/*" element={<Suspense fallback={<RouteLoadingFallback />}><SignUpPage /></Suspense>} />
+      <Route path="/dashboard" element={<Navigate to={ROUTES.app.dashboard} replace />} />
       
       <Route path="/app" element={<Layout />}>
         <Route index element={<DashboardPage />} />
