@@ -5,7 +5,7 @@
  * Prevents subscription churn and CHANNEL_ERROR loops
  */
 
-import type { RealtimeChannel } from '@supabase/supabase-js';
+import type { RealtimeChannel, SupabaseClient } from '@supabase/supabase-js';
 import { logger, getCorrelationId } from '../logger';
 
 // Track active channels by statementImportId
@@ -86,7 +86,7 @@ export function registerChannel(
  */
 export function unregisterChannel(
   statementImportId: string,
-  supabaseClient?: any,
+  supabaseClient?: SupabaseClient,
   correlationId?: string
 ): void {
   const corrId = correlationId || getCorrelationId() || 'unknown';

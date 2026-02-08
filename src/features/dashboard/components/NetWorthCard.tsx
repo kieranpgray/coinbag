@@ -116,7 +116,7 @@ export const NetWorthCard = memo(function NetWorthCard({
 
   if (isLoading) {
     return (
-      <Card className="border border-neutral-200">
+      <Card className="border border-border">
         <CardContent className="p-0">
           <div className="p-4">
             <Skeleton className="h-6 w-32 mb-4" />
@@ -136,7 +136,7 @@ export const NetWorthCard = memo(function NetWorthCard({
 
   if (isEmpty) {
     return (
-      <Card className="border border-neutral-200">
+      <Card className="border border-border">
         <CardContent className="p-0">
           <div className="p-4">
             <h2 className="text-h2-sm sm:text-h2-md lg:text-h2-lg font-semibold text-foreground mb-4">Net Worth</h2>

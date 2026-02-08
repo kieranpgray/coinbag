@@ -313,13 +313,13 @@ export function DashboardPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <ExpenseBreakdown
             breakdown={dashboardData.expenseBreakdown}
-            totalAmount={dashboardData.expenseBreakdown.reduce((sum, item) => sum + item.amount, 0)}
+            totalAmount={(dashboardData.expenseBreakdown ?? []).reduce((sum, item) => sum + item.amount, 0)}
             isLoading={isLoading}
             isEmpty={!hasExpenses}
           />
           <IncomeBreakdown
             breakdown={dashboardData.incomeBreakdown}
-            totalAmount={dashboardData.incomeBreakdown.reduce((sum, item) => sum + item.amount, 0)}
+            totalAmount={(dashboardData.incomeBreakdown ?? []).reduce((sum, item) => sum + item.amount, 0)}
             isLoading={isLoading}
             isEmpty={!hasIncome}
           />

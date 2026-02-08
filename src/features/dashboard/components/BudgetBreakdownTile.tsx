@@ -4,6 +4,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { PrivacyWrapper } from '@/components/shared/PrivacyWrapper';
+import { StatusIndicator } from '@/components/shared/StatusIndicator';
 
 interface BudgetBreakdownTileProps {
   totalIncome: number; // monthly equivalent
@@ -34,7 +35,7 @@ export const BudgetBreakdownTile = memo(function BudgetBreakdownTile({
 
   if (isLoading) {
     return (
-      <Card className="border border-neutral-200">
+      <Card className="border border-border">
         <CardContent className="p-0">
           <div className="p-4">
             <Skeleton className="h-6 w-32 mb-4" />
@@ -49,7 +50,7 @@ export const BudgetBreakdownTile = memo(function BudgetBreakdownTile({
 
   if (isEmpty) {
     return (
-      <Card className="border border-neutral-200">
+      <Card className="border border-border">
         <CardContent className="p-0">
           <div className="p-4">
             <h2 className="text-h2-sm sm:text-h2-md lg:text-h2-lg font-semibold text-foreground mb-4">In and Out</h2>
@@ -91,7 +92,7 @@ export const BudgetBreakdownTile = memo(function BudgetBreakdownTile({
               <span className="text-body-lg font-bold text-foreground">
                 <PrivacyWrapper value={totalIncome} />
               </span>
-              <div className="h-2 w-2 rounded-full bg-success" aria-label="Positive status" />
+              <StatusIndicator status="positive" label="Positive status" />
             </div>
           </div>
 
@@ -104,7 +105,7 @@ export const BudgetBreakdownTile = memo(function BudgetBreakdownTile({
               <span className="text-body-lg font-bold text-foreground">
                 -<PrivacyWrapper value={totalOutgoing} />
               </span>
-              <div className="h-2 w-2 rounded-full bg-error" aria-label="Outgoing status" />
+              <StatusIndicator status="negative" label="Outgoing status" />
             </div>
           </div>
 
@@ -120,11 +121,9 @@ export const BudgetBreakdownTile = memo(function BudgetBreakdownTile({
               <span className="text-body-lg font-bold text-foreground">
                 <PrivacyWrapper value={remaining} />
               </span>
-              <div
-                className={`h-2 w-2 rounded-full ${
-                  remaining >= 0 ? 'bg-success' : 'bg-error'
-                }`}
-                aria-label={remaining >= 0 ? 'Positive status' : 'Negative status'}
+              <StatusIndicator
+                status={remaining >= 0 ? 'positive' : 'negative'}
+                label={remaining >= 0 ? 'Positive status' : 'Negative status'}
               />
             </div>
           </div>

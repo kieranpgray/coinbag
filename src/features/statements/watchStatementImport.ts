@@ -147,7 +147,7 @@ export async function watchStatementImport(
     let subscription: RealtimeChannel | null = null
     let resolved = false
 
-    const supabase = createAuthenticatedSupabaseClient(getToken)
+    const supabase = await createAuthenticatedSupabaseClient(getToken)
 
     // Cleanup function
     const cleanup = () => {
@@ -328,11 +328,11 @@ export async function watchStatementImport(
             if (newStatus === "completed" || newStatus === "failed") {
               // Invalidate queries
               if (accountId) {
-                await queryClient.invalidateQueries({ queryKey: ["transactions", accountId] })
+                queryClient.invalidateQueries({ queryKey: ["transactions", accountId] })
               }
-              await queryClient.invalidateQueries({ queryKey: ["transactions"] })
-              await queryClient.invalidateQueries({ queryKey: ["accounts"] })
-              await queryClient.invalidateQueries({ queryKey: ["dashboard"] })
+              queryClient.invalidateQueries({ queryKey: ["transactions"] })
+              queryClient.invalidateQueries({ queryKey: ["accounts"] })
+              queryClient.invalidateQueries({ queryKey: ["dashboard"] })
 
               resolveWithStatus(newStatus, payload.new.error_message)
             }

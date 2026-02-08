@@ -114,9 +114,9 @@ export function getSupabaseBrowserClient(
     // Dev-only guard to detect accidental re-creation
     if (import.meta.env.DEV) {
       (window as any).__wellthy_supabase_singleton__ =
-        (window as Record<string, unknown>).__wellthy_supabase_singleton__ ?? _supabase;
+        (window as any).__wellthy_supabase_singleton__ ?? _supabase;
 
-      if ((window as Record<string, unknown>).__wellthy_supabase_singleton__ !== _supabase) {
+      if ((window as any).__wellthy_supabase_singleton__ !== _supabase) {
         console.error("[Supabase] Multiple singleton instances detected (should never happen).");
       }
     }

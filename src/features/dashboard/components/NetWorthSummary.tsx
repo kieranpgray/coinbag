@@ -1,6 +1,7 @@
 import { memo } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PrivacyWrapper } from '@/components/shared/PrivacyWrapper';
+import { StatusIndicator } from '@/components/shared/StatusIndicator';
 
 interface NetWorthSummaryProps {
   netWorth: number;
@@ -49,7 +50,7 @@ export const NetWorthSummary = memo(function NetWorthSummary({
           <span className="text-body-lg font-bold text-foreground">
             <PrivacyWrapper value={totalAssets} />
           </span>
-          <div className="h-2 w-2 rounded-full bg-success" aria-label="Positive status" />
+          <StatusIndicator status="positive" label="Positive status" />
         </div>
       </div>
 
@@ -62,12 +63,12 @@ export const NetWorthSummary = memo(function NetWorthSummary({
           <span className="text-body-lg font-bold text-foreground">
             -<PrivacyWrapper value={totalLiabilities} />
           </span>
-          <div className="h-2 w-2 rounded-full bg-error" aria-label="Liability status" />
+          <StatusIndicator status="negative" label="Liability status" />
         </div>
       </div>
 
       {/* Separator */}
-      <div className="border-t border-neutral-200 my-2" />
+      <div className="border-t border-border my-2" />
 
       {/* Net Worth Row */}
       <div className="flex items-center justify-between">
@@ -78,11 +79,9 @@ export const NetWorthSummary = memo(function NetWorthSummary({
           <span className="text-body-lg font-bold text-foreground">
             <PrivacyWrapper value={netWorth} />
           </span>
-          <div
-            className={`h-2 w-2 rounded-full ${
-              netWorth >= 0 ? 'bg-success' : 'bg-error'
-            }`}
-            aria-label={netWorth >= 0 ? 'Positive status' : 'Negative status'}
+          <StatusIndicator
+            status={netWorth >= 0 ? 'positive' : 'negative'}
+            label={netWorth >= 0 ? 'Positive status' : 'Negative status'}
           />
         </div>
       </div>

@@ -53,26 +53,24 @@ const cards: CardData[] = [
 ];
 
 const colorMap: Record<string, string> = {
-  blue: 'group-hover:bg-gradient-to-br group-hover:from-blue-500/10 group-hover:to-blue-600/10 group-hover:border-blue-300',
-  emerald:
-    'group-hover:bg-gradient-to-br group-hover:from-emerald-500/10 group-hover:to-emerald-600/10 group-hover:border-emerald-300',
-  purple:
-    'group-hover:bg-gradient-to-br group-hover:from-purple-500/10 group-hover:to-purple-600/10 group-hover:border-purple-300',
-  pink: 'group-hover:bg-gradient-to-br group-hover:from-pink-500/10 group-hover:to-pink-600/10 group-hover:border-pink-300',
+  blue: 'group-hover:bg-primary/5 group-hover:border-primary/20',
+  emerald: 'group-hover:bg-success/5 group-hover:border-success/20',
+  purple: 'group-hover:bg-primary/5 group-hover:border-primary/20',
+  pink: 'group-hover:bg-primary/5 group-hover:border-primary/20',
 };
 
 const iconColorMap: Record<string, string> = {
-  blue: 'bg-blue-500',
-  emerald: 'bg-emerald-500',
-  purple: 'bg-purple-500',
-  pink: 'bg-pink-500',
+  blue: 'bg-primary',
+  emerald: 'bg-success',
+  purple: 'bg-primary',
+  pink: 'bg-primary',
 };
 
 const buttonColorMap: Record<string, string> = {
-  blue: 'bg-blue-600 hover:bg-blue-700',
-  emerald: 'bg-emerald-600 hover:bg-emerald-700',
-  purple: 'bg-purple-600 hover:bg-purple-700',
-  pink: 'bg-pink-600 hover:bg-pink-700',
+  blue: 'bg-primary hover:bg-primary/90',
+  emerald: 'bg-success hover:bg-success/90',
+  purple: 'bg-primary hover:bg-primary/90',
+  pink: 'bg-primary hover:bg-primary/90',
 };
 
 export function CardBasedFlow() {
@@ -89,7 +87,7 @@ export function CardBasedFlow() {
         className="text-center mb-12"
       >
         {/* Welcome Badge */}
-        <div className="inline-flex items-center gap-2 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full px-4 py-2 mb-6">
+        <div className="inline-flex items-center gap-2 bg-primary/10 text-primary rounded-full px-4 py-2 mb-6">
           <Sparkles className="w-4 h-4" />
           <span className="text-sm">Welcome to Coinbag</span>
         </div>
@@ -118,7 +116,7 @@ export function CardBasedFlow() {
             >
               <Card
                 className={cn(
-                  'group p-6 cursor-pointer transition-all duration-300 border-2 hover:shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-2',
+                  'group p-6 cursor-pointer transition-all duration-300 border-2 hover:shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
                   colorMap[card.color]
                 )}
                 onMouseEnter={() => setHoveredCard(index)}

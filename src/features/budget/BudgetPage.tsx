@@ -217,8 +217,8 @@ export function BudgetPage() {
         setCreateIncomeError(null);
         resetIncome();
       },
-      onError: (error: { error: string; code: string }) => {
-        setCreateIncomeError(error?.error || 'Failed to create income');
+      onError: () => {
+        setCreateIncomeError('Failed to create income');
       },
     });
   };
@@ -260,9 +260,9 @@ export function BudgetPage() {
           setUpdateIncomeError(null);
           resetIncome();
         },
-        onError: (error: { error: string; code: string }) => {
-          setUpdateIncomeError(error?.error || 'Failed to update income');
-        },
+      onError: () => {
+        setUpdateIncomeError('Failed to update income');
+      },
       }
     );
   };

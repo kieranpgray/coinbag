@@ -36,7 +36,7 @@ function CustomTooltip({ active, payload, label }: any) {
   const date = label as string;
 
   return (
-    <div className="bg-card border border-neutral-200 rounded-lg shadow-lg p-3">
+    <div className="bg-card border border-border rounded-lg shadow-lg p-3">
       <p className="text-body-sm text-muted-foreground mb-1">
         {formatDate(date, locale, 'medium')}
       </p>
