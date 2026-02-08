@@ -141,6 +141,7 @@ export function AssetForm({ asset, onSubmit, onCancel, isLoading, defaultType }:
           id="dateAdded"
           shouldShowCalendarButton
           {...(() => {
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             const { disabled, ...registerProps } = register('dateAdded');
             return registerProps;
           })()}

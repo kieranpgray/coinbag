@@ -64,15 +64,15 @@ try {
   console.log('   ✅ Client created successfully');
   
   // Test a simple operation (auth endpoint doesn't require authentication)
-  const { data, error } = await client.auth.getSession();
+  const { error } = await client.auth.getSession();
   if (error && error.message.includes('Invalid API key')) {
     console.log('   ❌ Invalid API key error:', error.message);
     process.exit(1);
   } else {
     console.log('   ✅ Auth endpoint accessible (key format accepted)');
   }
-} catch (error: any) {
-  console.error('   ❌ Error creating client:', error.message);
+} catch (error: unknown) {
+  console.error('   ❌ Error creating client:', error instanceof Error ? error.message : String(error));
   process.exit(1);
 }
 
@@ -89,14 +89,14 @@ if (SECRET_KEY) {
     console.log('   ✅ Service role client created successfully');
     
     // Test a simple operation
-    const { data, error } = await serviceClient.auth.getSession();
+    const { error } = await serviceClient.auth.getSession();
     if (error && error.message.includes('Invalid API key')) {
       console.log('   ❌ Invalid API key error:', error.message);
     } else {
       console.log('   ✅ Auth endpoint accessible (key format accepted)');
     }
-  } catch (error: any) {
-    console.error('   ❌ Error creating service client:', error.message);
+  } catch (error: unknown) {
+    console.error('   ❌ Error creating service client:', error instanceof Error ? error.message : String(error));
   }
 }
 

@@ -159,7 +159,7 @@ export function getActiveChannelIds(): string[] {
 /**
  * Clear all channels (for cleanup/testing)
  */
-export function clearAllChannels(supabaseClient?: any): void {
+export function clearAllChannels(supabaseClient?: SupabaseClient): void {
   const channelIds = Array.from(activeChannels.keys());
   
   for (const statementImportId of channelIds) {

@@ -9,8 +9,8 @@
  *   tsx scripts/monitor-checkpoint-logs.ts [--function process-statement] [--watch]
  */
 
-import { execSync, spawn } from 'child_process';
-import { readFileSync } from 'fs';
+import { execSync } from 'child_process';
+import { writeFileSync } from 'fs';
 
 const FUNCTION_NAME = process.argv.find(arg => arg.startsWith('--function'))?.split('=')[1] || 'process-statement';
 const WATCH_MODE = process.argv.includes('--watch');
@@ -87,7 +87,7 @@ function parseCheckpointLogs(logOutput: string): CheckpointData[] {
       }
       
       // Extract timestamp if available
-      const timestampMatch = line.match(/\[(\d{4}-\d{2}-\d{2}T[\d:\.]+Z)\]/);
+      const timestampMatch = line.match(/\[(\d{4}-\d{2}-\d{2}T[\d:.]+Z)\]/);
       if (timestampMatch && !currentCheckpoint.timestamp) {
         currentCheckpoint.timestamp = timestampMatch[1];
       }
@@ -122,8 +122,8 @@ function fetchLogs(): string {
       }
     );
     return output;
-  } catch (error: any) {
-    throw new Error(`Failed to fetch logs: ${error.message}`);
+  } catch (error: unknown) {
+    throw new Error(`Failed to fetch logs: ${error instanceof Error ? error.message : String(error)}`);
   }
 }
 
@@ -189,7 +189,6 @@ function main() {
   
   if (WATCH_MODE) {
     console.log('Watching for new logs... (Press Ctrl+C to stop)\n');
-    let lastTimestamp = new Date().toISOString();
     
     const interval = setInterval(() => {
       try {
@@ -200,8 +199,8 @@ function main() {
           console.log(`\n[${new Date().toLocaleTimeString()}] Found ${checkpoints.length} checkpoints`);
           displayCheckpointReport(checkpoints);
         }
-      } catch (error: any) {
-        console.error(`Error: ${error.message}`);
+      } catch (error: unknown) {
+        console.error(`Error: ${error instanceof Error ? error.message : String(error)}`);
       }
     }, 5000); // Check every 5 seconds
     
@@ -221,14 +220,14 @@ function main() {
       
       // Also save to file for reference
       const outputFile = `checkpoint-logs-${Date.now()}.json`;
-      require('fs').writeFileSync(
+      writeFileSync(
         outputFile,
         JSON.stringify(checkpoints, null, 2)
       );
       console.log(`\n✅ Full checkpoint data saved to: ${outputFile}`);
       
-    } catch (error: any) {
-      console.error('❌ Error:', error.message);
+    } catch (error: unknown) {
+      console.error('❌ Error:', error instanceof Error ? error.message : String(error));
       console.error('\nTroubleshooting:');
       console.error('1. Ensure Supabase CLI is installed and authenticated');
       console.error('2. Run: supabase login');

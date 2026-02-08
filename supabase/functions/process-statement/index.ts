@@ -14,11 +14,9 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { 
   ocrDocument, 
   createPreSignedUrl,
-  type OcrResult,
   OcrAuthError,
   OcrRateLimitError,
-  OcrTimeoutError,
-  OcrValidationError
+  OcrTimeoutError
 } from './ocr-service.ts'
 
 // Simple logger for Edge Functions
@@ -79,8 +77,9 @@ const corsHeaders = {
 /**
  * Simple transaction parser for Edge Function
  * Extracts basic transaction information from statement text
+ * @deprecated Not currently used - kept for reference
  */
-function parseTransactionsSimple(text: string) {
+function _parseTransactionsSimple(text: string) {
   const transactions: any[] = []
 
   // Split into lines and clean them
@@ -91,7 +90,7 @@ function parseTransactionsSimple(text: string) {
 
   // Simple patterns for Australian banking statements
   const datePattern = /(\d{1,2}\/\d{1,2}\/\d{4}|\d{1,2}-\d{1,2}-\d{4}|\d{4}-\d{2}-\d{2})/
-  const amountPattern = /[\$]?([\d,]+\.?\d{0,2})/
+  const amountPattern = /[$]?([\d,]+\.?\d{0,2})/
 
   for (const line of lines) {
     // Skip header lines
@@ -135,7 +134,7 @@ function parseTransactionsSimple(text: string) {
     }
 
     // Parse date
-    const dateParts = dateMatch[0].split(/[\/\-]/)
+    const dateParts = dateMatch[0].split(/[/-]/)
     let date: Date
     if (dateParts[2].length === 4) {
       // YYYY-MM-DD or YYYY/MM/DD
@@ -148,7 +147,6 @@ function parseTransactionsSimple(text: string) {
     if (isNaN(date.getTime())) continue
 
     // Determine transaction type
-    const lowerDesc = description.toLowerCase()
     const type = amount > 0 ? 'income' : 'expense'
 
     transactions.push({
@@ -567,28 +565,28 @@ function extractClosingBalanceFromMarkdown(markdown: string): number | null {
   // Matches: "Closing Balance: $1,234.56", "Ending Balance $1,234.56", etc.
   const closingBalancePatterns = [
     // With colon and currency symbol
-    /(?:closing\s+balance|ending\s+balance)[:\s]+[\$€£¥]?\s*([-]?[\d,]+\.?\d*)/i,
+    /(?:closing\s+balance|ending\s+balance)[:\s]+[$€£¥]?\s*([-]?[\d,]+\.?\d*)/i,
     // Without colon, with currency symbol
-    /(?:closing\s+balance|ending\s+balance)\s+[\$€£¥]?\s*([-]?[\d,]+\.?\d*)/i,
+    /(?:closing\s+balance|ending\s+balance)\s+[$€£¥]?\s*([-]?[\d,]+\.?\d*)/i,
     // With parentheses (sometimes used for negative balances)
-    /(?:closing\s+balance|ending\s+balance)[:\s]*\(?[\$€£¥]?\s*([-]?[\d,]+\.?\d*)\)?/i,
+    /(?:closing\s+balance|ending\s+balance)[:\s]*\(?[$€£¥]?\s*([-]?[\d,]+\.?\d*)\)?/i,
   ]
 
   // Pattern 2: "Balance as of" or "Current Balance"
   const currentBalancePatterns = [
-    /(?:balance\s+as\s+of|current\s+balance|final\s+balance)[:\s]+[\$€£¥]?\s*([-]?[\d,]+\.?\d*)/i,
-    /(?:balance\s+as\s+of|current\s+balance|final\s+balance)\s+[\$€£¥]?\s*([-]?[\d,]+\.?\d*)/i,
+    /(?:balance\s+as\s+of|current\s+balance|final\s+balance)[:\s]+[$€£¥]?\s*([-]?[\d,]+\.?\d*)/i,
+    /(?:balance\s+as\s+of|current\s+balance|final\s+balance)\s+[$€£¥]?\s*([-]?[\d,]+\.?\d*)/i,
   ]
 
   // Pattern 3: "New Balance" or "Statement Balance" (often used in credit card statements)
   const statementBalancePatterns = [
-    /(?:new\s+balance|statement\s+balance|outstanding\s+balance)[:\s]+[\$€£¥]?\s*([-]?[\d,]+\.?\d*)/i,
-    /(?:new\s+balance|statement\s+balance|outstanding\s+balance)\s+[\$€£¥]?\s*([-]?[\d,]+\.?\d*)/i,
+    /(?:new\s+balance|statement\s+balance|outstanding\s+balance)[:\s]+[$€£¥]?\s*([-]?[\d,]+\.?\d*)/i,
+    /(?:new\s+balance|statement\s+balance|outstanding\s+balance)\s+[$€£¥]?\s*([-]?[\d,]+\.?\d*)/i,
   ]
 
   // Pattern 4: Balance in summary sections (look for "Balance" followed by amount on same or next line)
   const summaryBalancePatterns = [
-    /balance[:\s]+[\$€£¥]?\s*([-]?[\d,]+\.?\d*)/i,
+    /balance[:\s]+[$€£¥]?\s*([-]?[\d,]+\.?\d*)/i,
   ]
 
   // Try patterns in priority order
@@ -628,16 +626,16 @@ function extractClosingBalanceFromMarkdown(markdown: string): number | null {
   // This is more aggressive and may catch balances in unexpected formats
   const fallbackPatterns = [
     // Look for lines containing "balance" and a number on the same line
-    /balance[^.\n]{0,50}[\$€£¥]?\s*([-]?[\d,]+\.?\d{2})/i,
+    /balance[^.\n]{0,50}[$€£¥]?\s*([-]?[\d,]+\.?\d{2})/i,
     // Look for currency symbol followed by number near "balance" keyword
-    /[\$€£¥]\s*([-]?[\d,]+\.?\d{2})[^.\n]{0,50}balance/i,
+    /[$€£¥]\s*([-]?[\d,]+\.?\d{2})[^.\n]{0,50}balance/i,
   ]
 
   for (const pattern of fallbackPatterns) {
     const matches = normalizedMarkdown.match(pattern)
     if (matches && matches[1]) {
       try {
-        let balanceStr = matches[1].trim().replace(/,/g, '')
+        const balanceStr = matches[1].trim().replace(/,/g, '')
         const balance = parseFloat(balanceStr)
         
         if (!isNaN(balance) && isFinite(balance) && 
@@ -893,7 +891,7 @@ async function extractStatementDataWithMistralOCR(
     const lines = allMarkdownText.split('\n')
     // Pattern for transaction table rows: Date | Date | Card | Details | Amount | Balance
     // Look for lines with date patterns and dollar amounts
-    const transactionTablePattern = /(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4}|\d{4}[\/\-]\d{2}[\/\-]\d{2}).*(\$\d+\.\d{2}|-\$\d+\.\d{2}|\d+\.\d{2}|CR|DR)/
+    const transactionTablePattern = /(\d{1,2}[/-]\d{1,2}[/-]\d{2,4}|\d{4}[/-]\d{2}[/-]\d{2}).*(\$\d+\.\d{2}|-\$\d+\.\d{2}|\d+\.\d{2}|CR|DR)/
     const potentialTransactionLines = lines.filter(line => {
       const trimmed = line.trim()
       // Must have date pattern and amount pattern
@@ -1022,7 +1020,7 @@ async function extractStatementDataWithMistralOCR(
         const transactionTableStart = /(date|transaction|description|amount|balance|debit|credit|posting|posted)/i
         const transactionTableEnd = /(total|balance|summary|statement|period|account|opening|closing)/i
         // More aggressive pattern for transaction rows - must have date AND amount
-        const transactionRowPattern = /(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4}|\d{4}[\/\-]\d{2}[\/\-]\d{2}).*(\$\d+\.\d{2}|-\$\d+\.\d{2}|\d+\.\d{2})|(\$\d+\.\d{2}|-\$\d+\.\d{2}).*(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4}|\d{4}[\/\-]\d{2}[\/\-]\d{2})/
+        const transactionRowPattern = /(\d{1,2}[/-]\d{1,2}[/-]\d{2,4}|\d{4}[/-]\d{2}[/-]\d{2}).*(\$\d+\.\d{2}|-\$\d+\.\d{2}|\d+\.\d{2})|(\$\d+\.\d{2}|-\$\d+\.\d{2}).*(\d{1,2}[/-]\d{1,2}[/-]\d{2,4}|\d{4}[/-]\d{2}[/-]\d{2})/
         
         // Pattern to identify balance-related lines (opening, closing, available balance)
         // Enhanced to also detect CR/DR annotations and credit/debit columns
@@ -1129,7 +1127,7 @@ async function extractStatementDataWithMistralOCR(
       const potentialTransactionLines = allMarkdownText.split('\n').filter(line => {
         const trimmed = line.trim()
         // Pattern for transaction table rows: Date | Amount | Description
-        const transactionPattern = /(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4}|\d{4}[\/\-]\d{2}[\/\-]\d{2}).*(\$\d+\.\d{2}|-\$\d+\.\d{2}|\d+\.\d{2}|CR|DR)/
+        const transactionPattern = /(\d{1,2}[/-]\d{1,2}[/-]\d{2,4}|\d{4}[/-]\d{2}[/-]\d{2}).*(\$\d+\.\d{2}|-\$\d+\.\d{2}|\d+\.\d{2}|CR|DR)/
         return transactionPattern.test(trimmed) && trimmed.length > 10
       })
       const estimatedTransactionCount = potentialTransactionLines.length
@@ -1958,8 +1956,8 @@ ${transactionMarkdown}`
     // This prevents hallucinated transactions from being stored
     const originalTransactionCount = parsedData.transactions.length
     // Validate transactions against OCR markdown (with error handling to prevent crashes)
-    let validatedTransactions: any[] = []
-    let filteredTransactions: any[] = []
+    const validatedTransactions: any[] = []
+    const filteredTransactions: any[] = []
     const validationStats = {
       high: 0,
       medium: 0,
@@ -3388,7 +3386,6 @@ async function processStatement(
 
     const transactions = filteredTransactions.map((t: any) => {
       const rawAmount = t.amount;
-      const ocrTransactionType = (t.transaction_type || '').toLowerCase();
       
       // Log BEFORE normalization
       logger.debug('STATEMENT:NORMALIZATION:TRANSACTION_DETAIL', 'Transaction before normalization', {
@@ -3724,7 +3721,7 @@ async function processStatement(
       // Verify with query
       let verifiedStoredCount = 0
       try {
-        const { data: storedTransactions, error: queryError } = await supabase
+        const { data: storedTransactions } = await supabase
           .from('transactions')
           .select('id', { count: 'exact' })
           .eq('statement_import_id', statementImport.id)

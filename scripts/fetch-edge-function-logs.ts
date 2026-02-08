@@ -10,8 +10,6 @@
  */
 
 import { execSync } from 'child_process';
-import { readFileSync, existsSync } from 'fs';
-import { join } from 'path';
 
 const FUNCTION_NAME = process.argv.find(arg => arg.startsWith('--function'))?.split('=')[1] || 'process-statement';
 const MINUTES_AGO = parseInt(process.argv.find(arg => arg.startsWith('--minutes'))?.split('=')[1] || '10');
@@ -113,8 +111,8 @@ try {
     });
   }
 
-} catch (error: any) {
-  console.error('❌ Error fetching logs:', error.message);
+} catch (error: unknown) {
+  console.error('❌ Error fetching logs:', error instanceof Error ? error.message : String(error));
   console.error('\nTroubleshooting:');
   console.error('1. Make sure Supabase CLI is installed: npm install -g supabase');
   console.error('2. Make sure you\'re logged in: supabase login');

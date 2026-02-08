@@ -26,7 +26,7 @@ async function verifyRealtimePublication() {
 
   try {
     // Query pg_publication_tables to check if statement_imports is in the publication
-    const { data, error } = await supabase.rpc('exec_sql', {
+    const { error } = await supabase.rpc('exec_sql', {
       sql: `
         SELECT 
           pubname,
@@ -43,7 +43,7 @@ async function verifyRealtimePublication() {
       console.log('⚠️  RPC failed, trying direct query...');
       
       // Use PostgREST query instead
-      const { data: tables, error: queryError } = await supabase
+      const { error: queryError } = await supabase
         .from('information_schema.tables')
         .select('table_name')
         .eq('table_name', 'statement_imports')
@@ -58,7 +58,7 @@ async function verifyRealtimePublication() {
     }
 
     // Check if statement_imports is in the publication
-    const { data: checkResult, error: checkError } = await supabase
+    const { error: checkError } = await supabase
       .from('statement_imports')
       .select('id')
       .limit(1);

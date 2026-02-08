@@ -72,7 +72,7 @@ function parseTransactionsSimple(text: string) {
 
   // Simple patterns for Australian banking statements
   const datePattern = /(\d{1,2}\/\d{1,2}\/\d{4}|\d{1,2}-\d{1,2}-\d{4}|\d{4}-\d{2}-\d{2})/
-  const amountPattern = /[\$]?([\d,]+\.?\d{0,2})/
+  const amountPattern = /[$]?([\d,]+\.?\d{0,2})/
 
   for (const line of lines) {
     // Skip header lines
@@ -116,7 +116,7 @@ function parseTransactionsSimple(text: string) {
     }
 
     // Parse date
-    const dateParts = dateMatch[0].split(/[\/\-]/)
+    const dateParts = dateMatch[0].split(/[/-]/)
     let date: Date
     if (dateParts[2].length === 4) {
       // YYYY-MM-DD or YYYY/MM/DD

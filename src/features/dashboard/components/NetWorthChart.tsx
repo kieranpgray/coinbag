@@ -78,8 +78,8 @@ function calculateNiceDomain(min: number, max: number): [number, number] {
   }
   
   const padding = range * 0.1; // 10% padding
-  let paddedMin = min - padding;
-  let paddedMax = max + padding;
+  const paddedMin = min - padding;
+  const paddedMax = max + padding;
   
   // Handle zero-crossing
   const crossesZero = min < 0 && max > 0;

@@ -8,6 +8,7 @@ import { createAuthenticatedSupabaseClient } from './supabaseClient'
 import { getCorrelationId, logger } from './logger'
 import { registerChannel, unregisterChannel, hasActiveChannel } from './realtime/subscriptionManager'
 import type { StatementImportEntity } from '@/contracts/statementImports'
+import type { RealtimeChannel } from '@supabase/supabase-js'
 
 /**
  * Map database snake_case format to camelCase contract format
@@ -180,7 +181,7 @@ export async function subscribeToStatementImportStatus(
         schema: 'public',
         table: 'statement_imports',
         filter: `id=eq.${statementImportId}`
-      }, (payload: any) => {
+        }, (payload: any) => {
         if (payload.new) {
           const newStatus = payload.new.status
           

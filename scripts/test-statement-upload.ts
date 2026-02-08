@@ -7,8 +7,7 @@
  *   tsx scripts/test-statement-upload.ts <path-to-anz-statement.pdf>
  */
 
-import { readFileSync } from 'fs';
-import { join } from 'path';
+// Placeholder script - actual implementation would require authentication
 
 // This is a placeholder - actual implementation would require:
 // 1. Clerk authentication

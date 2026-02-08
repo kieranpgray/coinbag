@@ -54,7 +54,7 @@ const testCases = [
   { name: 'Too long', value: 'a'.repeat(101) },
 ];
 
-function testSchema(name: string, schema: z.ZodTypeAny, testCases: Array<{name: string, value: any}>) {
+function testSchema(name: string, schema: z.ZodTypeAny, testCases: Array<{name: string, value: unknown}>) {
   console.log(`\n--- ${name} ---`);
   let passed = 0;
   let failed = 0;

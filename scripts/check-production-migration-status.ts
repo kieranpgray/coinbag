@@ -6,7 +6,7 @@
  * Safe to run - only reads table existence, doesn't modify anything.
  */
 
-import { createClient } from '@supabase/supabase-js';
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 
 // Production environment variables (should be set)
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL;
@@ -27,7 +27,7 @@ const TABLES_TO_CHECK = [
   'expenses', // Renamed from subscriptions
 ];
 
-async function checkTableExists(supabase: any, tableName: string): Promise<boolean> {
+async function checkTableExists(supabase: SupabaseClient, tableName: string): Promise<boolean> {
   try {
     // Try to query the table - if it exists and RLS blocks it, that's success
     const { error } = await supabase.from(tableName).select('id').limit(0);
@@ -45,7 +45,7 @@ async function checkTableExists(supabase: any, tableName: string): Promise<boole
   }
 }
 
-async function checkStorageBucket(supabase: any): Promise<boolean> {
+async function checkStorageBucket(supabase: SupabaseClient): Promise<boolean> {
   try {
     const { data: buckets, error } = await supabase.storage.listBuckets();
     if (error) return false;

@@ -8,6 +8,7 @@ import {
 } from '@/contracts/netWorthHistory';
 import type { NetWorthPoint } from '@/features/dashboard/hooks/useNetWorthHistory';
 import { logger, getCorrelationId } from '@/lib/logger';
+import { isSupabaseError } from '@/lib/errorTypes';
 import { z } from 'zod';
 
 /**

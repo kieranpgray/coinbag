@@ -13,7 +13,7 @@ vi.mock('@/data/transactions/repo', () => ({
 }));
 
 // Mock Clerk
-const mockClerkProvider = ({ children }: { children: React.ReactNode }) => {
+const _mockClerkProvider = ({ children }: { children: React.ReactNode }) => {
   return (
     <ClerkProvider
       publishableKey="pk_test_mock"

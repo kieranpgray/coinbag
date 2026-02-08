@@ -60,7 +60,7 @@ export function TransactionList({
     
     // If statementImportId is provided, ensure ALL transactions have matching statementImportId
     // Note: The repository already filters, but this is a safety check
-    let filtered = transactions;
+    const filtered = transactions;
 
     // CRITICAL: In production, filter out transactions without statement_import_id
     // This prevents showing test/manual transactions

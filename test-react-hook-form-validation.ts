@@ -1,5 +1,4 @@
 import { z } from 'zod';
-import { zodResolver } from '@hookform/resolvers/zod';
 
 // Copy the actual schema
 const VALIDATION_LIMITS = {
@@ -24,7 +23,7 @@ const testSchema = z.object({
 console.log('Testing with zodResolver simulation:\n');
 
 // Test what happens when React Hook Form validates
-const resolver = zodResolver(testSchema);
+// const resolver = zodResolver(testSchema); // Not used in this test
 
 // Simulate form data with empty institution
 const formValues = {

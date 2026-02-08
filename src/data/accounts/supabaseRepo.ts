@@ -11,6 +11,7 @@ import {
 import type { Account } from '@/types/domain';
 import { logger, getCorrelationId } from '@/lib/logger';
 import { z } from 'zod';
+import { isSupabaseError } from '@/lib/errorTypes';
 
 /**
  * Supabase implementation of AccountsRepository
@@ -184,13 +185,11 @@ export class SupabaseAccountsRepository implements AccountsRepository {
       if (error) {
         const errorMessage = error.message || '';
         const errorCode = error.code || '';
-        const errorStatus = (error as any).status;
-        
         // Check if it's a missing column error (42703) or 400 with column-related message
         const isMissingColumnError = 
           errorCode === '42703' ||
           errorCode === 'PGRST100' ||
-          (errorStatus === 400 && (errorMessage.includes('column') || errorMessage.includes('credit_limit') || errorMessage.includes('balance_owed')));
+          (errorMessage.includes('column') || errorMessage.includes('credit_limit') || errorMessage.includes('balance_owed'));
         
         // Check if it's an RLS/permission error
         const isRLSError = 
@@ -200,14 +199,13 @@ export class SupabaseAccountsRepository implements AccountsRepository {
         
         // If we get a 400 error, try fallback query (columns might not exist)
         // This handles cases where error message format doesn't match expected patterns
-        const shouldTryFallback = isMissingColumnError || (errorStatus === 400 && !isRLSError);
+        const shouldTryFallback = isMissingColumnError || (!isRLSError);
         
         if (shouldTryFallback) {
           // Try fallback query without credit fields
           logger.warn('DB:ACCOUNT_LIST', 'Attempting fallback query without credit fields', { 
             originalError: errorMessage,
             code: errorCode,
-            status: errorStatus,
           }, correlationId || undefined);
           
           const fallbackResult = await supabase
@@ -221,17 +219,16 @@ export class SupabaseAccountsRepository implements AccountsRepository {
               logger.error('DB:ACCOUNT_LIST', 'RLS policy may be blocking query', { 
                 error: errorMessage, 
                 code: errorCode,
-                hint: (error as any).hint,
-                details: (error as any).details,
+                hint: isSupabaseError(error) ? error.hint : undefined,
+                details: isSupabaseError(error) ? error.details : undefined,
               }, correlationId || undefined);
             } else {
               logger.error('DB:ACCOUNT_LIST', 'Failed to list accounts from Supabase (fallback also failed)', { 
                 originalError: errorMessage,
                 fallbackError: fallbackResult.error,
                 code: errorCode,
-                status: errorStatus,
-                hint: (error as any).hint,
-                details: (error as any).details,
+                hint: isSupabaseError(error) ? error.hint : undefined,
+                details: isSupabaseError(error) ? error.details : undefined,
               }, correlationId || undefined);
             }
             // Keep original error
@@ -242,25 +239,24 @@ export class SupabaseAccountsRepository implements AccountsRepository {
               ...row,
               credit_limit: null,
               balance_owed: null
-            })) as any;
+            })) as typeof data;
             error = null;
           }
         } else if (isRLSError) {
           // RLS error - log with more detail
-          logger.error('DB:ACCOUNT_LIST', 'RLS policy may be blocking query', { 
-            error: errorMessage, 
+          logger.error('DB:ACCOUNT_LIST', 'RLS policy may be blocking query', {
+            error: errorMessage,
             code: errorCode,
-            hint: (error as any).hint,
-            details: (error as any).details,
+            hint: isSupabaseError(error) ? error.hint : undefined,
+            details: isSupabaseError(error) ? error.details : undefined,
           }, correlationId || undefined);
         } else {
           // Other error - log with full details
           logger.error('DB:ACCOUNT_LIST', 'Failed to list accounts from Supabase', { 
             error: errorMessage, 
             code: errorCode,
-            status: errorStatus,
-            hint: (error as any).hint,
-            details: (error as any).details,
+            hint: isSupabaseError(error) ? error.hint : undefined,
+            details: isSupabaseError(error) ? error.details : undefined,
           }, correlationId || undefined);
         }
       }
@@ -331,16 +327,14 @@ export class SupabaseAccountsRepository implements AccountsRepository {
       if (error) {
         const errorMessage = error.message || '';
         const errorCode = error.code || '';
-        const errorStatus = (error as any).status;
-        
         // Check if it's a missing column error (42703) or 400 error
         const isMissingColumnError = 
           errorCode === '42703' ||
           errorCode === 'PGRST100' ||
-          (errorStatus === 400 && (errorMessage.includes('column') || errorMessage.includes('credit_limit') || errorMessage.includes('balance_owed')));
+          (errorMessage.includes('column') || errorMessage.includes('credit_limit') || errorMessage.includes('balance_owed'));
         
         // If we get a 400 error or missing column error, try fallback query
-        const shouldTryFallback = isMissingColumnError || (errorStatus === 400);
+        const shouldTryFallback = isMissingColumnError;
         
         if (shouldTryFallback) {
           // Try fallback query without credit fields
@@ -348,7 +342,6 @@ export class SupabaseAccountsRepository implements AccountsRepository {
             accountId: id,
             originalError: errorMessage,
             code: errorCode,
-            status: errorStatus,
           }, correlationId || undefined);
           
           const fallbackResult = await supabase
@@ -509,7 +502,7 @@ export class SupabaseAccountsRepository implements AccountsRepository {
               ...fallbackResult.data,
               credit_limit: null,
               balance_owed: null
-            } as any;
+            } as typeof data;
             error = null;
           }
         }

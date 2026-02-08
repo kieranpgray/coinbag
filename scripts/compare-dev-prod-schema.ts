@@ -4,9 +4,8 @@
  * Identifies differences between dev and prod Supabase instances
  */
 
-import { createClient } from '@supabase/supabase-js'
+import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 
-const DEV_URL = 'https://tislabgxitwtcqfwrpik.supabase.co'
 const DEV_ANON_KEY = process.env.DEV_SUPABASE_ANON_KEY || ''
 
 const PROD_URL = 'https://auvtsvmtfrbpvgyvfqlx.supabase.co'
@@ -32,10 +31,10 @@ interface TableInfo {
   error?: string
 }
 
-async function checkTable(supabase: any, tableName: string): Promise<TableInfo> {
+async function checkTable(supabase: SupabaseClient, tableName: string): Promise<TableInfo> {
   try {
     // Try to select one row to check if table exists and get column info
-    const { data, error } = await supabase.from(tableName).select('*').limit(0)
+    const { error } = await supabase.from(tableName).select('*').limit(0)
     
     if (error) {
       if (error.message.includes('does not exist') || error.message.includes('Could not find')) {
@@ -52,7 +51,7 @@ async function checkTable(supabase: any, tableName: string): Promise<TableInfo> 
   }
 }
 
-async function checkFunction(supabase: any, functionName: string): Promise<boolean> {
+async function checkFunction(supabase: SupabaseClient, functionName: string): Promise<boolean> {
   try {
     const { error } = await supabase.rpc(functionName, {})
     // If we get an error about function not existing, it doesn't exist

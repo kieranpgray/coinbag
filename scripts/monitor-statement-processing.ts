@@ -13,7 +13,6 @@
  */
 
 import { createClient } from '@supabase/supabase-js';
-import { readFileSync } from 'fs';
 import * as dotenv from 'dotenv';
 
 // Load environment variables
@@ -152,8 +151,8 @@ async function monitorProcessing() {
           }, 2000); // Check every 2 seconds
         }
       }
-    } catch (error: any) {
-      console.error('Error monitoring:', error.message);
+    } catch (error: unknown) {
+      console.error('Error monitoring:', error instanceof Error ? error.message : String(error));
     }
   }, 3000); // Check every 3 seconds
 

@@ -89,8 +89,8 @@ try {
   } else {
     console.log(`   ⚠️  JWKS URL returned status ${response.status}`);
   }
-} catch (error: any) {
-  console.log(`   ⚠️  Could not access JWKS URL: ${error.message}`);
+} catch (error: unknown) {
+  console.log(`   ⚠️  Could not access JWKS URL: ${error instanceof Error ? error.message : String(error)}`);
 }
 
 console.log('\n' + '='.repeat(50));

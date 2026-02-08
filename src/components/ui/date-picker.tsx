@@ -3,7 +3,7 @@ import * as Popover from '@radix-ui/react-popover';
 import { format, parse, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, isSameMonth, isSameDay, isToday, addMonths, subMonths, isValid, parseISO, type Locale } from 'date-fns';
 import { enUS, enAU } from 'date-fns/locale';
 import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, X } from 'lucide-react';
-import { cn, getDateFormat, getWeekStartDay } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 import { useLocale } from '@/contexts/LocaleContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -40,25 +40,14 @@ const DatePicker = React.forwardRef<HTMLInputElement, DatePickerProps>(
     ref
   ) => {
     // Get locale from context, fallback to prop or default
-    let localeContext: string;
-    let dateFormat: string;
-    let weekStartDay: 0 | 1;
-    let dateFnsLocale: Locale;
-    
-    try {
-      const { locale: contextLocale, getDateFormat: getContextDateFormat, getWeekStartDay: getContextWeekStartDay } = useLocale();
-      localeContext = localeProp || contextLocale;
-      dateFormat = dateFormatProp || getContextDateFormat();
-      weekStartDay = weekStartDayProp !== undefined ? (weekStartDayProp as 0 | 1) : getContextWeekStartDay();
-    } catch {
-      // Fallback if useLocale is not available (shouldn't happen in normal usage)
-      localeContext = localeProp || 'en-US';
-      dateFormat = dateFormatProp || getDateFormat(localeContext);
-      weekStartDay = weekStartDayProp !== undefined ? (weekStartDayProp as 0 | 1) : getWeekStartDay(localeContext);
-    }
+    const { locale: contextLocale, getDateFormat: getContextDateFormat, getWeekStartDay: getContextWeekStartDay } = useLocale();
+
+    const localeContext = localeProp || contextLocale;
+    const dateFormat = dateFormatProp || getContextDateFormat();
+    const weekStartDay = weekStartDayProp !== undefined ? (weekStartDayProp as 0 | 1) : getContextWeekStartDay();
 
     // Get date-fns locale object
-    dateFnsLocale = localeContext === 'en-AU' ? enAU : enUS;
+    const dateFnsLocale = localeContext === 'en-AU' ? enAU : enUS;
     const [isOpen, setIsOpen] = React.useState(false);
     const [inputValue, setInputValue] = React.useState('');
     const [calendarMonth, setCalendarMonth] = React.useState<Date>(() => {
@@ -95,7 +84,7 @@ const DatePicker = React.forwardRef<HTMLInputElement, DatePickerProps>(
       } else {
         setInputValue('');
       }
-    }, [value, dateFormat]);
+    }, [value, dateFormat, dateFnsLocale]);
 
     // Update calendar month when value changes
     React.useEffect(() => {

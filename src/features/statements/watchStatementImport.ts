@@ -1,6 +1,7 @@
 import { QueryClient } from "@tanstack/react-query";
 import { createAuthenticatedSupabaseClient } from "@/lib/supabaseClient";
 import { logger, getCorrelationId } from "@/lib/logger";
+import type { RealtimeChannel } from '@supabase/supabase-js';
 
 type StatementImportStatus = "pending" | "processing" | "review" | "completed" | "failed" | "cancelled";
 
@@ -143,10 +144,10 @@ export async function watchStatementImport(
     let subscriptionActive = false
     let pollInterval: number | null = null
     let lastStatus: string | null = null
-    let subscription: any = null
+    let subscription: RealtimeChannel | null = null
     let resolved = false
 
-    const supabase = await createAuthenticatedSupabaseClient(getToken)
+    const supabase = createAuthenticatedSupabaseClient(getToken)
 
     // Cleanup function
     const cleanup = () => {
@@ -287,7 +288,7 @@ export async function watchStatementImport(
       }
 
       // Start polling with initial interval
-      pollInterval = window.setTimeout(poll, currentInterval) as any
+      pollInterval = window.setTimeout(poll, currentInterval)
     }
 
     // Start real-time subscription (after function is defined)
@@ -299,7 +300,7 @@ export async function watchStatementImport(
           schema: 'public',
           table: 'statement_imports',
           filter: `id=eq.${statementImportId}`
-        }, async (payload: any) => {
+        }, (payload: any) => {
           if (payload.new && !resolved) {
             const newStatus = payload.new.status as StatementImportStatus
             subscriptionActive = true

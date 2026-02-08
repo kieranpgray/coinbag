@@ -18,7 +18,7 @@ console.log('')
 console.log('📋 Check 1: ocr_results Table')
 console.log('─'.repeat(70))
 try {
-  const { data, error } = await supabase.from('ocr_results').select('id').limit(1)
+  const { error } = await supabase.from('ocr_results').select('id').limit(1)
   if (error) {
     if (error.message.includes('does not exist') || error.message.includes('Could not find')) {
       console.log('   ❌ ocr_results table does not exist')
@@ -37,7 +37,7 @@ console.log('')
 console.log('📋 Check 2: correlation_id Column in statement_imports')
 console.log('─'.repeat(70))
 try {
-  const { data, error } = await supabase.from('statement_imports').select('correlation_id').limit(1)
+  const { error } = await supabase.from('statement_imports').select('correlation_id').limit(1)
   if (error) {
     if (error.message.includes('column') && error.message.includes('does not exist')) {
       console.log('   ❌ correlation_id column does not exist')

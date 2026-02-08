@@ -84,7 +84,7 @@ export async function uploadStatementFile(
       correlationId || undefined
     );
     
-    let bucketCheckResult: { exists?: boolean; error?: string } = {};
+    const bucketCheckResult: { exists?: boolean; error?: string } = {};
     
     try {
       const { data: buckets, error: listBucketsError } = await supabase.storage.listBuckets();
@@ -167,7 +167,7 @@ export async function uploadStatementFile(
     if (uploadError) {
       // Extract all possible error details for comprehensive debugging
       const errorObj = uploadError as any;
-      
+
       // Try multiple ways to get response body
       let responseBody: any = null;
       try {

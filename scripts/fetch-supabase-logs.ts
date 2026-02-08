@@ -13,7 +13,6 @@
  *   tsx scripts/fetch-supabase-logs.ts [--function process-statement]
  */
 
-import { execSync } from 'child_process';
 import { readFileSync, existsSync } from 'fs';
 
 const FUNCTION_NAME = process.argv.find(arg => arg.startsWith('--function'))?.split('=')[1] || 'process-statement';
@@ -77,13 +76,19 @@ async function fetchLogsViaAPI() {
 
     const logs = await response.json();
     return logs;
-  } catch (error: any) {
-    throw new Error(`Failed to fetch logs: ${error.message}`);
+  } catch (error: unknown) {
+    throw new Error(`Failed to fetch logs: ${error instanceof Error ? error.message : String(error)}`);
   }
 }
 
-function parseCheckpointLogs(logs: any[]): Array<{ checkpoint: string; data: any }> {
-  const checkpoints: Array<{ checkpoint: string; data: any }> = [];
+interface LogEntry {
+  message?: string;
+  log?: string;
+  timestamp?: string;
+}
+
+function parseCheckpointLogs(logs: LogEntry[]): Array<{ checkpoint: string; data: LogEntry }> {
+  const checkpoints: Array<{ checkpoint: string; data: LogEntry }> = [];
   
   for (const log of logs) {
     const message = log.message || log.log || '';
@@ -131,8 +136,8 @@ async function main() {
       });
     }
     
-  } catch (error: any) {
-    console.error('❌ Error:', error.message);
+  } catch (error: unknown) {
+    console.error('❌ Error:', error instanceof Error ? error.message : String(error));
     console.error('\nAlternative: Access logs via Supabase Dashboard');
     console.error('URL: https://supabase.com/dashboard/project/tislabgxitwtcqfwrpik/functions/process-statement/logs');
     process.exit(1);

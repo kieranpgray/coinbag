@@ -49,12 +49,12 @@ const DATE_PATTERNS = [
  */
 const AMOUNT_PATTERNS = [
   // Currency symbols with decimals
-  /[\$£€¥₹₩₦₨₪₫₡₵₺₴₸₼₲₱₭₯₰₳₶₷₹₻₽₾₿]?([\d,]+\.?\d{0,2})/, // $1,234.56 or 1234.56
+  /[$£€¥₹₩₦₨₪₫₡₵₺₴₸₼₲₱₭₯₰₳₶₷₹₻₽₾₿]?([\d,]+\.?\d{0,2})/, // $1,234.56 or 1234.56
   /([\d,]+\.\d{2})/, // 1234.56 (no currency symbol)
   /([\d,]+\.\d{1})/, // 1234.5 (single decimal)
 
   // Whole numbers
-  /[\$£€¥₹₩₦₨₪₫₡₵₺₴₸₼₲₱₭₯₰₳₶₷₹₻₽₾₿]?([\d,]+)/, // $1234 or 1234
+  /[$£€¥₹₩₦₨₪₫₡₵₺₴₸₼₲₱₭₯₰₳₶₷₹₻₽₾₿]?([\d,]+)/, // $1234 or 1234
 
   // Negative amounts (debits)
   /\(([\d,]+\.?\d{0,2})\)/, // (1234.56)
@@ -172,7 +172,7 @@ function parseAmount(amountStr: string): number | null {
 
   // Handle various formats
   let cleaned = amountStr
-    .replace(/[\$,£€¥₹₩₦₨₪₫₡₵₺₴₸₼₲₱₭₯₰₳₶₷₹₻₽₾₿\s]/g, '') // Remove currency symbols and whitespace
+    .replace(/[$,£€¥₹₩₦₨₪₫₡₵₺₴₸₼₲₱₭₯₰₳₶₷₹₻₽₾₿\s]/g, '') // Remove currency symbols and whitespace
     .replace(/,/g, ''); // Remove commas
 
   // Handle negative indicators
@@ -271,7 +271,7 @@ export function parseStatementText(text: string, locale: string = 'en-US'): Pars
     // Remove very short lines (likely artifacts)
     .filter(line => line.length > 3)
     // Remove lines that are just numbers or symbols
-    .filter(line => !line.match(/^[\d\s\.,\-+]+$|^[^\w\s]+$/));
+    .filter(line => !line.match(/^[\d\s.,+\-]+$|^[^\w\s]+$/)); // eslint-disable-line no-useless-escape
 
   if (lines.length === 0) {
     errors.push('No usable text found in statement. The file may be corrupted or empty.');
@@ -292,7 +292,7 @@ export function parseStatementText(text: string, locale: string = 'en-US'): Pars
     }
 
     // Skip lines with mostly numbers or symbols
-    if (line.match(/^[\d\s\/\-\.,]+$/) || line.match(/^\d+\s+of\s+\d+$/)) {
+    if (line.match(/^[\d\s/.,-]+$/) || line.match(/^\d+\s+of\s+\d+$/)) {
       continue;
     }
 

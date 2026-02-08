@@ -4,8 +4,6 @@
  * This script tests that accounts can be created with empty/null/undefined institution fields
  */
 
-import { z } from 'zod';
-
 // Import the schemas to test them directly
 import { accountCreateSchema } from '../src/contracts/accounts';
 import { assetCreateSchema } from '../src/contracts/assets';

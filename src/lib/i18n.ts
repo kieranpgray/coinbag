@@ -149,7 +149,7 @@ i18n
 
     // Debug mode (disable in production)
     debug: import.meta.env.DEV,
-  } as any) // Type assertion needed due to complex i18next option types
+  } as Record<string, unknown>) // Type assertion needed due to complex i18next option types
   .then(() => {
     // Normalize the initially detected language immediately after initialization
     // This ensures the language code is always in the correct format
@@ -182,7 +182,7 @@ export function changeI18nLanguage(locale: string): void {
 // Intercept language changes to normalize codes
 // This handles cases where i18next's LanguageDetector detects 'en' instead of 'en-US'
 const originalChangeLanguage = i18n.changeLanguage.bind(i18n);
-(i18n as any).changeLanguage = function(lng?: string | string[], callback?: any) {
+(i18n as any).changeLanguage = function(lng?: string | string[], callback?: (error: Error | null, t: (key: string) => string) => void) {
   if (typeof lng === 'string') {
     // Normalize before i18next processes it to prevent warnings
     const normalized = normalizeLanguageCode(lng);

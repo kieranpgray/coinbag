@@ -262,6 +262,7 @@ export function LiabilityForm({
           id="dueDate"
           shouldShowCalendarButton
           {...(() => {
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             const { disabled, ...registerProps } = register('dueDate');
             return registerProps;
           })()}

@@ -21,7 +21,6 @@ import { readFileSync, existsSync } from 'fs';
 import { join } from 'path';
 
 const PDF_PATH = join(process.cwd(), 'anz-statement.pdf');
-const APP_URL = 'http://localhost:5174';
 
 console.log('=== ANZ Statement Upload Test ===\n');
 

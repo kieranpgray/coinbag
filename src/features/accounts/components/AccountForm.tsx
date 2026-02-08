@@ -118,6 +118,7 @@ export function AccountForm({ account, onSubmit, onCancel, isLoading }: AccountF
     }
 
     // Remove currency from submission (not relevant)
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { currency, ...submitData } = data;
     
     onSubmit({

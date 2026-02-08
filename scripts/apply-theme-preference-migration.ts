@@ -4,7 +4,6 @@
  * This avoids migration ordering conflicts
  */
 
-import { createClient } from '@supabase/supabase-js';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 
@@ -42,12 +41,6 @@ async function applyMigration() {
   }
 
   console.log('🚀 Connecting to Supabase...');
-  const supabase = createClient(SUPABASE_URL, serviceRoleKey, {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false,
-    },
-  });
 
   // Split SQL into individual statements (simple approach)
   const statements = migrationSQL

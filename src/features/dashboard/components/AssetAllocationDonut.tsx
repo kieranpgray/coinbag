@@ -123,7 +123,7 @@ export const AssetAllocationDonut = memo(function AssetAllocationDonut({
               />
             ))}
             <Label
-              content={(props: any) => <CenterLabel {...props} totalValue={totalValue} />}
+              content={(props: Record<string, unknown>) => <CenterLabel {...props} totalValue={totalValue} />}
               position="center"
             />
           </Pie>

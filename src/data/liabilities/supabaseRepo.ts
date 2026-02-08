@@ -11,6 +11,7 @@ import {
 import type { Liability } from '@/types/domain';
 import { logger, getCorrelationId } from '@/lib/logger';
 import { z } from 'zod';
+import { isSupabaseError } from '@/lib/errorTypes';
 
 /**
  * Supabase implementation of LiabilitiesRepository
@@ -220,8 +221,8 @@ export class SupabaseLiabilitiesRepository implements LiabilitiesRepository {
             error: errorMessage,
             code: errorCode,
             status: errorStatus,
-            hint: (error as any).hint,
-            details: (error as any).details,
+            hint: isSupabaseError(error) ? error.hint : undefined,
+            details: isSupabaseError(error) ? error.details : undefined,
           }, correlationId || undefined);
         } else {
           // Other error - log with full details and check if it's a 400 that should be retried
@@ -229,8 +230,8 @@ export class SupabaseLiabilitiesRepository implements LiabilitiesRepository {
             error: errorMessage,
             code: errorCode,
             status: typeof errorStatus === 'number' ? errorStatus : undefined,
-            hint: (error as any).hint,
-            details: (error as any).details,
+            hint: isSupabaseError(error) ? error.hint : undefined,
+            details: isSupabaseError(error) ? error.details : undefined,
           }, correlationId || undefined);
 
           // For 400 errors that might be due to query structure issues, try fallback as last resort

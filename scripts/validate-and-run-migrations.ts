@@ -8,8 +8,8 @@
  * For production use: SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY required
  */
 
-import { createClient } from '@supabase/supabase-js';
-import { readFileSync, readdirSync } from 'fs';
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import { readFileSync } from 'fs';
 import { join } from 'path';
 
 // Environment variables
@@ -21,7 +21,7 @@ const MIGRATIONS = [
   {
     file: '20251227120112_create_subscriptions_table.sql',
     name: 'Create Subscriptions Table',
-    check: async (supabase: any) => {
+    check: async (supabase: SupabaseClient) => {
       const { error } = await supabase.from('subscriptions').select('id').limit(0);
       return !error || !error.message.includes('does not exist');
     }
@@ -29,7 +29,7 @@ const MIGRATIONS = [
   {
     file: '20251227120113_create_categories_table.sql',
     name: 'Create Categories Table',
-    check: async (supabase: any) => {
+    check: async (supabase: SupabaseClient) => {
       const { error } = await supabase.from('categories').select('id').limit(0);
       return !error || !error.message.includes('does not exist');
     }
@@ -37,7 +37,7 @@ const MIGRATIONS = [
   {
     file: '20251227120114_fix_subscriptions_user_id_type.sql',
     name: 'Fix Subscriptions User ID Type',
-    check: async (supabase: any) => {
+    check: async (supabase: SupabaseClient) => {
       // Check if category_id column exists
       try {
         const { error } = await supabase.from('subscriptions').select('category_id').limit(0);
@@ -50,7 +50,7 @@ const MIGRATIONS = [
   {
     file: '20251227130000_create_user_preferences_table.sql',
     name: 'Create User Preferences Table',
-    check: async (supabase: any) => {
+    check: async (supabase: SupabaseClient) => {
       const { error } = await supabase.from('user_preferences').select('id').limit(0);
       return !error || !error.message.includes('does not exist');
     }
@@ -58,7 +58,7 @@ const MIGRATIONS = [
   {
     file: '20251228110046_create_assets_table.sql',
     name: 'Create Assets Table',
-    check: async (supabase: any) => {
+    check: async (supabase: SupabaseClient) => {
       const { error } = await supabase.from('assets').select('id').limit(0);
       return !error || !error.message.includes('does not exist');
     }
@@ -66,7 +66,7 @@ const MIGRATIONS = [
   {
     file: '20251228120000_add_cash_asset_type.sql',
     name: 'Add Cash Asset Type',
-    check: async (supabase: any) => {
+    check: async (supabase: SupabaseClient) => {
       // This migration adds enum values - check if 'Cash' is available
       try {
         const { error } = await supabase.from('assets').select('id').limit(0);
@@ -79,7 +79,7 @@ const MIGRATIONS = [
   {
     file: '20251228130000_create_liabilities_table.sql',
     name: 'Create Liabilities Table',
-    check: async (supabase: any) => {
+    check: async (supabase: SupabaseClient) => {
       const { error } = await supabase.from('liabilities').select('id').limit(0);
       return !error || !error.message.includes('does not exist');
     }
@@ -87,7 +87,7 @@ const MIGRATIONS = [
   {
     file: '20251228140000_create_accounts_table.sql',
     name: 'Create Accounts Table',
-    check: async (supabase: any) => {
+    check: async (supabase: SupabaseClient) => {
       const { error } = await supabase.from('accounts').select('id').limit(0);
       return !error || !error.message.includes('does not exist');
     }
@@ -95,7 +95,7 @@ const MIGRATIONS = [
   {
     file: '20251228150000_create_income_table.sql',
     name: 'Create Income Table',
-    check: async (supabase: any) => {
+    check: async (supabase: SupabaseClient) => {
       const { error } = await supabase.from('income').select('id').limit(0);
       return !error || !error.message.includes('does not exist');
     }
@@ -103,7 +103,7 @@ const MIGRATIONS = [
   {
     file: '20251228160000_create_goals_table.sql',
     name: 'Create Goals Table',
-    check: async (supabase: any) => {
+    check: async (supabase: SupabaseClient) => {
       const { error } = await supabase.from('goals').select('id').limit(0);
       return !error || !error.message.includes('does not exist');
     }
@@ -111,7 +111,7 @@ const MIGRATIONS = [
   {
     file: '20251228170000_test_jwt_extraction_function.sql',
     name: 'Test JWT Extraction Function',
-    check: async (supabase: any) => {
+    check: async (supabase: SupabaseClient) => {
       // This is a test function - check if we can call it
       try {
         await supabase.rpc('test_jwt_extraction');
@@ -124,7 +124,7 @@ const MIGRATIONS = [
   {
     file: '20251228180000_data_recovery_fix_user_ids.sql',
     name: 'Data Recovery Fix User IDs',
-    check: async (supabase: any) => {
+    check: async (supabase: SupabaseClient) => {
       // Check if user_id columns exist and are properly typed
       try {
         const { error } = await supabase.from('subscriptions').select('user_id').limit(0);
@@ -137,7 +137,7 @@ const MIGRATIONS = [
   {
     file: '20251231000004_remove_available_balance_and_make_institution_optional.sql',
     name: 'Remove Available Balance & Make Institution Optional',
-    check: async (supabase: any) => {
+    check: async (supabase: SupabaseClient) => {
       // Check if available_balance column was removed and institution is nullable
       try {
         // Check if available_balance column exists
@@ -176,7 +176,7 @@ const MIGRATIONS = [
   {
     file: '20260106000000_ensure_institution_is_optional.sql',
     name: 'Make Institution Optional',
-    check: async (supabase: any) => {
+    check: async (supabase: SupabaseClient) => {
       // Check if institution columns are nullable in accounts, assets, and liabilities
       try {
         const tables = ['accounts', 'assets', 'liabilities'];
@@ -204,7 +204,7 @@ const MIGRATIONS = [
   {
     file: '20251229160000_add_liability_repayment_fields.sql',
     name: 'Add Liability Repayment Fields',
-    check: async (supabase: any) => {
+    check: async (supabase: SupabaseClient) => {
       try {
         const { error } = await supabase.from('liabilities').select('monthly_payment').limit(0);
         return !error;
@@ -216,7 +216,7 @@ const MIGRATIONS = [
   {
     file: '20251229160001_add_superannuation_asset_type.sql',
     name: 'Add Superannuation Asset Type',
-    check: async (supabase: any) => {
+    check: async (supabase: SupabaseClient) => {
       // Check if Superannuation enum value exists
       try {
         const { error } = await supabase.from('assets').select('id').limit(0);
@@ -229,7 +229,7 @@ const MIGRATIONS = [
   {
     file: '20251230000000_create_transactions_table.sql',
     name: 'Create Transactions Table',
-    check: async (supabase: any) => {
+    check: async (supabase: SupabaseClient) => {
       const { error } = await supabase.from('transactions').select('id').limit(0);
       return !error || !error.message.includes('does not exist');
     }
@@ -237,7 +237,7 @@ const MIGRATIONS = [
   {
     file: '20251230000001_create_statement_imports_table.sql',
     name: 'Create Statement Imports Table',
-    check: async (supabase: any) => {
+    check: async (supabase: SupabaseClient) => {
       const { error } = await supabase.from('statement_imports').select('id').limit(0);
       return !error || !error.message.includes('does not exist');
     }
@@ -245,7 +245,7 @@ const MIGRATIONS = [
   {
     file: '20251230000002_add_currency_to_accounts.sql',
     name: 'Add Currency to Accounts',
-    check: async (supabase: any) => {
+    check: async (supabase: SupabaseClient) => {
       try {
         const { error } = await supabase.from('accounts').select('currency').limit(0);
         return !error;
@@ -257,7 +257,7 @@ const MIGRATIONS = [
   {
     file: '20251230000003_add_account_type_constraint.sql',
     name: 'Add Account Type Constraint',
-    check: async (supabase: any) => {
+    check: async (supabase: SupabaseClient) => {
       // Check if constraint exists - this is hard to verify directly
       try {
         const { error } = await supabase.from('accounts').select('id').limit(0);
@@ -270,7 +270,7 @@ const MIGRATIONS = [
   {
     file: '20251230000004_add_transactions_foreign_key.sql',
     name: 'Add Transactions Foreign Key',
-    check: async (supabase: any) => {
+    check: async (supabase: SupabaseClient) => {
       try {
         const { error } = await supabase.from('transactions').select('account_id').limit(0);
         return !error;
@@ -282,7 +282,7 @@ const MIGRATIONS = [
   {
     file: '20251230000005_create_statement_storage_bucket.sql',
     name: 'Create Statement Storage Bucket',
-    check: async (supabase: any) => {
+    check: async (supabase: SupabaseClient) => {
       // Check if storage bucket exists
       try {
         const { error } = await supabase.storage.listBuckets();
@@ -299,7 +299,7 @@ const MIGRATIONS = [
   {
     file: '20251231000001_add_credit_fields_to_accounts.sql',
     name: 'Add Credit Fields to Accounts',
-    check: async (supabase: any) => {
+    check: async (supabase: SupabaseClient) => {
       try {
         const { error } = await supabase.from('accounts').select('available_balance').limit(0);
         return !error;
@@ -311,7 +311,7 @@ const MIGRATIONS = [
   {
     file: '20251231000002_update_account_types.sql',
     name: 'Update Account Types',
-    check: async (supabase: any) => {
+    check: async (supabase: SupabaseClient) => {
       // Check if new account types exist
       try {
         const { error } = await supabase.from('accounts').select('id').limit(0);
@@ -324,7 +324,7 @@ const MIGRATIONS = [
   {
     file: '20251231000003_add_account_linking_to_goals.sql',
     name: 'Add Account Linking to Goals',
-    check: async (supabase: any) => {
+    check: async (supabase: SupabaseClient) => {
       try {
         const { error } = await supabase.from('goals').select('account_id').limit(0);
         return !error;
@@ -336,7 +336,7 @@ const MIGRATIONS = [
   {
     file: '20251231000004_remove_available_balance_and_make_institution_optional.sql',
     name: 'Remove Available Balance and Make Institution Optional',
-    check: async (supabase: any) => {
+    check: async (supabase: SupabaseClient) => {
       try {
         // Check if available_balance column was removed
         const { error } = await supabase.from('accounts').select('available_balance').limit(0);
@@ -350,7 +350,7 @@ const MIGRATIONS = [
   {
     file: '20251231000005_add_locale_to_user_preferences.sql',
     name: 'Add Locale to User Preferences',
-    check: async (supabase: any) => {
+    check: async (supabase: SupabaseClient) => {
       try {
         const { error } = await supabase.from('user_preferences').select('locale').limit(0);
         return !error;
@@ -362,7 +362,7 @@ const MIGRATIONS = [
   {
     file: '20260103085822_rename_subscriptions_to_expenses.sql',
     name: 'Rename Subscriptions to Expenses',
-    check: async (supabase: any) => {
+    check: async (supabase: SupabaseClient) => {
       // Check if expenses table exists and subscriptions view exists
       const expensesExist = await checkTableExists(supabase, 'expenses');
       const subscriptionsViewExists = await checkViewExists(supabase, 'subscriptions');
@@ -371,7 +371,7 @@ const MIGRATIONS = [
   }
 ];
 
-async function checkTableExists(supabase: any, tableName: string): Promise<boolean> {
+async function checkTableExists(supabase: SupabaseClient, tableName: string): Promise<boolean> {
   try {
     const { error } = await supabase.from(tableName).select('id').limit(0);
     return !error || !error.message.includes('does not exist');
@@ -380,7 +380,7 @@ async function checkTableExists(supabase: any, tableName: string): Promise<boole
   }
 }
 
-async function checkViewExists(supabase: any, viewName: string): Promise<boolean> {
+async function checkViewExists(supabase: SupabaseClient, viewName: string): Promise<boolean> {
   try {
     const { error } = await supabase.from(viewName).select('id').limit(0);
     return !error || !error.message.includes('does not exist');
@@ -389,7 +389,7 @@ async function checkViewExists(supabase: any, viewName: string): Promise<boolean
   }
 }
 
-async function runMigration(supabase: any, migrationFile: string, migrationName: string): Promise<boolean> {
+async function runMigration(supabase: SupabaseClient, migrationFile: string, migrationName: string): Promise<boolean> {
   const filePath = join(process.cwd(), 'supabase', 'migrations', migrationFile);
 
   try {

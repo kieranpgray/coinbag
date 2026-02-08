@@ -1,19 +1,20 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { 
-  CheckCircle2, 
-  Circle, 
-  Wallet, 
-  Home, 
-  CreditCard, 
-  Receipt, 
-  TrendingUp, 
-  History, 
-  PieChart, 
+import {
+  CheckCircle2,
+  Circle,
+  Wallet,
+  Home,
+  CreditCard,
+  Receipt,
+  TrendingUp,
+  History,
+  PieChart,
   ChevronUp,
   X,
   ArrowRight
 } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ROUTES } from '@/lib/constants/routes';
@@ -28,7 +29,7 @@ interface SetupProgressProps {
   isLoading?: boolean;
 }
 
-const CHECKLIST_METADATA: Record<string, { icon: any; benefit: string; link: string }> = {
+const CHECKLIST_METADATA: Record<string, { icon: LucideIcon; benefit: string; link: string }> = {
   accounts: {
     icon: Wallet,
     benefit: 'Connect your bank accounts to see all your balances and cash flow in one place.',

@@ -196,7 +196,7 @@ export class SupabaseGoalsRepository implements GoalsRepository {
             data = (fallbackResult.data || []).map((row: Record<string, unknown>) => ({
               ...row,
               account_id: null // Explicitly add missing column as null
-            })) as any;
+            })) as any[];
             error = null;
           }
         }

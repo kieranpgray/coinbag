@@ -39,7 +39,7 @@ const mockEnv = {
 }
 
 // Mock Supabase client
-const mockSupabase = {
+const _mockSupabase = {
   storage: {
     from: vi.fn(() => ({
       createSignedUrl: vi.fn(),

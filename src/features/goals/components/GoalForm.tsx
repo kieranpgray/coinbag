@@ -159,7 +159,7 @@ export function GoalForm({ goal, onSubmit, onCancel, isLoading }: GoalFormProps)
           <SearchableSelect
             id="type"
             value={selectedType || ''}
-            onValueChange={(value) => setValue('type', value as any)}
+            onValueChange={(value) => setValue('type', value as 'Grow' | 'Save' | 'Pay Off' | 'Invest')}
             options={[
               { value: 'Grow', label: 'Grow' },
               { value: 'Save', label: 'Save' },
@@ -265,6 +265,7 @@ export function GoalForm({ goal, onSubmit, onCancel, isLoading }: GoalFormProps)
           id="deadline"
           shouldShowCalendarButton
           {...(() => {
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             const { disabled, ...registerProps } = register('deadline');
             return registerProps;
           })()}

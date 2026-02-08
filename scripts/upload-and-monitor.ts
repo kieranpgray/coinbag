@@ -7,8 +7,6 @@
  */
 
 import { createClient } from '@supabase/supabase-js';
-import { readFileSync } from 'fs';
-import { join } from 'path';
 import * as dotenv from 'dotenv';
 
 dotenv.config({ path: '.env.local' });
