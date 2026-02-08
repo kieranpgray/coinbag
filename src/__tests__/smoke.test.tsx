@@ -41,7 +41,7 @@ vi.mock('@/lib/api', () => ({
       id: '1',
       email: 'test@example.com',
       privacyMode: false,
-      darkMode: false,
+      themePreference: 'system',
       taxRate: 20,
       emailNotifications: {},
     }),

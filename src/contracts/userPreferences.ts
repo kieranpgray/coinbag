@@ -13,9 +13,11 @@ export const emailNotificationsSchema = z.object({
   marketingPromotions: z.boolean(),
 });
 
+export const themePreferenceSchema = z.enum(['system', 'light', 'dark']);
+
 export const userPreferencesSchema = z.object({
   privacyMode: z.boolean(),
-  darkMode: z.boolean(),
+  themePreference: themePreferenceSchema,
   taxRate: z.number(),
   taxSettingsConfigured: z.boolean(),
   emailNotifications: emailNotificationsSchema,
@@ -24,10 +26,11 @@ export const userPreferencesSchema = z.object({
 });
 
 export type UserPreferences = z.infer<typeof userPreferencesSchema>;
+export type ThemePreference = z.infer<typeof themePreferenceSchema>;
 
 export const defaultUserPreferences: UserPreferences = {
   privacyMode: false,
-  darkMode: false,
+  themePreference: 'system',
   taxRate: 20,
   taxSettingsConfigured: false,
   locale: 'en-US',

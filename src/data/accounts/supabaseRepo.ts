@@ -83,8 +83,32 @@ export class SupabaseAccountsRepository implements AccountsRepository {
       code?: unknown;
       message?: unknown;
       details?: unknown;
+      status?: unknown;
     };
     const errorCode = typeof err.code === 'string' ? err.code : undefined;
+    const errorMessage = typeof err.message === 'string' ? err.message : String(err);
+    const statusCode = typeof err.status === 'number' ? err.status : undefined;
+    
+    // Enhanced logging for authentication errors
+    if (statusCode === 401 || errorMessage.includes('401') || errorMessage.includes('JWT') || errorMessage.includes('authentication')) {
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const keyFormat = import.meta.env.VITE_SUPABASE_ANON_KEY?.startsWith('sb_publishable_') ? 'new (sb_publishable_)' : 
+                       import.meta.env.VITE_SUPABASE_ANON_KEY?.startsWith('eyJ') ? 'legacy (JWT)' : 'unknown';
+      
+      logger.error(
+        'AUTH:401',
+        'Authentication error in accounts repository',
+        {
+          statusCode,
+          errorCode,
+          errorMessage: errorMessage.substring(0, 200),
+          supabaseUrl,
+          keyFormat,
+          hasAnonKey: !!import.meta.env.VITE_SUPABASE_ANON_KEY,
+        },
+        getCorrelationId() || undefined
+      );
+    }
 
     // Handle known PostgreSQL/Supabase error codes
     if (errorCode === '23505') { // Unique violation

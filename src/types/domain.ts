@@ -226,7 +226,7 @@ export interface User {
   email: string;
   phoneNumber?: string;
   privacyMode: boolean;
-  darkMode: boolean;
+  themePreference: 'system' | 'light' | 'dark';
   taxRate: number;
   emailNotifications: {
     portfolioSummary: boolean;

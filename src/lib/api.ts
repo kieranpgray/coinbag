@@ -20,6 +20,8 @@ import { createLiabilitiesRepository } from '@/data/liabilities/repo';
 import { createAccountsRepository } from '@/data/accounts/repo';
 import { createExpensesRepository } from '@/data/expenses/repo';
 import { createIncomeRepository } from '@/data/income/repo';
+import { createNetWorthHistoryRepository } from '@/data/netWorthHistory/repo';
+import type { NetWorthPoint } from '@/features/dashboard/hooks/useNetWorthHistory';
 
 // Simulate API delay (only in development)
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -607,6 +609,59 @@ export const dashboardApi = {
     // Calculate data source counts (existence = count > 0)
     const holdingsCount = assetsData.filter(a => a.type === 'Investments' || a.type === 'Crypto').length;
     
+    // Create daily snapshot if it doesn't exist (on-demand snapshot creation)
+    // This runs asynchronously and doesn't block dashboard rendering
+    // Errors are logged but don't affect dashboard data
+    try {
+      const netWorthHistoryRepo = createNetWorthHistoryRepository();
+      const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+      
+      // Check if today's snapshot exists by querying for it
+      const existingSnapshot = await netWorthHistoryRepo.list(getToken, today, today);
+      
+      // Only create snapshot if it doesn't exist
+      if (!existingSnapshot.error && (!existingSnapshot.data || existingSnapshot.data.length === 0)) {
+        // Calculate total assets and liabilities for snapshot
+        // Use same calculation logic as dashboard for consistency
+        const totalAssets = assetsData.reduce((sum, asset) => sum + asset.value, 0);
+        const totalLiabilities = liabilitiesData.reduce((sum, liability) => sum + liability.balance, 0);
+        
+        // Create snapshot using calculated values from dashboard
+        // This ensures snapshot matches what user sees on dashboard
+        const todayStr = today || new Date().toISOString().split('T')[0]!;
+        const netWorthValue = calculated.netWorth ?? 0;
+        await netWorthHistoryRepo.createSnapshot(
+          getToken,
+          todayStr,
+          netWorthValue,
+          totalAssets,
+          totalLiabilities
+        ).catch(async (error) => {
+          // Log error but don't throw - snapshot creation is non-blocking
+          if (import.meta.env.VITE_DEBUG_LOGGING === 'true') {
+            const { logger, getCorrelationId } = await import('@/lib/logger');
+            logger.warn(
+              'DASHBOARD:SNAPSHOT',
+              'Failed to create daily snapshot (non-blocking)',
+              { error: error instanceof Error ? error.message : String(error) },
+              getCorrelationId() || undefined
+            );
+          }
+        });
+      }
+    } catch (error) {
+      // Silently fail - snapshot creation is optional and shouldn't block dashboard
+      if (import.meta.env.VITE_DEBUG_LOGGING === 'true') {
+        const { logger, getCorrelationId } = await import('@/lib/logger');
+        logger.warn(
+          'DASHBOARD:SNAPSHOT',
+          'Snapshot creation failed (non-blocking)',
+          { error: error instanceof Error ? error.message : String(error) },
+          getCorrelationId() || undefined
+        );
+      }
+    }
+    
     return {
       ...calculated,
       assets: assetsData,
@@ -623,6 +678,44 @@ export const dashboardApi = {
       },
     } as DashboardData;
   },
+};
+
+/**
+ * Net Worth History API
+ */
+export const netWorthHistoryApi = {
+  async getHistory(
+    getToken: () => Promise<string | null>,
+    startDate?: string,
+    endDate?: string
+  ): Promise<NetWorthPoint[]> {
+    const repo = createNetWorthHistoryRepository();
+    const result = await repo.list(getToken, startDate, endDate);
+    if (result.error) {
+      throw new Error(result.error.error);
+    }
+    return result.data || [];
+  },
+  
+  async createDailySnapshot(
+    getToken: () => Promise<string | null>,
+    netWorth: number,
+    totalAssets: number,
+    totalLiabilities: number
+  ): Promise<void> {
+    const repo = createNetWorthHistoryRepository();
+    const today = new Date().toISOString().split('T')[0]!; // YYYY-MM-DD
+    const result = await repo.createSnapshot(
+      getToken,
+      today,
+      netWorth,
+      totalAssets,
+      totalLiabilities
+    );
+    if (result.error) {
+      throw new Error(result.error.error);
+    }
+  }
 };
 
 /**

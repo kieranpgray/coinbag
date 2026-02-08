@@ -62,16 +62,31 @@ export function getSupabaseBrowserClient(
         // Get token from closure-captured getter
         const token = await _tokenGetter!();
         
-        // Log fetch calls in dev mode for verification
-        if (import.meta.env.DEV) {
+        // Enhanced debug logging in dev mode for verification
+        if (import.meta.env.DEV || import.meta.env.VITE_DEBUG_LOGGING === 'true') {
           const url = typeof input === 'string' ? input : (input instanceof URL ? input.toString() : (input instanceof Request ? input.url : String(input)));
           const method = init.method || 'GET';
+          const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+          const keyFormat = import.meta.env.VITE_SUPABASE_ANON_KEY?.startsWith('sb_publishable_') ? 'new (sb_publishable_)' : 
+                           import.meta.env.VITE_SUPABASE_ANON_KEY?.startsWith('eyJ') ? 'legacy (JWT)' : 'unknown';
+          
           console.log('[Supabase Fetch]', {
             url: url.substring(0, 100), // Truncate long URLs
-            hasToken: !!token,
             method,
+            hasToken: !!token,
             tokenLength: token?.length || 0,
+            supabaseUrl,
+            keyFormat,
+            timestamp: new Date().toISOString(),
           });
+          
+          // Log authentication errors with more detail
+          if (url.includes('/rest/v1/') && !token) {
+            console.warn('[Supabase Fetch] ⚠️  Request to protected endpoint without JWT token:', {
+              url: url.substring(0, 100),
+              method,
+            });
+          }
         }
         
         // Handle headers properly (can be Headers object, object, or array)

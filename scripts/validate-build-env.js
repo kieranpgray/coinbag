@@ -65,34 +65,56 @@ if (isProduction && dataSource === 'supabase') {
   }
 }
 
-// CRITICAL: Validate Clerk key format in production
+// CRITICAL: Validate Clerk key format
 const clerkKey = process.env.VITE_CLERK_PUBLISHABLE_KEY;
-if (isProduction && clerkKey) {
-  if (clerkKey.startsWith('pk_test_')) {
-    console.error('');
-    console.error('❌ BUILD FAILED: Test Clerk key detected in production');
-    console.error('   Clerk publishable key starts with "pk_test_" which is for development only.');
-    console.error('   Use production key (pk_live_...) in production builds.');
-    console.error('');
-    console.error('   Get production key from:');
-    console.error('   Clerk Dashboard → API Keys → Production tab');
-    console.error('');
-    process.exit(1);
+const isDevelopment = !isProduction;
+
+if (clerkKey) {
+  const isProductionKey = clerkKey.startsWith('pk_live_');
+  const isTestKey = clerkKey.startsWith('pk_test_');
+  
+  // Production build validation
+  if (isProduction) {
+    if (isTestKey) {
+      console.error('');
+      console.error('❌ BUILD FAILED: Test Clerk key detected in production');
+      console.error('   Clerk publishable key starts with "pk_test_" which is for development only.');
+      console.error('   Use production key (pk_live_...) in production builds.');
+      console.error('');
+      console.error('   Get production key from:');
+      console.error('   Clerk Dashboard → API Keys → Production tab');
+      console.error('');
+      process.exit(1);
+    }
+    
+    if (!isProductionKey && !isTestKey) {
+      console.error('');
+      console.error('❌ BUILD FAILED: Invalid Clerk key format');
+      console.error(`   Current value: "${clerkKey.substring(0, 20)}..."`);
+      console.error('   Clerk keys must start with "pk_live_" (production) or "pk_test_" (development)');
+      console.error('');
+      process.exit(1);
+    }
+    
+    if (isProductionKey) {
+      console.log('✅ Clerk production key detected');
+    }
   }
   
-  if (!clerkKey.startsWith('pk_live_') && !clerkKey.startsWith('pk_test_')) {
-    console.error('');
-    console.error('❌ BUILD FAILED: Invalid Clerk key format');
-    console.error(`   Current value: "${clerkKey.substring(0, 20)}..."`);
-    console.error('   Clerk keys must start with "pk_live_" (production) or "pk_test_" (development)');
-    console.error('');
-    process.exit(1);
+  // Development build validation (warn, don't fail)
+  if (isDevelopment && isProductionKey) {
+    console.warn('');
+    console.warn('⚠️  WARNING: Production Clerk key detected in development mode');
+    console.warn('   Production keys are domain-restricted and will cause authentication failures on localhost.');
+    console.warn('   Use test key (pk_test_...) for local development.');
+    console.warn('');
+    console.warn('   Get test key from:');
+    console.warn('   Clerk Dashboard → API Keys → Test tab');
+    console.warn('');
+    console.warn('   To fix: Update .env with test key: VITE_CLERK_PUBLISHABLE_KEY=pk_test_...');
+    console.warn('');
   }
-  
-  if (clerkKey.startsWith('pk_live_')) {
-    console.log('✅ Clerk production key detected');
-  }
-} else if (isProduction && !clerkKey) {
+} else if (isProduction) {
   console.error('');
   console.error('❌ BUILD FAILED: VITE_CLERK_PUBLISHABLE_KEY is required in production');
   console.error('');

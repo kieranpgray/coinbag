@@ -82,10 +82,18 @@ export const createAuthenticatedSupabaseClient = async (
   const testToken = await getClerkToken(getToken);
   if (!testToken) {
     const correlationId = getCorrelationId();
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    const keyFormat = import.meta.env.VITE_SUPABASE_ANON_KEY?.startsWith('sb_publishable_') ? 'new (sb_publishable_)' : 
+                     import.meta.env.VITE_SUPABASE_ANON_KEY?.startsWith('eyJ') ? 'legacy (JWT)' : 'unknown';
+    
     logger.error(
       'JWT:ERROR',
       'No authentication token available when creating Supabase client',
-      {},
+      {
+        supabaseUrl,
+        keyFormat,
+        hasAnonKey: !!import.meta.env.VITE_SUPABASE_ANON_KEY,
+      },
       correlationId || undefined
     );
     throw new Error('No authentication token available. Please sign in.');

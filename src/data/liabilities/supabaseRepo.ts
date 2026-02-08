@@ -520,21 +520,72 @@ export class SupabaseLiabilitiesRepository implements LiabilitiesRepository {
       // Note: repaymentAmount and repaymentFrequency are not included in create operations
       // as the database columns may not exist. They are only used in update operations.
 
-      const { data, error } = await supabase
+      // Try with full columns first (including repayment fields)
+      let { data, error } = await supabase
         .from('liabilities')
         .insert([dbInput])
         .select(this.selectColumns)
         .single();
 
+      // Handle missing column errors (repayment_amount and repayment_frequency may not exist)
       if (error) {
-        logger.error('DB:LIABILITY_CREATE', 'Supabase liabilities create error', { error }, correlationId || undefined);
-        logger.error(
-          'DB:LIABILITY_INSERT',
-          'Failed to create liability in Supabase',
-          { error: error.message, code: error.code, dbInput },
-          correlationId || undefined
-        );
-        return { error: this.normalizeSupabaseError(error) };
+        const errorMessage = error?.message || '';
+        const errorCode = typeof error === 'object' && error !== null && 'code' in error
+          ? String((error as { code?: unknown }).code)
+          : '';
+        const errorStatus = typeof error === 'object' && error !== null && 'status' in error
+          ? (error as { status?: unknown }).status
+          : undefined;
+
+        // Check if it's specifically a missing column error
+        const isMissingColumnError =
+          errorMessage.includes('column') && (errorMessage.includes('repayment_amount') || errorMessage.includes('repayment_frequency')) ||
+          errorCode === '42703' ||
+          errorCode === 'PGRST100';
+
+        if (isMissingColumnError) {
+          logger.warn('DB:LIABILITY_CREATE', 'Repayment columns may not exist, trying without them', {
+            error: errorMessage,
+            code: errorCode,
+            status: errorStatus,
+          }, correlationId || undefined);
+
+          const retry = await supabase
+            .from('liabilities')
+            .insert([dbInput])
+            .select(this.selectColumnsBasic)
+            .single();
+
+          if (retry.error) {
+            // Still an error, use the original error
+            logger.error('DB:LIABILITY_CREATE', 'Supabase liabilities create error', { error: retry.error }, correlationId || undefined);
+            logger.error(
+              'DB:LIABILITY_INSERT',
+              'Failed to create liability in Supabase',
+              { error: retry.error.message, code: retry.error.code, dbInput },
+              correlationId || undefined
+            );
+            return { error: this.normalizeSupabaseError(retry.error) };
+          } else {
+            // Success with basic columns - add null values for missing repayment fields
+            data = (retry.data ? {
+              ...retry.data,
+              repayment_amount: null,
+              repayment_frequency: null,
+            } : null) as typeof data;
+            error = null;
+          }
+        } else {
+          // Not a missing column error, handle normally
+          logger.error('DB:LIABILITY_CREATE', 'Supabase liabilities create error', { error }, correlationId || undefined);
+          logger.error(
+            'DB:LIABILITY_INSERT',
+            'Failed to create liability in Supabase',
+            { error: error.message, code: error.code, dbInput },
+            correlationId || undefined
+          );
+          return { error: this.normalizeSupabaseError(error) };
+        }
       }
 
       if (!data) {
@@ -645,13 +696,15 @@ export class SupabaseLiabilitiesRepository implements LiabilitiesRepository {
         dbInput.repayment_frequency = validation.data.repaymentFrequency;
       }
 
-      const { data, error } = await supabase
+      // Try with full columns first (including repayment fields)
+      let { data, error } = await supabase
         .from('liabilities')
         .update(dbInput)
         .eq('id', id)
         .select(this.selectColumns)
         .single();
 
+      // Handle missing column errors (repayment_amount and repayment_frequency may not exist)
       if (error) {
         if (error.code === 'PGRST116') {
           return {
@@ -661,9 +714,64 @@ export class SupabaseLiabilitiesRepository implements LiabilitiesRepository {
             },
           };
         }
-        logger.error('DB:LIABILITY_UPDATE', 'Supabase liabilities update error', { error }, correlationId || undefined);
-        logger.error('DB:LIABILITY_UPDATE', 'Failed to update liability in Supabase', { liabilityId: id, error: error.message, code: error.code, dbInput }, correlationId || undefined);
-        return { error: this.normalizeSupabaseError(error) };
+
+        const errorMessage = error?.message || '';
+        const errorCode = typeof error === 'object' && error !== null && 'code' in error
+          ? String((error as { code?: unknown }).code)
+          : '';
+        const errorStatus = typeof error === 'object' && error !== null && 'status' in error
+          ? (error as { status?: unknown }).status
+          : undefined;
+
+        // Check if it's specifically a missing column error
+        const isMissingColumnError =
+          errorMessage.includes('column') && (errorMessage.includes('repayment_amount') || errorMessage.includes('repayment_frequency')) ||
+          errorCode === '42703' ||
+          errorCode === 'PGRST100';
+
+        if (isMissingColumnError) {
+          logger.warn('DB:LIABILITY_UPDATE', 'Repayment columns may not exist, trying without them', {
+            liabilityId: id,
+            error: errorMessage,
+            code: errorCode,
+            status: errorStatus,
+          }, correlationId || undefined);
+
+          const retry = await supabase
+            .from('liabilities')
+            .update(dbInput)
+            .eq('id', id)
+            .select(this.selectColumnsBasic)
+            .single();
+
+          if (retry.error) {
+            // Still an error, use the retry error (but check for NOT_FOUND first)
+            if (retry.error.code === 'PGRST116') {
+              return {
+                error: {
+                  error: 'Liability not found.',
+                  code: LIABILITY_ERROR_CODES.NOT_FOUND,
+                },
+              };
+            }
+            logger.error('DB:LIABILITY_UPDATE', 'Supabase liabilities update error', { error: retry.error }, correlationId || undefined);
+            logger.error('DB:LIABILITY_UPDATE', 'Failed to update liability in Supabase', { liabilityId: id, error: retry.error.message, code: retry.error.code, dbInput }, correlationId || undefined);
+            return { error: this.normalizeSupabaseError(retry.error) };
+          } else {
+            // Success with basic columns - add null values for missing repayment fields
+            data = (retry.data ? {
+              ...retry.data,
+              repayment_amount: null,
+              repayment_frequency: null,
+            } : null) as typeof data;
+            error = null;
+          }
+        } else {
+          // Not a missing column error, handle normally
+          logger.error('DB:LIABILITY_UPDATE', 'Supabase liabilities update error', { error }, correlationId || undefined);
+          logger.error('DB:LIABILITY_UPDATE', 'Failed to update liability in Supabase', { liabilityId: id, error: error.message, code: error.code, dbInput }, correlationId || undefined);
+          return { error: this.normalizeSupabaseError(error) };
+        }
       }
 
       if (!data) {

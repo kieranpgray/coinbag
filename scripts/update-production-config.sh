@@ -8,13 +8,22 @@ echo "🔧 Production Configuration Update Script"
 echo "=========================================="
 echo ""
 
-# Production values
-SUPABASE_URL="https://auvtsvmtfrbpvgyvfqlx.supabase.co"
-SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF1dnRzdm10ZnJicHZneXZmcWx4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5NzAwMTcsImV4cCI6MjA4MjU0NjAxN30.OLKiOD4K2nt8u5OFTNiFJc8UzzrkI6SllbscJMaEpBQ"
-CLERK_PUBLISHABLE_KEY="pk_live_Y2xlcmsuY29pbmJhZy5hcHAk"
-CLERK_DOMAIN="clerk.coinbag.app"
-CLERK_INSTANCE_ID="ins_37VAGQw0JVza01qpTa6yUt8iVLY"
-MISTRAL_API_KEY="jJnyzvYcruSTj50bTqAEXlGl0rmxiXDm"
+# Production values - MUST be set via environment variables
+# DO NOT hardcode secrets in this file
+SUPABASE_URL="${SUPABASE_URL:-}"
+SUPABASE_ANON_KEY="${SUPABASE_ANON_KEY:-}"
+CLERK_PUBLISHABLE_KEY="${CLERK_PUBLISHABLE_KEY:-}"
+CLERK_DOMAIN="${CLERK_DOMAIN:-}"
+CLERK_INSTANCE_ID="${CLERK_INSTANCE_ID:-}"
+MISTRAL_API_KEY="${MISTRAL_API_KEY:-}"
+
+# Validate required environment variables
+if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_ANON_KEY" ] || [ -z "$CLERK_PUBLISHABLE_KEY" ]; then
+  echo "❌ Error: Required environment variables not set"
+  echo "   Please set: SUPABASE_URL, SUPABASE_ANON_KEY, CLERK_PUBLISHABLE_KEY"
+  echo "   Optional: CLERK_DOMAIN, CLERK_INSTANCE_ID, MISTRAL_API_KEY"
+  exit 1
+fi
 
 ENV_FILE=".env"
 

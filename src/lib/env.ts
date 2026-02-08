@@ -35,6 +35,35 @@ export function validateEnvironment(): {
     if (isProduction) {
       shouldBlockStartup = true;
     }
+  } else {
+    // Validate Clerk key format matches environment
+    const isDev = !isProduction;
+    const isProductionKey = CLERK_PUBLISHABLE_KEY.startsWith('pk_live_');
+    const isTestKey = CLERK_PUBLISHABLE_KEY.startsWith('pk_test_');
+    
+    if (isDev && isProductionKey) {
+      warnings.push(
+        '⚠️ Production Clerk key detected in development mode. ' +
+        'Production keys are domain-restricted and will cause authentication failures on localhost. ' +
+        'Use test key (pk_test_...) for local development. ' +
+        'Get test key from: https://dashboard.clerk.com → API Keys → Test tab'
+      );
+    }
+    
+    if (isProduction && isTestKey) {
+      const errorMsg = 'CRITICAL: Test Clerk key detected in production. Use production key (pk_live_...) for production builds.';
+      errors.push(errorMsg);
+      shouldBlockStartup = true;
+      console.error('🚨 PRODUCTION ERROR:', errorMsg);
+      console.error('   → Get production key from: https://dashboard.clerk.com → API Keys → Production tab');
+    }
+    
+    if (!isProductionKey && !isTestKey) {
+      warnings.push(
+        `Invalid Clerk key format: "${CLERK_PUBLISHABLE_KEY.substring(0, 20)}...". ` +
+        'Expected format: pk_test_... (development) or pk_live_... (production)'
+      );
+    }
   }
 
   // CRITICAL: In production, Supabase MUST be configured

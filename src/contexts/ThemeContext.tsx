@@ -21,8 +21,9 @@ function getSystemDarkModePreference(): boolean {
  * Theme context type providing dark mode and privacy mode controls
  */
 interface ThemeContextType {
-  darkMode: boolean;
-  toggleDarkMode: () => void;
+  darkMode: boolean; // Computed effective dark mode (based on themePreference and system)
+  themePreference: 'system' | 'light' | 'dark'; // User's stored preference
+  toggleDarkMode: () => void; // Cycles through: system → light → dark → system
   privacyMode: boolean;
   togglePrivacyMode: () => void;
 }
@@ -40,64 +41,62 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const updatePrefs = useUpdateUserPreferences();
 
   // Initialize with system preference as default
-  const [darkMode, setDarkMode] = useState(getSystemDarkModePreference);
+  const [themePreference, setThemePreference] = useState<'system' | 'light' | 'dark'>('system');
   const [privacyMode, setPrivacyMode] = useState(false);
+  const [systemPrefersDark, setSystemPrefersDark] = useState(getSystemDarkModePreference);
 
   // Initialize from user preferences
   useEffect(() => {
     if (prefs) {
-      setDarkMode(prefs.darkMode);
+      setThemePreference(prefs.themePreference);
       setPrivacyMode(prefs.privacyMode);
-
-      // Apply dark mode to document
-      if (prefs.darkMode) {
-        document.documentElement.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-      }
     }
   }, [prefs]);
 
-  // Listen for system preference changes when no user preference is set
+  // Listen for system preference changes when themePreference is 'system'
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    
+    // Update initial state
+    setSystemPrefersDark(mediaQuery.matches);
 
     const handleChange = (e: MediaQueryListEvent) => {
-      // Only update if user hasn't explicitly set a preference
-      // We check if prefs exists and if darkMode matches system preference
-      if (!prefs) {
-        setDarkMode(e.matches);
-        if (e.matches) {
-          document.documentElement.classList.add('dark');
-        } else {
-          document.documentElement.classList.remove('dark');
-        }
+      // Only update system preference state when in 'system' mode
+      // This will trigger the computed darkMode to update
+      if (themePreference === 'system') {
+        setSystemPrefersDark(e.matches);
       }
     };
 
-    // Add listener for future changes
     mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
+  }, [themePreference]);
 
-    return () => {
-      mediaQuery.removeEventListener('change', handleChange);
-    };
-  }, [prefs]);
+  // Compute effective darkMode from themePreference and system preference
+  const effectiveDarkMode = themePreference === 'system' 
+    ? systemPrefersDark 
+    : themePreference === 'dark';
 
-  // Apply dark mode class to document when it changes
+  // Apply effective dark mode to document
   useEffect(() => {
-    if (darkMode) {
+    if (effectiveDarkMode) {
       document.documentElement.classList.add('dark');
     } else {
       document.documentElement.classList.remove('dark');
     }
-  }, [darkMode]);
+  }, [effectiveDarkMode]);
 
   const toggleDarkMode = () => {
-    const newValue = !darkMode;
-    setDarkMode(newValue);
-    updatePrefs.mutate({ darkMode: newValue });
+    // Cycle through: system → light → dark → system
+    const nextPreference: 'system' | 'light' | 'dark' = 
+      themePreference === 'system' ? 'light' :
+      themePreference === 'light' ? 'dark' :
+      'system';
+    
+    setThemePreference(nextPreference);
+    updatePrefs.mutate({ themePreference: nextPreference });
   };
 
   const togglePrivacyMode = () => {
@@ -107,7 +106,13 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <ThemeContext.Provider value={{ darkMode, toggleDarkMode, privacyMode, togglePrivacyMode }}>
+    <ThemeContext.Provider value={{ 
+      darkMode: effectiveDarkMode, 
+      themePreference,
+      toggleDarkMode, 
+      privacyMode, 
+      togglePrivacyMode 
+    }}>
       {children}
     </ThemeContext.Provider>
   );

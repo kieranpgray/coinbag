@@ -1,6 +1,7 @@
 import { createAuthenticatedSupabaseClient } from '@/lib/supabaseClient';
 import type { UserPreferencesRepository } from './repo';
 import { userPreferencesSchema, defaultUserPreferences, type UserPreferences } from '@/contracts/userPreferences';
+import { logger, getCorrelationId } from '@/lib/logger';
 
 /**
  * Supabase-backed preferences repository.
@@ -10,15 +11,25 @@ import { userPreferencesSchema, defaultUserPreferences, type UserPreferences } f
  */
 export class SupabaseUserPreferencesRepository implements UserPreferencesRepository {
   private readonly selectColumns =
-    'privacy_mode, dark_mode, tax_rate, tax_settings_configured, email_notifications, locale, hide_setup_checklist';
+    'privacy_mode, theme_preference, dark_mode, tax_rate, tax_settings_configured, email_notifications, locale, hide_setup_checklist';
 
   /**
    * Map database row (snake_case) to UserPreferences (camelCase)
+   * Handles backward compatibility: if theme_preference is missing, derive from dark_mode
    */
   private mapDbRowToPreferences(row: any): UserPreferences {
+    // Handle theme_preference with fallback to dark_mode for backward compatibility
+    let themePreference: 'system' | 'light' | 'dark' = 'system';
+    if (row.theme_preference) {
+      themePreference = row.theme_preference;
+    } else if (row.dark_mode !== undefined) {
+      // Legacy: convert boolean to theme preference
+      themePreference = row.dark_mode ? 'dark' : 'light';
+    }
+
     return {
       privacyMode: row.privacy_mode ?? false,
-      darkMode: row.dark_mode ?? false,
+      themePreference,
       taxRate: row.tax_rate ?? 20,
       taxSettingsConfigured: row.tax_settings_configured ?? false,
       emailNotifications: row.email_notifications ?? defaultUserPreferences.emailNotifications,
@@ -43,7 +54,7 @@ export class SupabaseUserPreferencesRepository implements UserPreferencesReposit
 
       // First fallback: try without hide_setup_checklist (if migration not run)
       if (error && (error.message?.includes('hide_setup_checklist') || error.message?.includes('schema cache'))) {
-        const fallbackColumns = 'privacy_mode, dark_mode, tax_rate, tax_settings_configured, email_notifications, locale';
+        const fallbackColumns = 'privacy_mode, theme_preference, dark_mode, tax_rate, tax_settings_configured, email_notifications, locale';
         const fallbackResult = await supabase
           .from('user_preferences')
           .select(fallbackColumns)
@@ -52,7 +63,7 @@ export class SupabaseUserPreferencesRepository implements UserPreferencesReposit
         if (fallbackResult.error) {
           // Second fallback: try without both hide_setup_checklist AND locale (if locale migration not run)
           if (fallbackResult.error.message?.includes('locale') || fallbackResult.error.message?.includes('schema cache')) {
-            const baseColumns = 'privacy_mode, dark_mode, tax_rate, tax_settings_configured, email_notifications';
+            const baseColumns = 'privacy_mode, theme_preference, dark_mode, tax_rate, tax_settings_configured, email_notifications';
             const baseResult = await supabase
               .from('user_preferences')
               .select(baseColumns)
@@ -124,7 +135,7 @@ export class SupabaseUserPreferencesRepository implements UserPreferencesReposit
       // user_id is derived via DEFAULT (auth.jwt() ->> 'sub') on insert.
       const dbInput: Record<string, unknown> = {
         privacy_mode: validation.data.privacyMode,
-        dark_mode: validation.data.darkMode,
+        theme_preference: validation.data.themePreference,
         tax_rate: validation.data.taxRate,
         tax_settings_configured: validation.data.taxSettingsConfigured,
         email_notifications: validation.data.emailNotifications,
@@ -148,7 +159,7 @@ export class SupabaseUserPreferencesRepository implements UserPreferencesReposit
         const fallbackResult = await supabase
           .from('user_preferences')
           .upsert(dbInput, { onConflict: 'user_id' })
-          .select('privacy_mode, dark_mode, tax_rate, tax_settings_configured, email_notifications, locale')
+          .select('privacy_mode, theme_preference, dark_mode, tax_rate, tax_settings_configured, email_notifications, locale')
           .single();
 
         if (fallbackResult.error) {
@@ -156,7 +167,7 @@ export class SupabaseUserPreferencesRepository implements UserPreferencesReposit
           if (fallbackResult.error.message?.includes('locale') || fallbackResult.error.message?.includes('schema cache')) {
             const baseInput = {
               privacy_mode: validation.data.privacyMode,
-              dark_mode: validation.data.darkMode,
+              theme_preference: validation.data.themePreference,
               tax_rate: validation.data.taxRate,
               tax_settings_configured: validation.data.taxSettingsConfigured,
               email_notifications: validation.data.emailNotifications,
@@ -165,7 +176,7 @@ export class SupabaseUserPreferencesRepository implements UserPreferencesReposit
             const baseResult = await supabase
               .from('user_preferences')
               .upsert(baseInput, { onConflict: 'user_id' })
-              .select('privacy_mode, dark_mode, tax_rate, tax_settings_configured, email_notifications')
+              .select('privacy_mode, theme_preference, dark_mode, tax_rate, tax_settings_configured, email_notifications')
               .single();
 
             if (baseResult.error) {
@@ -229,7 +240,23 @@ export class SupabaseUserPreferencesRepository implements UserPreferencesReposit
       return { error: 'You do not have permission to access preferences', code: 'PERMISSION_DENIED' };
     }
 
-    if (error.code === 'PGRST301' || error.message.includes('JWT')) {
+    if (error.code === 'PGRST301' || error.message.includes('JWT') || error.message.includes('401')) {
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const keyFormat = import.meta.env.VITE_SUPABASE_ANON_KEY?.startsWith('sb_publishable_') ? 'new (sb_publishable_)' : 
+                       import.meta.env.VITE_SUPABASE_ANON_KEY?.startsWith('eyJ') ? 'legacy (JWT)' : 'unknown';
+      
+      logger.error(
+        'AUTH:401',
+        'Authentication error in user preferences repository',
+        {
+          errorCode: error.code,
+          errorMessage: error.message,
+          supabaseUrl,
+          keyFormat,
+        },
+        getCorrelationId() || undefined
+      );
+      
       return { error: 'Authentication required. Please sign in again', code: 'AUTH_ERROR' };
     }
 

@@ -4,7 +4,6 @@ import { useQuery } from '@tanstack/react-query';
 import { marketApi } from '@/lib/api';
 import { NetWorthCard } from '@/features/dashboard/components/NetWorthCard';
 import { BudgetBreakdownTile } from '@/features/dashboard/components/BudgetBreakdownTile';
-import { SummaryCard } from '@/features/dashboard/components/SummaryCard';
 import { SetupProgress } from '@/features/dashboard/components/SetupProgress';
 import { MarketSummary } from '@/features/dashboard/components/MarketSummary';
 import { AssetsBreakdown } from '@/features/dashboard/components/AssetsBreakdown';
@@ -25,7 +24,6 @@ import { calculateMonthlyIncome } from '@/features/budget/utils/calculations';
 import { calculateMonthlyEquivalent } from '@/features/expenses/utils';
 import { findUncategorisedCategoryId } from '@/data/categories/ensureDefaults';
 import { filterByExpenseType } from '@/features/budget/utils/filtering';
-import { ROUTES } from '@/lib/constants/routes';
 import type { AssetBreakdown, LiabilityBreakdown } from '@/types/domain';
 
 function calculateAssetBreakdown(assets: { type: string; value: number }[]): AssetBreakdown[] {
@@ -133,20 +131,6 @@ export function DashboardPage() {
   const hasAssets = useMemo(() => dataSources.assetsCount > 0, [dataSources.assetsCount]);
   const hasLiabilities = useMemo(() => dataSources.liabilitiesCount > 0, [dataSources.liabilitiesCount]);
   const hasHoldings = useMemo(() => dataSources.holdingsCount > 0, [dataSources.holdingsCount]);
-  
-  // Check for superannuation assets
-  const hasSuperannuation = useMemo(
-    () => assets.some(a => a.type === 'Superannuation'),
-    [assets]
-  );
-  
-  // Check for cash: either accounts OR cash assets
-  const hasCashAssets = useMemo(
-    () => assets.some(a => a.type === 'Cash'),
-    [assets]
-  );
-  const hasAccounts = useMemo(() => dataSources.accountsCount > 0, [dataSources.accountsCount]);
-  const hasCash = useMemo(() => hasAccounts || hasCashAssets, [hasAccounts, hasCashAssets]);
   const hasExpenses = useMemo(() => dataSources.expensesCount > 0, [dataSources.expensesCount]);
   const hasIncome = useMemo(() => dataSources.incomeCount > 0, [dataSources.incomeCount]);
 
@@ -287,75 +271,16 @@ export function DashboardPage() {
           isLoading={isLoading}
         />
 
-        {/* Net Worth and In and Out - 50/50 split */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <NetWorthCard
-            netWorth={dashboardData.netWorth}
-            totalAssets={totalAssets}
-            totalLiabilities={totalLiabilities}
-            change1D={dashboardData.netWorthChange1D}
-            change1W={dashboardData.netWorthChange1W}
-            isLoading={isLoading}
-            isEmpty={!hasAssets && !hasLiabilities}
-          />
-          <BudgetBreakdownTile
-            totalIncome={totalMonthlyIncome}
-            totalExpenses={totalMonthlyExpenses}
-            totalSavings={totalMonthlySavings}
-            totalRepayments={totalMonthlyRepayments}
-            remaining={remaining}
-            isLoading={isLoading}
-            isEmpty={!hasBudgetData}
-          />
-        </div>
-
-        {/* Summary Cards - responsive grid that wraps gracefully */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <SummaryCard
-            title={t('investments.title', { ns: 'dashboard' })}
-            value={dashboardData.investments}
-            change1D={dashboardData.investmentsChange1D}
-            change1W={dashboardData.investmentsChange1W}
-            isLoading={isLoading}
-            isEmpty={!hasHoldings}
-            emptyText={t('investments.empty', { ns: 'dashboard' })}
-            emptyCtaLabel={t('investments.emptyCta', { ns: 'dashboard' })}
-            emptyCtaHref={ROUTES.wealth.createAsset('Investments')}
-          />
-          <SummaryCard
-            title={t('superannuation.title', { ns: 'dashboard' })}
-            value={dashboardData.superannuation}
-            change1D={dashboardData.superannuationChange1D}
-            change1W={dashboardData.superannuationChange1W}
-            isLoading={isLoading}
-            isEmpty={!hasSuperannuation}
-            emptyText={t('superannuation.empty', { ns: 'dashboard' })}
-            emptyCtaLabel={t('superannuation.emptyCta', { ns: 'dashboard' })}
-            emptyCtaHref={ROUTES.wealth.createAsset('Superannuation')}
-          />
-          <SummaryCard
-            title={t('totalCash.title', { ns: 'dashboard' })}
-            value={dashboardData.totalCash}
-            change1D={dashboardData.totalCashChange1D}
-            change1W={dashboardData.totalCashChange1W}
-            isLoading={isLoading}
-            isEmpty={!hasCash}
-            emptyText="Add cash as an asset to track your cash."
-            emptyCtaLabel="Add cash"
-            emptyCtaHref={ROUTES.wealth.createAsset('Cash')}
-          />
-          <SummaryCard
-            title="Total Debts"
-            value={dashboardData.totalDebts}
-            change1D={dashboardData.totalDebtsChange1D}
-            change1W={dashboardData.totalDebtsChange1W}
-            isLoading={isLoading}
-            isEmpty={!hasLiabilities}
-            emptyText="Add a liability to track your debts."
-            emptyCtaLabel="Add liability"
-            emptyCtaHref={ROUTES.wealth.createLiability}
-          />
-        </div>
+        {/* Net Worth - Full width hero tile */}
+        <NetWorthCard
+          netWorth={dashboardData.netWorth}
+          totalAssets={totalAssets}
+          totalLiabilities={totalLiabilities}
+          change1D={dashboardData.netWorthChange1D}
+          change1W={dashboardData.netWorthChange1W}
+          isLoading={isLoading}
+          isEmpty={!hasAssets && !hasLiabilities}
+        />
 
         {/* Asset/Liability breakdowns - responsive two-column grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -372,6 +297,17 @@ export function DashboardPage() {
             isEmpty={!hasLiabilities}
           />
         </div>
+
+        {/* Budget Breakdown - Standalone full width */}
+        <BudgetBreakdownTile
+          totalIncome={totalMonthlyIncome}
+          totalExpenses={totalMonthlyExpenses}
+          totalSavings={totalMonthlySavings}
+          totalRepayments={totalMonthlyRepayments}
+          remaining={remaining}
+          isLoading={isLoading}
+          isEmpty={!hasBudgetData}
+        />
 
         {/* Expense/Income breakdowns - responsive two-column grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

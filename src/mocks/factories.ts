@@ -392,7 +392,7 @@ export function createUser(overrides?: Partial<User>): User {
     email: 'john.doe@example.com',
     phoneNumber: undefined,
     privacyMode: false,
-    darkMode: false,
+    themePreference: 'system' as const,
     taxRate: 20,
     emailNotifications: {
       portfolioSummary: true,

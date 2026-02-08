@@ -155,15 +155,52 @@ Two-factor authentication is managed entirely through Clerk:
 
 ## Development vs Production
 
-### Development
-- Use Clerk's test environment
-- Mock data source (`VITE_DATA_SOURCE=mock`)
-- Fast development with local data
+### Development (`.env` file)
 
-### Production
-- Use Clerk's production environment
-- Switch to Supabase data source (`VITE_DATA_SOURCE=supabase`)
-- Ensure proper error handling for auth failures
+**Clerk Key**: Use **test key** (`pk_test_...`)
+- **Why**: Production keys are domain-restricted and don't work on `localhost:5173`
+- **Where to get**: Clerk Dashboard → API Keys → **Test** tab
+- **Format**: `VITE_CLERK_PUBLISHABLE_KEY=pk_test_...`
+- **Domain**: No restrictions (works on localhost)
+
+**Example**:
+```bash
+# .env (development)
+VITE_CLERK_PUBLISHABLE_KEY=pk_test_your_test_key_here
+VITE_SUPABASE_URL=https://tislabgxitwtcqfwrpik.supabase.co  # DEV project
+VITE_DATA_SOURCE=supabase
+```
+
+### Production (`.env.production` file)
+
+**Clerk Key**: Use **production key** (`pk_live_...`)
+- **Why**: Production keys are required for production deployments
+- **Where to get**: Clerk Dashboard → API Keys → **Production** tab
+- **Format**: `VITE_CLERK_PUBLISHABLE_KEY=pk_live_...`
+- **Domain**: Restricted to `coinbag.app` and subdomains
+
+**Example**:
+```bash
+# .env.production (production builds)
+VITE_CLERK_PUBLISHABLE_KEY=pk_live_your_production_key_here
+VITE_SUPABASE_URL=https://auvtsvmtfrbpvgyvfqlx.supabase.co  # PROD project
+VITE_DATA_SOURCE=supabase
+```
+
+### Key Segregation Rules
+
+**CRITICAL**: Never mix keys:
+- ❌ **Don't** use production keys (`pk_live_...`) in `.env` (development)
+- ❌ **Don't** use test keys (`pk_test_...`) in `.env.production` (production)
+- ✅ **Do** use test keys in `.env` for local development
+- ✅ **Do** use production keys in `.env.production` for production builds
+
+### Validation
+
+The app includes automatic validation:
+- **Runtime**: Warns if production key detected in development mode
+- **Build-time**: Fails if test key detected in production builds
+- **Development script**: `npx tsx scripts/validate-dev-env.ts` checks your `.env` file
 
 ## Troubleshooting
 

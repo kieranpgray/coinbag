@@ -13,9 +13,17 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const PROJECT_ROOT = join(__dirname, '..');
 
-// Dev project configuration
-const SUPABASE_URL = process.env.SUPABASE_URL || 'https://tislabgxitwtcqfwrpik.supabase.co';
-const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRpc2xhYmd4aXR3dGNxZndycGlrIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NjgxNDg4OCwiZXhwIjoyMDgyMzkwODg4fQ.A2zMZJe64TitBka8fV0d2mef3qtVdc_OI5s0TlASzQI';
+// Configuration - MUST be set via environment variables
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+  console.error('❌ Error: Required environment variables not set');
+  console.error('   Please set: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY');
+  console.error('   Example:');
+  console.error('     SUPABASE_URL=https://xxx.supabase.co SUPABASE_SERVICE_ROLE_KEY=xxx node scripts/create-statement-bucket-direct.js');
+  process.exit(1);
+}
 
 console.log('🔧 Creating Statements Storage Bucket');
 console.log('=====================================\n');

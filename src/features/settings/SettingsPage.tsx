@@ -71,7 +71,7 @@ export function SettingsPage() {
   });
 
   const [privacyMode, setPrivacyMode] = useState(false);
-  const [darkMode, setDarkMode] = useState(false);
+  const [themePreference, setThemePreference] = useState<'system' | 'light' | 'dark'>('system');
   const [taxRate, setTaxRate] = useState(20);
   const [taxSettingsConfigured, setTaxSettingsConfigured] = useState(false);
   const [emailNotifications, setEmailNotifications] = useState({
@@ -112,7 +112,7 @@ export function SettingsPage() {
   useEffect(() => {
     if (prefs) {
       setPrivacyMode(prefs.privacyMode);
-      setDarkMode(prefs.darkMode);
+      setThemePreference(prefs.themePreference);
       setTaxRate(prefs.taxRate);
       setTaxSettingsConfigured(prefs.taxSettingsConfigured);
       setEmailNotifications({
@@ -142,9 +142,9 @@ export function SettingsPage() {
     updatePrefs.mutate({ privacyMode: checked });
   };
 
-  const handleDarkModeChange = (checked: boolean) => {
-    setDarkMode(checked);
-    updatePrefs.mutate({ darkMode: checked });
+  const handleThemePreferenceChange = (value: 'system' | 'light' | 'dark') => {
+    setThemePreference(value);
+    updatePrefs.mutate({ themePreference: value });
   };
 
   const handleTaxRateChange = (value: number) => {
@@ -249,17 +249,30 @@ export function SettingsPage() {
                   aria-label="Enable privacy mode to hide sensitive financial information"
                 />
               </div>
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                <div className="space-y-0.5">
-                  <Label htmlFor="dark-mode">Dark Mode</Label>
-                  <p className="text-sm text-muted-foreground">Use dark theme</p>
-                </div>
-                <Switch
-                  id="dark-mode"
-                  checked={darkMode}
-                  onCheckedChange={handleDarkModeChange}
-                  aria-label="Enable dark mode theme"
-                />
+              <div className="space-y-3">
+                <Label htmlFor="theme-preference" className="text-base font-medium">
+                  Theme
+                </Label>
+                <Select 
+                  value={themePreference} 
+                  onValueChange={(value: 'system' | 'light' | 'dark') => handleThemePreferenceChange(value)}
+                >
+                  <SelectTrigger id="theme-preference" className="w-full sm:w-[320px] h-11">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="system">System</SelectItem>
+                    <SelectItem value="light">Light</SelectItem>
+                    <SelectItem value="dark">Dark</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-sm text-muted-foreground">
+                  {themePreference === 'system' 
+                    ? 'Theme follows your system preference'
+                    : themePreference === 'light'
+                    ? 'Always use light theme'
+                    : 'Always use dark theme'}
+                </p>
               </div>
               
               {/* Locale Selector */}

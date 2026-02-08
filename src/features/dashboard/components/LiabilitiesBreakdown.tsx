@@ -1,10 +1,15 @@
-import { memo } from 'react';
+import { memo, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { PrivacyWrapper } from '@/components/shared/PrivacyWrapper';
 import { Link } from 'react-router-dom';
 import type { LiabilityBreakdown } from '@/types/domain';
+import { LiabilitiesAllocationDonut } from './LiabilitiesAllocationDonut';
+import { LiabilitiesAllocationList } from './LiabilitiesAllocationList';
+import {
+  transformBreakdownForChart,
+  transformBreakdownForList,
+} from '../utils/liabilityAllocation';
 
 interface LiabilitiesBreakdownProps {
   breakdown: LiabilityBreakdown[];
@@ -19,6 +24,16 @@ export const LiabilitiesBreakdown = memo(function LiabilitiesBreakdown({
   isLoading,
   isEmpty,
 }: LiabilitiesBreakdownProps) {
+  // Transform data for chart and list
+  const chartData = useMemo(
+    () => transformBreakdownForChart(breakdown),
+    [breakdown]
+  );
+  const listData = useMemo(
+    () => transformBreakdownForList(breakdown),
+    [breakdown]
+  );
+
   if (isLoading) {
     return (
       <Card>
@@ -36,7 +51,7 @@ export const LiabilitiesBreakdown = memo(function LiabilitiesBreakdown({
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Liabilities Breakdown</CardTitle>
+          <CardTitle>Liability allocation</CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-sm text-muted-foreground mb-4">
@@ -53,36 +68,21 @@ export const LiabilitiesBreakdown = memo(function LiabilitiesBreakdown({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Liabilities Breakdown</CardTitle>
+        <CardTitle>Liability allocation</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="mb-4">
-          <div className="text-xl font-bold mb-2">
-            <PrivacyWrapper value={totalBalance} />
+        {/* Responsive grid: mobile stacks vertically, desktop shows chart (40%) and list (60%) */}
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+          {/* Chart - takes 2 columns on desktop (40%), full width on mobile */}
+          <div className="md:col-span-2">
+            <LiabilitiesAllocationDonut data={chartData} totalBalance={totalBalance} />
+          </div>
+
+          {/* List - takes 3 columns on desktop (60%), full width on mobile */}
+          <div className="md:col-span-3">
+            <LiabilitiesAllocationList data={listData} />
           </div>
         </div>
-        <div className="space-y-3">
-          {breakdown.map((item) => (
-            <div key={item.category}>
-              <div className="flex justify-between mb-1">
-                <span className="text-sm font-medium">{item.category}</span>
-                <span className="text-sm text-muted-foreground">{item.percentage}%</span>
-              </div>
-              <div className="w-full bg-muted rounded-full h-2">
-                <div
-                  className="bg-destructive h-2 rounded-full"
-                  style={{ width: `${item.percentage}%` }}
-                />
-              </div>
-            </div>
-          ))}
-        </div>
-        <Link
-          to="/app/wealth"
-          className="mt-4 inline-block text-sm text-primary hover:underline"
-        >
-          View all liabilities →
-        </Link>
       </CardContent>
     </Card>
   );

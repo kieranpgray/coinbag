@@ -6,24 +6,6 @@
     "title": "Net Worth",
     "empty": "Add assets and liabilities to calculate your net worth"
   },
-  "totalCash": {
-    "title": "Total Cash",
-    "empty": "Add bank accounts to track your cash"
-  },
-  "totalDebts": {
-    "title": "Total Debts",
-    "empty": "Add liabilities to track your debts"
-  },
-  "investments": {
-    "title": "Investments",
-    "empty": "Add investments to track your portfolio value.",
-    "emptyCta": "Add investment"
-  },
-  "superannuation": {
-    "title": "Superannuation",
-    "empty": "Add superannuation to track your retirement savings.",
-    "emptyCta": "Add superannuation"
-  },
   "assets": {
     "title": "Assets Breakdown",
     "empty": "Add assets to see your asset breakdown"
