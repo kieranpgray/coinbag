@@ -32,7 +32,7 @@ export function LiabilityCategoryGroup({
   categoryName,
   liabilities,
   onEdit,
-  onDelete,
+  onDelete: _onDelete,
 }: LiabilityCategoryGroupProps) {
   const categoryTotal = liabilities.reduce((sum, liability) => sum + liability.balance, 0);
 

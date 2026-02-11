@@ -5,7 +5,6 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { formatCurrency } from '@/lib/utils';
 import { LiabilityCard } from '@/features/liabilities/components/LiabilityCard';
-import { LiabilityList } from '@/features/liabilities/components/LiabilityList';
 import { LiabilityPortfolioSection } from './LiabilityPortfolioSection';
 import type { Liability } from '@/types/domain';
 

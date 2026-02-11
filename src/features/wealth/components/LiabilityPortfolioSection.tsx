@@ -34,10 +34,7 @@ export function LiabilityPortfolioSection({
   const liabilitiesByCategory = useMemo(() => {
     const grouped: Record<string, Liability[]> = {};
     liabilities.forEach((liability) => {
-      if (!grouped[liability.type]) {
-        grouped[liability.type] = [];
-      }
-      grouped[liability.type].push(liability);
+      (grouped[liability.type] ??= []).push(liability);
     });
     return grouped;
   }, [liabilities]);

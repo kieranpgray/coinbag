@@ -5,7 +5,6 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { formatCurrency } from '@/lib/utils';
 import { AssetCard } from '@/features/assets/components/AssetCard';
-import { AssetList } from '@/features/assets/components/AssetList';
 import { AssetPortfolioSection } from './AssetPortfolioSection';
 import type { Asset } from '@/types/domain';
 

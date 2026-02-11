@@ -10,7 +10,8 @@ export function useDebouncedCallback<T extends (...args: any[]) => void>(
   callback: T,
   delay: number
 ): T {
-  const timeoutRef = useRef<NodeJS.Timeout>();
+  // ReturnType<typeof setTimeout> works in browser and Node; NodeJS.Timeout requires @types/node
+  const timeoutRef = useRef<ReturnType<typeof setTimeout>>();
 
   const debouncedCallback = useCallback(
     (...args: Parameters<T>) => {

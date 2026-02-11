@@ -15,7 +15,7 @@ import { formatCurrency } from '@/lib/utils';
 import { Pencil, Trash2, Plus, Check, Loader2, AlertCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import type { Expense, ExpenseFrequency } from '@/types/domain';
-import { convertToFrequency, getFrequencyLabelForDisplay, normalizeToFrequency, type Frequency } from '../utils/frequencyConversion';
+import { convertToFrequency, normalizeToFrequency, type Frequency } from '../utils/frequencyConversion';
 import { useExpenseMutations } from '@/features/expenses/hooks/useExpenseMutations';
 import { CategoryInput } from '@/features/expenses/components/CategoryInput';
 import { AccountSelect } from '@/components/shared/AccountSelect';
@@ -92,12 +92,10 @@ export function ExpenseList({
   };
 
   // Validate fields for an expense (handles cross-field validation)
-  const validateExpenseFields = useCallback((expenseId: string, changes: Partial<Expense>, expense: Expense): Map<string, string> => {
+  const validateExpenseFields = useCallback((expenseId: string, changes: Partial<Expense>, _expense: Expense): Map<string, string> => {
     const errors = new Map<string, string>();
     
     try {
-      // Merge changes with original expense data for validation
-      const testData = { ...expense, ...changes };
       // Validate using the update schema (it will validate only provided fields)
       expenseUpdateSchema.parse(changes);
       return errors;
@@ -295,11 +293,12 @@ export function ExpenseList({
   const focusNextCell = useCallback((currentExpenseId: string, currentField: string, direction: 'next' | 'prev' = 'next') => {
     const fields = ['name', 'categoryId', 'amount', 'frequency', 'nextDueDate', 'paidFromAccountId'];
     const currentIndex = fields.indexOf(currentField);
-    let nextIndex = direction === 'next' ? currentIndex + 1 : currentIndex - 1;
+    const nextIndex = direction === 'next' ? currentIndex + 1 : currentIndex - 1;
     
     if (nextIndex >= 0 && nextIndex < fields.length) {
       // Move to next field in same row
       const nextField = fields[nextIndex];
+      if (nextField === undefined) return;
       const nextKey = `${currentExpenseId}-${nextField}`;
       const nextRef = cellRefs.current.get(nextKey);
       if (nextRef && 'focus' in nextRef) {
@@ -310,7 +309,9 @@ export function ExpenseList({
       // Move to next row, first field
       const currentRowIndex = expenses.findIndex(e => e.id === currentExpenseId);
       if (currentRowIndex < expenses.length - 1) {
-        const nextExpenseId = expenses[currentRowIndex + 1].id;
+        const nextExpense = expenses[currentRowIndex + 1];
+        if (!nextExpense) return;
+        const nextExpenseId = nextExpense.id;
         const nextKey = `${nextExpenseId}-name`;
         const nextRef = cellRefs.current.get(nextKey);
         if (nextRef && 'focus' in nextRef) {
@@ -322,8 +323,11 @@ export function ExpenseList({
       // Move to previous row, last field
       const currentRowIndex = expenses.findIndex(e => e.id === currentExpenseId);
       if (currentRowIndex > 0) {
-        const prevExpenseId = expenses[currentRowIndex - 1].id;
+        const prevExpense = expenses[currentRowIndex - 1];
+        if (!prevExpense) return;
+        const prevExpenseId = prevExpense.id;
         const lastField = fields[fields.length - 1];
+        if (lastField === undefined) return;
         const prevKey = `${prevExpenseId}-${lastField}`;
         const prevRef = cellRefs.current.get(prevKey);
         if (prevRef && 'focus' in prevRef) {
@@ -401,10 +405,7 @@ export function ExpenseList({
               const displayAmount = displayFrequency
                 ? convertToFrequency(expense.amount, normalizeToFrequency(expense.frequency), displayFrequency)
                 : expense.amount;
-              const displayFreqLabel = displayFrequency
-                ? getFrequencyLabelForDisplay(displayFrequency)
-                : expense.frequency.toLowerCase();
-              
+
               // Get current values (from pending changes or original)
               const currentName = getCellValue(expense, 'name') as string;
               const currentCategoryId = getCellValue(expense, 'categoryId') as string;
@@ -478,7 +479,7 @@ export function ExpenseList({
                       <div className="space-y-1 min-w-0">
                         <div className="w-full max-w-full min-w-0">
                           <CategoryInput
-                            value={currentCategoryId}
+                            value={currentCategoryId ?? uncategorisedId ?? ''}
                             onChange={(value) => {
                               handleFieldChange(expense.id, 'categoryId', value);
                               // Close edit mode after selection

@@ -82,7 +82,7 @@ export function IncomeList({ incomes, accountMap, onEdit, onDelete, onCreate }: 
   }, [incomes]);
 
   // Validate fields for an income (handles cross-field validation)
-  const validateIncomeFields = useCallback((incomeId: string, changes: Partial<Income>, income: Income): Map<string, string> => {
+  const validateIncomeFields = useCallback((incomeId: string, changes: Partial<Income>, _income: Income): Map<string, string> => {
     const errors = new Map<string, string>();
     
     try {
@@ -271,6 +271,7 @@ export function IncomeList({ incomes, accountMap, onEdit, onDelete, onCreate }: 
     if (nextIndex >= 0 && nextIndex < fields.length) {
       // Move to next field in same row
       const nextField = fields[nextIndex];
+      if (nextField === undefined) return;
       const nextKey = `${currentIncomeId}-${nextField}`;
       const nextRef = cellRefs.current.get(nextKey);
       if (nextRef && 'focus' in nextRef) {
@@ -281,7 +282,9 @@ export function IncomeList({ incomes, accountMap, onEdit, onDelete, onCreate }: 
       // Move to next row, first field
       const currentRowIndex = incomes.findIndex(i => i.id === currentIncomeId);
       if (currentRowIndex < incomes.length - 1) {
-        const nextIncomeId = incomes[currentRowIndex + 1].id;
+        const nextIncome = incomes[currentRowIndex + 1];
+        if (!nextIncome) return;
+        const nextIncomeId = nextIncome.id;
         const nextKey = `${nextIncomeId}-name`;
         const nextRef = cellRefs.current.get(nextKey);
         if (nextRef && 'focus' in nextRef) {
@@ -293,8 +296,11 @@ export function IncomeList({ incomes, accountMap, onEdit, onDelete, onCreate }: 
       // Move to previous row, last field
       const currentRowIndex = incomes.findIndex(i => i.id === currentIncomeId);
       if (currentRowIndex > 0) {
-        const prevIncomeId = incomes[currentRowIndex - 1].id;
+        const prevIncome = incomes[currentRowIndex - 1];
+        if (!prevIncome) return;
+        const prevIncomeId = prevIncome.id;
         const lastField = fields[fields.length - 1];
+        if (lastField === undefined) return;
         const prevKey = `${prevIncomeId}-${lastField}`;
         const prevRef = cellRefs.current.get(prevKey);
         if (prevRef && 'focus' in prevRef) {
@@ -441,7 +447,7 @@ export function IncomeList({ incomes, accountMap, onEdit, onDelete, onCreate }: 
                       <div className="space-y-1 min-w-0">
                         <div className="w-full max-w-full min-w-0">
                           <Select
-                            value={currentSource}
+                            value={currentSource ?? ''}
                             onValueChange={(value) => {
                               handleFieldChange(income.id, 'source', value as Income['source']);
                               // Close edit mode after selection
@@ -533,7 +539,7 @@ export function IncomeList({ incomes, accountMap, onEdit, onDelete, onCreate }: 
                       <div className="space-y-1 min-w-0">
                         <div className="w-full max-w-full min-w-0">
                           <Select
-                            value={currentFrequency}
+                            value={currentFrequency ?? ''}
                             onValueChange={(value) => {
                               handleFieldChange(income.id, 'frequency', value as Income['frequency']);
                               // Close edit mode after selection
@@ -622,7 +628,7 @@ export function IncomeList({ incomes, accountMap, onEdit, onDelete, onCreate }: 
                       <div className="space-y-1 min-w-0">
                         <div className="w-full max-w-full min-w-0">
                           <AccountSelect
-                            value={currentPaidToAccountId}
+                            value={currentPaidToAccountId ?? ''}
                             onChange={(value) => {
                               handleFieldChange(income.id, 'paidToAccountId', value || undefined);
                               // Close edit mode after selection

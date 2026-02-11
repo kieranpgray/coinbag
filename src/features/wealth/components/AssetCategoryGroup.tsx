@@ -40,7 +40,7 @@ export function AssetCategoryGroup({
   categoryName,
   assets,
   onEdit,
-  onDelete,
+  onDelete: _onDelete,
 }: AssetCategoryGroupProps) {
   const categoryTotal = assets.reduce((sum, asset) => sum + asset.value, 0);
 

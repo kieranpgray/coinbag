@@ -42,10 +42,7 @@ export function AssetPortfolioSection({
   const assetsByCategory = useMemo(() => {
     const grouped: Record<string, Asset[]> = {};
     assets.forEach((asset) => {
-      if (!grouped[asset.type]) {
-        grouped[asset.type] = [];
-      }
-      grouped[asset.type].push(asset);
+      (grouped[asset.type] ??= []).push(asset);
     });
     return grouped;
   }, [assets]);
