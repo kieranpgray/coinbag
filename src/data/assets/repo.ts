@@ -1,4 +1,4 @@
-import type { Asset } from '@/types/domain';
+import type { Asset, AssetValueHistory } from '@/types/domain';
 import { logger, getCorrelationId } from '@/lib/logger';
 
 /**
@@ -54,6 +54,17 @@ export interface AssetsRepository {
     id: string,
     getToken: () => Promise<string | null>
   ): Promise<{
+    error?: { error: string; code: string };
+  }>;
+
+  /**
+   * Get value history for an asset
+   */
+  getValueHistory(
+    assetId: string,
+    getToken: () => Promise<string | null>
+  ): Promise<{
+    data?: AssetValueHistory[];
     error?: { error: string; code: string };
   }>;
 }

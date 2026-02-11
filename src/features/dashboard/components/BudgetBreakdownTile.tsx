@@ -72,7 +72,7 @@ export const BudgetBreakdownTile = memo(function BudgetBreakdownTile({
   }
 
   return (
-    <Card className="border border-neutral-200">
+    <Card className="border border-border">
       <CardContent className="p-0">
         {/* Header */}
         <div className="p-4">
@@ -110,7 +110,7 @@ export const BudgetBreakdownTile = memo(function BudgetBreakdownTile({
           </div>
 
           {/* Separator */}
-          <div className="border-t border-neutral-200 my-2" />
+          <div className="border-t border-border my-2" />
 
           {/* Remaining Row */}
           <div className="flex items-center justify-between">

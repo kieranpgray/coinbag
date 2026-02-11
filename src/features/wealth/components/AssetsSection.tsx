@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { TrendingUp, Plus } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { formatCurrency } from '@/lib/utils';
 import { AssetCard } from '@/features/assets/components/AssetCard';
 import { AssetList } from '@/features/assets/components/AssetList';
+import { AssetPortfolioSection } from './AssetPortfolioSection';
 import type { Asset } from '@/types/domain';
 
 interface AssetsSectionProps {
@@ -20,6 +21,7 @@ interface AssetsSectionProps {
 /**
  * Assets section component
  * Displays total assets and asset sources with category filtering and view toggle
+ * Supports both portfolio view (list mode) and card view (cards mode)
  */
 export function AssetsSection({
   totalAssets,
@@ -49,16 +51,27 @@ export function AssetsSection({
     return assets.filter((asset) => asset.type === category);
   };
 
+  // Portfolio view: render grouped portfolio section
+  if (viewMode === 'list') {
+    return (
+      <AssetPortfolioSection
+        totalAssets={totalAssets}
+        assets={assets}
+        onCreate={onCreate}
+        onEdit={onEdit}
+        onDelete={onDelete}
+      />
+    );
+  }
+
+  // Cards view: render existing tabbed card interface
   return (
     <section className="space-y-6" aria-label="Assets section">
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <div className="flex items-center gap-3 mb-2">
-            <div className="h-10 w-10 rounded-full bg-emerald-100 flex items-center justify-center">
-              <TrendingUp className="h-5 w-5 text-emerald-600" />
-            </div>
-            <h1 className="text-neutral-600 text-h2-sm sm:text-h2-md lg:text-h2-lg font-semibold">Assets</h1>
+            <h2 className="text-foreground text-h2-sm sm:text-h2-md lg:text-h2-lg font-semibold">Assets</h2>
           </div>
           <div className="flex items-baseline gap-2">
             <span className="text-lg font-bold">
@@ -69,7 +82,7 @@ export function AssetsSection({
         <div className="flex flex-col items-start sm:items-end gap-3">
           <Button
             size="sm"
-            className="bg-blue-600 hover:bg-blue-700 text-white"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground"
             onClick={onCreate}
             aria-label="Add asset"
           >
@@ -105,13 +118,6 @@ export function AssetsSection({
                   </div>
                 </CardContent>
               </Card>
-            ) : viewMode === 'list' ? (
-              <AssetList
-                assets={getAssetsForCategory(category.value)}
-                onEdit={onEdit}
-                onDelete={onDelete}
-                onAddAsset={onCreate}
-              />
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {getAssetsForCategory(category.value).map((asset) => (

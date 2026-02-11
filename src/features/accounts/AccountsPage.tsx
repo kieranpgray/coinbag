@@ -768,7 +768,7 @@ export function AccountsPage() {
           <Button 
             variant="ghost" 
             onClick={handleBackToAccounts} 
-            className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 transition-colors mb-6"
+            className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6"
           >
             <ChevronLeft className="h-4 w-4" />
             Back to Accounts
@@ -810,7 +810,7 @@ export function AccountsPage() {
           <div className="flex justify-between items-start gap-8">
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-6">
-                <h1 className="text-h1-sm sm:text-h1-md lg:text-h1-lg font-semibold text-gray-900 leading-tight">
+                <h1 className="text-h1-sm sm:text-h1-md lg:text-h1-lg font-semibold text-foreground leading-tight">
                   {selectedAccountData.accountName}
                 </h1>
                 <span className="px-3 py-1 bg-card border border-border rounded-full text-body-sm text-muted-foreground font-medium">
@@ -1028,7 +1028,7 @@ export function AccountsPage() {
                           onClick={() => handleEdit(account)}
                           aria-label={t('editAccount', { ns: 'aria' })}
                         >
-                          <Pencil className="h-3.5 w-3.5 text-neutral-500" />
+                          <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
                         </Button>
                         <Button
                           variant="ghost"

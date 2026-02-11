@@ -1,14 +1,15 @@
 import type { LiabilitiesRepository } from './repo';
-import { createAuthenticatedSupabaseClient } from '@/lib/supabaseClient';
+import { createAuthenticatedSupabaseClient, getUserIdFromToken } from '@/lib/supabaseClient';
 import { ensureUserIdForInsert, verifyInsertedUserId } from '@/lib/repositoryHelpers';
 import {
   liabilityCreateSchema,
   liabilityUpdateSchema,
   liabilityListSchema,
   liabilityEntitySchema,
+  liabilityBalanceHistoryListSchema,
   LIABILITY_ERROR_CODES,
 } from '@/contracts/liabilities';
-import type { Liability } from '@/types/domain';
+import type { Liability, LiabilityBalanceHistory } from '@/types/domain';
 import { logger, getCorrelationId } from '@/lib/logger';
 import { z } from 'zod';
 import { isSupabaseError } from '@/lib/errorTypes';
@@ -634,6 +635,52 @@ export class SupabaseLiabilitiesRepository implements LiabilitiesRepository {
         correlationId || undefined
       );
 
+      // Log initial balance to history
+      try {
+        const supabase = await createAuthenticatedSupabaseClient(getToken);
+        const historyResult = await supabase
+          .from('liability_balance_history')
+          .insert([{
+            liability_id: liability.id,
+            previous_balance: null, // NULL for initial creation
+            new_balance: liability.balance,
+            user_id: userId,
+          }])
+          .select('id, liability_id, previous_balance, new_balance, change_amount, created_at')
+          .single();
+
+        if (historyResult.error) {
+          logger.error(
+            'DB:LIABILITY_INSERT_HISTORY',
+            'Failed to log initial balance to history',
+            {
+              liabilityId: liability.id,
+              error: historyResult.error.message,
+            },
+            correlationId || undefined
+          );
+          // Don't fail the create operation if history logging fails
+        } else {
+          logger.info(
+            'DB:LIABILITY_INSERT_HISTORY',
+            'Initial balance logged to history',
+            {
+              liabilityId: liability.id,
+              historyId: historyResult.data?.id,
+            },
+            correlationId || undefined
+          );
+        }
+      } catch (historyError) {
+        logger.error(
+          'DB:LIABILITY_INSERT_HISTORY',
+          'Exception while logging initial balance to history',
+          { liabilityId: liability.id, error: historyError },
+          correlationId || undefined
+        );
+        // Don't fail the create operation if history logging fails
+      }
+
       return { data: liability };
     } catch (error) {
       logger.error('DB:LIABILITY_CREATE', 'Create liability error', { error }, getCorrelationId() || undefined);
@@ -677,6 +724,20 @@ export class SupabaseLiabilitiesRepository implements LiabilitiesRepository {
       }
 
       const supabase = await createAuthenticatedSupabaseClient(getToken);
+
+      // Get previous balance if balance is being updated
+      let previousBalance: number | null = null;
+      if (validation.data.balance !== undefined) {
+        const previousLiabilityResult = await supabase
+          .from('liabilities')
+          .select('balance')
+          .eq('id', id)
+          .single();
+        
+        if (previousLiabilityResult.data) {
+          previousBalance = previousLiabilityResult.data.balance as number;
+        }
+      }
 
       // Map camelCase to snake_case for database
       const dbInput: Record<string, unknown> = {};
@@ -811,9 +872,140 @@ export class SupabaseLiabilitiesRepository implements LiabilitiesRepository {
         correlationId || undefined
       );
 
+      // Log balance change to history if balance was updated
+      if (validation.data.balance !== undefined && previousBalance !== null && previousBalance !== liability.balance) {
+        try {
+          const userId = await getUserIdFromToken(getToken);
+          if (userId) {
+            const historyResult = await supabase
+              .from('liability_balance_history')
+              .insert([{
+                liability_id: liability.id,
+                previous_balance: previousBalance,
+                new_balance: liability.balance,
+                user_id: userId,
+              }])
+              .select('id, liability_id, previous_balance, new_balance, change_amount, created_at')
+              .single();
+
+            if (historyResult.error) {
+              logger.error(
+                'DB:LIABILITY_UPDATE_HISTORY',
+                'Failed to log balance change to history',
+                {
+                  liabilityId: liability.id,
+                  previousBalance,
+                  newBalance: liability.balance,
+                  error: historyResult.error.message,
+                },
+                correlationId || undefined
+              );
+              // Don't fail the update operation if history logging fails
+            } else {
+              logger.info(
+                'DB:LIABILITY_UPDATE_HISTORY',
+                'Balance change logged to history',
+                {
+                  liabilityId: liability.id,
+                  previousBalance,
+                  newBalance: liability.balance,
+                  historyId: historyResult.data?.id,
+                },
+                correlationId || undefined
+              );
+            }
+          }
+        } catch (historyError) {
+          logger.error(
+            'DB:LIABILITY_UPDATE_HISTORY',
+            'Exception while logging balance change to history',
+            { liabilityId: liability.id, error: historyError },
+            correlationId || undefined
+          );
+          // Don't fail the update operation if history logging fails
+        }
+      }
+
       return { data: liability };
     } catch (error) {
       logger.error('DB:LIABILITY_UPDATE', 'Update liability error', { error }, getCorrelationId() || undefined);
+      return { error: this.normalizeSupabaseError(error) };
+    }
+  }
+
+  async getBalanceHistory(
+    liabilityId: string,
+    getToken: () => Promise<string | null>
+  ) {
+    try {
+      const correlationId = getCorrelationId();
+
+      if (!liabilityId) {
+        return {
+          error: {
+            error: 'Liability ID is required.',
+            code: LIABILITY_ERROR_CODES.VALIDATION_ERROR,
+          },
+        };
+      }
+
+      const supabase = await createAuthenticatedSupabaseClient(getToken);
+
+      const { data, error } = await supabase
+        .from('liability_balance_history')
+        .select('id, liability_id, previous_balance, new_balance, change_amount, created_at')
+        .eq('liability_id', liabilityId)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        logger.error(
+          'DB:LIABILITY_BALANCE_HISTORY',
+          'Failed to fetch liability balance history',
+          { liabilityId, error: error.message },
+          correlationId || undefined
+        );
+        return { error: this.normalizeSupabaseError(error) };
+      }
+
+      if (!data) {
+        return { data: [] };
+      }
+
+      // Map database rows to domain types
+      const history: LiabilityBalanceHistory[] = data.map((row) => ({
+        id: row.id as string,
+        liabilityId: row.liability_id as string,
+        previousBalance: row.previous_balance === null ? null : (row.previous_balance as number),
+        newBalance: row.new_balance as number,
+        changeAmount: row.change_amount as number,
+        createdAt: row.created_at as string,
+      }));
+
+      // Validate with Zod schema
+      const validation = liabilityBalanceHistoryListSchema.safeParse(history);
+      if (!validation.success) {
+        logger.error(
+          'DB:LIABILITY_BALANCE_HISTORY',
+          'Liability balance history validation error',
+          { liabilityId, error: validation.error },
+          correlationId || undefined
+        );
+        return {
+          error: {
+            error: 'Invalid data received from server.',
+            code: LIABILITY_ERROR_CODES.VALIDATION_ERROR,
+          },
+        };
+      }
+
+      return { data: validation.data };
+    } catch (error) {
+      logger.error(
+        'DB:LIABILITY_BALANCE_HISTORY',
+        'Get liability balance history error',
+        { liabilityId, error },
+        getCorrelationId() || undefined
+      );
       return { error: this.normalizeSupabaseError(error) };
     }
   }

@@ -35,7 +35,7 @@ export function BudgetBreakdown({
   const remainingDisplay = convertToFrequency(remaining, 'monthly', frequency);
 
   return (
-    <Card className="border border-neutral-200">
+    <Card className="border border-border">
       <CardContent className="p-0">
         {/* Header */}
         <div className="flex items-center justify-between p-4">
@@ -111,7 +111,7 @@ export function BudgetBreakdown({
           </div>
 
           {/* Separator */}
-          <div className="border-t border-neutral-200 my-2" />
+          <div className="border-t border-border my-2" />
 
           {/* Remaining Row */}
           <div className="flex items-center justify-between">

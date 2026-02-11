@@ -218,7 +218,7 @@ export function TransactionList({
           size="sm"
           onClick={() => refetch()}
           disabled={isLoading}
-          className="flex items-center gap-2 text-body-lg text-gray-600 hover:text-gray-900 transition-colors h-auto p-0 hover:bg-transparent"
+          className="flex items-center gap-2 text-body-lg text-muted-foreground hover:text-foreground transition-colors h-auto p-0 hover:bg-transparent"
         >
           <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
           Refresh
@@ -290,7 +290,7 @@ export function TransactionList({
                   // Database stores sign in amount (positive for income, negative for expense)
                   // This ensures correct rendering: income shows +amount (green), expense shows -amount (gray)
                   const displayAmount = Math.abs(transaction.amount);
-                  const color = isCredit ? 'text-[#059669]' : 'text-gray-900';
+                  const color = isCredit ? 'text-success' : 'text-foreground';
 
                   // CRITICAL: Log UI rendering data for debugging
                   if (import.meta.env.DEV || import.meta.env.VITE_DEBUG_LOGGING === 'true') {

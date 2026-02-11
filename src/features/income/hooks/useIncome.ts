@@ -100,7 +100,11 @@ export function useUpdateIncome() {
     onSuccess: (updatedIncome) => {
       // Optimistically update dashboard cache instead of invalidating
       updateIncomeOptimistically(queryClient, updatedIncome);
-      queryClient.invalidateQueries({ queryKey: ['incomes'] });
+      // Patch list cache in place - preserves order, no refetch
+      queryClient.setQueryData<Income[]>(
+        ['incomes'],
+        (old) => old?.map((i) => (i.id === updatedIncome.id ? updatedIncome : i)) ?? []
+      );
     },
     onError: () => {
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });

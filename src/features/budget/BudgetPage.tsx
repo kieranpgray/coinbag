@@ -6,7 +6,8 @@ import { useCategories } from '@/features/categories/hooks';
 import { useAccounts } from '@/features/accounts/hooks';
 import { AccountSelect } from '@/components/shared/AccountSelect';
 import { useAccountLinking } from '@/hooks/useAccountLinking';
-import { useViewMode } from '@/hooks/useViewMode';
+import { Link } from 'react-router-dom';
+import { ArrowRight } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { RefreshCw, AlertTriangle, AlertCircle } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -16,7 +17,7 @@ import { IncomeSection } from './components/IncomeSection';
 import { ExpensesSection } from './components/ExpensesSection';
 import { VisualDivider } from './components/VisualDivider';
 import { BudgetBreakdown } from './components/BudgetBreakdown';
-import { ViewModeToggle } from '@/components/shared/ViewModeToggle';
+import { ROUTES } from '@/lib/constants/routes';
 import { calculateMonthlyIncome } from './utils/calculations';
 import { filterByExpenseType } from './utils/filtering';
 import { calculateMonthlyEquivalent } from '@/features/expenses/utils';
@@ -43,6 +44,7 @@ import { DeleteExpenseDialog } from '@/features/expenses/components/DeleteExpens
 import { findCategoryIdByExpenseType } from './utils/categoryMapping';
 import type { ExpenseType } from './utils/expenseTypeMapping';
 import { findUncategorisedCategoryId } from '@/data/categories/ensureDefaults';
+import { formatCurrency } from '@/lib/utils';
 
 const incomeSchema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -90,9 +92,6 @@ export function BudgetPage() {
   const [breakdownFrequency, setBreakdownFrequency] = useState<Frequency>('monthly');
   const [incomeFrequency, setIncomeFrequency] = useState<Frequency | undefined>(undefined);
   const [expensesFrequency, setExpensesFrequency] = useState<Frequency | undefined>(undefined);
-  
-  // View mode state
-  const [viewMode, setViewMode] = useViewMode();
 
   // Handle query params for auto-opening create modal
   useEffect(() => {
@@ -326,12 +325,23 @@ export function BudgetPage() {
 
   return (
     <div className="space-y-12">
-      {/* Budget Header */}
+      {/* Budget Header: title + Plan transfers link */}
       <div className="flex items-center justify-between">
         <h1 className="text-h1-sm sm:text-h1-md lg:text-h1-lg font-bold tracking-tight">Budget</h1>
-        <div className="flex items-center gap-3">
-          <ViewModeToggle viewMode={viewMode} onViewModeChange={setViewMode} id="view-mode-budget" />
-        </div>
+        <Button variant="ghost" size="sm" asChild className="text-muted-foreground hover:text-foreground">
+          <Link to={ROUTES.app.transfers}>
+            Plan transfers
+            <ArrowRight className="h-4 w-4 ml-1" />
+          </Link>
+        </Button>
+      </div>
+
+      {/* Optional Remaining strip — reduces busyness, not hero */}
+      <div className="rounded-lg border border-border bg-muted/30 px-4 py-3 flex items-center justify-between">
+        <span className="text-body-sm text-muted-foreground">Remaining</span>
+        <span className={`text-body-lg font-semibold ${remaining >= 0 ? 'text-success' : 'text-error'}`}>
+          {remaining >= 0 ? '' : '-'}{formatCurrency(Math.abs(remaining))}
+        </span>
       </div>
 
       {/* In and Out */}
@@ -383,7 +393,6 @@ export function BudgetPage() {
           onDelete={handleDeleteIncome}
           parentFrequency={breakdownFrequency}
           onFrequencyChange={setIncomeFrequency}
-          viewMode={viewMode}
         />
       )}
 
@@ -420,7 +429,6 @@ export function BudgetPage() {
           onDelete={handleDeleteExpense}
           parentFrequency={breakdownFrequency}
           onFrequencyChange={setExpensesFrequency}
-          viewMode={viewMode}
         />
       )}
 

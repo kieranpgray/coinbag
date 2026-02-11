@@ -8,6 +8,7 @@ import {
 } from '@/components/ui/dialog';
 import { logger } from '@/lib/logger';
 import { LiabilityForm } from './LiabilityForm';
+import { LiabilityChangeLog } from './LiabilityChangeLog';
 import type { Liability } from '@/types/domain';
 
 interface EditLiabilityModalProps {
@@ -45,6 +46,10 @@ export function EditLiabilityModal({
           onCancel={() => onOpenChange(false)}
           isLoading={isLoading}
         />
+        <div className="mt-6 pt-6 border-t border-border">
+          <h3 className="text-sm font-semibold mb-3">Change History</h3>
+          <LiabilityChangeLog liabilityId={liability.id} />
+        </div>
       </DialogContent>
     </Dialog>
   );

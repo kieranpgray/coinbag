@@ -42,9 +42,12 @@ export function useExpenseMutations() {
       if (result.error) throw result.error;
       return result.data!;
     },
-    onSuccess: (_, variables) => {
-      // Invalidate queries to ensure fresh data from server
-      queryClient.invalidateQueries({ queryKey: ['expenses'] });
+    onSuccess: (updatedExpense, variables) => {
+      // Patch list cache in place - preserves order, no refetch
+      queryClient.setQueryData<Expense[]>(
+        ['expenses'],
+        (old) => old?.map((e) => (e.id === updatedExpense.id ? updatedExpense : e)) ?? []
+      );
       queryClient.invalidateQueries({ queryKey: ['expenses', variables.id] });
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
     },

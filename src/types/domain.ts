@@ -48,6 +48,30 @@ export interface Liability {
 }
 
 /**
+ * Asset value history entity representing a change in asset value
+ */
+export interface AssetValueHistory {
+  id: string;
+  assetId: string;
+  previousValue: number | null;
+  newValue: number;
+  changeAmount: number;
+  createdAt: string;
+}
+
+/**
+ * Liability balance history entity representing a change in liability balance
+ */
+export interface LiabilityBalanceHistory {
+  id: string;
+  liabilityId: string;
+  previousBalance: number | null;
+  newBalance: number;
+  changeAmount: number;
+  createdAt: string;
+}
+
+/**
  * Account entity representing a connected financial account
  */
 export interface Account {
@@ -236,6 +260,54 @@ export interface User {
     monthlyReports: boolean;
     marketingPromotions: boolean;
   };
+}
+
+/**
+ * Pay cycle configuration for transfer calculations
+ * Stored in user_preferences.pay_cycle (JSONB)
+ */
+export interface PayCycleConfig {
+  frequency: 'weekly' | 'fortnightly' | 'monthly';
+  nextPayDate: string; // ISO date string (YYYY-MM-DD)
+  primaryIncomeAccountId: string;
+  savingsAccountId?: string; // Optional surplus destination
+}
+
+/**
+ * Account-level cash flow summary
+ */
+export interface AccountCashFlow {
+  accountId: string;
+  accountName: string;
+  monthlyIncome: number;
+  monthlyExpenses: number;
+  expenseBreakdown: CategoryBreakdown[];
+}
+
+/**
+ * Category-grouped expense breakdown
+ */
+export interface CategoryBreakdown {
+  categoryId: string;
+  categoryName: string;
+  monthlyAmount: number;
+  expenseIds: string[];
+}
+
+/**
+ * Transfer suggestion for moving money between accounts
+ */
+export interface TransferSuggestion {
+  fromAccountId: string;
+  fromAccountName: string;
+  toAccountId: string;
+  toAccountName: string;
+  amountMonthly: number;
+  amountWeekly: number;
+  amountFortnightly: number;
+  reason: string;
+  expenseIds: string[];
+  isSurplus: boolean;
 }
 
 /**

@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { TrendingDown, Plus } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { formatCurrency } from '@/lib/utils';
 import { LiabilityCard } from '@/features/liabilities/components/LiabilityCard';
 import { LiabilityList } from '@/features/liabilities/components/LiabilityList';
+import { LiabilityPortfolioSection } from './LiabilityPortfolioSection';
 import type { Liability } from '@/types/domain';
 
 interface LiabilitiesSectionProps {
@@ -20,6 +21,7 @@ interface LiabilitiesSectionProps {
 /**
  * Liabilities section component
  * Displays total liabilities and liability sources with category filtering and view toggle
+ * Supports both portfolio view (list mode) and card view (cards mode)
  */
 export function LiabilitiesSection({
   totalLiabilities,
@@ -45,16 +47,27 @@ export function LiabilitiesSection({
     return liabilities.filter((liability) => liability.type === category);
   };
 
+  // Portfolio view: render grouped portfolio section
+  if (viewMode === 'list') {
+    return (
+      <LiabilityPortfolioSection
+        totalLiabilities={totalLiabilities}
+        liabilities={liabilities}
+        onCreate={onCreate}
+        onEdit={onEdit}
+        onDelete={onDelete}
+      />
+    );
+  }
+
+  // Cards view: render existing tabbed card interface
   return (
     <section className="space-y-6" aria-label="Liabilities section">
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <div className="flex items-center gap-3 mb-2">
-            <div className="h-10 w-10 rounded-full bg-red-100 flex items-center justify-center">
-              <TrendingDown className="h-5 w-5 text-red-600" />
-            </div>
-            <h2 className="text-neutral-600 text-h2-sm sm:text-h2-md lg:text-h2-lg font-semibold">Liabilities</h2>
+            <h2 className="text-foreground text-h2-sm sm:text-h2-md lg:text-h2-lg font-semibold">Liabilities</h2>
           </div>
           <div className="flex items-baseline gap-2">
             <span className="text-lg font-bold">
@@ -66,7 +79,7 @@ export function LiabilitiesSection({
           <Button
             size="sm"
             variant="outline"
-            className="border-neutral-300"
+            className="border-border"
             onClick={onCreate}
             aria-label="Add liability"
           >
@@ -102,13 +115,6 @@ export function LiabilitiesSection({
                   </div>
                 </CardContent>
               </Card>
-            ) : viewMode === 'list' ? (
-              <LiabilityList
-                liabilities={getLiabilitiesForCategory(category.value)}
-                onEdit={onEdit}
-                onDelete={onDelete}
-                onCreate={onCreate}
-              />
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {getLiabilitiesForCategory(category.value).map((liability) => (

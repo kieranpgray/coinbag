@@ -205,7 +205,7 @@ export function SearchableSelect({
         </span>
         <ChevronDown
           className={cn(
-            'h-4 w-4 text-gray-500 transition-transform ml-2 shrink-0',
+            'h-4 w-4 text-muted-foreground transition-transform ml-2 shrink-0',
             isOpen && 'rotate-180'
           )}
         />

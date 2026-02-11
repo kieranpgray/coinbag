@@ -158,7 +158,7 @@ export const NetWorthCard = memo(function NetWorthCard({
   }
 
   return (
-    <Card className="border border-neutral-200">
+    <Card className="border border-border">
       <CardContent className="p-0">
         {/* Header */}
         <div className="p-4">
@@ -194,7 +194,7 @@ export const NetWorthCard = memo(function NetWorthCard({
           </div>
           
           {/* Summary - 25% on desktop, full width on mobile, appears first on mobile */}
-          <div className="md:col-span-1 order-1 md:order-2 border-t md:border-t-0 md:border-l border-neutral-200 pt-4 md:pt-0 md:pl-4">
+          <div className="md:col-span-1 order-1 md:order-2 border-t md:border-t-0 md:border-l border-border pt-4 md:pt-0 md:pl-4">
             <NetWorthSummary 
               netWorth={netWorth}
               totalAssets={totalAssets}

@@ -200,3 +200,18 @@ export const ASSET_ERROR_CODES = {
   UNKNOWN_ERROR: 'UNKNOWN_ERROR',
 } as const;
 
+
+// Asset value history schemas
+export const assetValueHistorySchema = z.object({
+  id: z.string().uuid('Invalid asset value history ID format'),
+  assetId: z.string().uuid('Invalid asset ID format'),
+  previousValue: z.number().nullable(),
+  newValue: assetValueSchema,
+  changeAmount: z.number(),
+  createdAt: datetimeSchema,
+});
+
+export const assetValueHistoryListSchema = z.array(assetValueHistorySchema);
+
+// Type exports for asset value history
+export type AssetValueHistory = z.infer<typeof assetValueHistorySchema>;

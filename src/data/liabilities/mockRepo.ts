@@ -123,4 +123,13 @@ export class MockLiabilitiesRepository implements LiabilitiesRepository {
     liabilities.splice(index, 1);
     return {};
   }
+
+  async getBalanceHistory(_liabilityId: string, _getToken?: () => Promise<string | null>) {
+    await randomDelay();
+    // Mock implementation - return empty array
+    return {
+      data: [],
+      error: undefined,
+    };
+  }
 }

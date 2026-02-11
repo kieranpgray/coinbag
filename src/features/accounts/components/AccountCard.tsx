@@ -43,7 +43,7 @@ export function AccountCard({ account, onEdit, onDelete, onClick }: AccountCardP
               }}
               aria-label="Edit account"
             >
-              <Pencil className="h-4 w-4 text-neutral-500" />
+              <Pencil className="h-4 w-4 text-muted-foreground" />
             </Button>
             <Button
               variant="ghost"

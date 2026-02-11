@@ -27,7 +27,7 @@ export function LiabilityCard({ liability, onEdit, onDelete }: LiabilityCardProp
               onClick={() => onEdit(liability)}
               aria-label="Edit liability"
             >
-              <Pencil className="h-4 w-4 text-neutral-500" />
+              <Pencil className="h-4 w-4 text-muted-foreground" />
             </Button>
             <Button
               variant="ghost"

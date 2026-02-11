@@ -27,7 +27,7 @@ export function AssetCard({ asset, onEdit, onDelete }: AssetCardProps) {
               onClick={() => onEdit(asset)}
               aria-label="Edit asset"
             >
-              <Pencil className="h-4 w-4 text-neutral-500" />
+              <Pencil className="h-4 w-4 text-muted-foreground" />
             </Button>
             <Button
               variant="ghost"

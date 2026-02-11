@@ -1,4 +1,4 @@
-import type { Liability } from '@/types/domain';
+import type { Liability, LiabilityBalanceHistory } from '@/types/domain';
 
 /**
  * Repository interface for Liability operations
@@ -53,6 +53,17 @@ export interface LiabilitiesRepository {
     id: string,
     getToken: () => Promise<string | null>
   ): Promise<{
+    error?: { error: string; code: string };
+  }>;
+
+  /**
+   * Get balance history for a liability
+   */
+  getBalanceHistory(
+    liabilityId: string,
+    getToken: () => Promise<string | null>
+  ): Promise<{
+    data?: LiabilityBalanceHistory[];
     error?: { error: string; code: string };
   }>;
 }

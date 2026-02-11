@@ -36,6 +36,7 @@ export default {
         success: 'var(--color-success)',
         error: 'var(--color-error)',
         link: 'var(--color-link)',
+        iconAccent: 'var(--color-icon-accent)',
         neutral: {
           light: 'var(--color-neutral-light)',
           mid: 'var(--color-neutral-mid)',

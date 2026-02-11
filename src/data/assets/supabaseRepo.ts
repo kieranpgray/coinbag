@@ -5,8 +5,9 @@ import {
   assetUpdateSchema,
   assetListSchema,
   assetEntitySchema,
+  assetValueHistoryListSchema,
 } from '@/contracts/assets';
-import type { Asset } from '@/types/domain';
+import type { Asset, AssetValueHistory } from '@/types/domain';
 import { logger, getCorrelationId } from '@/lib/logger';
 import { decodeJwtPayload } from '@/lib/jwtDiagnostics';
 import { z } from 'zod';
@@ -447,6 +448,51 @@ export class SupabaseAssetsRepository implements AssetsRepository {
         correlationId || undefined
       );
 
+      // Log initial value to history
+      try {
+        const historyResult = await supabase
+          .from('asset_value_history')
+          .insert([{
+            asset_id: asset.id,
+            previous_value: null, // NULL for initial creation
+            new_value: asset.value,
+            user_id: userId,
+          }])
+          .select('id, asset_id, previous_value, new_value, change_amount, created_at')
+          .single();
+
+        if (historyResult.error) {
+          logger.error(
+            'DB:ASSET_INSERT_HISTORY',
+            'Failed to log initial value to history',
+            {
+              assetId: asset.id,
+              error: historyResult.error.message,
+            },
+            correlationId || undefined
+          );
+          // Don't fail the create operation if history logging fails
+        } else {
+          logger.info(
+            'DB:ASSET_INSERT_HISTORY',
+            'Initial value logged to history',
+            {
+              assetId: asset.id,
+              historyId: historyResult.data?.id,
+            },
+            correlationId || undefined
+          );
+        }
+      } catch (historyError) {
+        logger.error(
+          'DB:ASSET_INSERT_HISTORY',
+          'Exception while logging initial value to history',
+          { assetId: asset.id, error: historyError },
+          correlationId || undefined
+        );
+        // Don't fail the create operation if history logging fails
+      }
+
       return { data: asset };
     } catch (error) {
       logger.error('DB:ASSETS_CREATE', 'Create asset error', { error }, getCorrelationId() || undefined);
@@ -483,6 +529,20 @@ export class SupabaseAssetsRepository implements AssetsRepository {
       }
 
       const supabase = await createAuthenticatedSupabaseClient(getToken);
+
+      // Get previous value if value is being updated
+      let previousValue: number | null = null;
+      if (validation.data.value !== undefined) {
+        const previousAssetResult = await supabase
+          .from('assets')
+          .select('value')
+          .eq('id', id)
+          .single();
+        
+        if (previousAssetResult.data) {
+          previousValue = previousAssetResult.data.value as number;
+        }
+      }
 
       // Map camelCase to snake_case for database
       const dbInput: Record<string, unknown> = {};
@@ -615,9 +675,140 @@ export class SupabaseAssetsRepository implements AssetsRepository {
       // Map entity schema to domain Asset type
       const asset = this.mapEntityToAsset(responseValidation.data);
 
+      // Log value change to history if value was updated
+      if (validation.data.value !== undefined && previousValue !== null && previousValue !== asset.value) {
+        try {
+          const userId = await getUserIdFromToken(getToken);
+          if (userId) {
+            const historyResult = await supabase
+              .from('asset_value_history')
+              .insert([{
+                asset_id: asset.id,
+                previous_value: previousValue,
+                new_value: asset.value,
+                user_id: userId,
+              }])
+              .select('id, asset_id, previous_value, new_value, change_amount, created_at')
+              .single();
+
+            if (historyResult.error) {
+              logger.error(
+                'DB:ASSET_UPDATE_HISTORY',
+                'Failed to log value change to history',
+                {
+                  assetId: asset.id,
+                  previousValue,
+                  newValue: asset.value,
+                  error: historyResult.error.message,
+                },
+                correlationId || undefined
+              );
+              // Don't fail the update operation if history logging fails
+            } else {
+              logger.info(
+                'DB:ASSET_UPDATE_HISTORY',
+                'Value change logged to history',
+                {
+                  assetId: asset.id,
+                  previousValue,
+                  newValue: asset.value,
+                  historyId: historyResult.data?.id,
+                },
+                correlationId || undefined
+              );
+            }
+          }
+        } catch (historyError) {
+          logger.error(
+            'DB:ASSET_UPDATE_HISTORY',
+            'Exception while logging value change to history',
+            { assetId: asset.id, error: historyError },
+            correlationId || undefined
+          );
+          // Don't fail the update operation if history logging fails
+        }
+      }
+
       return { data: asset };
     } catch (error) {
       logger.error('DB:ASSETS_UPDATE', 'Update asset error', { error }, getCorrelationId() || undefined);
+      return { error: this.normalizeSupabaseError(error) };
+    }
+  }
+
+  async getValueHistory(
+    assetId: string,
+    getToken: () => Promise<string | null>
+  ) {
+    try {
+      const correlationId = getCorrelationId();
+
+      if (!assetId) {
+        return {
+          error: {
+            error: 'Asset ID is required.',
+            code: 'VALIDATION_ERROR',
+          },
+        };
+      }
+
+      const supabase = await createAuthenticatedSupabaseClient(getToken);
+
+      const { data, error } = await supabase
+        .from('asset_value_history')
+        .select('id, asset_id, previous_value, new_value, change_amount, created_at')
+        .eq('asset_id', assetId)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        logger.error(
+          'DB:ASSET_VALUE_HISTORY',
+          'Failed to fetch asset value history',
+          { assetId, error: error.message },
+          correlationId || undefined
+        );
+        return { error: this.normalizeSupabaseError(error) };
+      }
+
+      if (!data) {
+        return { data: [] };
+      }
+
+      // Map database rows to domain types
+      const history: AssetValueHistory[] = data.map((row) => ({
+        id: row.id as string,
+        assetId: row.asset_id as string,
+        previousValue: row.previous_value === null ? null : (row.previous_value as number),
+        newValue: row.new_value as number,
+        changeAmount: row.change_amount as number,
+        createdAt: row.created_at as string,
+      }));
+
+      // Validate with Zod schema
+      const validation = assetValueHistoryListSchema.safeParse(history);
+      if (!validation.success) {
+        logger.error(
+          'DB:ASSET_VALUE_HISTORY',
+          'Asset value history validation error',
+          { assetId, error: validation.error },
+          correlationId || undefined
+        );
+        return {
+          error: {
+            error: 'Invalid data received from server.',
+            code: 'VALIDATION_ERROR',
+          },
+        };
+      }
+
+      return { data: validation.data };
+    } catch (error) {
+      logger.error(
+        'DB:ASSET_VALUE_HISTORY',
+        'Get asset value history error',
+        { assetId, error },
+        getCorrelationId() || undefined
+      );
       return { error: this.normalizeSupabaseError(error) };
     }
   }

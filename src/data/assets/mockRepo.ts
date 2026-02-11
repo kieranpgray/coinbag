@@ -264,4 +264,13 @@ export class MockAssetsRepository implements AssetsRepository {
     }
     return {};
   }
+
+  async getValueHistory(_assetId: string, _getToken?: () => Promise<string | null>) {
+    await randomDelay();
+    // Mock implementation - return empty array
+    return {
+      data: [],
+      error: undefined,
+    };
+  }
 }

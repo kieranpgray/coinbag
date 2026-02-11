@@ -125,7 +125,7 @@ export function SetupProgress({ progress, checklist, isLoading }: SetupProgressP
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
             className="fixed bottom-24 right-6 z-[100] w-[calc(100vw-3rem)] sm:w-72 max-h-[calc(100vh-10rem)] overflow-hidden flex flex-col shadow-2xl rounded-2xl border-none"
           >
-            <div className="bg-white dark:bg-zinc-950 flex flex-col h-full overflow-hidden border border-zinc-200 dark:border-zinc-800 rounded-2xl">
+            <div className="bg-card flex flex-col h-full overflow-hidden border border-border rounded-2xl">
               <div className="bg-primary p-3 shrink-0">
                 <div className="flex justify-between items-center mb-1.5 px-0.5">
                   <span className="text-body-sm font-bold text-white tracking-wider uppercase">Setup Progress</span>
@@ -139,8 +139,8 @@ export function SetupProgress({ progress, checklist, isLoading }: SetupProgressP
                 </div>
               </div>
 
-              <div className="flex-1 overflow-y-auto bg-white dark:bg-zinc-950">
-                <div className="divide-y divide-zinc-100 dark:divide-zinc-800/50">
+              <div className="flex-1 overflow-y-auto bg-card">
+                <div className="divide-y divide-border">
                   {checklist.map((item) => {
                     const metadata = CHECKLIST_METADATA[item.id] || { 
                       icon: Circle, 
@@ -151,17 +151,17 @@ export function SetupProgress({ progress, checklist, isLoading }: SetupProgressP
                     const isExpanded = expandedItem === item.id;
 
                     return (
-                      <div key={item.id} className="bg-white dark:bg-zinc-950">
+                      <div key={item.id} className="bg-card">
                         <button
                           onClick={() => toggleItem(item.id)}
                           className={cn(
-                            "w-full flex items-center gap-2.5 py-2.5 px-3 text-left transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-900 focus:outline-none",
-                            isExpanded && "bg-zinc-50 dark:bg-zinc-900"
+                            "w-full flex items-center gap-2.5 py-2.5 px-3 text-left transition-colors hover:bg-muted focus:outline-none",
+                            isExpanded && "bg-muted"
                           )}
                         >
                           <div className={cn(
                             "flex-shrink-0 w-4.5 h-4.5 rounded-full flex items-center justify-center",
-                            item.completed ? "bg-green-500 text-white" : "bg-zinc-100 dark:bg-zinc-800 text-zinc-400"
+                            item.completed ? "bg-green-500 text-white" : "bg-muted text-muted-foreground"
                           )}>
                             {item.completed ? (
                               <CheckCircle2 className="h-3 w-3" />
@@ -172,13 +172,13 @@ export function SetupProgress({ progress, checklist, isLoading }: SetupProgressP
                           
                           <span className={cn(
                             "text-body-sm font-semibold flex-1 truncate",
-                            item.completed && "text-zinc-400 line-through font-normal"
+                            item.completed && "text-muted-foreground line-through font-normal"
                           )}>
                             {item.label}
                           </span>
 
                           <ChevronUp className={cn(
-                            "h-3 w-3 text-zinc-300 transition-transform duration-200",
+                            "h-3 w-3 text-muted-foreground transition-transform duration-200",
                             !isExpanded && "rotate-180"
                           )} />
                         </button>
@@ -190,10 +190,10 @@ export function SetupProgress({ progress, checklist, isLoading }: SetupProgressP
                               animate={{ height: "auto", opacity: 1 }}
                               exit={{ height: 0, opacity: 0 }}
                               transition={{ duration: 0.15, ease: "easeInOut" }}
-                              className="bg-zinc-50 dark:bg-zinc-900/50"
+                              className="bg-muted/50"
                             >
                               <div className="px-4 pb-4 pt-2">
-                                <p className="text-caption text-zinc-500 dark:text-zinc-400 mb-3 leading-relaxed">
+                                <p className="text-caption text-muted-foreground mb-3 leading-relaxed">
                                   {metadata.benefit}
                                 </p>
                                 <Button 
@@ -222,10 +222,10 @@ export function SetupProgress({ progress, checklist, isLoading }: SetupProgressP
                 </div>
               )}
               
-              <div className="px-3 py-2 border-t border-zinc-100 dark:border-zinc-800">
+              <div className="px-3 py-2 border-t border-border">
                 <button
                   onClick={handleDismiss}
-                  className="text-caption text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors w-full text-left"
+                  className="text-caption text-muted-foreground hover:text-foreground transition-colors w-full text-left"
                 >
                   Don't show me this again
                 </button>

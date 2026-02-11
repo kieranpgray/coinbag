@@ -22,7 +22,7 @@ const commands: CommandItem[] = [
   { id: 'wealth', label: 'Go to Wealth', path: '/wealth', keywords: ['wealth', 'assets', 'liabilities', 'investments', 'portfolio', 'debts', 'loans', 'net worth'] },
   { id: 'accounts', label: 'Go to Accounts', path: '/accounts', keywords: ['accounts', 'bank', 'financial'] },
   { id: 'settings', label: 'Go to Settings', path: '/settings', keywords: ['settings', 'preferences', 'config'] },
-  { id: 'goals', label: 'Go to Goals', path: '/goals', keywords: ['goals', 'targets', 'objectives'] },
+  { id: 'transfers', label: 'Go to Transfers', path: '/transfers', keywords: ['transfers', 'cash flow', 'move money', 'pay cycle'] },
   { id: 'budget', label: 'Go to Budget', path: '/budget', keywords: ['budget', 'income', 'expenses', 'subscriptions', 'recurring', 'bills'] },
 ];
 

@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { createAssetsRepository } from '@/data/assets/repo';
 import { useAuth } from '@clerk/clerk-react';
-import type { Asset } from '@/types/domain';
+import type { Asset, AssetValueHistory } from '@/types/domain';
 import { logger, getCorrelationId } from '@/lib/logger';
 import {
   addAssetOptimistically,
@@ -145,6 +145,10 @@ export function useUpdateAsset() {
       // Still invalidate assets queries to ensure consistency
       queryClient.invalidateQueries({ queryKey: ['assets'] });
       queryClient.invalidateQueries({ queryKey: ['assets', updatedAsset.id] });
+      // Invalidate history if value was updated
+      if (updatedAsset) {
+        queryClient.invalidateQueries({ queryKey: ['assets', updatedAsset.id, 'valueHistory'] });
+      }
     },
     onError: () => {
       // If mutation fails, invalidate dashboard to ensure consistency
@@ -222,6 +226,31 @@ export function useDeleteAsset() {
       // If mutation fails, invalidate dashboard to ensure consistency
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
     },
+  });
+}
+
+export function useAssetValueHistory(assetId: string) {
+  const { getToken } = useAuth();
+  const repository = createAssetsRepository();
+
+  return useQuery<AssetValueHistory[]>({
+    queryKey: ['assets', assetId, 'valueHistory'],
+    queryFn: async () => {
+      const result = await repository.getValueHistory(assetId, getToken);
+      if (result.error) {
+        logger.error(
+          'QUERY:ASSET_VALUE_HISTORY',
+          'Failed to fetch asset value history',
+          { assetId, error: result.error },
+          getCorrelationId() || undefined
+        );
+        throw result.error;
+      }
+      return result.data || [];
+    },
+    enabled: !!assetId,
+    staleTime: 1000 * 60 * 2, // 2 minutes - history doesn't change often
+    gcTime: 1000 * 60 * 5, // 5 minutes
   });
 }
 

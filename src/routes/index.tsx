@@ -12,7 +12,7 @@ import { ROUTES } from '@/lib/constants/routes';
 const WealthPage = lazy(() => import('@/features/wealth/WealthPage').then(m => ({ default: m.WealthPage })));
 const AccountsPage = lazy(() => import('@/features/accounts/AccountsPage').then(m => ({ default: m.AccountsPage })));
 const SettingsPage = lazy(() => import('@/features/settings/SettingsPage').then(m => ({ default: m.SettingsPage })));
-const GoalsPage = lazy(() => import('@/features/goals/GoalsPage').then(m => ({ default: m.GoalsPage })));
+const TransfersPage = lazy(() => import('@/features/transfers/TransfersPage').then(m => ({ default: m.default })));
 const ScenariosPage = lazy(() => import('@/features/scenarios/ScenariosPage').then(m => ({ default: m.ScenariosPage })));
 const BudgetPage = lazy(() => import('@/features/budget/BudgetPage').then(m => ({ default: m.BudgetPage })));
 const NotFound = lazy(() => import('@/components/shared/NotFound').then(m => ({ default: m.NotFound })));
@@ -102,7 +102,7 @@ export function Routes() {
         <Route path="subscriptions" element={<Navigate to={ROUTES.app.budget} replace />} />
         <Route path="income" element={<Navigate to={ROUTES.app.budget} replace />} />
         <Route path="categories" element={<Navigate to={ROUTES.app.budget} replace />} />
-        <Route path="goals" element={<Suspense fallback={<RouteLoadingFallback />}><GoalsPage /></Suspense>} />
+        <Route path="transfers" element={<Suspense fallback={<RouteLoadingFallback />}><TransfersPage /></Suspense>} />
         <Route path="debug" element={<Suspense fallback={<RouteLoadingFallback />}><DebugPage /></Suspense>} />
         <Route path="*" element={<Suspense fallback={<RouteLoadingFallback />}><NotFound /></Suspense>} />
       </Route>

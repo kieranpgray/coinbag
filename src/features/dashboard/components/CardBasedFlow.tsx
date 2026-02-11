@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'motion/react';
-import { Wallet, Coins, Target, PiggyBank, Sparkles, Plus } from 'lucide-react';
+import { Wallet, Coins, ArrowLeftRight, PiggyBank, Sparkles, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Link, useNavigate } from 'react-router-dom';
@@ -35,12 +35,12 @@ const cards: CardData[] = [
     href: ROUTES.wealth.createAsset(),
   },
   {
-    icon: Target,
-    title: 'Set a goal',
-    description: 'Save for something meaningful',
+    icon: ArrowLeftRight,
+    title: 'Set up transfers',
+    description: 'Manage cash flow between accounts',
     color: 'purple',
-    action: 'Create goal',
-    href: ROUTES.app.goals,
+    action: 'Set up transfers',
+    href: ROUTES.app.transfers,
   },
   {
     icon: PiggyBank,

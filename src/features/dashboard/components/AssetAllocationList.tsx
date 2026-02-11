@@ -38,7 +38,7 @@ function AllocationRow({ item }: { item: ListData }) {
           title={`${item.category}: ${formatPercentage(item.percentage)}`}
         >
           {/* Icon */}
-          <Icon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+          <Icon className="h-5 w-5 text-muted-foreground dark:text-iconAccent flex-shrink-0" />
 
           {/* Category name */}
           <div className="flex-1 min-w-0">

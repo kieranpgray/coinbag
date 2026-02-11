@@ -4,7 +4,7 @@ import {
   Wallet,
   TrendingUp,
   CreditCard,
-  Target,
+  ArrowLeftRight,
   BarChart3,
   Settings,
 } from 'lucide-react';
@@ -19,7 +19,7 @@ const navigation = NAVIGATION_ITEMS.map(item => ({
       case ROUTES.app.accounts: return Wallet;
       case ROUTES.app.wealth: return TrendingUp;
       case ROUTES.app.budget: return CreditCard;
-      case ROUTES.app.goals: return Target;
+      case ROUTES.app.transfers: return ArrowLeftRight;
       case ROUTES.app.scenarios: return BarChart3;
       case ROUTES.app.settings: return Settings;
       default: return LayoutDashboard;

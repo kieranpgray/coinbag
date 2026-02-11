@@ -230,3 +230,18 @@ export const LIABILITY_ERROR_CODES = {
   UNKNOWN_ERROR: 'UNKNOWN_ERROR',
 } as const;
 
+
+// Liability balance history schemas
+export const liabilityBalanceHistorySchema = z.object({
+  id: z.string().uuid('Invalid liability balance history ID format'),
+  liabilityId: z.string().uuid('Invalid liability ID format'),
+  previousBalance: z.number().nullable(),
+  newBalance: balanceSchema,
+  changeAmount: z.number(),
+  createdAt: datetimeSchema,
+});
+
+export const liabilityBalanceHistoryListSchema = z.array(liabilityBalanceHistorySchema);
+
+// Type exports for liability balance history
+export type LiabilityBalanceHistory = z.infer<typeof liabilityBalanceHistorySchema>;

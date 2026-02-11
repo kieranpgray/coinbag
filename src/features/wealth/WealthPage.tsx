@@ -2,7 +2,6 @@ import { useState, useMemo, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useAssets, useCreateAsset, useUpdateAsset, useDeleteAsset } from '@/features/assets/hooks';
 import { useLiabilities, useCreateLiability, useUpdateLiability, useDeleteLiability } from '@/features/liabilities/hooks';
-import { useViewMode } from '@/hooks/useViewMode';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { RefreshCw, AlertTriangle } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -10,7 +9,6 @@ import { Button } from '@/components/ui/button';
 import { AssetsSection } from './components/AssetsSection';
 import { LiabilitiesSection } from './components/LiabilitiesSection';
 import { VisualDivider } from '@/features/budget/components/VisualDivider';
-import { ViewModeToggle } from '@/components/shared/ViewModeToggle';
 import { WealthBreakdown } from './components/WealthBreakdown';
 import { CreateAssetModal } from '@/features/assets/components/CreateAssetModal';
 import { EditAssetModal } from '@/features/assets/components/EditAssetModal';
@@ -26,8 +24,8 @@ import type { Liability } from '@/types/domain';
  * Unified view for assets and liabilities
  */
 export function WealthPage() {
-  // View mode state
-  const [viewMode, setViewMode] = useViewMode();
+  // Always use portfolio view (list mode)
+  const viewMode: 'list' | 'cards' = 'list';
 
   // Data hooks
   const { data: assets = [], isLoading: assetsLoading, error: assetsError, refetch: refetchAssets } = useAssets();
@@ -196,9 +194,6 @@ export function WealthPage() {
       {/* Wealth Header */}
       <div className="flex items-center justify-between">
         <h1 className="text-h1-sm sm:text-h1-md lg:text-h1-lg font-bold tracking-tight">Wealth</h1>
-        <div className="flex items-center gap-3">
-          <ViewModeToggle viewMode={viewMode} onViewModeChange={setViewMode} id="view-mode-wealth" />
-        </div>
       </div>
 
       {/* Wealth Breakdown */}

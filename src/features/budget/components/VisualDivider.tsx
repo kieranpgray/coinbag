@@ -5,7 +5,7 @@
 export function VisualDivider() {
   return (
     <div className="py-8" aria-hidden="true">
-      <div className="w-full border-t border-neutral-200" />
+      <div className="w-full border-t border-border" />
     </div>
   );
 }

@@ -20,7 +20,7 @@ export const ROUTES = {
     account: '/app/account', // User account settings
     scenarios: '/app/scenarios',
     budget: '/app/budget',
-    goals: '/app/goals',
+    transfers: '/app/transfers',
     debug: '/app/debug',
 
     // Legacy redirects (for backward compatibility)
@@ -51,7 +51,7 @@ export const NAVIGATION_ITEMS = [
   { name: 'Accounts', path: ROUTES.app.accounts },
   { name: 'Wealth', path: ROUTES.app.wealth },
   { name: 'Budget', path: ROUTES.app.budget },
-  { name: 'Goals', path: ROUTES.app.goals },
+  { name: 'Transfers', path: ROUTES.app.transfers },
   { name: 'Simulate', path: ROUTES.app.scenarios },
   { name: 'Settings', path: ROUTES.app.settings },
 ] as const;

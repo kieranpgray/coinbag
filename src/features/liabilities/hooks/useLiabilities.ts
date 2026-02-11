@@ -1,8 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { logger } from '@/lib/logger';
+import { logger, getCorrelationId } from '@/lib/logger';
 import { createLiabilitiesRepository } from '@/data/liabilities/repo';
 import { useAuth } from '@clerk/clerk-react';
-import type { Liability } from '@/types/domain';
+import type { Liability, LiabilityBalanceHistory } from '@/types/domain';
 import {
   addLiabilityOptimistically,
   updateLiabilityOptimistically,
@@ -157,3 +157,25 @@ export function useDeleteLiability() {
   });
 }
 
+export function useLiabilityBalanceHistory(liabilityId: string) {
+  const { getToken } = useAuth();
+  const repository = createLiabilitiesRepository();  return useQuery<LiabilityBalanceHistory[]>({
+    queryKey: ['liabilities', liabilityId, 'balanceHistory'],
+    queryFn: async () => {
+      const result = await repository.getBalanceHistory(liabilityId, getToken);
+      if (result.error) {
+        logger.error(
+          'QUERY:LIABILITY_BALANCE_HISTORY',
+          'Failed to fetch liability balance history',
+          { liabilityId, error: result.error },
+          getCorrelationId() || undefined
+        );
+        throw result.error;
+      }
+      return result.data || [];
+    },
+    enabled: !!liabilityId,
+    staleTime: 1000 * 60 * 2, // 2 minutes - history doesn't change often
+    gcTime: 1000 * 60 * 5, // 5 minutes
+  });
+}
