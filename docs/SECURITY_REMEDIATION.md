@@ -9,7 +9,7 @@ GitHub detected exposed secrets in commit `c4b64e67`. Immediate action required.
 ### 1. Mistral AI API Key (Production)
 - **Location**: `scripts/update-production-config.sh` (line 17)
 - **Location**: `scripts/deploy-edge-function.sh` (line 64)
-- **Key**: `jJnyzvYcruSTj50bTqAEXlGl0rmxiXDm`
+- **Key**: (redacted; if ever committed, revoke and rotate)
 - **Severity**: 🔴 **CRITICAL** - Production API key exposed
 
 ### 2. Supabase Service Role Key (Development)
@@ -29,7 +29,7 @@ GitHub detected exposed secrets in commit `c4b64e67`. Immediate action required.
 #### Mistral AI API Key
 1. **Go to**: https://console.mistral.ai/
 2. **Navigate to**: API Keys section
-3. **Revoke** the exposed key: `jJnyzvYcruSTj50bTqAEXlGl0rmxiXDm`
+3. **Revoke** the exposed key in the Mistral dashboard and create a new one.
 4. **Generate** a new API key
 5. **Update** in:
    - Supabase Edge Function environment variables

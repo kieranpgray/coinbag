@@ -30,7 +30,7 @@ All hardcoded secrets have been removed from the codebase and replaced with envi
 
 ### Mistral AI API Key
 **Status**: ⚠️ **MUST ROTATE IMMEDIATELY**
-- Exposed key: `jJnyzvYcruSTj50bTqAEXlGl0rmxiXDm`
+- Exposed key: (redacted; revoke in Mistral dashboard if this was ever committed)
 - Action: Revoke and regenerate in Mistral console
 - Update locations:
   - Supabase Edge Function environment variables
@@ -63,7 +63,7 @@ All hardcoded secrets have been removed from the codebase and replaced with envi
 ### Before (INSECURE - removed):
 ```bash
 # Hardcoded secrets in script
-MISTRAL_API_KEY="jJnyzvYcruSTj50bTqAEXlGl0rmxiXDm"
+MISTRAL_API_KEY="<set-in-supabase-secrets-never-commit>"
 ```
 
 ### After (SECURE):

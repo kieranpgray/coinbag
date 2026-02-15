@@ -17,7 +17,7 @@
    - **Action**: Update if different
 
 3. **VITE_CLERK_PUBLISHABLE_KEY**
-   - **Should be**: `pk_live_Y2xlcmsuY29pbmJhZy5hcHAk`
+   - **Should be**: `pk_live_<your-production-key>`
    - **Current**: Check in Vercel Dashboard
    - **Action**: Update if different
 
@@ -37,7 +37,7 @@
 **Set these 3 variables**:
 
 1. **MISTRAL_API_KEY**
-   - **Value**: `jJnyzvYcruSTj50bTqAEXlGl0rmxiXDm`
+   - **Value**: set in Supabase Edge Function secrets (never commit)
 
 2. **SUPABASE_ANON_KEY**
    - **Value**: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF1dnRzdm10ZnJicHZneXZmcWx4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5NzAwMTcsImV4cCI6MjA4MjU0NjAxN30.OLKiOD4K2nt8u5OFTNiFJc8UzzrkI6SllbscJMaEpBQ`

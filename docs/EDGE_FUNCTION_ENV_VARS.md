@@ -16,14 +16,14 @@ Only **one** environment variable needs to be set manually:
 
 **Location**: Supabase Dashboard → Edge Functions → process-statement → Settings → Environment Variables
 
-**Value**: `jJnyzvYcruSTj50bTqAEXlGl0rmxiXDm`
+**Value**: set in Supabase Dashboard → Edge Functions → secrets (never commit)
 
 **How to Set**:
 1. Go to [Supabase Dashboard](https://app.supabase.com/project/auvtsvmtfrbpvgyvfqlx/functions/process-statement/settings)
 2. Navigate to **Environment Variables** section
 3. Click **Add new variable**
 4. Name: `MISTRAL_API_KEY`
-5. Value: `jJnyzvYcruSTj50bTqAEXlGl0rmxiXDm`
+5. Value: (set in Supabase secrets; never commit)
 6. Click **Save**
 
 ## Verification

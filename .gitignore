@@ -23,8 +23,10 @@ dist-ssr
 *.sln
 *.sw?
 
-# Environment variables
+# Environment variables (never commit; use .env.example as template)
 .env
+.env.*
+!.env.example
 .env.local
 .env.production.local
 .env.development.local
@@ -48,4 +50,3 @@ __pycache__/
 
 .vercel
 .env.backup.*
-.env.production

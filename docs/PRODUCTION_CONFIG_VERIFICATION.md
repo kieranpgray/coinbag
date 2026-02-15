@@ -8,12 +8,12 @@
 - **URL**: `https://auvtsvmtfrbpvgyvfqlx.supabase.co`
 
 ### Clerk
-- **Publishable Key**: `pk_live_Y2xlcmsuY29pbmJhZy5hcHAk`
+- **Publishable Key**: `pk_live_<your-production-key>`
 - **Domain**: `clerk.supafolio.app`
 - **Instance ID**: `ins_37VAGQw0JVza01qpTa6yUt8iVLY`
 
 ### Mistral
-- **API Key**: `jJnyzvYcruSTj50bTqAEXlGl0rmxiXDm`
+- **API Key**: set in Supabase Edge Function secrets (never commit)
 
 ## Vercel Environment Variables Status
 
@@ -29,7 +29,7 @@
 **Expected Values**:
 - `VITE_SUPABASE_URL` should be: `https://auvtsvmtfrbpvgyvfqlx.supabase.co`
 - `VITE_SUPABASE_ANON_KEY` should be: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF1dnRzdm10ZnJicHZneXZmcWx4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5NzAwMTcsImV4cCI6MjA4MjU0NjAxN30.OLKiOD4K2nt8u5OFTNiFJc8UzzrkI6SllbscJMaEpBQ`
-- `VITE_CLERK_PUBLISHABLE_KEY` should be: `pk_live_Y2xlcmsuY29pbmJhZy5hcHAk`
+- `VITE_CLERK_PUBLISHABLE_KEY` should be: `pk_live_<your-production-key>`
 - `VITE_DATA_SOURCE` should be: `supabase`
 
 ### Other Vercel Variables (Not Required for Vite)

@@ -93,10 +93,10 @@ window.Clerk.session.getToken({ template: 'supabase' })
 - `VITE_DATA_SOURCE=supabase`
 - `VITE_SUPABASE_URL=https://auvtsvmtfrbpvgyvfqlx.supabase.co`
 - `VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...`
-- `VITE_CLERK_PUBLISHABLE_KEY=pk_live_Y2xlcmsuY29pbmJhZy5hcHAk`
+- `VITE_CLERK_PUBLISHABLE_KEY=pk_live_<your-production-key>`
 
 ### Edge Function Environment Variables
-- `MISTRAL_API_KEY=jJnyzvYcruSTj50bTqAEXlGl0rmxiXDm`
+- `MISTRAL_API_KEY=<set-in-supabase-secrets>`
 - `SUPABASE_URL` (auto-provided)
 - `SUPABASE_ANON_KEY` (auto-provided)
 

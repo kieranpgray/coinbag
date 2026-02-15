@@ -3,6 +3,15 @@
 
 echo "🔍 Running pre-commit checks..."
 
+# Block committing env files that may contain secrets (allow .env.example only)
+STAGED_ENV=$(git diff --cached --name-only | grep -E '^\.env$|^\.env\.production$|^\.env\.local$|\.env\.(production|development)\.local$' || true)
+if [ -n "$STAGED_ENV" ]; then
+  echo "❌ SECURITY: Refusing to commit env files that may contain secrets:"
+  echo "$STAGED_ENV"
+  echo "   These are in .gitignore. Unstage with: git reset HEAD -- <file>"
+  exit 1
+fi
+
 # Type check
 echo "📝 Type checking..."
 pnpm type-check || {

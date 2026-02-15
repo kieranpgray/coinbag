@@ -12,7 +12,7 @@
 - ✅ **Anon Key**: Provided (208 chars)
 
 ### Clerk
-- ✅ **Publishable Key**: `pk_live_Y2xlcmsuY29pbmJhZy5hcHAk`
+- ✅ **Publishable Key**: `pk_live_<your-production-key>`
 - ✅ **Domain**: `clerk.supafolio.app`
 - ✅ **Instance ID**: `ins_37VAGQw0JVza01qpTa6yUt8iVLY`
 
@@ -79,11 +79,11 @@
 **Vercel Environment Variables** (verify these match):
 - `VITE_SUPABASE_URL` = `https://auvtsvmtfrbpvgyvfqlx.supabase.co`
 - `VITE_SUPABASE_ANON_KEY` = `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...` (full key provided)
-- `VITE_CLERK_PUBLISHABLE_KEY` = `pk_live_Y2xlcmsuY29pbmJhZy5hcHAk`
+- `VITE_CLERK_PUBLISHABLE_KEY` = `pk_live_<your-production-key>`
 - `VITE_DATA_SOURCE` = `supabase`
 
 **Edge Function Environment Variables** (set after deployment):
-- `MISTRAL_API_KEY` = `jJnyzvYcruSTj50bTqAEXlGl0rmxiXDm`
+- `MISTRAL_API_KEY` = set in Supabase Edge Function secrets (never commit)
 - `SUPABASE_ANON_KEY` = `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...` (same as Vercel)
 - `SUPABASE_URL` = `https://auvtsvmtfrbpvgyvfqlx.supabase.co`
 

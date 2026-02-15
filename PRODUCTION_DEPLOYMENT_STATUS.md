@@ -34,7 +34,7 @@
 |----------|---------------|--------|
 | `VITE_SUPABASE_URL` | `https://auvtsvmtfrbpvgyvfqlx.supabase.co` | Update if different |
 | `VITE_SUPABASE_ANON_KEY` | `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF1dnRzdm10ZnJicHZneXZmcWx4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5NzAwMTcsImV4cCI6MjA4MjU0NjAxN30.OLKiOD4K2nt8u5OFTNiFJc8UzzrkI6SllbscJMaEpBQ` | Update if different |
-| `VITE_CLERK_PUBLISHABLE_KEY` | `pk_live_Y2xlcmsuY29pbmJhZy5hcHAk` | Update if different |
+| `VITE_CLERK_PUBLISHABLE_KEY` | `pk_live_<your-production-key>` | Set in Vercel env |
 | `VITE_DATA_SOURCE` | `supabase` | Update if different |
 
 **After updating**: Redeploy the application (push to main or use Vercel Dashboard)
@@ -71,7 +71,7 @@ supabase functions deploy process-statement
 
 | Variable | Value |
 |----------|-------|
-| `MISTRAL_API_KEY` | `jJnyzvYcruSTj50bTqAEXlGl0rmxiXDm` |
+| `MISTRAL_API_KEY` | Set in Supabase Edge Function secrets (never commit) |
 | `SUPABASE_ANON_KEY` | `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF1dnRzdm10ZnJicHZneXZmcWx4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5NzAwMTcsImV4cCI6MjA4MjU0NjAxN30.OLKiOD4K2nt8u5OFTNiFJc8UzzrkI6SllbscJMaEpBQ` |
 | `SUPABASE_URL` | `https://auvtsvmtfrbpvgyvfqlx.supabase.co` |
 
