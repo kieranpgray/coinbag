@@ -90,8 +90,10 @@ export function getSupabaseBrowserClient(
         }
         
         // Handle headers properly (can be Headers object, object, or array)
+        // Only set Authorization when we have a non-empty token; never send "Bearer null"
+        // so Supabase does not receive an invalid JWT (which causes 401).
         const headers = new Headers(init.headers);
-        if (token) {
+        if (typeof token === 'string' && token.length > 0) {
           headers.set('Authorization', `Bearer ${token}`);
         }
         

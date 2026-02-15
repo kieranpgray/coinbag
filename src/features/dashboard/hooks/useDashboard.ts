@@ -19,10 +19,15 @@ import { logger, getCorrelationId } from '@/lib/logger';
  * ```
  */
 export function useDashboard() {
-  const { getToken } = useAuth();
-  
+  const { getToken, isLoaded, isSignedIn } = useAuth();
+
+  // Only run when Clerk has loaded and user is signed in, so getToken is available.
+  // Avoids 401s from Supabase when the query runs before Clerk is ready.
+  const enabled = Boolean(isLoaded && isSignedIn && getToken);
+
   return useQuery<DashboardData>({
     queryKey: ['dashboard'],
+    enabled,
     queryFn: async () => {
       const correlationId = getCorrelationId();
       

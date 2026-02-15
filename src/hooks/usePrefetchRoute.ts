@@ -13,10 +13,13 @@ import { createCategoriesRepository } from '@/data/categories/repo';
  */
 export function usePrefetchRoute() {
   const queryClient = useQueryClient();
-  const { getToken } = useAuth();
+  const { getToken, isLoaded } = useAuth();
+
+  // Only prefetch when Clerk is ready and we have a token getter (avoids 401s).
+  const canPrefetch = Boolean(isLoaded && getToken);
 
   const prefetchAssets = () => {
-    if (!getToken) return;
+    if (!canPrefetch) return;
     // Skip if data is already cached and fresh
     const cached = queryClient.getQueryData(['assets']);
     if (cached) return;
@@ -34,7 +37,7 @@ export function usePrefetchRoute() {
   };
 
   const prefetchLiabilities = () => {
-    if (!getToken) return;
+    if (!canPrefetch) return;
     // Skip if data is already cached and fresh
     const cached = queryClient.getQueryData(['liabilities']);
     if (cached) return;
@@ -52,7 +55,7 @@ export function usePrefetchRoute() {
   };
 
   const prefetchExpenses = () => {
-    if (!getToken) return;
+    if (!canPrefetch) return;
     // Skip if data is already cached and fresh
     const cachedExpenses = queryClient.getQueryData(['expenses']);
     const cachedCats = queryClient.getQueryData(['categories']);
@@ -86,7 +89,7 @@ export function usePrefetchRoute() {
   };
 
   const prefetchIncome = () => {
-    if (!getToken) return;
+    if (!canPrefetch) return;
     // Skip if data is already cached and fresh
     const cached = queryClient.getQueryData(['incomes']);
     if (cached) return;
@@ -104,7 +107,7 @@ export function usePrefetchRoute() {
   };
 
   const prefetchBudget = () => {
-    if (!getToken) return;
+    if (!canPrefetch) return;
     // Prefetch both income and expenses for budget page
     const cachedIncomes = queryClient.getQueryData(['incomes']);
     const cachedExpenses = queryClient.getQueryData(['expenses']);
@@ -152,7 +155,7 @@ export function usePrefetchRoute() {
   };
 
   const prefetchAccounts = () => {
-    if (!getToken) return;
+    if (!canPrefetch) return;
     // Skip if data is already cached and fresh
     const cached = queryClient.getQueryData(['accounts']);
     if (cached) return;
@@ -170,7 +173,7 @@ export function usePrefetchRoute() {
   };
 
   const prefetchWealth = () => {
-    if (!getToken) return;
+    if (!canPrefetch) return;
     // Prefetch both assets and liabilities for wealth page
     prefetchAssets();
     prefetchLiabilities();

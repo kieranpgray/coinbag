@@ -128,6 +128,27 @@ Supabase uses Row Level Security (RLS) policies that rely on `auth.jwt() ->> 'su
 
 ## Step 4: Troubleshooting
 
+### Issue: 401 Unauthorized on REST after changing Clerk domain
+
+**Symptoms**:
+- You are signed in (Clerk auth works) but all Supabase REST calls to `assets`, `liabilities`, `income`, `categories`, `expenses`, `accounts` return **401 Unauthorized**.
+- You recently changed your Clerk domain (e.g. to a custom domain like `clerk.supafolio.app`).
+
+**Cause**: Supabase validates the JWT using the **JWKS URL** and **Issuer** configured in the dashboard. After a domain change, tokens have a new `iss` (issuer). If Supabase still has the old domain, verification fails and returns 401.
+
+**Fix**:
+1. **Get the current issuer from your token**: In the browser (signed in), open DevTools → Console and run:
+   ```js
+   // If using Clerk: get the token and decode the payload (middle part)
+   const token = await window.Clerk?.session?.getToken(); // or your app's getToken()
+   if (token) console.log(JSON.parse(atob(token.split('.')[1])).iss);
+   ```
+   Or in Network tab, find a failing request → Headers → `Authorization: Bearer <jwt>`, copy the JWT and decode the payload at [jwt.io](https://jwt.io). Note the **`iss`** value (e.g. `https://clerk.supafolio.app`).
+2. **Update Supabase to match**: In Supabase Dashboard → **Authentication** → **Settings** (JWT / Third-Party Auth):
+   - **JWKS URL**: `https://<your-current-clerk-domain>/.well-known/jwks.json` (e.g. `https://clerk.supafolio.app/.well-known/jwks.json`). Must match the host in your token’s `iss`.
+   - **Issuer**: Must match the token’s `iss` exactly (e.g. `https://clerk.supafolio.app`).
+3. Save, wait 1–2 minutes, then sign out and sign back in to get a fresh token and retry.
+
 ### Issue: `auth.jwt()` returns NULL
 
 **Symptoms**: 

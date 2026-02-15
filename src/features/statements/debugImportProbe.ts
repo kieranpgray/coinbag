@@ -1,4 +1,4 @@
-import { getSupabaseBrowserClient } from "@/lib/supabase/supabaseBrowserClient";
+import { createAuthenticatedSupabaseClient, getUserIdFromToken } from "@/lib/supabaseClient";
 import { logger } from "@/lib/logger";
 
 /**
@@ -10,39 +10,25 @@ import { logger } from "@/lib/logger";
  * - RLS is working correctly
  * 
  * Use this to diagnose "upload succeeds but UI never renders" issues.
+ * Pass getToken so requests use the Clerk JWT and pass RLS (required for 401 fix).
  */
 export async function debugImportProbe(opts: {
   statementImportId: string;
   accountId: string;
   correlationId: string;
+  /** Required for authenticated Supabase requests; without it RLS will block (401). */
+  getToken: () => Promise<string | null>;
 }): Promise<void> {
   // Only run in development
   if (!import.meta.env.DEV && import.meta.env.VITE_DEBUG_LOGGING !== 'true') {
     return;
   }
 
-  const { statementImportId, accountId, correlationId } = opts;
-  const supabase = getSupabaseBrowserClient();
+  const { statementImportId, accountId, correlationId, getToken } = opts;
+  const supabase = await createAuthenticatedSupabaseClient(getToken);
+  const userId = await getUserIdFromToken(getToken);
 
   try {
-    // Get current session to verify user context
-    const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-    const userId = sessionData?.session?.user?.id || null;
-
-    if (sessionError) {
-      logger.warn(
-        "IMPORT:PROBE",
-        "Could not get session for probe",
-        {
-          correlationId,
-          statementImportId,
-          accountId,
-          error: sessionError.message,
-        },
-        correlationId
-      );
-    }
-
     // Count transactions for this import
     const { count, error: countError } = await supabase
       .from("transactions")
