@@ -6,7 +6,7 @@
 
 - **Commit**: `f3fb7ec`
 - **Branch**: `main`
-- **Repository**: `https://github.com/kieranpgray/coinbag.git`
+- **Repository**: `https://github.com/kieranpgray/supafolio.git`
 - **Timestamp**: December 29, 2025
 
 ## What Was Deployed
@@ -35,18 +35,18 @@ Vercel should automatically detect the push and start deploying.
 
 **Check deployment status**:
 1. Go to [vercel.com](https://vercel.com)
-2. Select your `coinbag` project
+2. Select your `supafolio` project
 3. Check the "Deployments" tab
 4. You should see a new deployment in progress
 
-**Deployment URL**: `https://coinbag.app`
+**Deployment URL**: `https://supafolio.app`
 
 ## Post-Deployment Verification
 
 Once Vercel deployment completes:
 
 ### 1. Verify App Loads
-- [ ] Visit `https://coinbag.app`
+- [ ] Visit `https://supafolio.app`
 - [ ] App loads without errors
 - [ ] No console errors
 
@@ -100,7 +100,7 @@ Once Vercel deployment completes:
    - Verify deployment succeeded
 
 2. **Test Production**
-   - Visit `https://coinbag.app`
+   - Visit `https://supafolio.app`
    - Test all functionality
    - Verify data persistence
 

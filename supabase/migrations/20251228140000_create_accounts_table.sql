@@ -1,5 +1,5 @@
 -- Migration: Create accounts table with RLS policies
--- Description: Creates the accounts table for the Coinbag application
+-- Description: Creates the accounts table for the Supafolio application
 -- Prerequisites: Requires pgcrypto extension for gen_random_uuid()
 -- Rollback: Drop table and related objects
 

@@ -30,7 +30,7 @@ npm install -g vercel
 vercel login
 
 # Link to your project (in project directory)
-cd /Users/kierangray/Projects/wellthy
+cd /Users/kierangray/Projects/supafolio
 vercel link
 
 # Verify it works

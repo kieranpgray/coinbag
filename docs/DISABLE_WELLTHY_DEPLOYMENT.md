@@ -1,7 +1,7 @@
-# Disable Wellthy Deployments - Only Coinbag Deploys
+# Disable Wellthy Deployments - Only Supafolio Deploys
 
 ## Goal
-Configure Vercel so that **only coinbag** deploys when you push to the repository. The wellthy project should be disabled.
+Configure Vercel so that **only supafolio** deploys when you push to the repository. The wellthy project should be disabled.
 
 ## Quick Fix (2 minutes)
 
@@ -19,20 +19,20 @@ Configure Vercel so that **only coinbag** deploys when you push to the repositor
 
 This makes the wellthy project **always skip builds**, so it will never deploy.
 
-### Step 2: Verify Coinbag is Active
+### Step 2: Verify Supafolio is Active
 
-1. In Vercel Dashboard, find the **coinbag** project
+1. In Vercel Dashboard, find the **supafolio** project
 2. Go to **Settings** → **Git**
 3. Ensure **"Ignored Build Step"** is **empty** or contains:
    ```bash
-   grep -q '"name": "coinbag"' package.json
+   grep -q '"name": "supafolio"' package.json
    ```
-4. This ensures coinbag only deploys when `package.json` has `"name": "coinbag"` (which it does)
+4. This ensures supafolio only deploys when `package.json` has `"name": "supafolio"` (which it does)
 
 ## How It Works
 
 - **Wellthy**: `exit 1` always fails → build is skipped → no deployment
-- **Coinbag**: No ignore step (or checks for "coinbag" name) → builds normally → deploys
+- **Supafolio**: No ignore step (or checks for "supafolio" name) → builds normally → deploys
 
 ## Verification
 
@@ -40,12 +40,12 @@ After configuring:
 
 1. Make a test commit:
    ```bash
-   git commit --allow-empty -m "test: verify only coinbag deploys"
+   git commit --allow-empty -m "test: verify only supafolio deploys"
    git push
    ```
 
 2. Check Vercel Dashboard → Deployments:
-   - ✅ Coinbag should show a new deployment
+   - ✅ Supafolio should show a new deployment
    - ❌ Wellthy should show "Build Skipped" or no new deployment
 
 ## Alternative: Unlink Wellthy Project
@@ -61,8 +61,8 @@ This completely removes the wellthy project from watching this repository.
 
 ## Current Configuration
 
-- **Package.json name**: `coinbag` ✅
-- **Git Remote**: `https://github.com/kieranpgray/coinbag.git`
+- **Package.json name**: `supafolio` ✅
+- **Git Remote**: `https://github.com/kieranpgray/supafolio.git`
 - **Wellthy Project ID**: `prj_Qhd4BZeOwuskblQ1iaeKYtNwMUQt`
 - **Wellthy Project Name**: `wellthy`
 
@@ -71,10 +71,10 @@ This completely removes the wellthy project from watching this repository.
 ### Both still deploy
 - Double-check the "Ignored Build Step" was saved in wellthy project
 - Verify you're looking at the correct project in Vercel Dashboard
-- Check that coinbag project doesn't also have an ignore step
+- Check that supafolio project doesn't also have an ignore step
 
-### Coinbag doesn't deploy
-- Ensure coinbag project's "Ignored Build Step" is empty or correctly configured
-- Verify coinbag project is linked to the same repository
-- Check coinbag project's Git settings are correct
+### Supafolio doesn't deploy
+- Ensure supafolio project's "Ignored Build Step" is empty or correctly configured
+- Verify supafolio project is linked to the same repository
+- Check supafolio project's Git settings are correct
 

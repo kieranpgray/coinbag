@@ -22,17 +22,43 @@ export class SupabaseAssetsRepository implements AssetsRepository {
   // Select actual database column names (snake_case)
   // Supabase doesn't support column aliasing in select strings, so we map them manually
   private readonly selectColumns =
+    'id, name, type, value, change_1d, change_1w, date_added, institution, notes, user_id, created_at, updated_at, ticker, exchange, quantity, purchase_price, purchase_date, todays_price, grant_date, vesting_date';
+
+  // Fallback when Stock/RSU migration has not been applied: columns from original assets table only.
+  // Used for backwards compatibility; run `supabase db push` to apply migrations.
+  private readonly selectColumnsBasic =
     'id, name, type, value, change_1d, change_1w, date_added, institution, notes, user_id, created_at, updated_at';
+
+  /**
+   * True when the error indicates missing columns (e.g. migration not applied) or 400 Bad Request.
+   * Used to trigger fallback select with selectColumnsBasic.
+   */
+  private isMissingColumnOrBadRequest(error: { code?: string; message?: string; status?: number }): boolean {
+    const code = error?.code ?? '';
+    const status = error?.status;
+    const msg = (error?.message ?? '').toLowerCase();
+    return (
+      code === '42703' ||
+      code === 'PGRST100' ||
+      status === 400 ||
+      (msg.includes('column') && (msg.includes('does not exist') || msg.includes('ticker') || msg.includes('purchase_price') || msg.includes('vesting_date')))
+    );
+  }
 
   /**
    * Maps database row (snake_case) to entity schema (camelCase)
    * Converts snake_case database columns to camelCase for entity schema validation
    */
   private mapDbRowToEntity(row: Record<string, unknown>): z.infer<typeof assetEntitySchema> {
+    const toDateStr = (val: unknown): string | undefined => {
+      if (val === null || val === undefined) return undefined;
+      const s = String(val);
+      return s.includes('T') ? s.split('T')[0] : s;
+    };
     return {
       id: row.id as string,
       name: row.name as string,
-      type: row.type as 'Real Estate' | 'Investments' | 'Vehicles' | 'Crypto' | 'Cash' | 'Superannuation' | 'Other',
+      type: row.type as 'Real Estate' | 'Investments' | 'Vehicles' | 'Crypto' | 'Cash' | 'Superannuation' | 'Stock' | 'RSU' | 'Other',
       value: row.value as number,
       change1D: row.change_1d === null ? undefined : (row.change_1d as number | undefined),
       change1W: row.change_1w === null ? undefined : (row.change_1w as number | undefined),
@@ -42,6 +68,14 @@ export class SupabaseAssetsRepository implements AssetsRepository {
       userId: row.user_id as string,
       createdAt: row.created_at as string,
       updatedAt: row.updated_at as string,
+      ticker: row.ticker === null || row.ticker === undefined ? undefined : (row.ticker as string),
+      exchange: row.exchange === null || row.exchange === undefined ? undefined : (row.exchange as string),
+      quantity: row.quantity === null || row.quantity === undefined ? undefined : (row.quantity as number),
+      purchasePrice: row.purchase_price === null || row.purchase_price === undefined ? undefined : (row.purchase_price as number),
+      purchaseDate: toDateStr(row.purchase_date),
+      todaysPrice: row.todays_price === null || row.todays_price === undefined ? undefined : (row.todays_price as number),
+      grantDate: toDateStr(row.grant_date),
+      vestingDate: toDateStr(row.vesting_date),
     };
   }
 
@@ -79,6 +113,14 @@ export class SupabaseAssetsRepository implements AssetsRepository {
       dateAdded,
       institution: entity.institution,
       notes: entity.notes,
+      ticker: entity.ticker,
+      exchange: entity.exchange,
+      quantity: entity.quantity,
+      purchasePrice: entity.purchasePrice,
+      purchaseDate: entity.purchaseDate,
+      todaysPrice: entity.todaysPrice,
+      grantDate: entity.grantDate,
+      vestingDate: entity.vestingDate,
     };
   }
 
@@ -105,10 +147,37 @@ export class SupabaseAssetsRepository implements AssetsRepository {
 
       const supabase = await createAuthenticatedSupabaseClient(getToken);
 
-      const { data, error } = await supabase
+      let data: unknown[] | null = null;
+      let error: { message?: string; code?: string; details?: string; hint?: string; status?: number } | null = null;
+
+      let result = await supabase
         .from('assets')
         .select(this.selectColumns)
         .order('date_added', { ascending: false });
+
+      data = result.data as unknown[] | null;
+      error = result.error;
+
+      // Fallback: if select fails due to missing columns (migration not applied) or 400, retry with basic columns
+      if (error && this.isMissingColumnOrBadRequest(error)) {
+        const correlationId = getCorrelationId();
+        logger.warn(
+          'DB:ASSETS_LIST',
+          'Full select failed (missing columns or 400), retrying with basic columns. Run supabase db push to apply migrations.',
+          { error: error.message, code: error.code },
+          correlationId || undefined
+        );
+        const retry = await supabase
+          .from('assets')
+          .select(this.selectColumnsBasic)
+          .order('date_added', { ascending: false });
+        if (!retry.error && retry.data) {
+          data = retry.data as unknown[];
+          error = null;
+        } else if (retry.error) {
+          logger.error('DB:ASSETS_LIST', 'Fallback basic select also failed', { error: retry.error.message }, correlationId || undefined);
+        }
+      }
 
       if (error) {
         const correlationId = getCorrelationId();
@@ -120,25 +189,18 @@ export class SupabaseAssetsRepository implements AssetsRepository {
             code: error.code,
             details: error.details,
             hint: error.hint,
-            isRlsError: error.message.includes('permission') || error.message.includes('policy') || error.message.includes('RLS'),
+            isRlsError: error.message?.includes('permission') || error.message?.includes('policy') || error.message?.includes('RLS'),
           },
           correlationId || undefined
         );
-        
-        // Check if this is an RLS-related error
-        if (error.message.includes('permission') || error.message.includes('policy') || error.message.includes('RLS')) {
+        if (error.message?.includes('permission') || error.message?.includes('policy') || error.message?.includes('RLS')) {
           logger.warn(
             'DB:ASSETS_LIST',
             'RLS policy may be blocking query - JWT validation may not be configured',
-            {
-              error: error.message,
-              suggestion: 'Check if Supabase JWT validation is configured (see docs/CLERK_SUPABASE_JWT_SETUP.md)',
-            },
+            { error: error.message, suggestion: 'Check if Supabase JWT validation is configured (see docs/CLERK_SUPABASE_JWT_SETUP.md)' },
             correlationId || undefined
           );
         }
-        
-        logger.error('DB:ASSETS_LIST', 'Supabase assets list error', { error }, correlationId || undefined);
         return {
           data: [],
           error: this.normalizeSupabaseError(error),
@@ -146,7 +208,7 @@ export class SupabaseAssetsRepository implements AssetsRepository {
       }
 
       // Map database rows (snake_case) to entity schema (camelCase)
-      const mappedData = (data || []).map((row) => this.mapDbRowToEntity(row));
+      const mappedData = (data || []).map((row) => this.mapDbRowToEntity(row as Record<string, unknown>));
 
       // Validate response data
       const validation = assetListSchema.safeParse(mappedData);
@@ -198,11 +260,35 @@ export class SupabaseAssetsRepository implements AssetsRepository {
 
       const supabase = await createAuthenticatedSupabaseClient(getToken);
 
-      const { data, error } = await supabase
+      let result = await supabase
         .from('assets')
         .select(this.selectColumns)
         .eq('id', id)
         .single();
+
+      let data = result.data;
+      let error = result.error;
+
+      // Fallback: if select fails due to missing columns or 400, retry with basic columns
+      if (error && this.isMissingColumnOrBadRequest(error)) {
+        logger.warn(
+          'DB:ASSETS_GET',
+          'Full select failed (missing columns or 400), retrying with basic columns. Run supabase db push to apply migrations.',
+          { error: error.message, code: error.code },
+          getCorrelationId() || undefined
+        );
+        const retry = await supabase
+          .from('assets')
+          .select(this.selectColumnsBasic)
+          .eq('id', id)
+          .single();
+        if (!retry.error && retry.data) {
+          data = retry.data as typeof data;
+          error = null;
+        } else if (retry.error) {
+          logger.error('DB:ASSETS_GET', 'Fallback basic select also failed', { error: retry.error.message }, getCorrelationId() || undefined);
+        }
+      }
 
       if (error) {
         if (error.code === 'PGRST116') {
@@ -227,7 +313,7 @@ export class SupabaseAssetsRepository implements AssetsRepository {
       }
 
       // Map database row (snake_case) to entity schema (camelCase)
-      const mappedData = this.mapDbRowToEntity(data);
+      const mappedData = this.mapDbRowToEntity(data as Record<string, unknown>);
 
       // Validate response data
       const validation = assetEntitySchema.safeParse(mappedData);
@@ -304,8 +390,8 @@ export class SupabaseAssetsRepository implements AssetsRepository {
       // Map camelCase to snake_case for database
       // Validate and normalize asset type to ensure it matches database constraint
       const typeValue = String(validation.data.type).trim();
-      const allowedTypes = ['Real Estate', 'Investments', 'Vehicles', 'Crypto', 'Cash', 'Superannuation', 'Other'];
-      
+      const allowedTypes = ['Real Estate', 'Investments', 'Vehicles', 'Crypto', 'Cash', 'Superannuation', 'Stock', 'RSU', 'Other'];
+
       if (!allowedTypes.includes(typeValue)) {
         logger.error('DB:ASSET_INSERT', 'Invalid asset type provided', {
           providedType: typeValue,
@@ -318,11 +404,67 @@ export class SupabaseAssetsRepository implements AssetsRepository {
           },
         };
       }
-      
+
+      // Stock/RSU/Crypto: derive name from ticker when name is missing or empty
+      let nameForDb = validation.data.name?.trim() || '';
+      if ((typeValue === 'Stock' || typeValue === 'RSU' || typeValue === 'Crypto') && !nameForDb) {
+        const tickerVal = validation.data.ticker?.trim() ?? '';
+        const purchaseDate = validation.data.purchaseDate?.trim();
+        if (typeValue === 'Stock') {
+          nameForDb = tickerVal || 'Unknown';
+        } else if (typeValue === 'RSU') {
+          nameForDb = tickerVal ? `${tickerVal} (RSU)` : 'RSU';
+        } else {
+          // Crypto: use ticker or "TICKER (YYYY-MM-DD)" for lot-style display
+          nameForDb = purchaseDate ? `${tickerVal || 'Crypto'} (${purchaseDate})` : (tickerVal || 'Crypto');
+        }
+      }
+      // Non-Stock/RSU/Crypto: name is required by contract; already validated
+      if (typeValue !== 'Stock' && typeValue !== 'RSU' && typeValue !== 'Crypto' && !nameForDb) {
+        return {
+          error: {
+            error: "Asset name can't be empty.",
+            code: 'VALIDATION_ERROR',
+          },
+        };
+      }
+
+      // Type-specific required fields (contract validates; double-check for repo clarity)
+      if (typeValue === 'RSU') {
+        const vestingVal = validation.data.vestingDate?.trim();
+        if (!vestingVal) {
+          return {
+            error: {
+              error: 'Vesting date is required for RSU.',
+              code: 'VALIDATION_ERROR',
+            },
+          };
+        }
+      }
+      if (typeValue === 'Stock' || typeValue === 'RSU' || typeValue === 'Crypto') {
+        const tickerVal = validation.data.ticker?.trim();
+        if (!tickerVal) {
+          return {
+            error: {
+              error: typeValue === 'Crypto' ? 'Coin symbol is required for Crypto.' : 'Ticker is required for Stock and RSU.',
+              code: 'VALIDATION_ERROR',
+            },
+          };
+        }
+        if (validation.data.quantity === undefined || validation.data.quantity === null || validation.data.quantity <= 0) {
+          return {
+            error: {
+              error: 'Quantity is required and must be positive.',
+              code: 'VALIDATION_ERROR',
+            },
+          };
+        }
+      }
+
       const dbInput: Record<string, unknown> = {
         user_id: userId, // EXPLICIT: Set user_id from JWT, don't rely on DB default
-        name: validation.data.name,
-        type: typeValue, // Use validated and trimmed type
+        name: nameForDb,
+        type: typeValue,
         value: validation.data.value,
         date_added: validation.data.dateAdded,
       };
@@ -334,11 +476,34 @@ export class SupabaseAssetsRepository implements AssetsRepository {
       if (validation.data.change1W !== undefined) {
         dbInput.change_1w = validation.data.change1W;
       }
-      // Institution is optional - explicitly handle undefined to null for database
       dbInput.institution = validation.data.institution ?? null;
-      // Normalize empty strings to null for optional text fields
       if (validation.data.notes !== undefined) {
         dbInput.notes = validation.data.notes === '' ? null : validation.data.notes;
+      }
+      // Stock/RSU columns
+      if (validation.data.ticker !== undefined && validation.data.ticker !== '') {
+        dbInput.ticker = validation.data.ticker.trim();
+      }
+      if (validation.data.exchange !== undefined && validation.data.exchange !== '') {
+        dbInput.exchange = validation.data.exchange;
+      }
+      if (validation.data.quantity !== undefined && validation.data.quantity !== null) {
+        dbInput.quantity = validation.data.quantity;
+      }
+      if (validation.data.purchasePrice !== undefined && validation.data.purchasePrice !== null) {
+        dbInput.purchase_price = validation.data.purchasePrice;
+      }
+      if (validation.data.purchaseDate !== undefined && validation.data.purchaseDate !== '') {
+        dbInput.purchase_date = validation.data.purchaseDate;
+      }
+      if (validation.data.todaysPrice !== undefined && validation.data.todaysPrice !== null) {
+        dbInput.todays_price = validation.data.todaysPrice;
+      }
+      if (validation.data.grantDate !== undefined && validation.data.grantDate !== '') {
+        dbInput.grant_date = validation.data.grantDate;
+      }
+      if (validation.data.vestingDate !== undefined && validation.data.vestingDate !== '') {
+        dbInput.vesting_date = validation.data.vestingDate;
       }
 
       const { data, error } = await supabase
@@ -545,14 +710,27 @@ export class SupabaseAssetsRepository implements AssetsRepository {
       }
 
       // Map camelCase to snake_case for database
+      const allowedTypes = ['Real Estate', 'Investments', 'Vehicles', 'Crypto', 'Cash', 'Superannuation', 'Stock', 'RSU', 'Other'];
       const dbInput: Record<string, unknown> = {};
-      if (validation.data.name !== undefined) dbInput.name = validation.data.name;
+
+      if (validation.data.name !== undefined) {
+        let nameForDb = validation.data.name?.trim() ?? '';
+        const typeValue = validation.data.type !== undefined ? String(validation.data.type).trim() : undefined;
+        if ((typeValue === 'Stock' || typeValue === 'RSU' || typeValue === 'Crypto') && !nameForDb) {
+          const tickerVal = validation.data.ticker?.trim() ?? '';
+          const purchaseDate = validation.data.purchaseDate?.trim();
+          if (typeValue === 'Stock') {
+            nameForDb = tickerVal || 'Unknown';
+          } else if (typeValue === 'RSU') {
+            nameForDb = tickerVal ? `${tickerVal} (RSU)` : 'RSU';
+          } else {
+            nameForDb = purchaseDate ? `${tickerVal || 'Crypto'} (${purchaseDate})` : (tickerVal || 'Crypto');
+          }
+        }
+        dbInput.name = nameForDb;
+      }
       if (validation.data.type !== undefined) {
-        // Ensure type matches database constraint exactly
-        // Trim whitespace and validate against allowed types
         const typeValue = String(validation.data.type).trim();
-        const allowedTypes = ['Real Estate', 'Investments', 'Vehicles', 'Crypto', 'Cash', 'Superannuation', 'Other'];
-        
         if (!allowedTypes.includes(typeValue)) {
           logger.error('DB:ASSET_UPDATE', 'Invalid asset type provided', {
             assetId: id,
@@ -566,23 +744,24 @@ export class SupabaseAssetsRepository implements AssetsRepository {
             },
           };
         }
-        
         dbInput.type = typeValue;
-        logger.info('DB:ASSET_UPDATE', 'Updating asset type', { 
-          assetId: id, 
-          type: typeValue,
-          allowedTypes,
-        }, correlationId || undefined);
       }
       if (validation.data.value !== undefined) dbInput.value = validation.data.value;
       if (validation.data.dateAdded !== undefined) dbInput.date_added = validation.data.dateAdded;
       if (validation.data.change1D !== undefined) dbInput.change_1d = validation.data.change1D;
       if (validation.data.change1W !== undefined) dbInput.change_1w = validation.data.change1W;
-      // Institution is optional - explicitly handle undefined to null for database
       dbInput.institution = validation.data.institution ?? null;
       if (validation.data.notes !== undefined) {
         dbInput.notes = validation.data.notes === '' ? null : validation.data.notes;
       }
+      if (validation.data.ticker !== undefined) dbInput.ticker = validation.data.ticker === '' ? null : validation.data.ticker?.trim();
+      if (validation.data.exchange !== undefined) dbInput.exchange = validation.data.exchange === '' ? null : validation.data.exchange;
+      if (validation.data.quantity !== undefined) dbInput.quantity = validation.data.quantity;
+      if (validation.data.purchasePrice !== undefined) dbInput.purchase_price = validation.data.purchasePrice;
+      if (validation.data.purchaseDate !== undefined) dbInput.purchase_date = validation.data.purchaseDate === '' ? null : validation.data.purchaseDate;
+      if (validation.data.todaysPrice !== undefined) dbInput.todays_price = validation.data.todaysPrice;
+      if (validation.data.grantDate !== undefined) dbInput.grant_date = validation.data.grantDate === '' ? null : validation.data.grantDate;
+      if (validation.data.vestingDate !== undefined) dbInput.vesting_date = validation.data.vestingDate === '' ? null : validation.data.vestingDate;
 
       const { data, error } = await supabase
         .from('assets')
@@ -604,7 +783,6 @@ export class SupabaseAssetsRepository implements AssetsRepository {
         // Check if it's a constraint violation for type
         if (error.code === '23514' && error.message.includes('assets_type_check')) {
           const providedType = dbInput.type;
-          const allowedTypes = ['Real Estate', 'Investments', 'Vehicles', 'Crypto', 'Cash', 'Superannuation', 'Other'];
           
           logger.error('DB:ASSET_UPDATE', 'Asset type constraint violation', {
             assetId: id,

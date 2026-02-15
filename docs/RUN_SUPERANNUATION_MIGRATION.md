@@ -42,7 +42,7 @@ This script now includes the dev project credentials.
 
 ## Project Information
 
-- **Project**: coinbag-dev
+- **Project**: supafolio-dev
 - **Project Ref**: tislabgxitwtcqfwrpik
 - **Database Password**: tfq1azv-zdr@UJE1uxp
 

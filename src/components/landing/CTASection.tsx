@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 
 /**
  * Final call-to-action section
- * Encourages users to get started with Coinbag
+ * Encourages users to get started with Supafolio
  */
 export function CTASection() {
   return (
@@ -14,7 +14,7 @@ export function CTASection() {
             Ready to take control of your finances?
           </h2>
           <p className="text-lg opacity-90 mb-8 leading-relaxed">
-            Take the first step with Coinbag to build wealth and achieve financial freedom.
+            Take the first step with Supafolio to build wealth and achieve financial freedom.
           </p>
           <Button
             asChild

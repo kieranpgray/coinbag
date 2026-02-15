@@ -16,7 +16,7 @@
 import { readFileSync, existsSync } from 'fs';
 
 const FUNCTION_NAME = process.argv.find(arg => arg.startsWith('--function'))?.split('=')[1] || 'process-statement';
-const PROJECT_REF = 'tislabgxitwtcqfwrpik'; // coinbag-dev project
+const PROJECT_REF = 'tislabgxitwtcqfwrpik'; // supafolio-dev project
 
 console.log('=== Fetching Supabase Edge Function Logs ===\n');
 console.log(`Function: ${FUNCTION_NAME}`);

@@ -26,8 +26,8 @@ This means `auth.jwt()` is returning NULL, indicating JWT validation is not conf
    - Check if there's a toggle to "Enable" the provider
 
 3. **Verify the values are correct**:
-   - JWKS URL: `https://clerk.coinbag.app/.well-known/jwks.json`
-   - Issuer: `https://clerk.coinbag.app`
+   - JWKS URL: `https://clerk.supafolio.app/.well-known/jwks.json`
+   - Issuer: `https://clerk.supafolio.app`
    - Audience: `ins_37VAGQw0JVza01qpTa6yUt8iVLY`
 
 ### Step 2: Check if Configuration Needs to be Enabled
@@ -42,7 +42,7 @@ Some Supabase projects require:
 Run this in your browser or terminal:
 
 ```bash
-curl https://clerk.coinbag.app/.well-known/jwks.json
+curl https://clerk.supafolio.app/.well-known/jwks.json
 ```
 
 **Expected**: Should return JSON with keys array
@@ -98,7 +98,7 @@ Double-check in Clerk Dashboard:
 
 1. **Domain Configuration**:
    - Settings → Domains
-   - Verify `coinbag.app` is configured correctly
+   - Verify `supafolio.app` is configured correctly
    - Check DNS records are verified
 
 2. **API Keys**:

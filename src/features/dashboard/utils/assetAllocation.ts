@@ -7,6 +7,7 @@ import {
   Wallet,
   Building2,
   Package,
+  Award,
 } from 'lucide-react';
 import type { AssetBreakdown } from '@/types/domain';
 
@@ -21,6 +22,8 @@ const ASSET_TYPE_COLORS: Record<AssetBreakdown['category'], string> = {
   'Crypto': '#FFA500',
   'Cash': '#5FA5FF',
   'Superannuation': '#6366F1',
+  'Stock': '#0EA5E9',
+  'RSU': '#A855F7',
   'Other': '#8C8C8C',
 };
 
@@ -35,6 +38,8 @@ const ASSET_TYPE_ICONS: Record<AssetBreakdown['category'], LucideIcon> = {
   'Crypto': Coins,
   'Cash': Wallet,
   'Superannuation': Building2,
+  'Stock': TrendingUp,
+  'RSU': Award,
   'Other': Package,
 };
 

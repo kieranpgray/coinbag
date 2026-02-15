@@ -45,7 +45,7 @@ If you have access to your Supabase project's environment:
 
 2. **Find Your Domain**:
    - Go to **Settings** → **Domains**
-   - You'll see your domain (e.g., `clerk.coinbag.app` or `xxxxx.clerk.accounts.dev`)
+   - You'll see your domain (e.g., `clerk.supafolio.app` or `xxxxx.clerk.accounts.dev`)
    - **Copy this domain** - you'll need it for:
      - JWKS URL: `https://<your-domain>/.well-known/jwks.json`
      - Issuer: `https://<your-domain>`
@@ -116,7 +116,7 @@ If you have access to your Supabase project's environment:
      "sub": "{{user.id}}",
      "role": "authenticated",
      "aud": "ins_37VAGQw0JVza01qpTa6yUt8iVLY",
-     "iss": "https://clerk.coinbag.app",
+     "iss": "https://clerk.supafolio.app",
      "exp": "{{date.now_plus_seconds(3600)}}",
      "iat": "{{date.now}}"
    }
@@ -158,12 +158,12 @@ You have **two options** - choose one:
 3. **Configure JWKS URL**:
    - Find the **"JWKS URL"** field
    - Enter: `https://<your-clerk-domain>/.well-known/jwks.json`
-   - Example: `https://clerk.coinbag.app/.well-known/jwks.json`
+   - Example: `https://clerk.supafolio.app/.well-known/jwks.json`
 
 4. **Configure Issuer** (if field available):
    - Find the **"Issuer"** field
    - Enter: `https://<your-clerk-domain>`
-   - Example: `https://clerk.coinbag.app`
+   - Example: `https://clerk.supafolio.app`
 
 5. **Configure Audience** (if field available):
    - Find the **"Audience"** field

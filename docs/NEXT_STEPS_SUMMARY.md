@@ -20,8 +20,8 @@
 **Location**: [Supabase Dashboard → Authentication → Settings](https://app.supabase.com/project/auvtsvmtfrbpvgyvfqlx/auth/url-configuration)
 
 **Configuration**:
-- JWKS URL: `https://clerk.coinbag.app/.well-known/jwks.json`
-- Issuer: `https://clerk.coinbag.app`
+- JWKS URL: `https://clerk.supafolio.app/.well-known/jwks.json`
+- Issuer: `https://clerk.supafolio.app`
 - Audience: `ins_37VAGQw0JVza01qpTa6yUt8iVLY`
 - Enable JWT Verification
 

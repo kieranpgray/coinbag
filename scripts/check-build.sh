@@ -1,7 +1,7 @@
 #!/bin/bash
-# Build check script - only allows coinbag to build
+# Build check script - only allows supafolio to build
 # This script exits with code 1 (skip build) if project is wellthy
-# Exits with code 0 (proceed with build) if project is coinbag
+# Exits with code 0 (proceed with build) for supafolio or any other project
 
 # Vercel sets VERCEL_PROJECT_NAME environment variable
 PROJECT_NAME="${VERCEL_PROJECT_NAME:-}"
@@ -15,11 +15,11 @@ fi
 # Check if this is the wellthy project
 if [ "$PROJECT_NAME" = "wellthy" ]; then
     echo "🚫 Wellthy project detected - skipping build"
-    echo "   Only coinbag should deploy from this repository"
+    echo "   Only supafolio should deploy from this repository"
     exit 1
 fi
 
-# Allow build for coinbag or any other project
+# Allow build for supafolio or any other project
 echo "✅ Allowing build for project: $PROJECT_NAME"
 exit 0
 

@@ -77,7 +77,7 @@ vite
 
 ### ❌ Mistake 1: Using Production Key in `.env`
 **Problem**: Production keys don't work on localhost
-**Error**: `Clerk: Production Keys are only allowed for domain "coinbag.app"`
+**Error**: `Clerk: Production Keys are only allowed for domain "supafolio.app"`
 **Fix**: Use test key (`pk_test_...`) in `.env`
 
 ### ❌ Mistake 2: Using Test Key in `.env.production`
@@ -144,7 +144,7 @@ console.log('Is Production:', import.meta.env.PROD);
 ## Troubleshooting
 
 ### Issue: Production key in development
-**Symptom**: `Clerk: Production Keys are only allowed for domain "coinbag.app"`
+**Symptom**: `Clerk: Production Keys are only allowed for domain "supafolio.app"`
 **Fix**: Update `.env` with test key from Clerk Dashboard → Test tab
 
 ### Issue: Test key in production build

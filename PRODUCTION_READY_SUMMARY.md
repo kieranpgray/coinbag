@@ -101,14 +101,14 @@ window.Clerk.session.getToken({ template: 'supabase' })
 - `SUPABASE_ANON_KEY` (auto-provided)
 
 ### Clerk Configuration
-- **Domain**: `clerk.coinbag.app`
+- **Domain**: `clerk.supafolio.app`
 - **Instance ID**: `ins_37VAGQw0JVza01qpTa6yUt8iVLY`
 - **JWT Template**: `supabase` (with `role` and `aud` claims)
 
 ### Supabase Configuration
 - **Project**: `auvtsvmtfrbpvgyvfqlx`
 - **Third-Party Auth**: Clerk configured
-- **JWKS URL**: `https://clerk.coinbag.app/.well-known/jwks.json`
+- **JWKS URL**: `https://clerk.supafolio.app/.well-known/jwks.json`
 
 ## Files Created
 

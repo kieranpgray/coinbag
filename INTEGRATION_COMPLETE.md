@@ -2,7 +2,7 @@
 
 ## Overview
 
-Your Coinbag application now has a complete authentication + database integration for the Subscriptions feature. This vertical slice demonstrates the full stack working together.
+Your Supafolio application now has a complete authentication + database integration for the Subscriptions feature. This vertical slice demonstrates the full stack working together.
 
 ## ✅ What's Been Implemented
 

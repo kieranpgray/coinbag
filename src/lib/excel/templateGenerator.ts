@@ -47,7 +47,7 @@ export function generateImportTemplate(): Blob {
  */
 function createInstructionsSheet(): XLSX.WorkSheet {
   const instructions = [
-    ['Coinbag Import Template - Instructions'],
+    ['Supafolio Import Template - Instructions'],
     [],
     ['QUICK START'],
     ['1. Fill in data in the appropriate sheets (Accounts, Assets, Liabilities, Expenses, Income)'],
@@ -66,14 +66,20 @@ function createInstructionsSheet(): XLSX.WorkSheet {
     ['- hidden: Whether account is hidden (true/false, optional)'],
     [],
     ['ASSETS'],
-    ['- name*: Asset name (e.g., "House", "Tesla Model 3")'],
-    ['- type*: Asset type - must be one of: Real Estate, Investments, Vehicles, Crypto, Cash, Superannuation, Other'],
-    ['- value*: Asset value (must be positive)'],
+    ['- name*: Asset name (e.g., "House", "Tesla Model 3"). For Crypto/Stock lots, can be omitted; ticker is used.'],
+    ['- type*: Asset type - must be one of: Real Estate, Investments, Vehicles, Crypto, Cash, Superannuation, Stock, RSU, Other'],
+    ['- value*: Asset value (must be positive). For Crypto/Stock: current value of the holding.'],
     ['- date_added*: Date added (YYYY-MM-DD format)'],
+    ['- ticker: Stock ticker or crypto symbol (e.g., AAPL, BTC). Use for Crypto and Stock; name can be omitted.'],
+    ['- exchange: Exchange (e.g., NASDAQ, NYSE, ASX). Optional for Stock.'],
+    ['- quantity: Number of shares or units. For Crypto/Stock lots.'],
+    ['- purchase_price: Price per share/unit at purchase. Optional for Crypto/Stock.'],
+    ['- purchase_date: Date of purchase (YYYY-MM-DD). Optional for Crypto/Stock.'],
     ['- change_1d: 1-day change percentage (optional)'],
     ['- change_1w: 1-week change percentage (optional)'],
     ['- institution: Institution name (optional)'],
     ['- notes: Additional notes (optional)'],
+    ['Multiple rows for Crypto or Stock: Add one row per purchase (lot); each row creates one asset. E.g. two BTC buys = two rows.'],
     [],
     ['LIABILITIES'],
     ['- name*: Liability name (e.g., "Mortgage", "Credit Card")'],
@@ -171,6 +177,11 @@ function createAssetsSheet(): XLSX.WorkSheet {
     'type*',
     'value*',
     'date_added*',
+    'ticker',
+    'exchange',
+    'quantity',
+    'purchase_price',
+    'purchase_date',
     'change_1d',
     'change_1w',
     'institution',
@@ -182,6 +193,11 @@ function createAssetsSheet(): XLSX.WorkSheet {
     'Real Estate',
     500000.00,
     '2024-01-15',
+    '',
+    '',
+    '',
+    '',
+    '',
     0.5,
     2.3,
     'Real Estate Co',
@@ -197,6 +213,11 @@ function createAssetsSheet(): XLSX.WorkSheet {
     { wch: 15 }, // type
     { wch: 15 }, // value
     { wch: 15 }, // date_added
+    { wch: 12 }, // ticker
+    { wch: 12 }, // exchange
+    { wch: 12 }, // quantity
+    { wch: 14 }, // purchase_price
+    { wch: 14 }, // purchase_date
     { wch: 12 }, // change_1d
     { wch: 12 }, // change_1w
     { wch: 20 }, // institution

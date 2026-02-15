@@ -30,7 +30,7 @@ const FEATURES = [
 ] as const;
 
 /**
- * Features section showcasing key Coinbag capabilities
+ * Features section showcasing key Supafolio capabilities
  * Grid layout with icons, titles, and descriptions
  */
 export function FeaturesSection() {

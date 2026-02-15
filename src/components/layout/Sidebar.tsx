@@ -50,7 +50,7 @@ export function Sidebar() {
       {/* Logo Section */}
       <div className="p-6">
         <Link to={ROUTES.app.dashboard} className="text-xl font-semibold text-foreground hover:opacity-80 transition-opacity">
-          Coinbag
+          Supafolio
         </Link>
       </div>
 

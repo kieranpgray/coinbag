@@ -8,7 +8,7 @@ import { createClient } from '@supabase/supabase-js'
 
 const SUPABASE_URL = 'https://auvtsvmtfrbpvgyvfqlx.supabase.co'
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF1dnRzdm10ZnJicHZneXZmcWx4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5NzAwMTcsImV4cCI6MjA4MjU0NjAxN30.OLKiOD4K2nt8u5OFTNiFJc8UzzrkI6SllbscJMaEpBQ'
-const CLERK_DOMAIN = 'clerk.coinbag.app'
+const CLERK_DOMAIN = process.env.CLERK_DOMAIN || 'clerk.supafolio.app'
 const CLERK_INSTANCE_ID = 'ins_37VAGQw0JVza01qpTa6yUt8iVLY'
 
 console.log('🔍 Comprehensive JWT Configuration Verification')

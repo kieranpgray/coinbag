@@ -4,7 +4,7 @@
 
 set -e
 
-# coinbag-dev project
+# supafolio-dev project
 PROJECT_REF="tislabgxitwtcqfwrpik"
 DB_PASSWORD="tfq1azv-zdr@UJE1uxp"
 MIGRATION_FILE="supabase/migrations/20251229160001_add_superannuation_asset_type.sql"
@@ -49,7 +49,7 @@ fi
 
 # Check if project is linked
 if [ ! -f ".supabase/config.toml" ]; then
-  echo "📋 Linking to Supabase project: $PROJECT_REF (coinbag-dev)"
+  echo "📋 Linking to Supabase project: $PROJECT_REF (supafolio-dev)"
   echo "   Using stored database password..."
   supabase link --project-ref "$PROJECT_REF" --password "$DB_PASSWORD" || {
     echo ""

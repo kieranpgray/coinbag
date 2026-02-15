@@ -28,7 +28,7 @@ interface MockNetWorthHistoryEntity {
 
 // In-memory data store (no auto-seeding)
 // Use global object to persist across Vite HMR module reloads
-const GLOBAL_STORAGE_KEY = '__coinbag_mock_net_worth_history__';
+const GLOBAL_STORAGE_KEY = '__supafolio_mock_net_worth_history__';
 declare global {
   interface Window {
     [GLOBAL_STORAGE_KEY]?: MockNetWorthHistoryEntity[];

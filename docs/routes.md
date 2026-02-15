@@ -1,6 +1,6 @@
-# Coinbag Routes Documentation
+# Supafolio Routes Documentation
 
-This document provides a comprehensive overview of all routes in the Coinbag application, including their purpose, key components, user interactions, and edge cases.
+This document provides a comprehensive overview of all routes in the Supafolio application, including their purpose, key components, user interactions, and edge cases.
 
 ## Primary Navigation Routes
 
@@ -113,7 +113,7 @@ This document provides a comprehensive overview of all routes in the Coinbag app
 
 The following routes are implemented as stub pages with "Coming Soon" messages:
 
-### `/ask-coinbag`
+### `/ask-supafolio`
 - **Purpose**: AI-powered financial assistance (future feature)
 - **Status**: Stub page
 
@@ -187,7 +187,7 @@ The sidebar provides quick access to all main routes:
 - Dashboard
 - Accounts
 - Wealth (replaces Assets and Liabilities)
-- Ask Coinbag
+- Ask Supafolio
 - Scenarios
 - Vault
 - Transactions

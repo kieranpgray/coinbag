@@ -74,7 +74,7 @@ export function MobileNav({ open, onOpenChange }: MobileNavProps) {
               className="text-xl font-semibold text-foreground"
               onClick={() => onOpenChange(false)}
             >
-              Coinbag
+              Supafolio
             </Link>
             <Button
               variant="ghost"

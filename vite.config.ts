@@ -29,7 +29,7 @@ export default defineConfig({
       return undefined;
     })(),
     port: parseInt(process.env.VITE_DEV_PORT || '5173', 10),
-    strictPort: false,
+    strictPort: true, // fail if port in use so the dev URL is always consistent
   },
   build: {
     rollupOptions: {

@@ -607,7 +607,7 @@ export const dashboardApi = {
     const calculated = calculateDashboardData(assetsData, liabilitiesData, accountsData, expensesData, incomesData);
 
     // Calculate data source counts (existence = count > 0)
-    const holdingsCount = assetsData.filter(a => a.type === 'Investments' || a.type === 'Crypto').length;
+    const holdingsCount = assetsData.filter(a => a.type === 'Investments' || a.type === 'Crypto' || a.type === 'Stock' || a.type === 'RSU').length;
     
     // Create daily snapshot if it doesn't exist (on-demand snapshot creation)
     // This runs asynchronously and doesn't block dashboard rendering

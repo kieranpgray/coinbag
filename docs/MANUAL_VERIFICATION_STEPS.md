@@ -91,7 +91,7 @@ supabase functions deploy process-statement
      "sub": "{{user.id}}",
      "role": "authenticated",
      "aud": "ins_37VAGQw0JVza01qpTa6yUt8iVLY",
-     "iss": "https://clerk.coinbag.app",
+     "iss": "https://clerk.supafolio.app",
      "exp": "{{date.now_plus_seconds(3600)}}",
      "iat": "{{date.now}}"
    }
@@ -104,8 +104,8 @@ supabase functions deploy process-statement
 **Location**: [Supabase Dashboard](https://app.supabase.com/project/auvtsvmtfrbpvgyvfqlx) → Authentication → Settings
 
 **Check configuration**:
-- **JWKS URL**: `https://clerk.coinbag.app/.well-known/jwks.json`
-- **Issuer**: `https://clerk.coinbag.app`
+- **JWKS URL**: `https://clerk.supafolio.app/.well-known/jwks.json`
+- **Issuer**: `https://clerk.supafolio.app`
 - **Audience**: `ins_37VAGQw0JVza01qpTa6yUt8iVLY`
 - JWT verification: Enabled
 

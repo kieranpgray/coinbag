@@ -18,9 +18,9 @@ else
   exit 1
 fi
 
-# Fix 1: Update Supabase URL from moneybags to coinbag
+# Fix 1: Update Supabase URL from moneybags to supafolio
 if grep -q "tislabgxitwtcqfwrpik" "$ENV_FILE"; then
-  echo "⚠️  Fixing Supabase URL: moneybags → coinbag"
+  echo "⚠️  Fixing Supabase URL: moneybags → supafolio"
   if [[ "$OSTYPE" == "darwin"* ]]; then
     # macOS
     sed -i '' 's|https://tislabgxitwtcqfwrpik\.supabase\.co|https://auvtsvmtfrbpvgyvfqlx.supabase.co|g' "$ENV_FILE"
@@ -28,7 +28,7 @@ if grep -q "tislabgxitwtcqfwrpik" "$ENV_FILE"; then
     # Linux
     sed -i 's|https://tislabgxitwtcqfwrpik\.supabase\.co|https://auvtsvmtfrbpvgyvfqlx.supabase.co|g' "$ENV_FILE"
   fi
-  echo "✅ Updated VITE_SUPABASE_URL to coinbag project"
+  echo "✅ Updated VITE_SUPABASE_URL to supafolio project"
 else
   echo "✅ Supabase URL already correct"
 fi
@@ -55,5 +55,5 @@ echo "✅ Configuration fixes applied"
 echo ""
 echo "📋 Next Steps:"
 echo "   1. Update VITE_CLERK_PUBLISHABLE_KEY to production key (pk_live_...)"
-echo "   2. Verify VITE_SUPABASE_ANON_KEY is for coinbag project"
+echo "   2. Verify VITE_SUPABASE_ANON_KEY is for supafolio project"
 echo "   3. Set all variables in Vercel Dashboard (see docs/VERCEL_ENV_SETUP.md)"

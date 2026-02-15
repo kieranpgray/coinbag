@@ -10,7 +10,7 @@ Supabase has deprecated the legacy `service_role` key and now requires using **S
 
 1. **Go to Supabase Dashboard**:
    - Navigate to: https://supabase.com/dashboard/project/tislabgxitwtcqfwrpik/settings/api
-   - Project: `tislabgxitwtcqfwrpik` (coinbag-dev)
+   - Project: `tislabgxitwtcqfwrpik` (supafolio-dev)
 
 2. **Switch to the New Tab**:
    - Click on **"Publishable and secret API keys"** tab (NOT the "Legacy" tab)

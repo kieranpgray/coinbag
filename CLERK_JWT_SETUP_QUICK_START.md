@@ -16,7 +16,7 @@
 
 ### 2️⃣ Get Clerk Info
 - Go to: https://dashboard.clerk.com → Your App
-- **Domain**: Settings → Domains → Copy domain (e.g., `clerk.coinbag.app`)
+- **Domain**: Settings → Domains → Copy domain (e.g., `clerk.supafolio.app`)
 - **Application ID**: API Keys → Copy Application ID (e.g., `ins_xxxxx`)
 
 ### 3️⃣ Create Clerk JWT Template

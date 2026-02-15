@@ -4,12 +4,12 @@
 
 ### JWKS URL
 ```
-https://clerk.coinbag.app/.well-known/jwks.json
+https://clerk.supafolio.app/.well-known/jwks.json
 ```
 
 ### Issuer
 ```
-https://clerk.coinbag.app
+https://clerk.supafolio.app
 ```
 
 ### Audience (Application ID)
@@ -38,8 +38,8 @@ Based on what you found (Project Settings → API → JWT Keys), you may need to
 
 When you find the right place, enter:
 
-- **JWKS URL**: `https://clerk.coinbag.app/.well-known/jwks.json`
-- **Issuer**: `https://clerk.coinbag.app`
+- **JWKS URL**: `https://clerk.supafolio.app/.well-known/jwks.json`
+- **Issuer**: `https://clerk.supafolio.app`
 - **Audience**: `<your-clerk-application-id>` (get from Clerk Dashboard)
 
 ## Alternative: Configure via SQL
@@ -64,8 +64,8 @@ SELECT * FROM auth.config;
    - Look for "External JWT" or "Custom JWT" options
 
 3. **Enter the three values**:
-   - JWKS URL: `https://clerk.coinbag.app/.well-known/jwks.json`
-   - Issuer: `https://clerk.coinbag.app`
+   - JWKS URL: `https://clerk.supafolio.app/.well-known/jwks.json`
+   - Issuer: `https://clerk.supafolio.app`
    - Audience: `<your-application-id>`
 
 4. **Enable JWT verification** (toggle should be ON)

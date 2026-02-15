@@ -2,7 +2,7 @@
 
 ## Projects
 
-### coinbag-dev (Development)
+### supafolio-dev (Development)
 - **Project Reference ID**: `tislabgxitwtcqfwrpik`
 - **Project Name**: moneybags (in Supabase Dashboard)
 - **URL**: `https://tislabgxitwtcqfwrpik.supabase.co`
@@ -11,9 +11,9 @@
 - **Created**: 2025-12-27
 - **Purpose**: Development and testing
 
-### coinbag (Production)
+### supafolio (Production)
 - **Project Reference ID**: `auvtsvmtfrbpvgyvfqlx`
-- **Project Name**: coinbag
+- **Project Name**: supafolio
 - **URL**: `https://auvtsvmtfrbpvgyvfqlx.supabase.co`
 - **Database Password**: `vzp4pkg-pvp.AMC6yhc`
 - **Region**: Oceania (Sydney)

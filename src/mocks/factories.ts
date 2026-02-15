@@ -35,7 +35,7 @@ function randomDate(daysAgo: number): string {
 /**
  * Asset types
  */
-const ASSET_TYPES: Asset['type'][] = ['Real Estate', 'Investments', 'Vehicles', 'Crypto', 'Cash', 'Superannuation', 'Other'];
+const ASSET_TYPES: Asset['type'][] = ['Real Estate', 'Investments', 'Vehicles', 'Crypto', 'Cash', 'Superannuation', 'Stock', 'RSU', 'Other'];
 
 /**
  * Liability types
@@ -533,7 +533,7 @@ export function calculateDashboardData(
   const expensesCount = expenses.length;
   const transactionsCount = 0; // Mock transactions not implemented yet
   const incomeCount = incomes.length; // Use actual income count from incomes array
-  const holdingsCount = assets.filter(a => a.type === 'Investments' || a.type === 'Crypto').length;
+  const holdingsCount = assets.filter(a => a.type === 'Investments' || a.type === 'Crypto' || a.type === 'Stock' || a.type === 'RSU').length;
 
   const checklist = createSetupChecklist(
     accountsCount,

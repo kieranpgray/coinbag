@@ -51,7 +51,7 @@ After configuration, Clerk will issue tokens with this structure:
 {
   // Automatically provided by Clerk (reserved claims):
   "sub": "user_xxxxx",              // Your Clerk user ID
-  "iss": "https://clerk.coinbag.app", // Your Clerk domain
+  "iss": "https://clerk.supafolio.app", // Your Clerk domain
   "exp": 1234567890,                 // Expiration timestamp
   "iat": 1234567890,                 // Issued at timestamp
   "azp": "...",                      // Other Clerk claims
@@ -109,7 +109,7 @@ window.Clerk.session.getToken({ template: 'supabase' })
       console.log('Role:', payload.role); // Should be "authenticated"
       console.log('User ID (sub):', payload.sub); // Should be your Clerk user ID (auto-provided)
       console.log('Audience:', payload.aud); // Should be "ins_37VAGQw0JVza01qpTa6yUt8iVLY"
-      console.log('Issuer:', payload.iss); // Should be "https://clerk.coinbag.app" (auto-provided)
+      console.log('Issuer:', payload.iss); // Should be "https://clerk.supafolio.app" (auto-provided)
     }
   });
 ```

@@ -28,7 +28,7 @@ This document outlines what you need to provide to enable autonomous completion 
 **Steps**:
 1. Go to [app.supabase.com](https://app.supabase.com)
 2. Click **New Project**
-3. Name: `coinbag-production` (or your preferred name)
+3. Name: `supafolio-production` (or your preferred name)
 4. Choose region (closest to your users or Vercel deployment region)
 5. Set strong database password
 6. Wait for project to be created
@@ -46,7 +46,7 @@ This document outlines what you need to provide to enable autonomous completion 
 
 **Provide**:
 - `VERCEL_PROJECT_NAME`: Your Vercel project name
-- `VERCEL_DEPLOYMENT_URL`: Production URL (e.g., `coinbag.vercel.app`)
+- `VERCEL_DEPLOYMENT_URL`: Production URL (e.g., `supafolio.vercel.app`)
 
 **Note**: If project doesn't exist yet, I can help create it, but you'll need Vercel account access.
 

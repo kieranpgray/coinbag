@@ -1,5 +1,5 @@
 /**
- * Domain types for Coinbag application
+ * Domain types for Supafolio application
  *
  * This file contains all TypeScript interfaces and types representing
  * the core domain entities and data structures used throughout the application.
@@ -22,13 +22,22 @@ export interface Category {
 export interface Asset {
   id: string;
   name: string;
-  type: 'Real Estate' | 'Investments' | 'Vehicles' | 'Crypto' | 'Cash' | 'Superannuation' | 'Other';
+  type: 'Real Estate' | 'Investments' | 'Vehicles' | 'Crypto' | 'Cash' | 'Superannuation' | 'Stock' | 'RSU' | 'Other';
   value: number;
   change1D?: number;
   change1W?: number;
   dateAdded: string;
   institution?: string;
   notes?: string;
+  // Stock/RSU-specific (optional; used when type is Stock or RSU)
+  ticker?: string;
+  exchange?: string;
+  quantity?: number;
+  purchasePrice?: number;
+  purchaseDate?: string;
+  todaysPrice?: number;
+  grantDate?: string;
+  vestingDate?: string;
 }
 
 /**
@@ -331,7 +340,7 @@ export interface DashboardDataSources {
   expensesCount: number;
   transactionsCount: number;
   incomeCount: number;
-  holdingsCount: number; // Count of Investments or Crypto assets
+  holdingsCount: number; // Count of Investments, Crypto, Stock, or RSU assets
 }
 
 /**

@@ -107,14 +107,14 @@ describe('Smoke Tests', () => {
     expect(container).toBeInTheDocument();
   });
 
-  it('has Coinbag branding', async () => {
+  it('has Supafolio branding', async () => {
     render(<Routes />, { wrapper: Wrapper });
     
     await waitFor(
       () => {
-        // Coinbag appears in header and sidebar
-        const coinbagElements = screen.getAllByText(/Coinbag/i);
-        expect(coinbagElements.length).toBeGreaterThan(0);
+        // Supafolio appears in header and sidebar
+        const supafolioElements = screen.getAllByText(/Supafolio/i);
+        expect(supafolioElements.length).toBeGreaterThan(0);
       },
       { timeout: 5000 }
     );

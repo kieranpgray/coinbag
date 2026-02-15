@@ -1,4 +1,6 @@
 import { z } from 'zod';
+import { SUPPORTED_EXCHANGES } from '@/constants/exchanges';
+import { SUPPORTED_CRYPTO_SYMBOLS } from '@/constants/cryptoSymbols';
 
 /**
  * Asset contracts - Zod-first schemas for type-safe API communication
@@ -10,6 +12,7 @@ const VALIDATION_LIMITS = {
   name: { min: 1, max: 100 },
   institution: { max: 100 },
   notes: { max: 1000 },
+  ticker: { max: 20 },
 } as const;
 
 // Base institution validation (optional)
@@ -32,10 +35,55 @@ const institutionSchema = z.preprocess(
     })
 );
 
-// Asset type enum
-const assetTypeSchema = z.enum(['Real Estate', 'Investments', 'Vehicles', 'Crypto', 'Cash', 'Superannuation', 'Other'], {
+// Asset type enum (includes Stock and RSU)
+const assetTypeSchema = z.enum(['Real Estate', 'Investments', 'Vehicles', 'Crypto', 'Cash', 'Superannuation', 'Stock', 'RSU', 'Other'], {
   errorMap: () => ({ message: 'Invalid asset type' }),
 });
+
+// Stock/RSU optional field schemas (used in create/update with conditional requirement via superRefine)
+const tickerSchema = z.string()
+  .max(VALIDATION_LIMITS.ticker.max, `Ticker must be at most ${VALIDATION_LIMITS.ticker.max} characters`)
+  .trim()
+  .optional()
+  .or(z.literal(''));
+
+const exchangeSchema = z.string()
+  .trim()
+  .refine(
+    (val) => val === '' || SUPPORTED_EXCHANGES.includes(val as (typeof SUPPORTED_EXCHANGES)[number]),
+    'Exchange must be from the supported list'
+  )
+  .optional()
+  .or(z.literal(''))
+  .transform((val) => (val === '' ? undefined : val));
+
+const quantitySchema = z.number()
+  .positive('Quantity must be positive')
+  .finite('Quantity must be finite')
+  .optional();
+
+const purchasePriceSchema = z.number()
+  .min(0, 'Purchase price must be non-negative')
+  .finite('Purchase price must be finite')
+  .optional();
+
+const todaysPriceSchema = z.number()
+  .min(0, "Today's price must be non-negative")
+  .finite("Today's price must be finite")
+  .optional();
+
+// Optional date (YYYY-MM-DD) for purchase_date, grant_date, vesting_date
+const optionalDateSchema = z.preprocess(
+  (val) => {
+    if (val === undefined || val === null || val === '') return undefined;
+    const str = String(val);
+    if (str.includes('T')) return str.split('T')[0];
+    return str;
+  },
+  z.string()
+    .refine((date) => /^\d{4}-\d{2}-\d{2}$/.test(date), 'Date must be in YYYY-MM-DD format')
+    .optional()
+);
 
 // Base asset name validation
 const assetNameSchema = z.string()
@@ -111,9 +159,13 @@ const changePercentageSchema = z.number()
   .optional()
   .transform(val => val === null ? undefined : val);
 
-// API request schemas
-export const assetCreateSchema = z.object({
-  name: assetNameSchema,
+// Base create shape: name optional at schema level (conditional requirement in superRefine)
+const assetCreateBaseSchema = z.object({
+  name: z.string()
+    .max(VALIDATION_LIMITS.name.max, `Asset name must be less than ${VALIDATION_LIMITS.name.max} characters`)
+    .trim()
+    .optional()
+    .or(z.literal('')),
   type: assetTypeSchema,
   value: assetValueSchema,
   change1D: changePercentageSchema,
@@ -124,10 +176,59 @@ export const assetCreateSchema = z.object({
     .max(VALIDATION_LIMITS.notes.max, `Notes must be less than ${VALIDATION_LIMITS.notes.max} characters`)
     .optional()
     .or(z.literal('')),
+  // Stock/RSU optional fields
+  ticker: tickerSchema,
+  exchange: exchangeSchema,
+  quantity: quantitySchema,
+  purchasePrice: purchasePriceSchema,
+  purchaseDate: optionalDateSchema,
+  todaysPrice: todaysPriceSchema,
+  grantDate: optionalDateSchema,
+  vestingDate: optionalDateSchema,
+});
+
+export const assetCreateSchema = assetCreateBaseSchema.superRefine((data, ctx) => {
+  const nameVal = data.name === undefined || data.name === '' ? undefined : data.name?.trim();
+  if (data.type === 'Stock' || data.type === 'RSU') {
+    // Stock/RSU: ticker and quantity required; name optional (can be derived from ticker)
+    const tickerVal = data.ticker === undefined || data.ticker === '' ? undefined : data.ticker?.trim();
+    if (!tickerVal || tickerVal.length === 0) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Ticker is required for Stock and RSU', path: ['ticker'] });
+    }
+    if (data.quantity === undefined || data.quantity === null || data.quantity <= 0) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Quantity is required and must be positive', path: ['quantity'] });
+    }
+    if (data.type === 'RSU') {
+      const vestingVal = data.vestingDate === undefined || data.vestingDate === '' ? undefined : data.vestingDate;
+      if (!vestingVal) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Vesting date is required for RSU', path: ['vestingDate'] });
+      }
+    }
+  } else if (data.type === 'Crypto') {
+    // Crypto: ticker (coin symbol), quantity, and value required; name optional
+    const tickerVal = data.ticker === undefined || data.ticker === '' ? undefined : data.ticker?.trim();
+    if (!tickerVal || tickerVal.length === 0) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Coin symbol is required for Crypto', path: ['ticker'] });
+    } else if (!SUPPORTED_CRYPTO_SYMBOLS.includes(tickerVal as (typeof SUPPORTED_CRYPTO_SYMBOLS)[number])) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Coin symbol must be from the supported list', path: ['ticker'] });
+    }
+    if (data.quantity === undefined || data.quantity === null || data.quantity <= 0) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Quantity is required and must be positive for Crypto', path: ['quantity'] });
+    }
+  } else {
+    // Other types: name required
+    if (!nameVal || nameVal.length === 0) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Asset name can't be empty.", path: ['name'] });
+    }
+  }
 });
 
 export const assetUpdateSchema = z.object({
-  name: assetNameSchema.optional(),
+  name: z.string()
+    .max(VALIDATION_LIMITS.name.max)
+    .trim()
+    .optional()
+    .or(z.literal('')),
   type: assetTypeSchema.optional(),
   value: assetValueSchema.optional(),
   change1D: changePercentageSchema,
@@ -138,6 +239,54 @@ export const assetUpdateSchema = z.object({
     .max(VALIDATION_LIMITS.notes.max, `Notes must be less than ${VALIDATION_LIMITS.notes.max} characters`)
     .optional()
     .or(z.literal('')),
+  ticker: tickerSchema,
+  exchange: exchangeSchema,
+  quantity: quantitySchema,
+  purchasePrice: purchasePriceSchema,
+  purchaseDate: optionalDateSchema,
+  todaysPrice: todaysPriceSchema,
+  grantDate: optionalDateSchema,
+  vestingDate: optionalDateSchema,
+}).superRefine((data, ctx) => {
+  // On update, only apply Stock/RSU rules when type is explicitly provided as Stock or RSU
+  if (data.type === 'Stock') {
+    const tickerVal = data.ticker === undefined || data.ticker === '' ? undefined : data.ticker?.trim();
+    if (!tickerVal || tickerVal.length === 0) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Ticker is required for Stock', path: ['ticker'] });
+    }
+    if (data.quantity !== undefined && (data.quantity === null || data.quantity <= 0)) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Quantity must be positive', path: ['quantity'] });
+    }
+  }
+  if (data.type === 'RSU') {
+    const tickerVal = data.ticker === undefined || data.ticker === '' ? undefined : data.ticker?.trim();
+    if (!tickerVal || tickerVal.length === 0) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Ticker is required for RSU', path: ['ticker'] });
+    }
+    if (data.quantity !== undefined && (data.quantity === null || data.quantity <= 0)) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Quantity must be positive', path: ['quantity'] });
+    }
+    const vestingVal = data.vestingDate === undefined || data.vestingDate === '' ? undefined : data.vestingDate;
+    if (!vestingVal) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Vesting date is required for RSU', path: ['vestingDate'] });
+    }
+  }
+  if (data.type === 'Crypto') {
+    const tickerVal = data.ticker === undefined || data.ticker === '' ? undefined : data.ticker?.trim();
+    if (tickerVal !== undefined && tickerVal.length > 0 && !SUPPORTED_CRYPTO_SYMBOLS.includes(tickerVal as (typeof SUPPORTED_CRYPTO_SYMBOLS)[number])) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Coin symbol must be from the supported list', path: ['ticker'] });
+    }
+    if (data.quantity !== undefined && (data.quantity === null || data.quantity <= 0)) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Quantity must be positive for Crypto', path: ['quantity'] });
+    }
+  }
+  // For other types on update, name if provided must be non-empty
+  if (data.name !== undefined && data.name !== '' && data.type !== 'Stock' && data.type !== 'RSU' && data.type !== 'Crypto') {
+    const trimmed = data.name.trim();
+    if (trimmed.length === 0) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Asset name can't be empty.", path: ['name'] });
+    }
+  }
 });
 
 // Helper to handle nullable strings from database (transform null to undefined)
@@ -161,10 +310,9 @@ const datetimeSchema = z.string()
     'Invalid datetime format'
   );
 
-// API response schemas
+// API response schemas (entity includes optional Stock/RSU columns from DB)
 export const assetEntitySchema = z.object({
   id: z.string().uuid('Invalid asset ID format'),
-  // Clerk user ids are not UUIDs (typically "user_..."), so treat as opaque string.
   userId: z.string().min(1, 'User ID is required'),
   name: assetNameSchema,
   type: assetTypeSchema,
@@ -176,6 +324,15 @@ export const assetEntitySchema = z.object({
   notes: nullableStringSchema,
   createdAt: datetimeSchema,
   updatedAt: datetimeSchema,
+  // Stock/RSU optional (nullable from DB)
+  ticker: nullableStringSchema,
+  exchange: nullableStringSchema,
+  quantity: z.number().finite().nullable().optional().transform((v) => v ?? undefined),
+  purchasePrice: z.number().finite().nullable().optional().transform((v) => v ?? undefined),
+  purchaseDate: nullableStringSchema,
+  todaysPrice: z.number().finite().nullable().optional().transform((v) => v ?? undefined),
+  grantDate: nullableStringSchema,
+  vestingDate: nullableStringSchema,
 });
 
 export const assetListSchema = z.array(assetEntitySchema);

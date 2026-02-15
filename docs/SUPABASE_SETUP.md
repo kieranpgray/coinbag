@@ -1,6 +1,6 @@
 # Supabase Database Setup
 
-This document outlines the Supabase database configuration for the Coinbag application, including authentication integration with Clerk.
+This document outlines the Supabase database configuration for the Supafolio application, including authentication integration with Clerk.
 
 ## Environment Variables
 

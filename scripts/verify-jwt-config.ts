@@ -38,7 +38,7 @@ function loadEnv(): Record<string, string> {
 const env = loadEnv();
 
 const SUPABASE_URL = env.VITE_SUPABASE_URL;
-const CLERK_DOMAIN = env.CLERK_DOMAIN || 'clerk.coinbag.app';
+const CLERK_DOMAIN = env.CLERK_DOMAIN || 'clerk.supafolio.app';
 const CLERK_INSTANCE_ID = env.CLERK_INSTANCE_ID || 'ins_37VAGQw0JVza01qpTa6yUt8iVLY';
 
 console.log('🔍 Verifying JWT Validation Configuration');

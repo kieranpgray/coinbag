@@ -11,7 +11,7 @@ MIGRATION_FILE="supabase/migrations/20251229160001_add_superannuation_asset_type
 echo "🔧 Running Superannuation Migration via Direct SQL"
 echo "=================================================="
 echo ""
-echo "Project: coinbag-dev ($PROJECT_REF)"
+echo "Project: supafolio-dev ($PROJECT_REF)"
 echo ""
 
 # Check if psql is available

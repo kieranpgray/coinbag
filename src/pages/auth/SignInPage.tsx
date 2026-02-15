@@ -7,7 +7,7 @@ export function SignInPage() {
       <div className="flex-1 flex items-center justify-center">
         <div className="w-full max-w-md">
           <div className="text-center mb-8">
-            <h1 className="text-h1-sm sm:text-h1-md lg:text-h1-lg font-bold">Welcome to Coinbag</h1>
+            <h1 className="text-h1-sm sm:text-h1-md lg:text-h1-lg font-bold">Welcome to Supafolio</h1>
             <p className="text-muted-foreground mt-2">Sign in to manage your finances</p>
           </div>
           <SignIn

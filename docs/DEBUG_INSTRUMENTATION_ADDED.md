@@ -2,7 +2,7 @@
 
 ## Summary
 
-I've added comprehensive instrumentation to test all 6 hypotheses about why credit transactions show as negative and balance updates fail. The instrumentation uses HTTP POST requests to the debug logging server and will write NDJSON logs to `/Users/kierangray/Projects/wellthy/.cursor/debug.log`.
+I've added comprehensive instrumentation to test all 6 hypotheses about why credit transactions show as negative and balance updates fail. The instrumentation uses HTTP POST requests to the debug logging server and will write NDJSON logs to `/Users/kierangray/Projects/supafolio/.cursor/debug.log`.
 
 ## Hypotheses Being Tested
 
@@ -66,7 +66,7 @@ I've added comprehensive instrumentation to test all 6 hypotheses about why cred
 
 ## Log Format
 
-All logs are written in NDJSON format to `/Users/kierangray/Projects/wellthy/.cursor/debug.log` with the following structure:
+All logs are written in NDJSON format to `/Users/kierangray/Projects/supafolio/.cursor/debug.log` with the following structure:
 
 ```json
 {
@@ -83,7 +83,7 @@ All logs are written in NDJSON format to `/Users/kierangray/Projects/wellthy/.cu
 ## Next Steps
 
 1. **Reproduce the issue** by uploading a statement with a credit transaction (e.g., "PAYMENT - THANKYOU")
-2. **Check the logs** in `/Users/kierangray/Projects/wellthy/.cursor/debug.log`
+2. **Check the logs** in `/Users/kierangray/Projects/supafolio/.cursor/debug.log`
 3. **Analyze the logs** to evaluate each hypothesis:
    - **CONFIRMED:** Log evidence clearly shows the hypothesis is correct
    - **REJECTED:** Log evidence clearly shows the hypothesis is incorrect

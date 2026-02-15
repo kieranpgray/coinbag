@@ -5,8 +5,8 @@
 **Clerk has been successfully configured in Supabase!**
 
 ### Values Configured:
-- **JWKS URL**: `https://clerk.coinbag.app/.well-known/jwks.json`
-- **Issuer**: `https://clerk.coinbag.app`
+- **JWKS URL**: `https://clerk.supafolio.app/.well-known/jwks.json`
+- **Issuer**: `https://clerk.supafolio.app`
 - **Audience**: `ins_37VAGQw0JVza01qpTa6yUt8iVLY`
 
 ## Next Steps: Verification
@@ -133,8 +133,8 @@ SELECT
 ## Configuration Reference
 
 **Clerk Configuration**:
-- Frontend API URL: `https://clerk.coinbag.app`
-- JWKS URL: `https://clerk.coinbag.app/.well-known/jwks.json`
+- Frontend API URL: `https://clerk.supafolio.app`
+- JWKS URL: `https://clerk.supafolio.app/.well-known/jwks.json`
 - Instance ID: `ins_37VAGQw0JVza01qpTa6yUt8iVLY`
 
 **Supabase Configuration**:

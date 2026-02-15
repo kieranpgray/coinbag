@@ -6,8 +6,8 @@ Now that the Clerk JWT template is created, we need to configure Supabase to val
 
 ## Configuration Values
 
-- **JWKS URL**: `https://clerk.coinbag.app/.well-known/jwks.json`
-- **Issuer**: `https://clerk.coinbag.app`
+- **JWKS URL**: `https://clerk.supafolio.app/.well-known/jwks.json`
+- **Issuer**: `https://clerk.supafolio.app`
 - **Audience**: `ins_37VAGQw0JVza01qpTa6yUt8iVLY`
 
 ## Step-by-Step Configuration
@@ -25,15 +25,15 @@ Look for one of these sections:
 **Option A: "Third-Party Auth" or "External OAuth Providers"**
 - If you see this option, it's the preferred method
 - Click **"Add provider"** or **"Configure Clerk"**
-- Enter your Clerk domain: `clerk.coinbag.app`
+- Enter your Clerk domain: `clerk.supafolio.app`
 - Save
 
 **Option B: "JWT Settings" or "JWKS URL" Configuration**
 - If Option A is not available, use this method
 - Find **"JWKS URL"** field
-- Enter: `https://clerk.coinbag.app/.well-known/jwks.json`
+- Enter: `https://clerk.supafolio.app/.well-known/jwks.json`
 - Find **"Issuer"** field
-- Enter: `https://clerk.coinbag.app`
+- Enter: `https://clerk.supafolio.app`
 - Find **"Audience"** field
 - Enter: `ins_37VAGQw0JVza01qpTa6yUt8iVLY`
 - Enable **"JWT Verification"** toggle (if present)

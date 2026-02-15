@@ -1,7 +1,7 @@
 # Production Deployment Status & Next Steps
 
 **Date**: January 27, 2025
-**Project**: Wellthy (coinbag)
+**Project**: Supafolio
 **Supabase Production**: `auvtsvmtfrbpvgyvfqlx`
 
 ## ✅ Completed Automatically
@@ -14,7 +14,7 @@
   - `VITE_SUPABASE_URL=https://auvtsvmtfrbpvgyvfqlx.supabase.co`
   - `VITE_SUPABASE_ANON_KEY` (updated with provided key)
   - `VITE_CLERK_PUBLISHABLE_KEY` (updated with provided key)
-  - `CLERK_DOMAIN=clerk.coinbag.app`
+  - `CLERK_DOMAIN=clerk.supafolio.app`
   - `CLERK_INSTANCE_ID=ins_37VAGQw0JVza01qpTa6yUt8iVLY`
 
 ### 2. Scripts Created
@@ -98,7 +98,7 @@ supabase functions deploy process-statement
     "sub": "{{user.id}}",
     "role": "authenticated",
     "aud": "ins_37VAGQw0JVza01qpTa6yUt8iVLY",
-    "iss": "https://clerk.coinbag.app",
+    "iss": "https://clerk.supafolio.app",
     "exp": "{{date.now_plus_seconds(3600)}}",
     "iat": "{{date.now}}"
   }
@@ -111,8 +111,8 @@ supabase functions deploy process-statement
 **Location**: [Supabase Dashboard](https://app.supabase.com/project/auvtsvmtfrbpvgyvfqlx) → Authentication → Settings
 
 **Verify/Set**:
-- **JWKS URL**: `https://clerk.coinbag.app/.well-known/jwks.json`
-- **Issuer**: `https://clerk.coinbag.app`
+- **JWKS URL**: `https://clerk.supafolio.app/.well-known/jwks.json`
+- **Issuer**: `https://clerk.supafolio.app`
 - **Audience**: `ins_37VAGQw0JVza01qpTa6yUt8iVLY`
 - **JWT verification**: Enabled
 

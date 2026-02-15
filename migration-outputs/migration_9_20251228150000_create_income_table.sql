@@ -1,5 +1,5 @@
 -- Migration: Create income table with RLS policies
--- Description: Creates the income table for the Coinbag application
+-- Description: Creates the income table for the Supafolio application
 -- Prerequisites: Requires pgcrypto extension for gen_random_uuid()
 -- Rollback: Drop table and related objects
 

@@ -10,7 +10,7 @@
 #### ✅ JWKS URL Accessibility
 - **Status**: PASS
 - **Details**: JWKS URL is accessible, keys available
-- **URL**: `https://clerk.coinbag.app/.well-known/jwks.json`
+- **URL**: `https://clerk.supafolio.app/.well-known/jwks.json`
 
 #### ✅ JWT Extraction Function
 - **Status**: PASS (with note)
@@ -58,7 +58,7 @@ window.Clerk.session.getToken({ template: 'supabase' })
       console.log('Role:', payload.role); // Should be "authenticated"
       console.log('User ID:', payload.sub); // Should be your Clerk user ID
       console.log('Audience:', payload.aud); // Should be "ins_37VAGQw0JVza01qpTa6yUt8iVLY"
-      console.log('Issuer:', payload.iss); // Should be "https://clerk.coinbag.app"
+      console.log('Issuer:', payload.iss); // Should be "https://clerk.supafolio.app"
       
       // Verify
       if (payload.role === 'authenticated' && payload.sub) {
@@ -77,7 +77,7 @@ window.Clerk.session.getToken({ template: 'supabase' })
 - ✅ `role: "authenticated"`
 - ✅ `sub: "user_xxxxx"` (Clerk user ID)
 - ✅ `aud: "ins_37VAGQw0JVza01qpTa6yUt8iVLY"`
-- ✅ `iss: "https://clerk.coinbag.app"`
+- ✅ `iss: "https://clerk.supafolio.app"`
 
 ### 2. Statement Upload & Processing Test
 

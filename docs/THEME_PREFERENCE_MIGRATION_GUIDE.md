@@ -13,7 +13,7 @@ This migration converts the `dark_mode` boolean column to a `theme_preference` t
 ### Step 1: Access Supabase Dashboard
 
 1. Go to [Supabase Dashboard](https://supabase.com/dashboard)
-2. Select your project: **coinbag** (auvtsvmtfrbpvgyvfqlx)
+2. Select your project: **supafolio** (auvtsvmtfrbpvgyvfqlx)
 3. Navigate to **SQL Editor**
 
 ### Step 2: Apply Migration

@@ -43,7 +43,7 @@ export function getSupabaseBrowserClient(
         autoRefreshToken: true,
         detectSessionInUrl: true,
         // IMPORTANT: stable key avoids cross-client collisions
-        storageKey: "wellthy-auth",
+        storageKey: "supafolio-auth",
       },
       realtime: {
         params: { eventsPerSecond: 10 },
@@ -113,10 +113,10 @@ export function getSupabaseBrowserClient(
 
     // Dev-only guard to detect accidental re-creation
     if (import.meta.env.DEV) {
-      (window as any).__wellthy_supabase_singleton__ =
-        (window as any).__wellthy_supabase_singleton__ ?? _supabase;
+      (window as any).__supafolio_supabase_singleton__ =
+        (window as any).__supafolio_supabase_singleton__ ?? _supabase;
 
-      if ((window as any).__wellthy_supabase_singleton__ !== _supabase) {
+      if ((window as any).__supafolio_supabase_singleton__ !== _supabase) {
         console.error("[Supabase] Multiple singleton instances detected (should never happen).");
       }
     }

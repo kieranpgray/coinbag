@@ -15,7 +15,7 @@ All 7 checkpoint logging has been implemented. This guide will help you execute 
 The checkpoint logging is in the edge function code. You must deploy it first:
 
 ```bash
-cd /Users/kierangray/Projects/wellthy
+cd /Users/kierangray/Projects/supafolio
 supabase functions deploy process-statement
 ```
 

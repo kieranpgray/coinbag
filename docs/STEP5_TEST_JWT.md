@@ -24,7 +24,7 @@ window.Clerk.session.getToken({ template: 'supabase' })
       console.log('  Role:', payload.role); // Should be "authenticated"
       console.log('  User ID (sub):', payload.sub); // Should be your Clerk user ID (e.g., "user_xxxxx")
       console.log('  Audience:', payload.aud); // Should be "ins_37VAGQw0JVza01qpTa6yUt8iVLY"
-      console.log('  Issuer:', payload.iss); // Should be "https://clerk.coinbag.app"
+      console.log('  Issuer:', payload.iss); // Should be "https://clerk.supafolio.app"
       console.log('');
       
       // Verify required claims
@@ -46,7 +46,7 @@ window.Clerk.session.getToken({ template: 'supabase' })
         console.warn('⚠️  Audience claim:', payload.aud);
       }
       
-      if (payload.iss === 'https://clerk.coinbag.app') {
+      if (payload.iss === 'https://clerk.supafolio.app') {
         console.log('✅ Issuer claim is correct');
       } else {
         console.warn('⚠️  Issuer claim:', payload.iss);
@@ -76,7 +76,7 @@ window.Clerk.session.getToken({ template: 'supabase' })
 - ✅ `role: "authenticated"`
 - ✅ `sub: "user_xxxxx"` (your Clerk user ID)
 - ✅ `aud: "ins_37VAGQw0JVza01qpTa6yUt8iVLY"`
-- ✅ `iss: "https://clerk.coinbag.app"`
+- ✅ `iss: "https://clerk.supafolio.app"`
 
 ## Test 2: Supabase JWT Extraction (SQL Editor)
 

@@ -173,9 +173,11 @@ export class SupabaseLiabilitiesRepository implements LiabilitiesRepository {
         const errorCode = typeof error === 'object' && error !== null && 'code' in error
           ? String((error as { code?: unknown }).code)
           : '';
+        // HTTP status may be on error.status (Supabase/PostgREST) or in message; ensure 400 is detected
         const errorStatus = typeof error === 'object' && error !== null && 'status' in error
           ? (error as { status?: unknown }).status
           : undefined;
+        const is400 = errorStatus === 400;
 
         // Check if it's specifically a missing column error (be more conservative)
         const isMissingColumnError =
@@ -191,6 +193,9 @@ export class SupabaseLiabilitiesRepository implements LiabilitiesRepository {
           errorMessage.includes('row-level security') ||
           errorMessage.includes('JWT') ||
           errorMessage.includes('policy');
+
+        // Broaden: treat as query/column issue when message suggests bad request (in case status not set on error)
+        const looksLikeBadRequest = errorMessage.toLowerCase().includes('bad request') || errorMessage.includes('400') || errorCode === 'PGRST204';
 
         if (isMissingColumnError) {
           logger.warn('DB:LIABILITY_LIST', 'Repayment columns may not exist, trying without them', {
@@ -235,9 +240,9 @@ export class SupabaseLiabilitiesRepository implements LiabilitiesRepository {
             details: isSupabaseError(error) ? error.details : undefined,
           }, correlationId || undefined);
 
-          // For 400 errors that might be due to query structure issues, try fallback as last resort
-          if (errorStatus === 400 && !errorMessage.includes('JWT') && !errorMessage.includes('auth')) {
-            logger.warn('DB:LIABILITY_LIST', '400 error detected, trying fallback query as last resort', {
+          // For 400 or bad-request-like errors (query/column issues), try fallback as last resort
+          if ((is400 || looksLikeBadRequest) && !errorMessage.includes('JWT') && !errorMessage.includes('auth')) {
+            logger.warn('DB:LIABILITY_LIST', '400/bad request error detected, trying fallback query as last resort', {
               error: errorMessage,
               code: errorCode,
               status: errorStatus,
@@ -340,7 +345,7 @@ export class SupabaseLiabilitiesRepository implements LiabilitiesRepository {
         .eq('id', id)
         .single();
 
-      // If error suggests missing columns, try without repayment fields (be more conservative)
+      // If error suggests missing columns or 400/bad request, try without repayment fields
       const errorMessage = error?.message || '';
       const errorCode = typeof error === 'object' && error !== null && 'code' in error
         ? String((error as { code?: unknown }).code)
@@ -348,6 +353,8 @@ export class SupabaseLiabilitiesRepository implements LiabilitiesRepository {
       const errorStatus = typeof error === 'object' && error !== null && 'status' in error
         ? (error as { status?: unknown }).status
         : undefined;
+      const is400 = errorStatus === 400;
+      const looksLikeBadRequest = errorMessage.toLowerCase().includes('bad request') || errorMessage.includes('400') || errorCode === 'PGRST204';
       const isMissingColumnError =
         errorMessage.includes('column') && (errorMessage.includes('repayment_amount') || errorMessage.includes('repayment_frequency')) ||
         errorCode === '42703' ||
@@ -379,9 +386,9 @@ export class SupabaseLiabilitiesRepository implements LiabilitiesRepository {
           } : null) as typeof data;
           error = null;
         }
-      } else if (error && errorStatus === 400 && !errorMessage.includes('JWT') && !errorMessage.includes('auth')) {
-        // For 400 errors that might be due to query structure issues, try fallback as last resort
-        logger.warn('DB:LIABILITY_GET', '400 error detected in get, trying fallback query', {
+      } else if (error && (is400 || looksLikeBadRequest) && !errorMessage.includes('JWT') && !errorMessage.includes('auth')) {
+        // For 400 or bad-request-like errors, try fallback as last resort
+        logger.warn('DB:LIABILITY_GET', '400/bad request error detected in get, trying fallback query', {
           liabilityId: id,
           error: errorMessage,
           code: errorCode,

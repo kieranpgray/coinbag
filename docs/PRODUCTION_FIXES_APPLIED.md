@@ -14,7 +14,7 @@ Automated review and fixes have been applied to production configuration. Critic
 - ✅ Connected to GitHub repository
 
 ### 2. Supabase Project URL Fix
-- ✅ Updated `.env` file to use coinbag project (`auvtsvmtfrbpvgyvfqlx`)
+- ✅ Updated `.env` file to use supafolio project (`auvtsvmtfrbpvgyvfqlx`)
 - ✅ Changed from moneybags project (`tislabgxitwtcqfwrpik`)
 - ✅ Created backup of original `.env` file
 
@@ -50,13 +50,13 @@ Automated review and fixes have been applied to production configuration. Critic
 ```bash
 VITE_DATA_SOURCE=supabase
 VITE_SUPABASE_URL=https://auvtsvmtfrbpvgyvfqlx.supabase.co
-VITE_SUPABASE_ANON_KEY=<coinbag-project-anon-key>
+VITE_SUPABASE_ANON_KEY=<supafolio-project-anon-key>
 VITE_CLERK_PUBLISHABLE_KEY=pk_live_<production-key>
 ```
 
 **Steps**:
 1. Go to [Vercel Dashboard](https://vercel.com/dashboard)
-2. Select project: **wellthy**
+2. Select project: **supafolio**
 3. Go to **Settings** → **Environment Variables**
 4. Add all 4 variables above
 5. Select **Production**, **Preview**, and **Development** for each
@@ -67,31 +67,31 @@ VITE_CLERK_PUBLISHABLE_KEY=pk_live_<production-key>
 
 ### 3. Verify Supabase Anon Key
 
-**Action**: Ensure `VITE_SUPABASE_ANON_KEY` in `.env` is for the **coinbag** project, not moneybags.
+**Action**: Ensure `VITE_SUPABASE_ANON_KEY` in `.env` is for the **supafolio** project, not moneybags.
 
 **Steps**:
 1. Go to [Supabase Dashboard](https://app.supabase.com)
-2. Select **coinbag** project (`auvtsvmtfrbpvgyvfqlx`)
+2. Select **supafolio** project (`auvtsvmtfrbpvgyvfqlx`)
 3. Go to **Settings** → **API**
 4. Copy the **anon/public** key
 5. Verify it matches your `.env` file
 
 ### 4. Verify Database Migrations
 
-**Action**: Ensure all migrations are applied to **coinbag** project.
+**Action**: Ensure all migrations are applied to **supafolio** project.
 
 **Steps**:
-1. Go to Supabase Dashboard → **coinbag** project
+1. Go to Supabase Dashboard → **supafolio** project
 2. Go to **SQL Editor**
 3. Verify all 12 migrations from `supabase/migrations/` are applied
 4. Check **Table Editor** to verify tables exist
 
 ### 5. Verify JWT Validation
 
-**Action**: Ensure Clerk JWT validation is configured in **coinbag** Supabase project.
+**Action**: Ensure Clerk JWT validation is configured in **supafolio** Supabase project.
 
 **Steps**:
-1. Go to Supabase Dashboard → **coinbag** project
+1. Go to Supabase Dashboard → **supafolio** project
 2. Go to **Authentication** → **Settings**
 3. Verify **JWKS URL** is set: `https://<clerk-domain>/.well-known/jwks.json`
 4. Verify **Issuer** matches Clerk domain
@@ -115,21 +115,21 @@ VITE_CLERK_PUBLISHABLE_KEY=pk_live_<production-key>
 
 3. **✅ Wrong Supabase Project** - **FIXED**
    - **Was**: Using moneybags project
-   - **Now**: Using coinbag project
+   - **Now**: Using supafolio project
    - **Status**: Fixed automatically
 
 ### ⚠️ High Priority (Needs Verification)
 
 4. **Supabase Anon Key**
    - **Status**: Needs verification (may be from wrong project)
-   - **Action**: Verify key is for coinbag project
+   - **Action**: Verify key is for supafolio project
 
 5. **Database Migrations**
-   - **Status**: Unknown if applied to coinbag project
+   - **Status**: Unknown if applied to supafolio project
    - **Action**: Verify migrations are applied
 
 6. **JWT Validation**
-   - **Status**: Unknown if configured in coinbag project
+   - **Status**: Unknown if configured in supafolio project
    - **Action**: Verify JWT validation is configured
 
 ---
@@ -138,12 +138,12 @@ VITE_CLERK_PUBLISHABLE_KEY=pk_live_<production-key>
 
 After completing manual actions:
 
-- [ ] `.env` uses coinbag Supabase project ✅ (Fixed)
+- [ ] `.env` uses supafolio Supabase project ✅ (Fixed)
 - [ ] `.env` uses production Clerk key (`pk_live_`) ⚠️ (Manual)
 - [ ] Vercel has all 4 environment variables set ⚠️ (Manual)
-- [ ] Supabase anon key is for coinbag project ⚠️ (Verify)
-- [ ] All migrations applied to coinbag project ⚠️ (Verify)
-- [ ] JWT validation configured in coinbag project ⚠️ (Verify)
+- [ ] Supabase anon key is for supafolio project ⚠️ (Verify)
+- [ ] All migrations applied to supafolio project ⚠️ (Verify)
+- [ ] JWT validation configured in supafolio project ⚠️ (Verify)
 - [ ] Production deployment succeeds ⚠️ (Test)
 - [ ] Data persists after refresh ⚠️ (Test)
 
@@ -167,7 +167,7 @@ After completing manual actions:
 - `scripts/fix-env-config.sh` - Automated fix script
 
 ### Modified
-- `.env` - Updated Supabase URL to coinbag project
+- `.env` - Updated Supabase URL to supafolio project
 - `.env.backup.*` - Backup of original `.env` file
 - `.vercel/project.json` - Vercel project configuration
 

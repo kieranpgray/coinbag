@@ -9,7 +9,7 @@ Revoking the old key must be done manually in the Supabase Dashboard. I cannot d
 ### Step 1: Navigate to API Settings
 
 1. Go to: **https://supabase.com/dashboard/project/tislabgxitwtcqfwrpik/settings/api**
-2. Project: `tislabgxitwtcqfwrpik` (coinbag-dev)
+2. Project: `tislabgxitwtcqfwrpik` (supafolio-dev)
 
 ### Step 2: Go to Legacy Keys Tab
 

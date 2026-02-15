@@ -19,7 +19,7 @@
 
 2. **Card grid pattern** (`CardBasedFlow.tsx`)
    - 4-card grid with icon + title + description + CTA button
-   - Generic "Welcome to Coinbag" badge with sparkles icon
+   - Generic "Welcome to Supafolio" badge with sparkles icon
    - This matches the "card grids" anti-pattern from frontend-design skill
 
 3. **Hard-coded borders throughout**

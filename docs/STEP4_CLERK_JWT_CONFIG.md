@@ -7,7 +7,7 @@ This step configures Clerk to issue JWT tokens that Supabase can validate, enabl
 ## Configuration Values
 
 ### Clerk Configuration
-- **Domain**: `clerk.coinbag.app`
+- **Domain**: `clerk.supafolio.app`
 - **Instance ID**: `ins_37VAGQw0JVza01qpTa6yUt8iVLY`
 
 ### Supabase Configuration
@@ -98,14 +98,14 @@ Look for **"JWT Settings"** or **"External OAuth Providers"** section.
 
 **Option A: If "Third-Party Auth" or "External Providers" is available**:
 1. Click **"Add provider"** or **"Configure Clerk"**
-2. Enter your Clerk domain: `clerk.coinbag.app`
+2. Enter your Clerk domain: `clerk.supafolio.app`
 3. Save
 
 **Option B: If "JWKS URL" configuration is available**:
 1. Find **"JWKS URL"** field
-2. Enter: `https://clerk.coinbag.app/.well-known/jwks.json`
+2. Enter: `https://clerk.supafolio.app/.well-known/jwks.json`
 3. Find **"Issuer"** field
-4. Enter: `https://clerk.coinbag.app`
+4. Enter: `https://clerk.supafolio.app`
 5. Find **"Audience"** field
 6. Enter: `ins_37VAGQw0JVza01qpTa6yUt8iVLY`
 7. Enable **"JWT Verification"** toggle (if present)
@@ -123,7 +123,7 @@ After saving, wait **2-5 minutes** for the configuration to propagate.
 
 Run this in terminal:
 ```bash
-curl https://clerk.coinbag.app/.well-known/jwks.json
+curl https://clerk.supafolio.app/.well-known/jwks.json
 ```
 
 **Expected**: Should return JSON with a `keys` array
@@ -144,7 +144,7 @@ window.Clerk.session.getToken({ template: 'supabase' })
       console.log('Role:', payload.role); // Should be "authenticated"
       console.log('User ID:', payload.sub); // Should be your Clerk user ID
       console.log('Audience:', payload.aud); // Should be "ins_37VAGQw0JVza01qpTa6yUt8iVLY"
-      console.log('Issuer:', payload.iss); // Should be "https://clerk.coinbag.app"
+      console.log('Issuer:', payload.iss); // Should be "https://clerk.supafolio.app"
       
       // Verify required claims
       if (payload.role === 'authenticated') {
@@ -172,7 +172,7 @@ window.Clerk.session.getToken({ template: 'supabase' })
 - ✅ `role: "authenticated"`
 - ✅ `sub: "user_xxxxx"` (your Clerk user ID)
 - ✅ `aud: "ins_37VAGQw0JVza01qpTa6yUt8iVLY"`
-- ✅ `iss: "https://clerk.coinbag.app"`
+- ✅ `iss: "https://clerk.supafolio.app"`
 
 ### Test 3: Test Supabase JWT Extraction
 
@@ -241,7 +241,7 @@ If JWT is configured correctly:
 
 **Solution**:
 1. Verify Supabase JWT validation settings
-2. Check JWKS URL is accessible: `curl https://clerk.coinbag.app/.well-known/jwks.json`
+2. Check JWKS URL is accessible: `curl https://clerk.supafolio.app/.well-known/jwks.json`
 3. Verify Issuer and Audience match exactly
 4. Wait a few minutes and try again
 
@@ -290,7 +290,7 @@ If JWT is configured correctly:
 - Other reserved claims
 
 **Supabase JWT Validation**:
-- JWKS URL: `https://clerk.coinbag.app/.well-known/jwks.json`
-- Issuer: `https://clerk.coinbag.app`
+- JWKS URL: `https://clerk.supafolio.app/.well-known/jwks.json`
+- Issuer: `https://clerk.supafolio.app`
 - Audience: `ins_37VAGQw0JVza01qpTa6yUt8iVLY`
 

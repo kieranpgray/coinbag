@@ -59,7 +59,7 @@ All production infrastructure has been successfully deployed and verified. The a
 ## Production Configuration Summary
 
 ### Vercel
-- **Project**: wellthy
+- **Project**: supafolio
 - **Environment Variables**: All set
 - **Build**: Configured
 
@@ -71,7 +71,7 @@ All production infrastructure has been successfully deployed and verified. The a
 - **Migrations**: All applied
 
 ### Clerk
-- **Domain**: `clerk.coinbag.app`
+- **Domain**: `clerk.supafolio.app`
 - **Instance ID**: `ins_37VAGQw0JVza01qpTa6yUt8iVLY`
 - **JWT Template**: `supabase` (configured)
 

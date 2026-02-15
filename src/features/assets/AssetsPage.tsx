@@ -62,7 +62,7 @@ export function AssetsPage() {
       );
       
       setCreateModalOpen(true);
-      if (type && ['Real Estate', 'Investments', 'Vehicles', 'Crypto', 'Cash', 'Superannuation', 'Other'].includes(type)) {
+      if (type && ['Real Estate', 'Investments', 'Vehicles', 'Crypto', 'Cash', 'Superannuation', 'Stock', 'RSU', 'Other'].includes(type)) {
         setDefaultAssetType(type);
       }
       // Clear the query params after processing

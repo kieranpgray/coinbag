@@ -1,5 +1,5 @@
 -- Migration: Create assets table with RLS policies
--- Description: Creates the assets table for the Coinbag application
+-- Description: Creates the assets table for the Supafolio application
 -- Prerequisites: Requires pgcrypto extension for gen_random_uuid()
 -- Rollback: Drop table and related objects
 

@@ -35,7 +35,7 @@ This is a step-by-step checklist of manual actions you need to complete before p
 ### 2.1 Create New Project
 - Go to [app.supabase.com](https://app.supabase.com)
 - Click **New Project**
-- Name: `coinbag-production` (or your preferred name)
+- Name: `supafolio-production` (or your preferred name)
 - Choose region (closest to your users or Vercel deployment region)
 - Set a strong database password (save it securely)
 - Click **Create new project**

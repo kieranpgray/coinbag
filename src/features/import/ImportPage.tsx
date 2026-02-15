@@ -49,7 +49,7 @@ export function ImportPage() {
       const url = URL.createObjectURL(template);
       const link = document.createElement('a');
       link.href = url;
-      link.download = 'coinbag-import-template.xlsx';
+      link.download = 'supafolio-import-template.xlsx';
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);

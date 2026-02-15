@@ -13,7 +13,7 @@ export function LandingNav() {
           {/* Logo/Brand */}
           <div className="flex items-center">
             <Link to="/" className="text-xl font-bold text-primary">
-              Coinbag
+              Supafolio
             </Link>
           </div>
 

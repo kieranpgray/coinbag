@@ -59,7 +59,7 @@ export function WealthPage() {
     
     if (shouldCreate === 'asset') {
       setCreateAssetModalOpen(true);
-      if (type && ['Real Estate', 'Investments', 'Vehicles', 'Crypto', 'Cash', 'Superannuation', 'Other'].includes(type)) {
+      if (type && ['Real Estate', 'Investments', 'Vehicles', 'Crypto', 'Cash', 'Superannuation', 'Stock', 'RSU', 'Other'].includes(type)) {
         setDefaultAssetType(type);
       }
       setSearchParams({});

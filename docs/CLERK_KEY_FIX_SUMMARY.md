@@ -5,7 +5,7 @@ February 2, 2025
 
 ## Problem Fixed
 
-**Error**: `Clerk: Production Keys are only allowed for domain "coinbag.app"`
+**Error**: `Clerk: Production Keys are only allowed for domain "supafolio.app"`
 
 **Root Cause**: Production Clerk key (`pk_live_...`) was in `.env` file, causing authentication failures on localhost.
 

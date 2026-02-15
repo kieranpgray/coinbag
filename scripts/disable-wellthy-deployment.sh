@@ -1,6 +1,6 @@
 #!/bin/bash
 # Script to disable wellthy Vercel project deployments
-# This configures the wellthy project to never deploy, allowing only coinbag to deploy
+# This configures the wellthy project to never deploy, allowing only supafolio to deploy
 
 set -e
 
@@ -31,7 +31,7 @@ fi
 echo "⚙️  Configuring Ignore Build Step..."
 echo ""
 echo "The wellthy project will be configured to ALWAYS skip builds."
-echo "This means only coinbag will deploy when you push to the repository."
+echo "This means only supafolio will deploy when you push to the repository."
 echo ""
 
 # Note: Vercel CLI doesn't have a direct command to set ignore build step
@@ -50,7 +50,7 @@ echo "   This will make wellthy ALWAYS skip builds."
 echo ""
 echo "6. Click 'Save'"
 echo ""
-echo "✅ After this, only coinbag will deploy on pushes."
+echo "✅ After this, only supafolio will deploy on pushes."
 echo ""
 
 # Alternative: Try using Vercel API if we have a token

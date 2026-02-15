@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 
 type ViewMode = 'list' | 'cards';
 
-const VIEW_MODE_STORAGE_KEY = 'wellthy-view-preference';
+const VIEW_MODE_STORAGE_KEY = 'supafolio-view-preference';
 
 /**
  * Safely access localStorage with error handling

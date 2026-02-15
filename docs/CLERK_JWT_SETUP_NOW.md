@@ -18,7 +18,7 @@ Without Clerk JWT validation:
 1. Go to [https://dashboard.clerk.com](https://dashboard.clerk.com)
 2. Select your application
 3. Go to **Settings** → **Domains**
-4. Copy your Clerk domain (e.g., `clerk.coinbag.app` or `xxxxx.clerk.accounts.dev`)
+4. Copy your Clerk domain (e.g., `clerk.supafolio.app` or `xxxxx.clerk.accounts.dev`)
 
 **Option B: From Your Publishable Key**
 - Your Clerk publishable key format: `pk_test_xxxxx` or `pk_live_xxxxx`
@@ -46,13 +46,13 @@ Without Clerk JWT validation:
    ```
    https://<your-clerk-domain>/.well-known/jwks.json
    ```
-   Example: `https://clerk.coinbag.app/.well-known/jwks.json`
+   Example: `https://clerk.supafolio.app/.well-known/jwks.json`
    
    **Issuer**:
    ```
    https://<your-clerk-domain>
    ```
-   Example: `https://clerk.coinbag.app`
+   Example: `https://clerk.supafolio.app`
    
    **Audience** (Optional but Recommended):
    ```

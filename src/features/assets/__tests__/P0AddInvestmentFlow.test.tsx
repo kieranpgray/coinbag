@@ -203,7 +203,7 @@ describe('P0: Add Investment Flow Never Deletes Assets', () => {
     seedMockAssets([existingAsset]);
 
     // Verify window storage has the asset
-    const GLOBAL_STORAGE_KEY = '__coinbag_mock_assets__';
+    const GLOBAL_STORAGE_KEY = '__supafolio_mock_assets__';
     expect(window[GLOBAL_STORAGE_KEY]).toBeDefined();
     expect(Array.isArray(window[GLOBAL_STORAGE_KEY])).toBe(true);
     expect(window[GLOBAL_STORAGE_KEY]).toHaveLength(1);

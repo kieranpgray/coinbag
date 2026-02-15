@@ -269,9 +269,9 @@ export class ImportValidation {
             if (err.path[0] === 'type' && typeof errInput === 'string') {
               const normalized = normalizeAssetType(errInput);
               if (normalized) {
-                message = `Invalid asset type "${errInput}". Did you mean "${normalized}"? Valid values: Real Estate, Investments, Vehicles, Crypto, Cash, Superannuation, Other`;
+                message = `Invalid asset type "${errInput}". Did you mean "${normalized}"? Valid values: Real Estate, Investments, Vehicles, Crypto, Cash, Superannuation, Stock, RSU, Other`;
               } else {
-                message = `${err.message}. Valid values: Real Estate, Investments, Vehicles, Crypto, Cash, Superannuation, Other`;
+                message = `${err.message}. Valid values: Real Estate, Investments, Vehicles, Crypto, Cash, Superannuation, Stock, RSU, Other`;
               }
             }
             return {
@@ -598,13 +598,33 @@ export class ImportValidation {
   }
 
   /**
-   * Find duplicate asset
+   * Find duplicate asset.
+   * For Crypto and Stock (lots): match on (ticker, purchase_date, quantity) so multiple lots of the same symbol are not flagged as duplicates.
+   * For other types: match on name + type.
    */
   private findDuplicateAsset(
     asset: ReturnType<typeof assetCreateSchema.parse>
   ): Asset | undefined {
-    const normalizedName = this.normalizeForComparison(asset.name);
+    const typeVal = asset.type;
 
+    if (typeVal === 'Crypto' || typeVal === 'Stock') {
+      const tickerVal = (asset.ticker ?? '').toString().trim();
+      const purchaseDateVal = (asset.purchaseDate ?? '').toString().trim();
+      const quantityVal = asset.quantity;
+      if (tickerVal && purchaseDateVal && quantityVal != null) {
+        return this.existingAssets.find(
+          (existing) =>
+            existing.type === typeVal &&
+            this.normalizeForComparison(existing.ticker ?? '') === this.normalizeForComparison(tickerVal) &&
+            (existing.purchaseDate ?? '').toString().trim() === purchaseDateVal &&
+            existing.quantity === quantityVal
+        );
+      }
+      // If ticker/purchase_date/quantity incomplete, do not treat as duplicate (allow import)
+      return undefined;
+    }
+
+    const normalizedName = this.normalizeForComparison(asset.name);
     return this.existingAssets.find(
       (existing) =>
         this.normalizeForComparison(existing.name) === normalizedName &&

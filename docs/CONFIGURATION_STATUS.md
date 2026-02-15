@@ -1,7 +1,7 @@
 # Production Configuration Status
 
 **Date**: $(date)
-**Project**: Wellthy (coinbag)
+**Project**: Supafolio
 **Supabase Project**: `auvtsvmtfrbpvgyvfqlx`
 
 ## Configuration Values Provided
@@ -13,7 +13,7 @@
 
 ### Clerk
 - ✅ **Publishable Key**: `pk_live_Y2xlcmsuY29pbmJhZy5hcHAk`
-- ✅ **Domain**: `clerk.coinbag.app`
+- ✅ **Domain**: `clerk.supafolio.app`
 - ✅ **Instance ID**: `ins_37VAGQw0JVza01qpTa6yUt8iVLY`
 
 ### Mistral
@@ -89,5 +89,5 @@
 
 **Clerk JWT Template Claims**:
 - `aud` = `ins_37VAGQw0JVza01qpTa6yUt8iVLY`
-- `iss` = `https://clerk.coinbag.app`
+- `iss` = `https://clerk.supafolio.app`
 

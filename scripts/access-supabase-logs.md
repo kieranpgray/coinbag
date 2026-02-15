@@ -48,7 +48,7 @@ Then use the correlation_id to filter logs.
 
 ## Current Setup
 
-- ✅ Project linked: `tislabgxitwtcqfwrpik` (coinbag-dev)
+- ✅ Project linked: `tislabgxitwtcqfwrpik` (supafolio-dev)
 - ✅ Supabase CLI installed
 - ❌ Access token needed for API access
 - ✅ Browser automation available for dashboard access

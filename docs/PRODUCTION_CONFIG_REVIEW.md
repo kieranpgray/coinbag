@@ -13,7 +13,7 @@ This document provides a comprehensive review of Supabase, Vercel, and Clerk pro
 
 ### ✅ Status: Configured
 
-**Project**: coinbag (auvtsvmtfrbpvgyvfqlx)  
+**Project**: supafolio (auvtsvmtfrbpvgyvfqlx)  
 **Region**: Oceania (Sydney)  
 **Status**: Active and linked
 
@@ -21,23 +21,23 @@ This document provides a comprehensive review of Supabase, Vercel, and Clerk pro
 
 | Variable | Status | Value |
 |----------|--------|-------|
-| `VITE_SUPABASE_URL` | ⚠️ **ISSUE** | Currently pointing to `moneybags` project instead of `coinbag` |
+| `VITE_SUPABASE_URL` | ⚠️ **ISSUE** | Currently pointing to `moneybags` project instead of `supafolio` |
 | `VITE_SUPABASE_ANON_KEY` | ✅ Set | Configured (208 chars) |
 
 ### Issues Found
 
 1. **❌ Wrong Supabase Project**
    - **Current**: Using `moneybags` project (`tislabgxitwtcqfwrpik`)
-   - **Expected**: Should use `coinbag` project (`auvtsvmtfrbpvgyvfqlx`)
+   - **Expected**: Should use `supafolio` project (`auvtsvmtfrbpvgyvfqlx`)
    - **Impact**: Data will be stored in wrong project
-   - **Fix**: Update `VITE_SUPABASE_URL` to point to coinbag project
+   - **Fix**: Update `VITE_SUPABASE_URL` to point to supafolio project
 
 ### Required Actions
 
-- [ ] Update `.env` to use coinbag Supabase project URL
-- [ ] Update Vercel environment variables to use coinbag project
-- [ ] Verify migrations are applied to coinbag project (not moneybags)
-- [ ] Verify JWT validation is configured in coinbag project
+- [ ] Update `.env` to use supafolio Supabase project URL
+- [ ] Update Vercel environment variables to use supafolio project
+- [ ] Verify migrations are applied to supafolio project (not moneybags)
+- [ ] Verify JWT validation is configured in supafolio project
 
 ---
 
@@ -45,8 +45,8 @@ This document provides a comprehensive review of Supabase, Vercel, and Clerk pro
 
 ### ✅ Status: Project Linked
 
-**Project**: wellthy  
-**URL**: https://coinbag-kieranpgrays-projects.vercel.app  
+**Project**: supafolio  
+**URL**: https://supafolio-kieranpgrays-projects.vercel.app  
 **Status**: Linked to GitHub repository
 
 ### Build Configuration
@@ -61,7 +61,7 @@ This document provides a comprehensive review of Supabase, Vercel, and Clerk pro
 
 Required variables for production:
 - `VITE_DATA_SOURCE=supabase` - **MUST BE SET**
-- `VITE_SUPABASE_URL` - **MUST BE SET** (should point to coinbag project)
+- `VITE_SUPABASE_URL` - **MUST BE SET** (should point to supafolio project)
 - `VITE_SUPABASE_ANON_KEY` - **MUST BE SET**
 - `VITE_CLERK_PUBLISHABLE_KEY` - **MUST BE SET** (should be production key)
 
@@ -75,7 +75,7 @@ Required variables for production:
 
 - [ ] Verify all 4 required env vars are set in Vercel Dashboard
 - [ ] Ensure `VITE_DATA_SOURCE=supabase` is set for Production environment
-- [ ] Ensure `VITE_SUPABASE_URL` points to coinbag project (not moneybags)
+- [ ] Ensure `VITE_SUPABASE_URL` points to supafolio project (not moneybags)
 - [ ] Ensure `VITE_CLERK_PUBLISHABLE_KEY` is production key (pk_live_)
 - [ ] Redeploy after updating environment variables
 
@@ -132,7 +132,7 @@ For RLS policies to work, Supabase must validate Clerk JWTs:
 
 ### Required Actions
 
-- [ ] Verify JWT validation is configured in coinbag Supabase project
+- [ ] Verify JWT validation is configured in supafolio Supabase project
 - [ ] Test JWT extraction function
 - [ ] Verify RLS policies work with Clerk JWTs
 
@@ -161,7 +161,7 @@ All migrations in `supabase/migrations/` must be applied:
 
 ### Required Actions
 
-- [ ] Verify all 12 migrations are applied to coinbag project
+- [ ] Verify all 12 migrations are applied to supafolio project
 - [ ] Check that tables exist in Supabase Dashboard → Table Editor
 - [ ] Verify RLS policies are enabled on all tables
 
@@ -172,7 +172,7 @@ All migrations in `supabase/migrations/` must be applied:
 ### 🔴 Critical (Must Fix Before Production)
 
 1. **Wrong Supabase Project**
-   - Currently using `moneybags` instead of `coinbag`
+   - Currently using `moneybags` instead of `supafolio`
    - **Fix**: Update `VITE_SUPABASE_URL` in `.env` and Vercel
 
 2. **Using Test Clerk Key**
@@ -191,7 +191,7 @@ All migrations in `supabase/migrations/` must be applied:
 
 5. **Database Migrations**
    - Cannot verify automatically
-   - **Action**: Verify all migrations are applied to coinbag project
+   - **Action**: Verify all migrations are applied to supafolio project
 
 ---
 
@@ -223,7 +223,7 @@ All migrations in `supabase/migrations/` must be applied:
 
 3. **Update Vercel Environment Variables**
    - Go to Vercel Dashboard → Project Settings → Environment Variables
-   - Update `VITE_SUPABASE_URL` to coinbag project
+   - Update `VITE_SUPABASE_URL` to supafolio project
    - Update `VITE_CLERK_PUBLISHABLE_KEY` to production key
    - Ensure `VITE_DATA_SOURCE=supabase` is set
 
@@ -233,10 +233,10 @@ All migrations in `supabase/migrations/` must be applied:
 
 After applying fixes, verify:
 
-- [ ] `.env` file uses coinbag Supabase project
+- [ ] `.env` file uses supafolio Supabase project
 - [ ] `.env` file uses production Clerk publishable key
 - [ ] Vercel environment variables match `.env` values
-- [ ] All migrations applied to coinbag project
+- [ ] All migrations applied to supafolio project
 - [ ] JWT validation configured in Supabase
 - [ ] Test data persists after refresh
 - [ ] Production deployment succeeds

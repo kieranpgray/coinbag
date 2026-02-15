@@ -37,11 +37,11 @@ if [ -f "vercel.json" ]; then
 fi
 
 echo "📋 Next Steps:"
-echo "1. Check Vercel Dashboard for both 'wellthy' and 'coinbag' projects"
+echo "1. Check Vercel Dashboard for both 'wellthy' and 'supafolio' projects"
 echo "2. Verify which GitHub repository each project is linked to"
 echo "3. Configure 'Ignore Build Step' in Vercel Dashboard:"
 echo "   - Wellthy: grep -q '\"name\": \"wellthy\"' package.json"
-echo "   - Coinbag: grep -q '\"name\": \"coinbag\"' package.json"
+echo "   - Supafolio: grep -q '\"name\": \"supafolio\"' package.json"
 echo ""
 echo "4. Or use branch filters to separate deployments"
 echo ""

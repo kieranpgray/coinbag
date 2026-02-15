@@ -194,7 +194,7 @@ If you still see 401 errors after testing:
    - Verify production key (`pk_live_...`) is NOT in `.env`
 
 2. **Check browser console**:
-   - Look for: `Clerk: Production Keys are only allowed for domain "coinbag.app"`
+   - Look for: `Clerk: Production Keys are only allowed for domain "supafolio.app"`
    - This indicates production key is being used in development
 
 3. **Verify `.env` file**:

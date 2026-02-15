@@ -89,7 +89,7 @@ export function CardBasedFlow() {
         {/* Welcome Badge */}
         <div className="inline-flex items-center gap-2 bg-primary/10 text-primary rounded-full px-4 py-2 mb-6">
           <Sparkles className="w-4 h-4" />
-          <span className="text-sm">Welcome to Coinbag</span>
+          <span className="text-sm">Welcome to Supafolio</span>
         </div>
 
         {/* Main Heading */}

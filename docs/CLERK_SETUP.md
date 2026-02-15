@@ -1,6 +1,6 @@
 # Clerk Authentication Setup
 
-This document outlines the Clerk authentication integration for the Coinbag application.
+This document outlines the Clerk authentication integration for the Supafolio application.
 
 ## Environment Variables
 
@@ -177,7 +177,7 @@ VITE_DATA_SOURCE=supabase
 - **Why**: Production keys are required for production deployments
 - **Where to get**: Clerk Dashboard → API Keys → **Production** tab
 - **Format**: `VITE_CLERK_PUBLISHABLE_KEY=pk_live_...`
-- **Domain**: Restricted to `coinbag.app` and subdomains
+- **Domain**: Restricted to `supafolio.app` and subdomains
 
 **Example**:
 ```bash

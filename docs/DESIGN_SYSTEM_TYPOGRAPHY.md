@@ -2,7 +2,7 @@
 
 ## Overview
 
-Coinbag uses a token-based typography system defined in `src/index.css` and configured in `tailwind.config.js`. All typography should use design tokens rather than raw Tailwind size classes to ensure consistency and maintainability.
+Supafolio uses a token-based typography system defined in `src/index.css` and configured in `tailwind.config.js`. All typography should use design tokens rather than raw Tailwind size classes to ensure consistency and maintainability.
 
 **Baseline**: The navigation text (`text-sm` = 14px) is the baseline for body text throughout the application. All other typography scales from this baseline.
 

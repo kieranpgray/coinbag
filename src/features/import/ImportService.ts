@@ -496,8 +496,20 @@ export class ImportService {
       (item) => {
         // Ensure dateAdded is present (schema validation guarantees it)
         const dateAddedValue = item.data.dateAdded;
+        const typeVal = item.data.type;
+        const nameVal = (item.data.name ?? '').toString().trim();
+        const tickerVal = (item.data.ticker ?? '').toString().trim();
+        const purchaseDateVal = (item.data.purchaseDate ?? '').toString().trim();
+
+        // For Crypto/Stock lots: derive name from ticker (and optionally purchase_date) when name is empty
+        let derivedName: string | undefined;
+        if ((typeVal === 'Crypto' || typeVal === 'Stock') && !nameVal && tickerVal) {
+          derivedName = purchaseDateVal ? `${tickerVal} (${purchaseDateVal})` : tickerVal;
+        }
+
         const assetData = {
           ...item.data,
+          ...(derivedName !== undefined && { name: derivedName }),
           dateAdded: (typeof dateAddedValue === 'string' && dateAddedValue ? dateAddedValue : new Date().toISOString().split('T')[0]),
         } as Omit<Asset, 'id'>;
         return assetsRepo.create(assetData, this.getToken);

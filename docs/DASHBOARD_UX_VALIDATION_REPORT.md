@@ -1,6 +1,6 @@
 # Dashboard UX Validation Report
 
-This document validates that the Coinbag dashboard implementation complies with the canonical **Coinbag Dashboard UX Plan & Copy Specification**.
+This document validates that the Supafolio dashboard implementation complies with the canonical **Supafolio Dashboard UX Plan & Copy Specification**.
 
 Generated: December 28, 2024
 
@@ -14,7 +14,7 @@ Generated: December 28, 2024
 |------------|----------------|----------------|
 | **Condition** | All meaningful data sources = 0 | ✅ Yes - Uses `dataSources` counts |
 | **UI** | Show ONE dashboard-level empty state | ✅ Yes - Single card rendered |
-| **Headline** | "Let's set up your Coinbag dashboard" | ✅ Yes - Exact match |
+| **Headline** | "Let's set up your Supafolio dashboard" | ✅ Yes - Exact match |
 | **Body** | "Add a few data sources to start tracking your finances and see meaningful insights here." | ✅ Yes - Exact match |
 | **CTAs Visible** | All 5 CTAs present | ✅ Yes - All rendered |
 | **CTA: Add an account** | `/accounts` | ✅ Yes |
@@ -226,5 +226,5 @@ Generated: December 28, 2024
 
 **✅ ALL REQUIREMENTS MET**
 
-The Coinbag dashboard implementation is **fully compliant** with the canonical Dashboard UX Plan & Copy Specification.
+The Supafolio dashboard implementation is **fully compliant** with the canonical Dashboard UX Plan & Copy Specification.
 

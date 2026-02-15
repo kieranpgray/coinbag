@@ -15,7 +15,7 @@ const randomDelay = () => delay(Math.floor(Math.random() * 150) + 50);
 
 // In-memory data store (no auto-seeding)
 // Use global object to persist across Vite HMR module reloads
-const GLOBAL_STORAGE_KEY = '__coinbag_mock_assets__';
+const GLOBAL_STORAGE_KEY = '__supafolio_mock_assets__';
 declare global {
   interface Window {
     [GLOBAL_STORAGE_KEY]?: Asset[];

@@ -15,11 +15,13 @@ console.log('')
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
+const CLERK_DOMAIN = process.env.CLERK_DOMAIN || 'clerk.supafolio.app'
+
 // Test 1: Check JWKS URL
 console.log('📋 Test 1: JWKS URL Accessibility')
 console.log('─'.repeat(60))
 try {
-  const response = await fetch('https://clerk.coinbag.app/.well-known/jwks.json')
+  const response = await fetch(`https://${CLERK_DOMAIN}/.well-known/jwks.json`)
   if (response.ok) {
     const data = await response.json()
     console.log('   ✅ JWKS URL is accessible')

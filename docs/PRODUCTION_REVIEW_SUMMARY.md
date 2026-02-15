@@ -9,13 +9,13 @@ Comprehensive review of Supabase, Vercel, and Clerk production configuration has
 ## 🔴 Critical Issues Found & Fixed
 
 ### 1. Wrong Supabase Project ✅ FIXED
-- **Issue**: Using `moneybags` project instead of `coinbag`
-- **Fix Applied**: Updated `.env` to use coinbag project (`auvtsvmtfrbpvgyvfqlx`)
+- **Issue**: Using `moneybags` project instead of `supafolio`
+- **Fix Applied**: Updated `.env` to use supafolio project (`auvtsvmtfrbpvgyvfqlx`)
 - **Status**: ✅ Fixed automatically
 
 ### 2. Supabase Anon Key ✅ FIXED
 - **Issue**: Anon key may have been from wrong project
-- **Fix Applied**: Updated to coinbag project anon key
+- **Fix Applied**: Updated to supafolio project anon key
 - **Status**: ✅ Fixed automatically
 
 ### 3. No Vercel Environment Variables ⚠️ MANUAL ACTION REQUIRED
@@ -39,11 +39,11 @@ Comprehensive review of Supabase, Vercel, and Clerk production configuration has
    - Created `.vercel/project.json`
 
 2. ✅ **Supabase Project URL Updated**
-   - Changed from `moneybags` to `coinbag`
+   - Changed from `moneybags` to `supafolio`
    - Updated `.env` file automatically
 
 3. ✅ **Supabase Anon Key Updated**
-   - Updated to coinbag project anon key
+   - Updated to supafolio project anon key
    - Retrieved via Supabase CLI
 
 4. ✅ **Documentation Created**
@@ -85,9 +85,9 @@ VITE_CLERK_PUBLISHABLE_KEY=pk_live_<your-production-key>
 
 | Component | Status | Details |
 |-----------|--------|---------|
-| **Supabase Project** | ✅ Fixed | Using coinbag project |
+| **Supabase Project** | ✅ Fixed | Using supafolio project |
 | **Supabase URL** | ✅ Fixed | `https://auvtsvmtfrbpvgyvfqlx.supabase.co` |
-| **Supabase Anon Key** | ✅ Fixed | Coinbag project key |
+| **Supabase Anon Key** | ✅ Fixed | Supafolio project key |
 | **Clerk Secret Key** | ✅ Correct | Production key (`sk_live_`) |
 | **Clerk Publishable Key** | ⚠️ Needs Fix | Test key (`pk_test_`) |
 | **Vercel Project** | ✅ Linked | Project linked |
@@ -100,13 +100,13 @@ VITE_CLERK_PUBLISHABLE_KEY=pk_live_<your-production-key>
 
 After completing manual actions:
 
-- [x] Supabase project is coinbag ✅
+- [x] Supabase project is supafolio ✅
 - [x] Supabase URL is correct ✅
-- [x] Supabase anon key is for coinbag ✅
+- [x] Supabase anon key is for supafolio ✅
 - [ ] Clerk publishable key is production (`pk_live_`) ⚠️
 - [ ] Vercel has all 4 environment variables ⚠️
-- [ ] Database migrations applied to coinbag ⚠️ (verify)
-- [ ] JWT validation configured in coinbag ⚠️ (verify)
+- [ ] Database migrations applied to supafolio ⚠️ (verify)
+- [ ] JWT validation configured in supafolio ⚠️ (verify)
 - [ ] Production deployment succeeds ⚠️ (test)
 
 ---

@@ -16,11 +16,11 @@ fi
 cp .env .env.backup.$(date +%Y%m%d_%H%M%S)
 echo "✅ Created backup: .env.backup.*"
 
-# Fix Supabase URL (change from moneybags to coinbag)
+# Fix Supabase URL (change from moneybags to supafolio)
 if grep -q "tislabgxitwtcqfwrpik" .env; then
-  echo "⚠️  Found moneybags project URL, updating to coinbag..."
+  echo "⚠️  Found moneybags project URL, updating to supafolio..."
   sed -i '' 's|https://tislabgxitwtcqfwrpik\.supabase\.co|https://auvtsvmtfrbpvgyvfqlx.supabase.co|g' .env
-  echo "✅ Updated VITE_SUPABASE_URL to coinbag project"
+  echo "✅ Updated VITE_SUPABASE_URL to supafolio project"
 else
   echo "✅ Supabase URL already correct or not found"
 fi
@@ -39,5 +39,5 @@ echo "✅ Configuration fixes applied (where possible)"
 echo ""
 echo "⚠️  MANUAL ACTIONS STILL REQUIRED:"
 echo "   1. Update VITE_CLERK_PUBLISHABLE_KEY to production key (pk_live_...)"
-echo "   2. Get coinbag Supabase anon key and update VITE_SUPABASE_ANON_KEY"
+echo "   2. Get supafolio Supabase anon key and update VITE_SUPABASE_ANON_KEY"
 echo "   3. Set all environment variables in Vercel Dashboard"

@@ -31,7 +31,7 @@ VITE_CLERK_PUBLISHABLE_KEY=pk_live_<YOUR-PRODUCTION-KEY>
 
 **Clerk Key**: Must be **production key** (`pk_live_...`)
 - Get from: Clerk Dashboard → API Keys → **Production** tab
-- Domain restriction: Only works on `coinbag.app` and subdomains
+- Domain restriction: Only works on `supafolio.app` and subdomains
 
 ### Preview Environment (Optional)
 

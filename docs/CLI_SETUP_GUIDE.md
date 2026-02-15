@@ -145,7 +145,7 @@ export VERCEL_TOKEN=<your-vercel-token>
 
 ```bash
 # Navigate to project directory
-cd /Users/kierangray/Projects/wellthy
+cd /Users/kierangray/Projects/supafolio
 
 # Link to existing Vercel project
 vercel link
@@ -154,7 +154,7 @@ vercel link
 # - Set up and deploy? No (if project already exists)
 # - Which scope? Select your account/team
 # - Link to existing project? Yes
-# - Project name? coinbag (or your project name)
+# - Project name? supafolio (or your project name)
 ```
 
 ### Step 4: Verify Authentication

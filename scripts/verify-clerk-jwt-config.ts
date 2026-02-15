@@ -4,7 +4,7 @@
  * Checks if JWT template exists and provides instructions for setup
  */
 
-const CLERK_DOMAIN = 'clerk.coinbag.app'
+const CLERK_DOMAIN = process.env.CLERK_DOMAIN || 'clerk.supafolio.app'
 const CLERK_INSTANCE_ID = 'ins_37VAGQw0JVza01qpTa6yUt8iVLY'
 const SUPABASE_PROJECT_REF = 'auvtsvmtfrbpvgyvfqlx'
 

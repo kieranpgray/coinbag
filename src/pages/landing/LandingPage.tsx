@@ -7,7 +7,7 @@ import { FeaturesSection } from '@/components/landing/FeaturesSection';
 import { CTASection } from '@/components/landing/CTASection';
 import { Footer } from '@/components/layout/Footer';
 
-const HERO_STORAGE_KEY = 'coinbag_last_hero_variant';
+const HERO_STORAGE_KEY = 'supafolio_last_hero_variant';
 
 /**
  * Landing page component with hero variant rotation

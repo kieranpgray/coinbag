@@ -1,6 +1,6 @@
 # Security Hardening Guide
 
-This document outlines comprehensive security measures to ensure your Coinbag application is production-hardened, including encryption at rest and in transit.
+This document outlines comprehensive security measures to ensure your Supafolio application is production-hardened, including encryption at rest and in transit.
 
 ## Encryption at Rest
 
@@ -209,8 +209,8 @@ WHERE schemaname = 'public';
 
 **Example**:
 ```
-https://coinbag.vercel.app
-https://www.coinbag.com
+https://supafolio.vercel.app
+https://www.supafolio.com
 ```
 
 **Never Use**:

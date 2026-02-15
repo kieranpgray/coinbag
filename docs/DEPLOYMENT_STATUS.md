@@ -2,10 +2,10 @@
 
 ## ✅ Completed
 
-1. **GitHub Repository**: Created `coinbag` repository and pushed code
+1. **GitHub Repository**: Created `supafolio` repository and pushed code
 2. **Vercel Project**: Connected GitHub repository to Vercel
-3. **Domain**: `coinbag.app` associated with Vercel project
-4. **Clerk Production**: Clerk production instance configured with `coinbag.app`
+3. **Domain**: `supafolio.app` associated with Vercel project
+4. **Clerk Production**: Clerk production instance configured with `supafolio.app`
 
 ## 🔄 Next Steps
 
@@ -65,12 +65,12 @@ VITE_CLERK_PUBLISHABLE_KEY=pk_live_your-production-key
 Once environment variables are set:
 1. Push to `main` branch (or trigger deployment in Vercel)
 2. Vercel will automatically build and deploy
-3. Your app will be live at `https://coinbag.app`
+3. Your app will be live at `https://supafolio.app`
 
 ### Step 5: Verify Deployment
 
 After deployment, verify:
-- [ ] App loads at `https://coinbag.app`
+- [ ] App loads at `https://supafolio.app`
 - [ ] Can sign in with Clerk
 - [ ] Can create data (asset, liability, etc.)
 - [ ] Data persists after refresh
@@ -78,8 +78,8 @@ After deployment, verify:
 
 ## Quick Reference
 
-**Repository**: https://github.com/kieranpgray/coinbag
-**Production URL**: https://coinbag.app
+**Repository**: https://github.com/kieranpgray/supafolio
+**Production URL**: https://supafolio.app
 **Clerk Dashboard**: https://dashboard.clerk.com
 **Supabase Dashboard**: https://app.supabase.com
 **Vercel Dashboard**: https://vercel.com

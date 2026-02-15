@@ -26,18 +26,18 @@ Value: https://auvtsvmtfrbpvgyvfqlx.supabase.co
 Environment: Production, Preview, Development
 ```
 
-**Why**: Points to your coinbag Supabase project. Currently `.env` points to wrong project (moneybags).
+**Why**: Points to your supafolio Supabase project. Currently `.env` points to wrong project (moneybags).
 
 ### 3. VITE_SUPABASE_ANON_KEY
 ```
 Key: VITE_SUPABASE_ANON_KEY
-Value: <your-coinbag-project-anon-key>
+Value: <your-supafolio-project-anon-key>
 Environment: Production, Preview, Development
 ```
 
 **Why**: Required for Supabase authentication. Get from Supabase Dashboard → Project Settings → API.
 
-**⚠️ Important**: Use the anon/public key from the **coinbag** project, not moneybags.
+**⚠️ Important**: Use the anon/public key from the **supafolio** project, not moneybags.
 
 ### 4. VITE_CLERK_PUBLISHABLE_KEY
 ```
@@ -53,7 +53,7 @@ Environment: Production, Preview, Development
 ## How to Set in Vercel
 
 1. Go to [Vercel Dashboard](https://vercel.com/dashboard)
-2. Select your project: **wellthy**
+2. Select your project: **supafolio**
 3. Go to **Settings** → **Environment Variables**
 4. Click **Add New**
 5. For each variable:
@@ -87,14 +87,14 @@ After setting variables and redeploying:
 ## Current Issues
 
 1. ❌ **No environment variables set in Vercel**
-2. ❌ **Wrong Supabase project in .env** (moneybags instead of coinbag)
+2. ❌ **Wrong Supabase project in .env** (moneybags instead of supafolio)
 3. ❌ **Using test Clerk key** (pk_test_ instead of pk_live_)
 
 ## Fix Priority
 
 1. **CRITICAL**: Set all 4 variables in Vercel Dashboard
-2. **HIGH**: Update `.env` to use coinbag project
+2. **HIGH**: Update `.env` to use supafolio project
 3. **HIGH**: Update `.env` to use production Clerk key
-4. **MEDIUM**: Verify Supabase migrations are applied to coinbag project
+4. **MEDIUM**: Verify Supabase migrations are applied to supafolio project
 5. **MEDIUM**: Verify JWT validation is configured in coinbag project
 

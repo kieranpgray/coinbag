@@ -37,7 +37,7 @@
 
 **How to Verify**:
 1. Go to: https://vercel.com/dashboard
-2. Select project: **wellthy**
+2. Select project: **supafolio**
 3. Go to: **Settings** → **Environment Variables**
 4. Find: `VITE_SUPABASE_ANON_KEY`
 5. Check format:
