@@ -22,10 +22,17 @@ export class SupabaseAssetsRepository implements AssetsRepository {
   // Select actual database column names (snake_case)
   // Supabase doesn't support column aliasing in select strings, so we map them manually
   private readonly selectColumns =
+    'id, name, type, value, change_1d, change_1w, date_added, institution, notes, user_id, created_at, updated_at, ticker, exchange, quantity, purchase_price, purchase_date, todays_price, grant_date, vesting_date, grant_price, address, property_type, last_price_fetched_at, price_source';
+
+  // Fallback when asset-fields migration not applied (no grant_price, address, property_type)
+  private readonly selectColumnsWithoutAssetFields =
+    'id, name, type, value, change_1d, change_1w, date_added, institution, notes, user_id, created_at, updated_at, ticker, exchange, quantity, purchase_price, purchase_date, todays_price, grant_date, vesting_date, last_price_fetched_at, price_source';
+
+  // Fallback when price caching OR asset-fields not applied (Stock/RSU columns only)
+  private readonly selectColumnsWithoutPriceFields =
     'id, name, type, value, change_1d, change_1w, date_added, institution, notes, user_id, created_at, updated_at, ticker, exchange, quantity, purchase_price, purchase_date, todays_price, grant_date, vesting_date';
 
   // Fallback when Stock/RSU migration has not been applied: columns from original assets table only.
-  // Used for backwards compatibility; run `supabase db push` to apply migrations.
   private readonly selectColumnsBasic =
     'id, name, type, value, change_1d, change_1w, date_added, institution, notes, user_id, created_at, updated_at';
 
@@ -35,13 +42,17 @@ export class SupabaseAssetsRepository implements AssetsRepository {
    */
   private isMissingColumnOrBadRequest(error: { code?: string; message?: string; status?: number }): boolean {
     const code = error?.code ?? '';
-    const status = error?.status;
+    const status = typeof error !== 'undefined' && error !== null && 'status' in error
+      ? (error as { status?: number }).status
+      : undefined;
     const msg = (error?.message ?? '').toLowerCase();
+    const looksLikeBadRequest = status === 400 || msg.includes('bad request') || msg.includes('400') || code === 'PGRST204';
     return (
       code === '42703' ||
       code === 'PGRST100' ||
-      status === 400 ||
-      (msg.includes('column') && (msg.includes('does not exist') || msg.includes('ticker') || msg.includes('purchase_price') || msg.includes('vesting_date')))
+      code === 'PGRST204' ||
+      looksLikeBadRequest ||
+      (msg.includes('column') && (msg.includes('does not exist') || msg.includes('ticker') || msg.includes('purchase_price') || msg.includes('vesting_date') || msg.includes('last_price_fetched_at') || msg.includes('price_source') || msg.includes('grant_price') || msg.includes('address') || msg.includes('property_type')))
     );
   }
 
@@ -55,10 +66,14 @@ export class SupabaseAssetsRepository implements AssetsRepository {
       const s = String(val);
       return s.includes('T') ? s.split('T')[0] : s;
     };
+    // Normalize legacy types: Investments/Other → Other Investments (migration 20260216120002 may not have run)
+    const rawType = row.type as string;
+    const type =
+      rawType === 'Investments' || rawType === 'Other' ? 'Other Investments' : rawType;
     return {
       id: row.id as string,
       name: row.name as string,
-      type: row.type as 'Real Estate' | 'Investments' | 'Vehicles' | 'Crypto' | 'Cash' | 'Superannuation' | 'Stock' | 'RSU' | 'Other',
+      type: type as 'Real Estate' | 'Other Investments' | 'Vehicles' | 'Crypto' | 'Cash' | 'Superannuation' | 'Stock' | 'RSU',
       value: row.value as number,
       change1D: row.change_1d === null ? undefined : (row.change_1d as number | undefined),
       change1W: row.change_1w === null ? undefined : (row.change_1w as number | undefined),
@@ -76,6 +91,11 @@ export class SupabaseAssetsRepository implements AssetsRepository {
       todaysPrice: row.todays_price === null || row.todays_price === undefined ? undefined : (row.todays_price as number),
       grantDate: toDateStr(row.grant_date),
       vestingDate: toDateStr(row.vesting_date),
+      grantPrice: row.grant_price === null || row.grant_price === undefined ? undefined : (row.grant_price as number),
+      address: row.address === null || row.address === undefined ? undefined : (row.address as string),
+      propertyType: row.property_type === null || row.property_type === undefined ? undefined : (row.property_type as string),
+      lastPriceFetchedAt: row.last_price_fetched_at === null || row.last_price_fetched_at === undefined ? undefined : (row.last_price_fetched_at as string),
+      priceSource: row.price_source === null || row.price_source === undefined ? undefined : (row.price_source as string),
     };
   }
 
@@ -121,6 +141,11 @@ export class SupabaseAssetsRepository implements AssetsRepository {
       todaysPrice: entity.todaysPrice,
       grantDate: entity.grantDate,
       vestingDate: entity.vestingDate,
+      grantPrice: entity.grantPrice,
+      address: entity.address,
+      propertyType: entity.propertyType,
+      lastPriceFetchedAt: entity.lastPriceFetchedAt,
+      priceSource: entity.priceSource,
     };
   }
 
@@ -150,7 +175,7 @@ export class SupabaseAssetsRepository implements AssetsRepository {
       let data: unknown[] | null = null;
       let error: { message?: string; code?: string; details?: string; hint?: string; status?: number } | null = null;
 
-      let result = await supabase
+      const result = await supabase
         .from('assets')
         .select(this.selectColumns)
         .order('date_added', { ascending: false });
@@ -158,24 +183,49 @@ export class SupabaseAssetsRepository implements AssetsRepository {
       data = result.data as unknown[] | null;
       error = result.error;
 
-      // Fallback: if select fails due to missing columns (migration not applied) or 400, retry with basic columns
+      // Fallback: only when error suggests schema/column mismatch (400, PGRST204, etc.) — not network/RLS/500
       if (error && this.isMissingColumnOrBadRequest(error)) {
         const correlationId = getCorrelationId();
         logger.warn(
           'DB:ASSETS_LIST',
-          'Full select failed (missing columns or 400), retrying with basic columns. Run supabase db push to apply migrations.',
+          'Full select failed (schema may be behind). Retrying with reduced columns.',
           { error: error.message, code: error.code },
           correlationId || undefined
         );
-        const retry = await supabase
+        // Retry 1: without asset-fields (grant_price, address, property_type)
+        const retry1 = await supabase
           .from('assets')
-          .select(this.selectColumnsBasic)
+          .select(this.selectColumnsWithoutAssetFields)
           .order('date_added', { ascending: false });
-        if (!retry.error && retry.data) {
-          data = retry.data as unknown[];
+        if (!retry1.error && retry1.data) {
+          data = retry1.data as unknown[];
           error = null;
-        } else if (retry.error) {
-          logger.error('DB:ASSETS_LIST', 'Fallback basic select also failed', { error: retry.error.message }, correlationId || undefined);
+        } else if (retry1.error && this.isMissingColumnOrBadRequest(retry1.error)) {
+          // Retry 2: without price/asset fields (Stock/RSU only)
+          const retry2 = await supabase
+            .from('assets')
+            .select(this.selectColumnsWithoutPriceFields)
+            .order('date_added', { ascending: false });
+          if (!retry2.error && retry2.data) {
+            data = retry2.data as unknown[];
+            error = null;
+          } else if (retry2.error && this.isMissingColumnOrBadRequest(retry2.error)) {
+            // Retry 3: basic columns only (pre-Stock migration)
+            const retry3 = await supabase
+              .from('assets')
+              .select(this.selectColumnsBasic)
+              .order('date_added', { ascending: false });
+            if (!retry3.error && retry3.data) {
+              data = retry3.data as unknown[];
+              error = null;
+            } else if (retry3.error) {
+              logger.error('DB:ASSETS_LIST', 'All fallback selects failed', { error: retry3.error.message }, correlationId || undefined);
+            }
+          } else if (retry2.error) {
+            logger.error('DB:ASSETS_LIST', 'Fallback 2 failed', { error: retry2.error.message }, correlationId || undefined);
+          }
+        } else if (retry1.error) {
+          logger.error('DB:ASSETS_LIST', 'Fallback 1 failed', { error: retry1.error.message }, correlationId || undefined);
         }
       }
 
@@ -201,6 +251,9 @@ export class SupabaseAssetsRepository implements AssetsRepository {
             correlationId || undefined
           );
         }
+        if (import.meta.env.DEV) {
+          console.warn('[Assets] List failed:', error?.message ?? error, { code: error?.code, details: error?.details });
+        }
         return {
           data: [],
           error: this.normalizeSupabaseError(error),
@@ -214,6 +267,10 @@ export class SupabaseAssetsRepository implements AssetsRepository {
       const validation = assetListSchema.safeParse(mappedData);
       if (!validation.success) {
         logger.error('DB:ASSETS_LIST', 'Assets list validation error', { error: validation.error }, correlationId || undefined);
+        if (import.meta.env.DEV) {
+          const flat = validation.error.flatten();
+          console.warn('[Assets] List validation failed:', flat, 'issues:', validation.error.issues);
+        }
         return {
           data: [],
           error: {
@@ -239,6 +296,9 @@ export class SupabaseAssetsRepository implements AssetsRepository {
       return { data: assets };
     } catch (error) {
       logger.error('DB:ASSETS_LIST', 'List assets error', { error }, getCorrelationId() || undefined);
+      if (import.meta.env.DEV) {
+        console.warn('[Assets] List error (catch):', error);
+      }
       return {
         data: [],
         error: this.normalizeSupabaseError(error),
@@ -260,33 +320,44 @@ export class SupabaseAssetsRepository implements AssetsRepository {
 
       const supabase = await createAuthenticatedSupabaseClient(getToken);
 
-      let result = await supabase
+      const result = await supabase
         .from('assets')
         .select(this.selectColumns)
         .eq('id', id)
         .single();
 
-      let data = result.data;
+      let data: Record<string, unknown> | null = (result.data ?? null) as Record<string, unknown> | null;
       let error = result.error;
 
-      // Fallback: if select fails due to missing columns or 400, retry with basic columns
+      // Fallback: if select fails due to missing columns or 400, retry with reduced columns
       if (error && this.isMissingColumnOrBadRequest(error)) {
+        const correlationId = getCorrelationId();
         logger.warn(
           'DB:ASSETS_GET',
-          'Full select failed (missing columns or 400), retrying with basic columns. Run supabase db push to apply migrations.',
+          'Full select failed (missing columns or 400), retrying. Run supabase db push to apply migrations.',
           { error: error.message, code: error.code },
-          getCorrelationId() || undefined
+          correlationId || undefined
         );
-        const retry = await supabase
-          .from('assets')
-          .select(this.selectColumnsBasic)
-          .eq('id', id)
-          .single();
-        if (!retry.error && retry.data) {
-          data = retry.data as typeof data;
-          error = null;
-        } else if (retry.error) {
-          logger.error('DB:ASSETS_GET', 'Fallback basic select also failed', { error: retry.error.message }, getCorrelationId() || undefined);
+        const retries = [
+          this.selectColumnsWithoutAssetFields,
+          this.selectColumnsWithoutPriceFields,
+          this.selectColumnsBasic,
+        ] as const;
+        for (const cols of retries) {
+          const retry = await supabase.from('assets').select(cols).eq('id', id).single();
+          if (!retry.error && retry.data) {
+            data = retry.data as unknown as Record<string, unknown>;
+            error = null;
+            break;
+          }
+          if (retry.error && !this.isMissingColumnOrBadRequest(retry.error)) {
+            error = retry.error;
+            break;
+          }
+          error = retry.error;
+        }
+        if (error) {
+          logger.error('DB:ASSETS_GET', 'All fallback selects failed', { error }, correlationId || undefined);
         }
       }
 
@@ -390,7 +461,7 @@ export class SupabaseAssetsRepository implements AssetsRepository {
       // Map camelCase to snake_case for database
       // Validate and normalize asset type to ensure it matches database constraint
       const typeValue = String(validation.data.type).trim();
-      const allowedTypes = ['Real Estate', 'Investments', 'Vehicles', 'Crypto', 'Cash', 'Superannuation', 'Stock', 'RSU', 'Other'];
+      const allowedTypes = ['Real Estate', 'Other Investments', 'Vehicles', 'Crypto', 'Cash', 'Superannuation', 'Stock', 'RSU'];
 
       if (!allowedTypes.includes(typeValue)) {
         logger.error('DB:ASSET_INSERT', 'Invalid asset type provided', {
@@ -430,17 +501,6 @@ export class SupabaseAssetsRepository implements AssetsRepository {
       }
 
       // Type-specific required fields (contract validates; double-check for repo clarity)
-      if (typeValue === 'RSU') {
-        const vestingVal = validation.data.vestingDate?.trim();
-        if (!vestingVal) {
-          return {
-            error: {
-              error: 'Vesting date is required for RSU.',
-              code: 'VALIDATION_ERROR',
-            },
-          };
-        }
-      }
       if (typeValue === 'Stock' || typeValue === 'RSU' || typeValue === 'Crypto') {
         const tickerVal = validation.data.ticker?.trim();
         if (!tickerVal) {
@@ -504,6 +564,15 @@ export class SupabaseAssetsRepository implements AssetsRepository {
       }
       if (validation.data.vestingDate !== undefined && validation.data.vestingDate !== '') {
         dbInput.vesting_date = validation.data.vestingDate;
+      }
+      if (validation.data.grantPrice !== undefined && validation.data.grantPrice !== null) {
+        dbInput.grant_price = validation.data.grantPrice;
+      }
+      if (validation.data.address !== undefined && validation.data.address !== '') {
+        dbInput.address = validation.data.address.trim();
+      }
+      if (validation.data.propertyType !== undefined && validation.data.propertyType !== '') {
+        dbInput.property_type = validation.data.propertyType.trim();
       }
 
       const { data, error } = await supabase
@@ -613,51 +682,6 @@ export class SupabaseAssetsRepository implements AssetsRepository {
         correlationId || undefined
       );
 
-      // Log initial value to history
-      try {
-        const historyResult = await supabase
-          .from('asset_value_history')
-          .insert([{
-            asset_id: asset.id,
-            previous_value: null, // NULL for initial creation
-            new_value: asset.value,
-            user_id: userId,
-          }])
-          .select('id, asset_id, previous_value, new_value, change_amount, created_at')
-          .single();
-
-        if (historyResult.error) {
-          logger.error(
-            'DB:ASSET_INSERT_HISTORY',
-            'Failed to log initial value to history',
-            {
-              assetId: asset.id,
-              error: historyResult.error.message,
-            },
-            correlationId || undefined
-          );
-          // Don't fail the create operation if history logging fails
-        } else {
-          logger.info(
-            'DB:ASSET_INSERT_HISTORY',
-            'Initial value logged to history',
-            {
-              assetId: asset.id,
-              historyId: historyResult.data?.id,
-            },
-            correlationId || undefined
-          );
-        }
-      } catch (historyError) {
-        logger.error(
-          'DB:ASSET_INSERT_HISTORY',
-          'Exception while logging initial value to history',
-          { assetId: asset.id, error: historyError },
-          correlationId || undefined
-        );
-        // Don't fail the create operation if history logging fails
-      }
-
       return { data: asset };
     } catch (error) {
       logger.error('DB:ASSETS_CREATE', 'Create asset error', { error }, getCorrelationId() || undefined);
@@ -695,22 +719,8 @@ export class SupabaseAssetsRepository implements AssetsRepository {
 
       const supabase = await createAuthenticatedSupabaseClient(getToken);
 
-      // Get previous value if value is being updated
-      let previousValue: number | null = null;
-      if (validation.data.value !== undefined) {
-        const previousAssetResult = await supabase
-          .from('assets')
-          .select('value')
-          .eq('id', id)
-          .single();
-        
-        if (previousAssetResult.data) {
-          previousValue = previousAssetResult.data.value as number;
-        }
-      }
-
       // Map camelCase to snake_case for database
-      const allowedTypes = ['Real Estate', 'Investments', 'Vehicles', 'Crypto', 'Cash', 'Superannuation', 'Stock', 'RSU', 'Other'];
+      const allowedTypes = ['Real Estate', 'Other Investments', 'Vehicles', 'Crypto', 'Cash', 'Superannuation', 'Stock', 'RSU'];
       const dbInput: Record<string, unknown> = {};
 
       if (validation.data.name !== undefined) {
@@ -762,6 +772,9 @@ export class SupabaseAssetsRepository implements AssetsRepository {
       if (validation.data.todaysPrice !== undefined) dbInput.todays_price = validation.data.todaysPrice;
       if (validation.data.grantDate !== undefined) dbInput.grant_date = validation.data.grantDate === '' ? null : validation.data.grantDate;
       if (validation.data.vestingDate !== undefined) dbInput.vesting_date = validation.data.vestingDate === '' ? null : validation.data.vestingDate;
+      if (validation.data.grantPrice !== undefined) dbInput.grant_price = validation.data.grantPrice;
+      if (validation.data.address !== undefined) dbInput.address = validation.data.address === '' ? null : validation.data.address?.trim();
+      if (validation.data.propertyType !== undefined) dbInput.property_type = validation.data.propertyType === '' ? null : validation.data.propertyType?.trim();
 
       const { data, error } = await supabase
         .from('assets')
@@ -853,60 +866,6 @@ export class SupabaseAssetsRepository implements AssetsRepository {
       // Map entity schema to domain Asset type
       const asset = this.mapEntityToAsset(responseValidation.data);
 
-      // Log value change to history if value was updated
-      if (validation.data.value !== undefined && previousValue !== null && previousValue !== asset.value) {
-        try {
-          const userId = await getUserIdFromToken(getToken);
-          if (userId) {
-            const historyResult = await supabase
-              .from('asset_value_history')
-              .insert([{
-                asset_id: asset.id,
-                previous_value: previousValue,
-                new_value: asset.value,
-                user_id: userId,
-              }])
-              .select('id, asset_id, previous_value, new_value, change_amount, created_at')
-              .single();
-
-            if (historyResult.error) {
-              logger.error(
-                'DB:ASSET_UPDATE_HISTORY',
-                'Failed to log value change to history',
-                {
-                  assetId: asset.id,
-                  previousValue,
-                  newValue: asset.value,
-                  error: historyResult.error.message,
-                },
-                correlationId || undefined
-              );
-              // Don't fail the update operation if history logging fails
-            } else {
-              logger.info(
-                'DB:ASSET_UPDATE_HISTORY',
-                'Value change logged to history',
-                {
-                  assetId: asset.id,
-                  previousValue,
-                  newValue: asset.value,
-                  historyId: historyResult.data?.id,
-                },
-                correlationId || undefined
-              );
-            }
-          }
-        } catch (historyError) {
-          logger.error(
-            'DB:ASSET_UPDATE_HISTORY',
-            'Exception while logging value change to history',
-            { assetId: asset.id, error: historyError },
-            correlationId || undefined
-          );
-          // Don't fail the update operation if history logging fails
-        }
-      }
-
       return { data: asset };
     } catch (error) {
       logger.error('DB:ASSETS_UPDATE', 'Update asset error', { error }, getCorrelationId() || undefined);
@@ -934,7 +893,7 @@ export class SupabaseAssetsRepository implements AssetsRepository {
 
       const { data, error } = await supabase
         .from('asset_value_history')
-        .select('id, asset_id, previous_value, new_value, change_amount, created_at')
+        .select('id, asset_id, previous_value, new_value, change_amount, created_at, value_as_at_date')
         .eq('asset_id', assetId)
         .order('created_at', { ascending: false });
 
@@ -953,6 +912,11 @@ export class SupabaseAssetsRepository implements AssetsRepository {
       }
 
       // Map database rows to domain types
+      const toDateStr = (val: unknown): string | undefined | null => {
+        if (val === null || val === undefined) return undefined;
+        const s = String(val);
+        return s.includes('T') ? s.split('T')[0] : s;
+      };
       const history: AssetValueHistory[] = data.map((row) => ({
         id: row.id as string,
         assetId: row.asset_id as string,
@@ -960,6 +924,7 @@ export class SupabaseAssetsRepository implements AssetsRepository {
         newValue: row.new_value as number,
         changeAmount: row.change_amount as number,
         createdAt: row.created_at as string,
+        valueAsAtDate: row.value_as_at_date != null ? toDateStr(row.value_as_at_date) ?? undefined : undefined,
       }));
 
       // Validate with Zod schema

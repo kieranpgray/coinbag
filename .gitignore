@@ -50,3 +50,6 @@ __pycache__/
 
 .vercel
 .env.backup.*
+
+# Git worktrees (isolated feature branches)
+.worktrees
