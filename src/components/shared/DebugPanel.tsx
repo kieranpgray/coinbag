@@ -80,47 +80,47 @@ export function DebugPanel({ open, onOpenChange }: DebugPanelProps) {
         <div className="space-y-4 mt-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="text-sm font-semibold text-muted-foreground">Environment</label>
-              <p className="text-sm font-mono mt-1">{environment}</p>
+              <label className="text-body font-semibold text-muted-foreground">Environment</label>
+              <p className="text-body font-mono mt-1">{environment}</p>
             </div>
 
             <div>
-              <label className="text-sm font-semibold text-muted-foreground">Data Source</label>
-              <p className="text-sm font-mono mt-1">
+              <label className="text-body font-semibold text-muted-foreground">Data Source</label>
+              <p className="text-body font-mono mt-1">
                 {import.meta.env.VITE_DATA_SOURCE || 'mock'}
               </p>
             </div>
           </div>
 
           <div>
-            <label className="text-sm font-semibold text-muted-foreground">API Base URL</label>
-            <p className="text-sm font-mono mt-1 break-all">
+            <label className="text-body font-semibold text-muted-foreground">API Base URL</label>
+            <p className="text-body font-mono mt-1 break-all">
               {supabaseUrl || 'Not configured'}
             </p>
           </div>
 
           <div>
-            <label className="text-sm font-semibold text-muted-foreground">DB Project ID</label>
-            <p className="text-sm font-mono mt-1">{projectId}</p>
+            <label className="text-body font-semibold text-muted-foreground">DB Project ID</label>
+            <p className="text-body font-mono mt-1">{projectId}</p>
           </div>
 
           <div>
-            <label className="text-sm font-semibold text-muted-foreground">Schema/Migration Version</label>
-            <p className="text-sm font-mono mt-1">{formattedMigration}</p>
+            <label className="text-body font-semibold text-muted-foreground">Schema/Migration Version</label>
+            <p className="text-body font-mono mt-1">{formattedMigration}</p>
           </div>
 
           <div>
-            <label className="text-sm font-semibold text-muted-foreground">Current User ID</label>
+            <label className="text-body font-semibold text-muted-foreground">Current User ID</label>
             {isLoading ? (
-              <p className="text-sm text-muted-foreground mt-1">Loading...</p>
+              <p className="text-body text-muted-foreground mt-1">Loading...</p>
             ) : (
-              <p className="text-sm font-mono mt-1 break-all">{userId || 'Not available'}</p>
+              <p className="text-body font-mono mt-1 break-all">{userId || 'Not available'}</p>
             )}
           </div>
 
           <div className="pt-4 border-t">
-            <label className="text-sm font-semibold text-muted-foreground">Clerk User Info</label>
-            <div className="mt-2 space-y-1 text-sm">
+            <label className="text-body font-semibold text-muted-foreground">Clerk User Info</label>
+            <div className="mt-2 space-y-1 text-body">
               <p>
                 <span className="text-muted-foreground">ID:</span>{' '}
                 <span className="font-mono">{user?.id || 'N/A'}</span>

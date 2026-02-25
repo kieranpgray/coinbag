@@ -1,6 +1,7 @@
 import type { Income, Expense, Account, PayCycleConfig, TransferSuggestion, AccountCashFlow, CategoryBreakdown } from '@/types/domain';
 import type { Category } from '@/types/domain';
 import { normalizeToMonthly, convertFromMonthly } from './frequencyNormalization';
+import { formatCurrency } from '@/lib/utils';
 
 /**
  * Calculate account-level cash flow summary
@@ -107,7 +108,7 @@ export function calculateTransferSuggestions(
       amountMonthly: monthlyTransfer,
       amountWeekly: convertFromMonthly(monthlyTransfer, 'weekly'),
       amountFortnightly: convertFromMonthly(monthlyTransfer, 'fortnightly'),
-      reason: `Covers $${monthlyTransfer.toFixed(0)}/month in recurring expenses`,
+      reason: `Covers ${formatCurrency(monthlyTransfer, undefined, { maximumFractionDigits: 0 })}/month in recurring expenses`,
       expenseIds: accountFlow.expenseBreakdown.flatMap(b => b.expenseIds),
       isSurplus: false,
     });

@@ -16,6 +16,7 @@ interface EditLiabilityModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmit: (data: Partial<Liability>) => void;
+  onDeleteRequested: () => void;
   isLoading?: boolean;
 }
 
@@ -24,6 +25,7 @@ export function EditLiabilityModal({
   open,
   onOpenChange,
   onSubmit,
+  onDeleteRequested,
   isLoading,
 }: EditLiabilityModalProps) {
   const handleSubmit = useCallback((data: Omit<Liability, 'id'>) => {
@@ -44,10 +46,11 @@ export function EditLiabilityModal({
           liability={liability}
           onSubmit={handleSubmit}
           onCancel={() => onOpenChange(false)}
+          onDelete={onDeleteRequested}
           isLoading={isLoading}
         />
         <div className="mt-6 pt-6 border-t border-border">
-          <h3 className="text-sm font-semibold mb-3">Change History</h3>
+          <h3 className="text-body font-semibold mb-3">Change History</h3>
           <LiabilityChangeLog liabilityId={liability.id} />
         </div>
       </DialogContent>

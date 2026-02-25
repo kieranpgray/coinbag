@@ -140,7 +140,7 @@ export const NetWorthCard = memo(function NetWorthCard({
         <CardContent className="p-0">
           <div className="p-4">
             <h2 className="text-h2-sm sm:text-h2-md lg:text-h2-lg font-semibold text-foreground mb-4">Net Worth</h2>
-            <p className="text-sm text-muted-foreground mb-4">
+            <p className="text-body text-muted-foreground mb-4">
               Add assets or liabilities to calculate your net worth.
             </p>
             <div className="flex gap-2">

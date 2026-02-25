@@ -29,7 +29,7 @@ export function Header() {
           >
             <Menu className="h-5 w-5 text-muted-foreground" />
           </Button>
-          <Link to={ROUTES.app.dashboard} className="text-xl font-semibold text-foreground">
+          <Link to={ROUTES.app.dashboard} className="text-h1-sm sm:text-h1-md lg:text-h1-lg text-foreground">
             Supafolio
           </Link>
         </div>
@@ -86,7 +86,7 @@ export function Header() {
           </Link>
           {/* Profile Avatar */}
           <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center ml-1">
-            <span className="text-sm text-muted-foreground font-medium">P</span>
+            <span className="text-body text-muted-foreground font-medium">P</span>
           </div>
         </div>
       </header>

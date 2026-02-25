@@ -31,11 +31,11 @@ function CustomTooltip({ active, payload }: any) {
 
   return (
     <div className="bg-card border border-border rounded-lg shadow-lg p-3">
-      <p className="text-sm font-semibold text-foreground mb-1">{data.name}</p>
-      <p className="text-sm text-muted-foreground">
+      <p className="text-body font-semibold text-foreground mb-1">{data.name}</p>
+      <p className="text-body text-muted-foreground">
         <PrivacyWrapper value={data.value} />
       </p>
-      <p className="text-sm text-muted-foreground">{data.percentage}%</p>
+      <p className="text-body text-muted-foreground">{data.percentage}%</p>
     </div>
   );
 }
@@ -63,10 +63,10 @@ function CenterLabel({ viewBox, totalValue }: { viewBox?: { cx: number; cy: numb
       dominantBaseline="middle"
       className="fill-foreground"
     >
-      <tspan x={cx} dy="-0.5em" className="text-sm font-medium">
+      <tspan x={cx} dy="-0.5em" className="text-body font-medium">
         All assets
       </tspan>
-      <tspan x={cx} dy="1.2em" className="text-lg font-bold">
+      <tspan x={cx} dy="1.2em" className="text-balance font-bold">
         {displayValue}
       </tspan>
     </text>

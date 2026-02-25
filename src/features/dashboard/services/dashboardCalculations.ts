@@ -173,7 +173,7 @@ export const DashboardCalculations = {
       const totalLiabilities = liabilities.reduce((sum, liability) => sum + liability.balance, 0);
       const netWorth = totalAssets - totalLiabilities;
 
-      const holdingsAssets = assets.filter((a) => a.type === 'Investments' || a.type === 'Crypto' || a.type === 'Stock' || a.type === 'RSU');
+      const holdingsAssets = assets.filter((a) => a.type === 'Other Investments' || a.type === 'Crypto' || a.type === 'Stock' || a.type === 'RSU');
       const investments = holdingsAssets.reduce((sum, asset) => sum + asset.value, 0);
 
       const superannuationAssets = assets.filter((a) => a.type === 'Superannuation');

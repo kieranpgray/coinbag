@@ -239,10 +239,10 @@ export function IncomePage() {
           <div className="space-y-1">
             <h1 className="text-h1-sm sm:text-h1-md lg:text-h1-lg font-bold tracking-tight">Income</h1>
             <div className="space-y-0.5">
-              <div className="text-data-lg-sm sm:text-data-lg-md lg:text-data-lg-lg font-bold mb-4">
+              <div className="text-display-sm sm:text-display-md lg:text-display-lg font-bold mb-4">
                 {formatCurrency(totalMonthlyIncome)}
               </div>
-              <p className="text-sm text-muted-foreground">Total monthly income</p>
+              <p className="text-body text-muted-foreground">Total monthly income</p>
             </div>
           </div>
           <Button onClick={() => setCreateModalOpen(true)}>
@@ -296,10 +296,10 @@ export function IncomePage() {
         <div className="space-y-1">
           <h1 className="text-h1-sm sm:text-h1-md lg:text-h1-lg font-bold tracking-tight">Income</h1>
           <div className="space-y-0.5">
-            <div className="text-data-lg-sm sm:text-data-lg-md lg:text-data-lg-lg font-bold mb-4">
+            <div className="text-display-sm sm:text-display-md lg:text-display-lg font-bold mb-4">
               {formatCurrency(totalMonthlyIncome)}
             </div>
-            <p className="text-sm text-muted-foreground">Total monthly income</p>
+            <p className="text-body text-muted-foreground">Total monthly income</p>
           </div>
         </div>
         <div className="flex flex-col items-end gap-4">
@@ -390,7 +390,7 @@ export function IncomePage() {
                   placeholder="e.g., Main Salary"
                 />
                 {errors.name && (
-                  <p id="name-error" className="text-sm text-destructive" role="alert">
+                  <p id="name-error" className="text-body text-destructive" role="alert">
                     {errors.name.message}
                   </p>
                 )}
@@ -430,7 +430,7 @@ export function IncomePage() {
                   {...register('amount', { valueAsNumber: true })} 
                 />
                 {errors.amount && (
-                  <p id="amount-error" className="text-sm text-destructive" role="alert">
+                  <p id="amount-error" className="text-body text-destructive" role="alert">
                     {errors.amount.message}
                   </p>
                 )}
@@ -463,11 +463,11 @@ export function IncomePage() {
                 {...register('nextPaymentDate')}
               />
               {errors.nextPaymentDate && (
-                <p id="nextPaymentDate-error" className="text-sm text-destructive" role="alert">
+                <p id="nextPaymentDate-error" className="text-body text-destructive" role="alert">
                   {errors.nextPaymentDate.message}
                 </p>
               )}
-              <p className="text-sm text-muted-foreground">Optional: Leave empty if payment date is unknown</p>
+              <p className="text-body text-muted-foreground">Optional: Leave empty if payment date is unknown</p>
             </div>
             <div className="space-y-2">
               <Label htmlFor="paidToAccountId">Paid to (Optional)</Label>
@@ -535,7 +535,7 @@ export function IncomePage() {
                     {...register('name')}
                   />
                   {errors.name && (
-                    <p id="edit-name-error" className="text-sm text-destructive" role="alert">
+                    <p id="edit-name-error" className="text-body text-destructive" role="alert">
                       {errors.name.message}
                     </p>
                   )}
@@ -574,7 +574,7 @@ export function IncomePage() {
                     {...register('amount', { valueAsNumber: true })} 
                   />
                   {errors.amount && (
-                    <p id="edit-amount-error" className="text-sm text-destructive" role="alert">
+                    <p id="edit-amount-error" className="text-body text-destructive" role="alert">
                       {errors.amount.message}
                     </p>
                   )}
@@ -605,11 +605,11 @@ export function IncomePage() {
                 {...register('nextPaymentDate')}
               />
                 {errors.nextPaymentDate && (
-                  <p id="edit-nextPaymentDate-error" className="text-sm text-destructive" role="alert">
+                  <p id="edit-nextPaymentDate-error" className="text-body text-destructive" role="alert">
                     {errors.nextPaymentDate.message}
                   </p>
                 )}
-                <p className="text-sm text-muted-foreground">Optional: Leave empty if payment date is unknown</p>
+                <p className="text-body text-muted-foreground">Optional: Leave empty if payment date is unknown</p>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="edit-paidToAccountId">Paid to (Optional)</Label>

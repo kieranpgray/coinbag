@@ -45,15 +45,15 @@ export function AccountBreakdownModal({ open, onOpenChange, accountFlow }: Accou
         <div className="space-y-4">
           <div className="space-y-2">
             {accountFlow.expenseBreakdown.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No expenses assigned to this account.</p>
+              <p className="text-body text-muted-foreground">No expenses assigned to this account.</p>
             ) : (
               accountFlow.expenseBreakdown.map((breakdown) => (
                 <div
                   key={breakdown.categoryId}
                   className="flex items-center justify-between border-b pb-2 last:border-0"
                 >
-                  <span className="text-sm font-medium">{breakdown.categoryName}</span>
-                  <span className="text-sm font-semibold">
+                  <span className="text-body font-medium">{breakdown.categoryName}</span>
+                  <span className="text-body font-semibold">
                     {formatAmountByFrequency(breakdown.monthlyAmount, 'monthly')}
                   </span>
                 </div>

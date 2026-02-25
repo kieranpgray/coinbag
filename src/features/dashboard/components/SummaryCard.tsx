@@ -86,7 +86,7 @@ export const SummaryCard = memo(function SummaryCard({
           <CardTitle>{title}</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-muted-foreground mb-4">{emptyText}</p>
+          <p className="text-body text-muted-foreground mb-4">{emptyText}</p>
           <Button size="sm" onClick={handleClick}>
             {emptyCtaLabel}
           </Button>
@@ -101,10 +101,10 @@ export const SummaryCard = memo(function SummaryCard({
         <CardTitle>{title}</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="text-xl font-bold mb-2">
+        <div className="text-balance font-bold mb-2">
           <PrivacyWrapper value={value} />
         </div>
-        <div className="flex gap-4 text-xs">
+        <div className="flex gap-4 text-caption">
           <div className={change1D >= 0 ? 'text-success' : 'text-error'}>
             1D: {formatPercentage(change1D)}
           </div>

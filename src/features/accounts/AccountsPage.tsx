@@ -768,7 +768,7 @@ export function AccountsPage() {
           <Button 
             variant="ghost" 
             onClick={handleBackToAccounts} 
-            className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6"
+            className="flex items-center gap-2 text-body text-muted-foreground hover:text-foreground transition-colors mb-6"
           >
             <ChevronLeft className="h-4 w-4" />
             Back to Accounts
@@ -801,7 +801,7 @@ export function AccountsPage() {
           <Button
             variant="ghost"
             onClick={handleBackToAccounts}
-            className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6 h-auto p-0 hover:bg-transparent"
+            className="flex items-center gap-2 text-body text-muted-foreground hover:text-foreground transition-colors mb-6 h-auto p-0 hover:bg-transparent"
           >
             <ChevronLeft className="h-4 w-4" />
             Back to Accounts

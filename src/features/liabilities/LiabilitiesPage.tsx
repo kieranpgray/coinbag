@@ -345,6 +345,10 @@ export function LiabilitiesPage() {
           open={editModalOpen}
           onOpenChange={setEditModalOpen}
           onSubmit={handleUpdate}
+          onDeleteRequested={() => {
+            setEditModalOpen(false);
+            setDeleteDialogOpen(true);
+          }}
           isLoading={updateMutation.isPending}
         />
       )}

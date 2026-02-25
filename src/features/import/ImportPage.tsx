@@ -230,7 +230,7 @@ export function ImportPage() {
             {isParsing && (
               <div className="mt-4 flex items-center gap-2">
                 <Loader2 className="h-4 w-4 animate-spin" />
-                <span className="text-sm text-muted-foreground">Parsing file...</span>
+                <span className="text-body text-muted-foreground">Parsing file...</span>
               </div>
             )}
           </CardContent>
@@ -256,7 +256,7 @@ export function ImportPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <div className="flex items-center justify-between text-sm">
+              <div className="flex items-center justify-between text-body">
                 <span>{progress.message}</span>
                 <span>
                   {progress.current} / {progress.total}
@@ -268,7 +268,7 @@ export function ImportPage() {
               />
             </div>
             {progress.estimatedTimeRemaining && (
-              <div className="text-sm text-muted-foreground">
+              <div className="text-body text-muted-foreground">
                 Estimated time remaining: {progress.estimatedTimeRemaining} seconds
               </div>
             )}

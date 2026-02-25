@@ -451,7 +451,7 @@ export function ExpenseList({
                           autoFocus
                         />
                         {getFieldError(expense.id, 'name') && (
-                          <p className="text-xs text-destructive flex items-center gap-1 truncate mt-1">
+                          <p className="text-caption text-destructive flex items-center gap-1 truncate mt-1">
                             <AlertCircle className="h-3 w-3 flex-shrink-0" />
                             <span className="truncate">{getFieldError(expense.id, 'name')}</span>
                           </p>
@@ -489,7 +489,7 @@ export function ExpenseList({
                           />
                         </div>
                         {getFieldError(expense.id, 'categoryId') && (
-                          <p className="text-xs text-destructive flex items-center gap-1 truncate mt-1">
+                          <p className="text-caption text-destructive flex items-center gap-1 truncate mt-1">
                             <AlertCircle className="h-3 w-3 flex-shrink-0" />
                             <span className="truncate">{getFieldError(expense.id, 'categoryId')}</span>
                           </p>
@@ -533,7 +533,7 @@ export function ExpenseList({
                           autoFocus
                         />
                         {getFieldError(expense.id, 'amount') && (
-                          <p className="text-xs text-destructive flex items-center gap-1 justify-end truncate mt-1">
+                          <p className="text-caption text-destructive flex items-center gap-1 justify-end truncate mt-1">
                             <AlertCircle className="h-3 w-3 flex-shrink-0" />
                             <span className="truncate">{getFieldError(expense.id, 'amount')}</span>
                           </p>
@@ -581,7 +581,7 @@ export function ExpenseList({
                           </Select>
                         </div>
                         {getFieldError(expense.id, 'frequency') && (
-                          <p className="text-xs text-destructive flex items-center gap-1 truncate mt-1">
+                          <p className="text-caption text-destructive flex items-center gap-1 truncate mt-1">
                             <AlertCircle className="h-3 w-3 flex-shrink-0" />
                             <span className="truncate">{getFieldError(expense.id, 'frequency')}</span>
                           </p>
@@ -622,7 +622,7 @@ export function ExpenseList({
                           />
                         </div>
                         {getFieldError(expense.id, 'nextDueDate') && (
-                          <p className="text-xs text-destructive flex items-center gap-1 truncate mt-1">
+                          <p className="text-caption text-destructive flex items-center gap-1 truncate mt-1">
                             <AlertCircle className="h-3 w-3 flex-shrink-0" />
                             <span className="truncate">{getFieldError(expense.id, 'nextDueDate')}</span>
                           </p>
@@ -660,7 +660,7 @@ export function ExpenseList({
                           />
                         </div>
                         {getFieldError(expense.id, 'paidFromAccountId') && (
-                          <p className="text-xs text-destructive flex items-center gap-1 truncate mt-1">
+                          <p className="text-caption text-destructive flex items-center gap-1 truncate mt-1">
                             <AlertCircle className="h-3 w-3 flex-shrink-0" />
                             <span className="truncate">{getFieldError(expense.id, 'paidFromAccountId')}</span>
                           </p>

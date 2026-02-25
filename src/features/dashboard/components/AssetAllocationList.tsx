@@ -42,13 +42,13 @@ function AllocationRow({ item }: { item: ListData }) {
 
           {/* Category name */}
           <div className="flex-1 min-w-0">
-            <span className="text-sm font-medium text-foreground truncate block">
+            <span className="text-body font-medium text-foreground truncate block">
               {item.category}
             </span>
           </div>
 
           {/* Formatted value - right aligned */}
-          <span className="text-sm font-semibold text-foreground text-right flex-shrink-0 min-w-[80px]">
+          <span className="text-body font-semibold text-foreground text-right flex-shrink-0 min-w-[80px]">
             <PrivacyWrapper value={item.value} />
           </span>
         </div>
@@ -81,7 +81,7 @@ export const AssetAllocationList = memo(function AssetAllocationList({
         {/* View all assets link */}
         <Link
           to="/app/wealth"
-          className="mt-4 inline-block text-sm text-primary hover:underline"
+          className="mt-4 inline-block text-body text-primary hover:underline"
         >
           View all assets →
         </Link>

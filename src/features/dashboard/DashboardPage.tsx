@@ -24,6 +24,7 @@ import { calculateMonthlyIncome } from '@/features/budget/utils/calculations';
 import { calculateMonthlyEquivalent } from '@/features/expenses/utils';
 import { findUncategorisedCategoryId } from '@/data/categories/ensureDefaults';
 import { filterByExpenseType } from '@/features/budget/utils/filtering';
+import { ManualRefreshButton } from '@/components/shared/ManualRefreshButton';
 import type { AssetBreakdown, LiabilityBreakdown } from '@/types/domain';
 
 function calculateAssetBreakdown(assets: { type: string; value: number }[]): AssetBreakdown[] {
@@ -180,6 +181,15 @@ export function DashboardPage() {
     return hasIncome || hasExpenses;
   }, [hasIncome, hasExpenses]);
 
+  const priceBackedAssets = useMemo(
+    () =>
+      assets.filter((a) => {
+        if (!a.ticker?.trim()) return false;
+        return ['Stock', 'RSU', 'Crypto', 'Other Investments', 'Superannuation'].includes(a.type);
+      }),
+    [assets]
+  );
+
   const handleRetry = () => {
     if (dashboardError) refetchDashboard();
     if (marketError) refetchMarket();
@@ -260,8 +270,11 @@ export function DashboardPage() {
   return (
     <div className="space-y-6">
         {/* Header section with greeting */}
-        <header>
+        <header className="flex flex-wrap items-center justify-between gap-2">
           <h1 className="text-h1-sm sm:text-h1-md lg:text-h1-lg font-bold">Dashboard</h1>
+          {priceBackedAssets.length > 0 && (
+            <ManualRefreshButton assets={priceBackedAssets} showLabel={false} size="icon" />
+          )}
         </header>
 
         {/* Setup Progress - pinned sidebar overlay */}
@@ -336,15 +349,15 @@ export function DashboardPage() {
             <CardContent>
               {!hasHoldings ? (
                 <>
-                  <p className="text-sm text-muted-foreground mb-4">
+                  <p className="text-body text-muted-foreground mb-4">
                     Add investments to see news related to your holdings.
                   </p>
                   <Button asChild size="sm">
-                    <Link to="/app/wealth?create=asset&type=Investments">Add investment</Link>
+                    <Link to="/app/wealth?create=asset&type=Other Investments">Add investment</Link>
                   </Button>
                 </>
               ) : (
-                <p className="text-sm text-muted-foreground">
+                <p className="text-body text-muted-foreground">
                   No news available for your holdings.
                 </p>
               )}
@@ -358,7 +371,7 @@ export function DashboardPage() {
             <CardTitle>Recent Transactions</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-muted-foreground mb-4">
+            <p className="text-body text-muted-foreground mb-4">
               See your transactions after you connect an account.
             </p>
             <Button asChild size="sm">

@@ -59,8 +59,15 @@ export function WealthPage() {
     
     if (shouldCreate === 'asset') {
       setCreateAssetModalOpen(true);
-      if (type && ['Real Estate', 'Investments', 'Vehicles', 'Crypto', 'Cash', 'Superannuation', 'Stock', 'RSU', 'Other'].includes(type)) {
-        setDefaultAssetType(type);
+      // Accept legacy types (Investments, Other) and map to Other Investments for schema compat
+      const typeStr = type as string;
+      const normalizedType =
+        typeStr === 'Investments' || typeStr === 'Other' ? 'Other Investments' : type;
+      if (
+        normalizedType &&
+        ['Real Estate', 'Other Investments', 'Vehicles', 'Crypto', 'Cash', 'Superannuation', 'Stock', 'RSU'].includes(normalizedType)
+      ) {
+        setDefaultAssetType(normalizedType);
       }
       setSearchParams({});
     } else if (shouldCreate === 'liability') {
@@ -286,6 +293,10 @@ export function WealthPage() {
           open={editAssetModalOpen}
           onOpenChange={setEditAssetModalOpen}
           onSubmit={handleUpdateAsset}
+          onDeleteRequested={() => {
+            setEditAssetModalOpen(false);
+            setDeleteAssetDialogOpen(true);
+          }}
           isLoading={updateAssetMutation.isPending}
         />
       )}
@@ -312,6 +323,10 @@ export function WealthPage() {
           open={editLiabilityModalOpen}
           onOpenChange={setEditLiabilityModalOpen}
           onSubmit={handleUpdateLiability}
+          onDeleteRequested={() => {
+            setEditLiabilityModalOpen(false);
+            setDeleteLiabilityDialogOpen(true);
+          }}
           isLoading={updateLiabilityMutation.isPending}
         />
       )}

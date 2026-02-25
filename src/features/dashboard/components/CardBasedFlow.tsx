@@ -89,7 +89,7 @@ export function CardBasedFlow() {
         {/* Welcome Badge */}
         <div className="inline-flex items-center gap-2 bg-primary/10 text-primary rounded-full px-4 py-2 mb-6">
           <Sparkles className="w-4 h-4" />
-          <span className="text-sm">Welcome to Supafolio</span>
+          <span className="text-body">Welcome to Supafolio</span>
         </div>
 
         {/* Main Heading */}
@@ -147,7 +147,7 @@ export function CardBasedFlow() {
                   {/* Text Content */}
                   <div className="flex-1 text-left">
                     <h3 className="text-h3 mb-1 text-foreground">{card.title}</h3>
-                    <p className="text-sm text-muted-foreground mb-4">{card.description}</p>
+                    <p className="text-body text-muted-foreground mb-4">{card.description}</p>
 
                     {/* Action Button */}
                     <Button

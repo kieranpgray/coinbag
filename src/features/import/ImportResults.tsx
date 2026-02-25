@@ -47,31 +47,31 @@ export function ImportResults({
               {result.imported.accounts > 0 && (
                 <div>
                   <div className="text-balance font-bold">{result.imported.accounts}</div>
-                  <div className="text-sm text-muted-foreground">Accounts</div>
+                  <div className="text-body text-muted-foreground">Accounts</div>
                 </div>
               )}
               {result.imported.assets > 0 && (
                 <div>
                   <div className="text-xl font-bold">{result.imported.assets}</div>
-                  <div className="text-sm text-muted-foreground">Assets</div>
+                  <div className="text-body text-muted-foreground">Assets</div>
                 </div>
               )}
               {result.imported.liabilities > 0 && (
                 <div>
                   <div className="text-xl font-bold">{result.imported.liabilities}</div>
-                  <div className="text-sm text-muted-foreground">Liabilities</div>
+                  <div className="text-body text-muted-foreground">Liabilities</div>
                 </div>
               )}
               {(result.imported.expenses > 0 || result.imported.subscriptions > 0) && (
                 <div>
                   <div className="text-xl font-bold">{result.imported.expenses + result.imported.subscriptions}</div>
-                  <div className="text-sm text-muted-foreground">Expenses</div>
+                  <div className="text-body text-muted-foreground">Expenses</div>
                 </div>
               )}
               {result.imported.income > 0 && (
                 <div>
                   <div className="text-xl font-bold">{result.imported.income}</div>
-                  <div className="text-sm text-muted-foreground">Income</div>
+                  <div className="text-body text-muted-foreground">Income</div>
                 </div>
               )}
             </div>
@@ -98,7 +98,7 @@ export function ImportResults({
               {result.errors.slice(0, 5).map((error, idx) => (
                 <div
                   key={idx}
-                  className="text-sm p-2 bg-red-50 dark:bg-red-950 rounded border border-red-200 dark:border-red-800"
+                  className="text-body p-2 bg-red-50 dark:bg-red-950 rounded border border-red-200 dark:border-red-800"
                 >
                   <div className="font-medium">
                     Row {error.rowNumber} ({error.entityType}):
@@ -113,7 +113,7 @@ export function ImportResults({
                 </div>
               ))}
               {result.errors.length > 5 && (
-                <div className="text-sm text-muted-foreground">
+                <div className="text-body text-muted-foreground">
                   ... and {result.errors.length - 5} more error{result.errors.length - 5 !== 1 ? 's' : ''}
                 </div>
               )}
@@ -158,7 +158,7 @@ export function ImportResults({
                 {result.warnings.slice(0, 5).map((warning, idx) => (
                   <div
                     key={idx}
-                    className="text-sm p-2 bg-yellow-50 dark:bg-yellow-950 rounded border border-yellow-200 dark:border-yellow-800"
+                    className="text-body p-2 bg-yellow-50 dark:bg-yellow-950 rounded border border-yellow-200 dark:border-yellow-800"
                   >
                     Row {warning.rowNumber} ({warning.entityType}): {warning.message}
                   </div>

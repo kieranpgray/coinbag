@@ -44,7 +44,7 @@ export function addAssetOptimistically(
       incomes
     );
     
-    const holdingsCount = updatedAssets.filter(a => a.type === 'Investments' || a.type === 'Crypto' || a.type === 'Stock' || a.type === 'RSU').length;
+    const holdingsCount = updatedAssets.filter(a => a.type === 'Other Investments' || a.type === 'Crypto' || a.type === 'Stock' || a.type === 'RSU').length;
     
     return {
       ...data,
@@ -77,7 +77,7 @@ export function updateAssetOptimistically(
       incomes
     );
     
-    const holdingsCount = updatedAssets.filter(a => a.type === 'Investments' || a.type === 'Crypto' || a.type === 'Stock' || a.type === 'RSU').length;
+    const holdingsCount = updatedAssets.filter(a => a.type === 'Other Investments' || a.type === 'Crypto' || a.type === 'Stock' || a.type === 'RSU').length;
     
     return {
       ...data,
@@ -109,7 +109,7 @@ export function removeAssetOptimistically(
       incomes
     );
     
-    const holdingsCount = updatedAssets.filter(a => a.type === 'Investments' || a.type === 'Crypto' || a.type === 'Stock' || a.type === 'RSU').length;
+    const holdingsCount = updatedAssets.filter(a => a.type === 'Other Investments' || a.type === 'Crypto' || a.type === 'Stock' || a.type === 'RSU').length;
     
     return {
       ...data,

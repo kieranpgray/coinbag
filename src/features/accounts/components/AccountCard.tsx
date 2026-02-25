@@ -28,7 +28,7 @@ export function AccountCard({ account, onEdit, onDelete, onClick }: AccountCardP
         <div className="flex items-start justify-between">
           <div className="min-w-0 flex-1">
             <CardTitle className="truncate">{account.accountName}</CardTitle>
-            <p className="text-sm text-muted-foreground mt-1 truncate">
+            <p className="text-body text-muted-foreground mt-1 truncate">
               {account.institution || 'No institution'}
             </p>
           </div>
@@ -63,16 +63,16 @@ export function AccountCard({ account, onEdit, onDelete, onClick }: AccountCardP
       <CardContent className="pt-0">
         <div className="space-y-2">
           <div className="flex justify-between">
-            <span className="text-sm text-muted-foreground">Type</span>
-            <span className="text-sm font-medium">{account.accountType}</span>
+            <span className="text-body text-muted-foreground">Type</span>
+            <span className="text-body">{account.accountType}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-sm text-muted-foreground">Balance</span>
+            <span className="text-body text-muted-foreground">Balance</span>
             <span className="font-semibold">{formatCurrency(account.balance, locale)}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-sm text-muted-foreground">Last Updated</span>
-            <span className="text-sm">{formatDate(account.lastUpdated, locale)}</span>
+            <span className="text-body text-muted-foreground">Last Updated</span>
+            <span className="text-body">{formatDate(account.lastUpdated, locale)}</span>
           </div>
         </div>
       </CardContent>

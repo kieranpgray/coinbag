@@ -172,7 +172,7 @@ export function AccountSelect({ id, value, onChange, placeholder = "Select accou
           aria-haspopup="listbox"
           className={cn(
             // Atlassian Design System styling: clean borders, subtle focus states
-            'w-full justify-between h-10 rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground',
+            'w-full justify-between h-10 rounded-md border border-border bg-background px-3 py-2 text-body text-foreground',
             'hover:border-neutral-mid hover:bg-muted/50',
             'focus:outline-none focus:ring-2 focus:ring-primary/20 focus:ring-offset-0 focus:border-primary',
             'disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-muted disabled:hover:border-border',
@@ -231,12 +231,12 @@ export function AccountSelect({ id, value, onChange, placeholder = "Select accou
             {/* Accounts list */}
             <div className="overflow-auto max-h-60">
               {isLoading ? (
-                <div className="px-3 py-6 text-center text-sm text-muted-foreground">
+                <div className="px-3 py-6 text-center text-body text-muted-foreground">
                   <Loader2 className="h-4 w-4 animate-spin mx-auto mb-2" />
                   Loading accounts...
                 </div>
               ) : loadError ? (
-                <div className="px-3 py-6 text-center text-sm text-destructive">
+                <div className="px-3 py-6 text-center text-body text-destructive">
                   Failed to load accounts
                 </div>
               ) : filteredAccounts.length > 0 ? (
@@ -249,7 +249,7 @@ export function AccountSelect({ id, value, onChange, placeholder = "Select accou
                       aria-selected={account.id === value}
                       className={cn(
                         // Atlassian Design System styling: improved hover states, better selected state indication
-                        'w-full px-3 py-2 text-left text-sm text-foreground rounded-sm flex items-center justify-between',
+                        'w-full px-3 py-2 text-left text-body text-foreground rounded-sm flex items-center justify-between',
                         'hover:bg-muted',
                         'focus:bg-primary/10 focus:outline-none',
                         index === highlightedIndex && 'bg-primary/10',
@@ -264,7 +264,7 @@ export function AccountSelect({ id, value, onChange, placeholder = "Select accou
                   ))}
                 </div>
               ) : (
-                <div className="px-3 py-6 text-center text-sm text-muted-foreground">
+                <div className="px-3 py-6 text-center text-body text-muted-foreground">
                   {searchQuery ? `No accounts found for "${searchQuery}"` : 'No accounts available'}
                 </div>
               )}
@@ -274,7 +274,7 @@ export function AccountSelect({ id, value, onChange, placeholder = "Select accou
             <div className="border-t border-border">
               <button
                 type="button"
-                className="w-full px-3 py-2 text-left hover:bg-muted text-primary rounded-sm text-sm flex items-center"
+                className="w-full px-3 py-2 text-left hover:bg-muted text-primary rounded-sm text-body flex items-center"
                 onClick={handleOpenCreateDialog}
               >
                 <Plus className="h-4 w-4 mr-2" />
@@ -285,7 +285,7 @@ export function AccountSelect({ id, value, onChange, placeholder = "Select accou
         )}
 
         {error && (
-          <p className="text-sm text-red-500 mt-1">{error}</p>
+          <p className="text-body text-red-500 mt-1">{error}</p>
         )}
       </div>
 

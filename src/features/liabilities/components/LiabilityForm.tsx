@@ -47,6 +47,7 @@ interface LiabilityFormProps {
   liability?: Liability;
   onSubmit: (data: Omit<Liability, 'id'>) => void;
   onCancel: () => void;
+  onDelete?: () => void;
   isLoading?: boolean;
 }
 
@@ -54,6 +55,7 @@ export function LiabilityForm({
   liability,
   onSubmit,
   onCancel,
+  onDelete,
   isLoading,
 }: LiabilityFormProps) {
   const {
@@ -115,7 +117,7 @@ export function LiabilityForm({
           placeholder="Liability name"
         />
         {errors.name && (
-          <p id="name-error" className="text-sm text-destructive" role="alert">
+          <p id="name-error" className="text-body text-destructive" role="alert">
             {errors.name.message}
           </p>
         )}
@@ -156,7 +158,7 @@ export function LiabilityForm({
           {...register('balance', { valueAsNumber: true })}
         />
         {errors.balance && (
-          <p id="balance-error" className="text-sm text-destructive" role="alert">
+          <p id="balance-error" className="text-body text-destructive" role="alert">
             {errors.balance.message}
           </p>
         )}
@@ -177,7 +179,7 @@ export function LiabilityForm({
           {...register('interestRate', { valueAsNumber: true })}
         />
         {errors.interestRate && (
-          <p id="interestRate-error" className="text-sm text-destructive" role="alert">
+          <p id="interestRate-error" className="text-body text-destructive" role="alert">
             {errors.interestRate.message}
           </p>
         )}
@@ -199,7 +201,7 @@ export function LiabilityForm({
             {...register('monthlyPayment', { valueAsNumber: true })}
           />
           {errors.monthlyPayment && (
-            <p id="monthlyPayment-error" className="text-sm text-destructive" role="alert">
+            <p id="monthlyPayment-error" className="text-body text-destructive" role="alert">
               {errors.monthlyPayment.message}
             </p>
           )}
@@ -223,7 +225,7 @@ export function LiabilityForm({
               {...register('repaymentAmount', { valueAsNumber: true })}
             />
             {errors.repaymentAmount && (
-              <p id="repaymentAmount-error" className="text-sm text-destructive" role="alert">
+              <p id="repaymentAmount-error" className="text-body text-destructive" role="alert">
                 {errors.repaymentAmount.message}
               </p>
             )}
@@ -246,7 +248,7 @@ export function LiabilityForm({
               error={errors.repaymentFrequency?.message}
             />
             {errors.repaymentFrequency && (
-              <p id="repaymentFrequency-error" className="text-sm text-destructive" role="alert">
+              <p id="repaymentFrequency-error" className="text-body text-destructive" role="alert">
                 {errors.repaymentFrequency.message}
               </p>
             )}
@@ -268,7 +270,7 @@ export function LiabilityForm({
           })()}
         />
         {errors.dueDate && (
-          <p id="dueDate-error" className="text-sm text-destructive" role="alert">
+          <p id="dueDate-error" className="text-body text-destructive" role="alert">
             {errors.dueDate.message}
           </p>
         )}
@@ -280,9 +282,16 @@ export function LiabilityForm({
       </div>
 
       <div className="flex justify-end gap-2 pt-4">
-        <Button type="button" variant="outline" onClick={onCancel} disabled={isLoading}>
-          Cancel
-        </Button>
+        {!(liability && onDelete) && (
+          <Button type="button" variant="outline" onClick={onCancel} disabled={isLoading}>
+            Cancel
+          </Button>
+        )}
+        {liability && onDelete && (
+          <Button type="button" variant="outline" onClick={onDelete} disabled={isLoading}>
+            Delete
+          </Button>
+        )}
         <Button type="submit" disabled={isLoading}>
           {isLoading ? 'Saving...' : liability ? 'Update' : 'Create'}
         </Button>

@@ -94,18 +94,18 @@ export class ErrorBoundary extends Component<Props, State> {
             </CardHeader>
             <CardContent className="space-y-4">
               {!isProduction && this.state.error && (
-                <div className="rounded-md bg-muted p-3 text-sm">
+                <div className="rounded-md bg-muted p-3 text-body">
                   <p className="font-medium mb-1">Error:</p>
-                  <p className="text-muted-foreground font-mono text-xs break-all">
+                  <p className="text-muted-foreground font-mono text-caption break-all">
                     {this.state.error.message}
                   </p>
                 </div>
               )}
 
               {debugLogging && this.state.errorInfo && (
-                <details className="rounded-md bg-muted p-3 text-sm">
+                <details className="rounded-md bg-muted p-3 text-body">
                   <summary className="cursor-pointer font-medium mb-2">Stack Trace</summary>
-                  <pre className="text-xs overflow-auto max-h-48 text-muted-foreground font-mono">
+                  <pre className="text-caption overflow-auto max-h-48 text-muted-foreground font-mono">
                     {this.state.errorInfo.componentStack}
                   </pre>
                 </details>

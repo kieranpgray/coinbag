@@ -405,7 +405,7 @@ const CalendarContent = React.forwardRef<HTMLDivElement, CalendarContentProps>(
           >
             <ChevronLeft className="h-4 w-4" />
           </Button>
-          <div className="text-sm font-medium text-foreground">
+          <div className="text-body font-medium text-foreground">
             {format(calendarMonth, 'MMMM yyyy', { locale: dateFnsLocale })}
           </div>
           <Button
@@ -425,7 +425,7 @@ const CalendarContent = React.forwardRef<HTMLDivElement, CalendarContentProps>(
           {rotatedWeekDays.map((day) => (
             <div
               key={day}
-              className="text-xs font-medium text-muted-foreground text-center py-1"
+              className="text-caption font-medium text-muted-foreground text-center py-1"
             >
               {day}
             </div>
@@ -448,7 +448,7 @@ const CalendarContent = React.forwardRef<HTMLDivElement, CalendarContentProps>(
                 onKeyDown={(e) => handleKeyDown(e, day)}
                 disabled={disabled}
                 className={cn(
-                  'h-9 w-9 text-sm rounded-md transition-colors',
+                  'h-9 w-9 text-body rounded-md transition-colors',
                   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:ring-offset-0',
                   {
                     'text-muted-foreground opacity-50': !isCurrentMonth,

@@ -3,7 +3,7 @@ import { useAssetValueHistory } from '../hooks/useAssets';
 import { formatCurrency, formatDate, formatPercentage } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
-import { Download, TrendingUp } from 'lucide-react';
+import { Download, RefreshCw, TrendingUp } from 'lucide-react';
 import { AssetValueTimeline } from './AssetValueTimeline';
 import {
   Select,
@@ -20,29 +20,16 @@ interface AssetChangeLogProps {
 type SortOption = 'date-desc' | 'date-asc' | 'amount-desc' | 'amount-asc';
 type FilterOption = 'all' | 'increases' | 'decreases' | 'creations';
 
+function getValueAsAtDate(entry: { valueAsAtDate?: string | null; createdAt?: string }): string {
+  const raw = String(entry.valueAsAtDate ?? entry.createdAt ?? '');
+  return raw.includes('T') ? (raw.split('T')[0] ?? raw) : raw;
+}
+
 export function AssetChangeLog({ assetId }: AssetChangeLogProps) {
-  const { data: history, isLoading, error } = useAssetValueHistory(assetId);
+  const { data: history, isLoading, error, refetch, isRefetching } = useAssetValueHistory(assetId);
   const [sortBy, setSortBy] = useState<SortOption>('date-desc');
   const [filterBy, setFilterBy] = useState<FilterOption>('all');
   const [showTimeline, setShowTimeline] = useState(false);
-
-  if (isLoading) {
-    return (
-      <div className="space-y-2">
-        <Skeleton className="h-12 w-full" />
-        <Skeleton className="h-12 w-full" />
-        <Skeleton className="h-12 w-full" />
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="text-sm text-muted-foreground">
-        Unable to load change history.
-      </div>
-    );
-  }
 
   const filteredAndSortedHistory = useMemo(() => {
     if (!history) return [];
@@ -83,11 +70,13 @@ export function AssetChangeLog({ assetId }: AssetChangeLogProps) {
   const handleExportCSV = useCallback(() => {
     if (!filteredAndSortedHistory || filteredAndSortedHistory.length === 0) return;
 
-    const csvHeaders = ['Date', 'Previous Value', 'New Value', 'Change Amount', 'Type'];
+    const csvHeaders = ['Date', 'Value as at', 'Previous Value', 'New Value', 'Change Amount', 'Type'];
     const csvRows = filteredAndSortedHistory.map((entry) => {
       const isCreation = entry.previousValue === null;
+      const asAt = getValueAsAtDate(entry);
       return [
         formatDate(entry.createdAt),
+        asAt,
         entry.previousValue === null ? 'N/A' : formatCurrency(entry.previousValue),
         formatCurrency(entry.newValue),
         isCreation ? 'N/A' : formatCurrency(entry.changeAmount),
@@ -111,9 +100,31 @@ export function AssetChangeLog({ assetId }: AssetChangeLogProps) {
     URL.revokeObjectURL(url);
   }, [filteredAndSortedHistory, assetId]);
 
+  if (isLoading) {
+    return (
+      <div className="space-y-2">
+        <Skeleton className="h-12 w-full" />
+        <Skeleton className="h-12 w-full" />
+        <Skeleton className="h-12 w-full" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-2 text-body text-muted-foreground">
+        <p>Unable to load change history.</p>
+        <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isRefetching}>
+          <RefreshCw className={`h-3 w-3 mr-1 ${isRefetching ? 'animate-spin' : ''}`} />
+          Retry
+        </Button>
+      </div>
+    );
+  }
+
   if (!history || history.length === 0) {
     return (
-      <div className="text-sm text-muted-foreground">
+      <div className="text-body text-muted-foreground">
         No change history available.
       </div>
     );
@@ -123,7 +134,7 @@ export function AssetChangeLog({ assetId }: AssetChangeLogProps) {
     <div className="space-y-3">
       <div className="flex gap-2 items-center">
         <Select value={sortBy} onValueChange={(value) => setSortBy(value as SortOption)}>
-          <SelectTrigger className="h-8 text-xs">
+          <SelectTrigger className="h-8 text-caption">
             <SelectValue placeholder="Sort by" />
           </SelectTrigger>
           <SelectContent>
@@ -134,7 +145,7 @@ export function AssetChangeLog({ assetId }: AssetChangeLogProps) {
           </SelectContent>
         </Select>
         <Select value={filterBy} onValueChange={(value) => setFilterBy(value as FilterOption)}>
-          <SelectTrigger className="h-8 text-xs">
+          <SelectTrigger className="h-8 text-caption">
             <SelectValue placeholder="Filter" />
           </SelectTrigger>
           <SelectContent>
@@ -148,7 +159,7 @@ export function AssetChangeLog({ assetId }: AssetChangeLogProps) {
           variant="outline"
           size="sm"
           onClick={() => setShowTimeline(!showTimeline)}
-          className="h-8 text-xs"
+          className="h-8 text-caption"
         >
           <TrendingUp className="h-3 w-3 mr-1" />
           {showTimeline ? 'Hide' : 'Show'} Timeline
@@ -158,7 +169,7 @@ export function AssetChangeLog({ assetId }: AssetChangeLogProps) {
           size="sm"
           onClick={handleExportCSV}
           disabled={!filteredAndSortedHistory || filteredAndSortedHistory.length === 0}
-          className="h-8 text-xs ml-auto"
+          className="h-8 text-caption ml-auto"
         >
           <Download className="h-3 w-3 mr-1" />
           Export CSV
@@ -166,7 +177,7 @@ export function AssetChangeLog({ assetId }: AssetChangeLogProps) {
       </div>
       {showTimeline && (
         <div className="border border-border rounded-lg p-3 bg-muted/30">
-          <h4 className="text-xs font-semibold mb-2">Value Over Time</h4>
+          <h4 className="text-caption font-semibold mb-2">Value Over Time</h4>
           <AssetValueTimeline assetId={assetId} />
         </div>
       )}
@@ -181,10 +192,12 @@ export function AssetChangeLog({ assetId }: AssetChangeLogProps) {
             className="flex items-start justify-between py-2 border-b border-border last:border-0"
           >
             <div className="flex-1 min-w-0">
-              <div className="text-sm text-muted-foreground">
+              <div className="text-body text-muted-foreground">
                 {formatDate(entry.createdAt)}
+                {' · '}
+                Value as at {getValueAsAtDate(entry)}
               </div>
-              <div className="text-sm text-foreground mt-0.5">
+              <div className="text-body text-foreground mt-0.5">
                 {isCreation ? (
                   <>Created with value {formatCurrency(entry.newValue)}</>
                 ) : (
@@ -199,7 +212,7 @@ export function AssetChangeLog({ assetId }: AssetChangeLogProps) {
               {!isCreation && (
                 <div className="flex flex-col items-end">
                   <span
-                    className={`text-sm font-medium ${
+                    className={`text-body font-medium ${
                       isIncrease ? 'text-success' : 'text-error'
                     }`}
                   >
@@ -208,7 +221,7 @@ export function AssetChangeLog({ assetId }: AssetChangeLogProps) {
                   </span>
                   {entry.previousValue !== null && entry.previousValue !== 0 && (
                     <span
-                      className={`text-xs text-muted-foreground ${
+                      className={`text-caption text-muted-foreground ${
                         isIncrease ? 'text-success' : 'text-error'
                       }`}
                     >

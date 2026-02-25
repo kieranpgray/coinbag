@@ -21,10 +21,10 @@ function CustomTooltip({ active, payload }: any) {
     const data = payload[0].payload;
     return (
       <div className="bg-card border border-border rounded-lg shadow-lg p-3">
-        <p className="text-sm text-muted-foreground mb-1">
+        <p className="text-body text-muted-foreground mb-1">
           {formatDate(data.date)}
         </p>
-        <p className="text-sm font-bold text-foreground">
+        <p className="text-body font-bold text-foreground">
           {formatCurrency(data.balance)}
         </p>
       </div>
@@ -63,7 +63,7 @@ export function LiabilityBalanceTimeline({ liabilityId }: LiabilityBalanceTimeli
 
   if (error) {
     return (
-      <div className="text-sm text-muted-foreground">
+      <div className="text-body text-muted-foreground">
         Unable to load timeline.
       </div>
     );
@@ -71,7 +71,7 @@ export function LiabilityBalanceTimeline({ liabilityId }: LiabilityBalanceTimeli
 
   if (!chartData || chartData.length === 0) {
     return (
-      <div className="text-sm text-muted-foreground">
+      <div className="text-body text-muted-foreground">
         No timeline data available.
       </div>
     );

@@ -35,7 +35,7 @@ const SelectTrigger = React.forwardRef<
     ref={ref}
       className={cn(
         // Design system styling: 12px border radius, clean borders, subtle focus states
-        'flex h-10 w-full items-center justify-between rounded-[12px] border border-border bg-background px-3 py-2 text-sm text-foreground',
+        'flex h-10 w-full items-center justify-between rounded-[12px] border border-border bg-background px-3 py-2 text-body text-foreground',
         'placeholder:text-muted-foreground',
         // Subtle hover state
         'hover:border-neutral-mid hover:bg-muted/50',
@@ -126,7 +126,7 @@ const SelectLabel = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <SelectPrimitive.Label
     ref={ref}
-    className={cn('py-1.5 pl-8 pr-2 text-sm font-semibold text-muted-foreground', className)}
+    className={cn('py-1.5 pl-8 pr-2 text-body font-semibold text-muted-foreground', className)}
     {...props}
   />
 ));
@@ -140,7 +140,7 @@ const SelectItem = React.forwardRef<
     ref={ref}
     className={cn(
       // Design system styling: improved hover states, better selected state indication
-      'relative flex w-full cursor-default select-none items-center rounded-sm py-2 pl-8 pr-2 text-sm text-foreground outline-none',
+      'relative flex w-full cursor-default select-none items-center rounded-sm py-2 pl-8 pr-2 text-body text-foreground outline-none',
       // Subtle hover state
       'hover:bg-muted',
       // Focus state (keyboard navigation)

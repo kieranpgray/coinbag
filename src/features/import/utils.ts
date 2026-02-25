@@ -7,7 +7,7 @@ import type { SubscriptionFrequency, Asset, Liability, Income } from '@/types/do
 // Valid enum values extracted from contracts for normalization
 // These should match the contract schemas exactly
 const VALID_FREQUENCIES: SubscriptionFrequency[] = ['weekly', 'fortnightly', 'monthly', 'quarterly', 'yearly'];
-const VALID_ASSET_TYPES: Asset['type'][] = ['Real Estate', 'Investments', 'Vehicles', 'Crypto', 'Cash', 'Superannuation', 'Stock', 'RSU', 'Other'];
+const VALID_ASSET_TYPES: Asset['type'][] = ['Real Estate', 'Other Investments', 'Vehicles', 'Crypto', 'Cash', 'Superannuation', 'Stock', 'RSU'];
 const VALID_LIABILITY_TYPES: Liability['type'][] = ['Loans', 'Credit Cards', 'Other'];
 const VALID_INCOME_SOURCES: Income['source'][] = ['Salary', 'Freelance', 'Business', 'Investments', 'Rental', 'Other'];
 
@@ -411,10 +411,11 @@ export function normalizeAssetType(value: string | undefined): Asset['type'] | n
     're': 'Real Estate',
     'property': 'Real Estate',
     'properties': 'Real Estate',
-    'investments': 'Investments',
-    'investment': 'Investments',
-    'inv': 'Investments',
-    'invest': 'Investments',
+    'investments': 'Other Investments',
+    'investment': 'Other Investments',
+    'inv': 'Other Investments',
+    'invest': 'Other Investments',
+    'other investments': 'Other Investments',
     'vehicles': 'Vehicles',
     'vehicle': 'Vehicles',
     'car': 'Vehicles',
@@ -439,10 +440,10 @@ export function normalizeAssetType(value: string | undefined): Asset['type'] | n
     'rsus': 'RSU',
     'restricted stock': 'RSU',
     'restricted stock units': 'RSU',
-    'other': 'Other',
-    'others': 'Other',
-    'misc': 'Other',
-    'miscellaneous': 'Other',
+    'other': 'Other Investments',
+    'others': 'Other Investments',
+    'misc': 'Other Investments',
+    'miscellaneous': 'Other Investments',
   };
   
   return typeMap[lower] || null;

@@ -33,7 +33,7 @@ export function SignUpPage() {
                 socialButtonsBlockButton: 'border border-input bg-background hover:bg-accent hover:text-accent-foreground',
                 dividerLine: 'bg-border',
                 dividerText: 'text-muted-foreground',
-                formFieldLabel: 'text-sm font-medium text-foreground',
+                formFieldLabel: 'text-body font-medium text-foreground',
                 formFieldInput: 'border-input bg-background',
                 footerActionLink: 'text-primary hover:text-primary/90',
               },

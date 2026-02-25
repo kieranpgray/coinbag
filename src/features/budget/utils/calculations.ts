@@ -6,6 +6,7 @@
 import type { Income } from '@/types/domain';
 import type { Expense } from '@/types/domain';
 import { calculateMonthlyEquivalent } from '@/features/expenses/utils';
+import { formatNumber } from '@/lib/utils';
 
 /**
  * Calculate total monthly income from income sources
@@ -61,6 +62,7 @@ export function calculateBudgetPercentage(remaining: number, income: number): nu
  * Format budget percentage for display
  */
 export function formatBudgetPercentage(percentage: number): string {
-  return `${percentage >= 0 ? '' : ''}${Math.abs(percentage).toFixed(0)}%`;
+  const formatted = formatNumber(Math.abs(percentage), undefined, { maximumFractionDigits: 0 });
+  return `${percentage >= 0 ? '' : '-'}${formatted}%`;
 }
 

@@ -20,6 +20,9 @@ export function useAssets() {
       const result = await repository.list(getToken);
       if (result.error) {
         logger.error('QUERY:ASSETS_LIST', 'Failed to fetch assets', { error: result.error }, getCorrelationId() || undefined);
+        if (import.meta.env.DEV) {
+          console.warn('[useAssets] Fetch failed:', result.error);
+        }
         throw result.error;
       }
       logger.debug('QUERY:ASSETS_LIST', 'Assets list fetched', { count: result.data?.length || 0 }, getCorrelationId() || undefined);

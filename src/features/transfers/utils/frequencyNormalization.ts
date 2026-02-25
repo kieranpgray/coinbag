@@ -1,4 +1,5 @@
 import type { ExpenseFrequency } from '@/types/domain';
+import { formatNumber } from '@/lib/utils';
 
 /**
  * Frequency normalization utilities
@@ -42,13 +43,16 @@ export function convertFromMonthly(
  * Format an amount with frequency label for display
  * @param monthlyAmount - The amount per month
  * @param frequency - The frequency to display
+ * @param locale - Locale code for formatting (defaults to 'en-US')
  * @returns Formatted string like "$566/week" or "$1,129/fortnight"
  */
 export function formatAmountByFrequency(
   monthlyAmount: number,
-  frequency: 'weekly' | 'fortnightly' | 'monthly'
+  frequency: 'weekly' | 'fortnightly' | 'monthly',
+  locale: string = 'en-US'
 ): string {
   const amount = convertFromMonthly(monthlyAmount, frequency);
   const period = frequency === 'weekly' ? 'week' : frequency === 'fortnightly' ? 'fortnight' : 'month';
-  return `$${amount.toFixed(0)}/${period}`;
+  const formattedAmount = formatNumber(amount, locale, { maximumFractionDigits: 0 });
+  return `$${formattedAmount}/${period}`;
 }

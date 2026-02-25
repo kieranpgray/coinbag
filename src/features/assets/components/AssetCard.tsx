@@ -2,6 +2,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { formatCurrency, formatPercentage, formatDate } from '@/lib/utils';
 import { Pencil, Trash2 } from 'lucide-react';
+import { PriceFreshnessIndicator } from '@/components/shared/PriceFreshnessIndicator';
+import { mapAssetTypeToPriceAssetClass } from '@/lib/services/price-service';
 import type { Asset } from '@/types/domain';
 
 interface AssetCardProps {
@@ -17,7 +19,7 @@ export function AssetCard({ asset, onEdit, onDelete }: AssetCardProps) {
         <div className="flex items-start justify-between">
           <div>
             <CardTitle>{asset.name}</CardTitle>
-            <p className="text-sm text-muted-foreground mt-1">{asset.type}</p>
+            <p className="text-body text-muted-foreground mt-1">{asset.type}</p>
           </div>
           <div className="flex gap-1">
             <Button
@@ -44,14 +46,14 @@ export function AssetCard({ asset, onEdit, onDelete }: AssetCardProps) {
       <CardContent>
         <div className="space-y-2">
           <div className="flex justify-between">
-            <span className="text-sm text-muted-foreground">Value</span>
+            <span className="text-body text-muted-foreground">Value</span>
             <span className="font-semibold">{formatCurrency(asset.value)}</span>
           </div>
           {asset.change1D !== undefined && (
             <div className="flex justify-between">
-              <span className="text-sm text-muted-foreground">1D Change</span>
+              <span className="text-body text-muted-foreground">1D Change</span>
               <span
-                className={`text-sm ${
+                className={`text-body ${
                   asset.change1D >= 0 ? 'text-success' : 'text-error'
                 }`}
               >
@@ -61,9 +63,9 @@ export function AssetCard({ asset, onEdit, onDelete }: AssetCardProps) {
           )}
           {asset.change1W !== undefined && (
             <div className="flex justify-between">
-              <span className="text-sm text-muted-foreground">1W Change</span>
+              <span className="text-body text-muted-foreground">1W Change</span>
               <span
-                className={`text-sm ${
+                className={`text-body ${
                   asset.change1W >= 0 ? 'text-success' : 'text-error'
                 }`}
               >
@@ -73,14 +75,24 @@ export function AssetCard({ asset, onEdit, onDelete }: AssetCardProps) {
           )}
           {asset.institution && (
             <div className="flex justify-between">
-              <span className="text-sm text-muted-foreground">Institution</span>
-              <span className="text-sm">{asset.institution}</span>
+              <span className="text-body text-muted-foreground">Institution</span>
+              <span className="text-body">{asset.institution}</span>
             </div>
           )}
           <div className="flex justify-between">
-            <span className="text-sm text-muted-foreground">Date Added</span>
-            <span className="text-sm">{formatDate(asset.dateAdded)}</span>
+            <span className="text-body text-muted-foreground">Date Added</span>
+            <span className="text-body">{formatDate(asset.dateAdded)}</span>
           </div>
+          {asset.ticker && mapAssetTypeToPriceAssetClass(asset.type) && (
+            <div className="flex justify-between items-center">
+              <span className="text-body text-muted-foreground">Price</span>
+              <PriceFreshnessIndicator
+                fetchedAt={asset.lastPriceFetchedAt}
+                assetClass={mapAssetTypeToPriceAssetClass(asset.type)!}
+                showLabel={true}
+              />
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>

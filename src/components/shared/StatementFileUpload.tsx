@@ -76,7 +76,7 @@ export function StatementFileUpload({
         onError={onError}
         disabled={disabled}
       />
-      <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
+      <div className="mt-2 flex items-center gap-2 text-caption text-muted-foreground">
         <FileText className="h-3 w-3" />
         <span>PDF statements</span>
         <Image className="h-3 w-3 ml-2" />

@@ -12,14 +12,14 @@ interface NumericValueProps {
 
 /**
  * NumericValue component for consistent numeric display across the app
- * 
+ *
  * Size variants:
- * - primary: text-data-lg (28.8px) - page-level totals
- * - secondary: text-xl (20px) - card values
- * - tertiary: text-lg (18px) - breakdown values
- * 
+ * - primary: text-display (28px) - hero KPIs, page-level totals
+ * - secondary: text-balance (24px) - card-level values
+ * - tertiary: text-body-lg (16px) - account-level, breakdown values
+ *
  * @example
- * <NumericValue value={totalAssets} size="primary" />
+ * <NumericValue value={totalAssets} size="primary" responsive />
  * <NumericValue value={cardValue} size="secondary" />
  */
 export function NumericValue({
@@ -32,10 +32,12 @@ export function NumericValue({
 }: NumericValueProps) {
   const sizeClasses = {
     primary: responsive
-      ? 'text-data-lg-sm sm:text-data-lg-md lg:text-data-lg-lg'
-      : 'text-data-lg',
-    secondary: 'text-xl',
-    tertiary: 'text-lg',
+      ? 'text-display-sm sm:text-display-md lg:text-display-lg'
+      : 'text-display',
+    secondary: responsive
+      ? 'text-balance-sm sm:text-balance-md lg:text-balance-lg'
+      : 'text-balance',
+    tertiary: 'text-body-lg',
   };
 
   const emphasisClasses = {

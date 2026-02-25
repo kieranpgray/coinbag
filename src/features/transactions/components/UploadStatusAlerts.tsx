@@ -31,7 +31,7 @@ export function UploadStatusAlerts({ files, error }: UploadStatusAlertsProps) {
               <AlertDescription className="text-green-600">
                 <div className="space-y-1">
                   <p className="font-medium">Processing complete!</p>
-                  <p className="text-sm">
+                  <p className="text-body">
                     {files.filter(f => f.status === 'success').length} file(s) processed successfully.
                     {files.some(f => f.transactionCount && f.transactionCount > 0) && (
                       <span className="ml-1">

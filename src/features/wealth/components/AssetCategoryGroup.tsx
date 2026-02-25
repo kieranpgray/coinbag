@@ -24,12 +24,13 @@ interface AssetCategoryGroupProps {
  */
 const ASSET_CATEGORY_ICONS: Record<string, LucideIcon> = {
   'Real Estate': Home,
-  'Investments': TrendingUp,
+  'Other Investments': TrendingUp,
   'Vehicles': Car,
   'Crypto': Coins,
   'Cash': Wallet,
   'Superannuation': Building2,
-  'Other': Package,
+  'Stock': TrendingUp,
+  'RSU': TrendingUp,
 };
 
 /**

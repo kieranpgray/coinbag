@@ -157,7 +157,7 @@ export function FileUpload({
               <Upload className="h-5 w-5 text-primary" />
               <div>
                 <p className="font-medium">{selectedFile.name}</p>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-body text-muted-foreground">
                   {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
                 </p>
               </div>
@@ -180,10 +180,10 @@ export function FileUpload({
                 'text-muted-foreground/50': disabled,
               })}
             />
-            <p className="text-sm font-medium mb-2">
+            <p className="text-body mb-2">
               {isDragging ? 'Drop file here' : 'Drag and drop your Excel file'}
             </p>
-            <p className="text-xs text-muted-foreground mb-4">
+            <p className="text-caption text-muted-foreground mb-4">
               or click to browse
             </p>
             <Button
@@ -194,7 +194,7 @@ export function FileUpload({
             >
               Select File
             </Button>
-            <p className="text-xs text-muted-foreground mt-4">
+            <p className="text-caption text-muted-foreground mt-4">
               Supports .xlsx, .xls, .ods (max {(maxSize / 1024 / 1024).toFixed(0)}MB)
             </p>
           </div>

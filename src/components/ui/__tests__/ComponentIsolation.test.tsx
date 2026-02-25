@@ -116,7 +116,7 @@ export function InputIsolationTest() {
           clearValue={0}
           placeholder="0.00"
         />
-        <p className="text-sm text-muted-foreground">
+        <p className="text-body text-muted-foreground">
           Click into this field when value is 0 to test clear-on-focus behavior
         </p>
       </div>
@@ -142,7 +142,7 @@ export function InputIsolationTest() {
           className="border-destructive"
           placeholder="Error state"
         />
-        <p className="text-sm text-destructive">Error message</p>
+        <p className="text-body text-destructive">Error message</p>
       </div>
     </div>
   );

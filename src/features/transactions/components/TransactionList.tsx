@@ -218,7 +218,7 @@ export function TransactionList({
           size="sm"
           onClick={() => refetch()}
           disabled={isLoading}
-          className="flex items-center gap-2 text-body-lg text-muted-foreground hover:text-foreground transition-colors h-auto p-0 hover:bg-transparent"
+          className="flex items-center gap-2 text-body text-muted-foreground hover:text-foreground transition-colors h-auto p-0 hover:bg-transparent"
         >
           <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
           Refresh
@@ -237,7 +237,7 @@ export function TransactionList({
               <h3 className="text-h3 font-semibold text-foreground mb-3">
                 No transactions yet
               </h3>
-              <p className="text-body-lg text-muted-foreground max-w-md mx-auto mb-8 leading-relaxed">
+              <p className="text-body text-muted-foreground max-w-md mx-auto mb-8 leading-relaxed">
                 Get started by uploading your bank statements. We'll automatically extract and categorize your transactions to give you a complete view of your account activity.
               </p>
               <Button 
@@ -253,7 +253,7 @@ export function TransactionList({
             <div className="max-w-2xl mx-auto space-y-6">
               <div className="text-center mb-6">
                 <h3 className="text-h3 font-semibold text-foreground mb-2">Upload Statement</h3>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-body text-muted-foreground">
                   Upload your bank statement files to import transactions.
                 </p>
               </div>
@@ -323,7 +323,7 @@ export function TransactionList({
                             </Badge>
                           )}
                         </div>
-                        <p className="text-body-lg text-muted-foreground">
+                        <p className="text-body text-muted-foreground">
                           {transaction.category}
                         </p>
                       </div>

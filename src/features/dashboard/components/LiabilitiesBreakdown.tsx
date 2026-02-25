@@ -54,7 +54,7 @@ export const LiabilitiesBreakdown = memo(function LiabilitiesBreakdown({
           <CardTitle>Liability allocation</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-muted-foreground mb-4">
+          <p className="text-body text-muted-foreground mb-4">
             Add your first liability to see a breakdown.
           </p>
           <Button asChild size="sm">

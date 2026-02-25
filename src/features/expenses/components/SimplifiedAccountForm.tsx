@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { SearchableSelect } from '@/components/ui/searchable-select';
+import { formatCurrency } from '@/lib/utils';
 import { type AccountCreate } from '@/contracts/accounts';
 
 const ACCOUNT_TYPES = [
@@ -127,7 +128,7 @@ export function SimplifiedAccountForm({ onSubmit, onCancel, isLoading }: Simplif
           autoFocus
         />
         {errors.accountName && (
-          <p id="accountName-error" className="text-sm text-destructive" role="alert">
+          <p id="accountName-error" className="text-body text-destructive" role="alert">
             {errors.accountName.message}
           </p>
         )}
@@ -163,7 +164,7 @@ export function SimplifiedAccountForm({ onSubmit, onCancel, isLoading }: Simplif
           placeholder="e.g., ANZ, Commonwealth Bank (optional)"
         />
         {errors.institution && (
-          <p id="institution-error" className="text-sm text-destructive" role="alert">
+          <p id="institution-error" className="text-body text-destructive" role="alert">
             {errors.institution.message}
           </p>
         )}
@@ -189,13 +190,13 @@ export function SimplifiedAccountForm({ onSubmit, onCancel, isLoading }: Simplif
                 className={errors.creditLimit ? 'border-destructive' : ''}
                 {...register('creditLimit', { valueAsNumber: true })}
               />
-              <p className="text-xs text-muted-foreground">
+              <p className="text-caption text-muted-foreground">
                 {selectedType === 'Credit Card'
                   ? 'Your total credit limit'
                   : 'The original loan amount'}
               </p>
               {errors.creditLimit && (
-                <p id="creditlimit-error" className="text-sm text-destructive" role="alert">
+                <p id="creditlimit-error" className="text-body text-destructive" role="alert">
                   {errors.creditLimit.message}
                 </p>
               )}
@@ -217,9 +218,9 @@ export function SimplifiedAccountForm({ onSubmit, onCancel, isLoading }: Simplif
                 className={errors.balanceOwed ? 'border-destructive' : ''}
                 {...register('balanceOwed', { valueAsNumber: true })}
               />
-              <p className="text-xs text-muted-foreground">How much you currently owe</p>
+              <p className="text-caption text-muted-foreground">How much you currently owe</p>
               {errors.balanceOwed && (
-                <p id="balanceowed-error" className="text-sm text-destructive" role="alert">
+                <p id="balanceowed-error" className="text-body text-destructive" role="alert">
                   {errors.balanceOwed.message}
                 </p>
               )}
@@ -237,21 +238,21 @@ export function SimplifiedAccountForm({ onSubmit, onCancel, isLoading }: Simplif
 
             return (
               <div className="rounded-lg border border-border bg-muted/30 p-3 space-y-2">
-                <p className="text-sm font-medium text-foreground">Calculated Values</p>
-                <div className="grid grid-cols-2 gap-4 text-sm">
+                <p className="text-body font-medium text-foreground">Calculated Values</p>
+                <div className="grid grid-cols-2 gap-4 text-body">
                   <div>
                     <span className="text-muted-foreground">Account Balance:</span>
                     <span className="ml-2 font-medium text-destructive">
-                      -${balanceOwed!.toFixed(2)}
+                      {formatCurrency(-balanceOwed!, undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </span>
-                    <p className="text-xs text-muted-foreground mt-1">Negative balance (amount owed)</p>
+                    <p className="text-caption text-muted-foreground mt-1">Negative balance (amount owed)</p>
                   </div>
                   <div>
                     <span className="text-muted-foreground">Credit Limit:</span>
                     <span className="ml-2 font-medium">
-                      ${creditLimit!.toFixed(2)}
+                      {formatCurrency(creditLimit!, undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </span>
-                    <p className="text-xs text-muted-foreground mt-1">Total credit available</p>
+                    <p className="text-caption text-muted-foreground mt-1">Total credit available</p>
                   </div>
                 </div>
               </div>
@@ -276,9 +277,9 @@ export function SimplifiedAccountForm({ onSubmit, onCancel, isLoading }: Simplif
             className={errors.balance ? 'border-destructive' : ''}
             {...register('balance', { valueAsNumber: true })}
           />
-          <p className="text-xs text-muted-foreground">Current account balance</p>
+          <p className="text-caption text-muted-foreground">Current account balance</p>
           {errors.balance && (
-            <p id="balance-error" className="text-sm text-destructive" role="alert">
+            <p id="balance-error" className="text-body text-destructive" role="alert">
               {errors.balance.message}
             </p>
           )}

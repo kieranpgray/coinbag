@@ -5,7 +5,6 @@ import {
   TrendingUp,
   CreditCard,
   ArrowLeftRight,
-  BarChart3,
   Settings,
   X,
 } from 'lucide-react';
@@ -24,7 +23,6 @@ const navigation = NAVIGATION_ITEMS.map(item => ({
       case ROUTES.app.wealth: return TrendingUp;
       case ROUTES.app.budget: return CreditCard;
       case ROUTES.app.transfers: return ArrowLeftRight;
-      case ROUTES.app.scenarios: return BarChart3;
       case ROUTES.app.settings: return Settings;
       default: return LayoutDashboard;
     }
@@ -71,7 +69,7 @@ export function MobileNav({ open, onOpenChange }: MobileNavProps) {
           <div className="flex items-center justify-between border-b border-border p-4">
             <Link 
               to={ROUTES.app.dashboard} 
-              className="text-xl font-semibold text-foreground"
+              className="text-h1-sm sm:text-h1-md lg:text-h1-lg text-foreground"
               onClick={() => onOpenChange(false)}
             >
               Supafolio
@@ -110,7 +108,7 @@ export function MobileNav({ open, onOpenChange }: MobileNavProps) {
                     aria-current={isActive ? 'page' : undefined}
                   >
                     <item.icon className="h-4 w-4 flex-shrink-0" />
-                    <span className="text-sm font-medium">{item.name}</span>
+                    <span className="text-body font-medium">{item.name}</span>
                   </button>
                 );
               })}

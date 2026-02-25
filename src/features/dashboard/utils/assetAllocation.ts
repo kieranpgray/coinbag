@@ -6,7 +6,6 @@ import {
   Coins,
   Wallet,
   Building2,
-  Package,
   Award,
 } from 'lucide-react';
 import type { AssetBreakdown } from '@/types/domain';
@@ -17,14 +16,13 @@ import type { AssetBreakdown } from '@/types/domain';
  */
 const ASSET_TYPE_COLORS: Record<AssetBreakdown['category'], string> = {
   'Real Estate': '#3B5BFA',
-  'Investments': '#00A86B',
+  'Other Investments': '#00A86B',
   'Vehicles': '#8B65FF',
   'Crypto': '#FFA500',
   'Cash': '#5FA5FF',
   'Superannuation': '#6366F1',
   'Stock': '#0EA5E9',
   'RSU': '#A855F7',
-  'Other': '#8C8C8C',
 };
 
 /**
@@ -33,14 +31,13 @@ const ASSET_TYPE_COLORS: Record<AssetBreakdown['category'], string> = {
  */
 const ASSET_TYPE_ICONS: Record<AssetBreakdown['category'], LucideIcon> = {
   'Real Estate': Home,
-  'Investments': TrendingUp,
+  'Other Investments': TrendingUp,
   'Vehicles': Car,
   'Crypto': Coins,
   'Cash': Wallet,
   'Superannuation': Building2,
   'Stock': TrendingUp,
   'RSU': Award,
-  'Other': Package,
 };
 
 /**
@@ -66,18 +63,18 @@ export interface ListData {
 
 /**
  * Get color for an asset type
- * Falls back to 'Other' color if type is not found
+ * Falls back to 'Other Investments' color if type is not found
  */
 export function getAssetTypeColor(type: AssetBreakdown['category']): string {
-  return ASSET_TYPE_COLORS[type] ?? ASSET_TYPE_COLORS['Other'];
+  return ASSET_TYPE_COLORS[type] ?? ASSET_TYPE_COLORS['Other Investments'];
 }
 
 /**
  * Get icon component for an asset type
- * Falls back to 'Other' icon if type is not found
+ * Falls back to 'Other Investments' icon if type is not found
  */
 export function getAssetTypeIcon(type: AssetBreakdown['category']): LucideIcon {
-  return ASSET_TYPE_ICONS[type] ?? ASSET_TYPE_ICONS['Other'];
+  return ASSET_TYPE_ICONS[type] ?? ASSET_TYPE_ICONS['Other Investments'];
 }
 
 /**
@@ -140,14 +137,8 @@ export function transformBreakdownForChart(breakdown: AssetBreakdown[]): ChartDa
 export function transformBreakdownForList(breakdown: AssetBreakdown[]): ListData[] {
   const normalized = normalizePercentages(breakdown);
 
-  // Sort by descending value, but ensure "Other" appears last
-  const sorted = [...normalized].sort((a, b) => {
-    // If one is "Other", it goes last
-    if (a.category === 'Other' && b.category !== 'Other') return 1;
-    if (b.category === 'Other' && a.category !== 'Other') return -1;
-    // Otherwise sort by value descending
-    return b.value - a.value;
-  });
+  // Sort by descending value
+  const sorted = [...normalized].sort((a, b) => b.value - a.value);
 
   return sorted.map((item) => ({
     category: item.category,

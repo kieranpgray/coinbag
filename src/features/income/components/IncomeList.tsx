@@ -419,7 +419,7 @@ export function IncomeList({ incomes, accountMap, onEdit, onDelete, onCreate }: 
                           autoFocus
                         />
                         {getFieldError(income.id, 'name') && (
-                          <p className="text-xs text-destructive flex items-center gap-1 truncate mt-1">
+                          <p className="text-caption text-destructive flex items-center gap-1 truncate mt-1">
                             <AlertCircle className="h-3 w-3 flex-shrink-0" />
                             <span className="truncate">{getFieldError(income.id, 'name')}</span>
                           </p>
@@ -467,7 +467,7 @@ export function IncomeList({ incomes, accountMap, onEdit, onDelete, onCreate }: 
                           </Select>
                         </div>
                         {getFieldError(income.id, 'source') && (
-                          <p className="text-xs text-destructive flex items-center gap-1 truncate mt-1">
+                          <p className="text-caption text-destructive flex items-center gap-1 truncate mt-1">
                             <AlertCircle className="h-3 w-3 flex-shrink-0" />
                             <span className="truncate">{getFieldError(income.id, 'source')}</span>
                           </p>
@@ -511,7 +511,7 @@ export function IncomeList({ incomes, accountMap, onEdit, onDelete, onCreate }: 
                           autoFocus
                         />
                         {getFieldError(income.id, 'amount') && (
-                          <p className="text-xs text-destructive flex items-center gap-1 justify-end truncate mt-1">
+                          <p className="text-caption text-destructive flex items-center gap-1 justify-end truncate mt-1">
                             <AlertCircle className="h-3 w-3 flex-shrink-0" />
                             <span className="truncate">{getFieldError(income.id, 'amount')}</span>
                           </p>
@@ -559,7 +559,7 @@ export function IncomeList({ incomes, accountMap, onEdit, onDelete, onCreate }: 
                           </Select>
                         </div>
                         {getFieldError(income.id, 'frequency') && (
-                          <p className="text-xs text-destructive flex items-center gap-1 truncate mt-1">
+                          <p className="text-caption text-destructive flex items-center gap-1 truncate mt-1">
                             <AlertCircle className="h-3 w-3 flex-shrink-0" />
                             <span className="truncate">{getFieldError(income.id, 'frequency')}</span>
                           </p>
@@ -600,7 +600,7 @@ export function IncomeList({ incomes, accountMap, onEdit, onDelete, onCreate }: 
                           />
                         </div>
                         {getFieldError(income.id, 'nextPaymentDate') && (
-                          <p className="text-xs text-destructive flex items-center gap-1 truncate mt-1">
+                          <p className="text-caption text-destructive flex items-center gap-1 truncate mt-1">
                             <AlertCircle className="h-3 w-3 flex-shrink-0" />
                             <span className="truncate">{getFieldError(income.id, 'nextPaymentDate')}</span>
                           </p>
@@ -638,7 +638,7 @@ export function IncomeList({ incomes, accountMap, onEdit, onDelete, onCreate }: 
                           />
                         </div>
                         {getFieldError(income.id, 'paidToAccountId') && (
-                          <p className="text-xs text-destructive flex items-center gap-1 truncate mt-1">
+                          <p className="text-caption text-destructive flex items-center gap-1 truncate mt-1">
                             <AlertCircle className="h-3 w-3 flex-shrink-0" />
                             <span className="truncate">{getFieldError(income.id, 'paidToAccountId')}</span>
                           </p>

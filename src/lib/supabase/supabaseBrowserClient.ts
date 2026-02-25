@@ -102,8 +102,34 @@ export function getSupabaseBrowserClient(
           ...init,
           headers,
         };
-        
-        return originalFetch(input, customInit);
+
+        let response: Response;
+        try {
+          response = await originalFetch(input, customInit);
+        } catch (fetchError) {
+          if (import.meta.env.DEV) {
+            const reqUrl = typeof input === 'string' ? input : (input instanceof Request ? input.url : String(input));
+            if (reqUrl.includes('/rest/v1/')) {
+              console.warn('[Supabase Fetch] Request failed:', fetchError);
+            }
+          }
+          throw fetchError;
+        }
+
+        // Log failed REST responses in dev so failures are visible in console
+        if ((import.meta.env.DEV || import.meta.env.VITE_DEBUG_LOGGING === 'true') && !response.ok) {
+          const reqUrl = typeof input === 'string' ? input : (input instanceof Request ? input.url : String(input));
+          if (reqUrl.includes('/rest/v1/')) {
+            try {
+              const body = await response.clone().json().catch(() => ({}));
+              console.warn('[Supabase Fetch]', response.status, response.statusText, { url: reqUrl.slice(0, 120), ...body });
+            } catch {
+              console.warn('[Supabase Fetch]', response.status, response.statusText, reqUrl.slice(0, 120));
+            }
+          }
+        }
+
+        return response;
       };
       
       clientOptions.global = {

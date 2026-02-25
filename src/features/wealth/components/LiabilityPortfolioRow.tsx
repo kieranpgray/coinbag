@@ -22,7 +22,7 @@ export function LiabilityPortfolioRow({ liability, onClick }: LiabilityPortfolio
     >
       {/* Left side: Name, institution, and optional monthly payment */}
       <div className="flex-1 min-w-0 pr-4">
-        <div className="text-body-lg font-medium text-foreground truncate">
+        <div className="text-body text-foreground truncate">
           {liability.name}
         </div>
         {liability.institution && (

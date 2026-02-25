@@ -11,6 +11,7 @@ import { CreateAssetModal } from '@/features/assets/components/CreateAssetModal'
 import { EditAssetModal } from '@/features/assets/components/EditAssetModal';
 import { DeleteAssetDialog } from '@/features/assets/components/DeleteAssetDialog';
 import { ViewModeToggle } from '@/components/shared/ViewModeToggle';
+import { ManualRefreshButton } from '@/components/shared/ManualRefreshButton';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -27,6 +28,7 @@ export function AssetsPage() {
   const [viewMode, setViewMode] = useViewMode();
 
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
+  const [refreshError, setRefreshError] = useState<string | null>(null);
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -62,7 +64,7 @@ export function AssetsPage() {
       );
       
       setCreateModalOpen(true);
-      if (type && ['Real Estate', 'Investments', 'Vehicles', 'Crypto', 'Cash', 'Superannuation', 'Stock', 'RSU', 'Other'].includes(type)) {
+      if (type && ['Real Estate', 'Other Investments', 'Vehicles', 'Crypto', 'Cash', 'Superannuation', 'Stock', 'RSU'].includes(type)) {
         setDefaultAssetType(type);
       }
       // Clear the query params after processing
@@ -164,15 +166,25 @@ export function AssetsPage() {
     });
   };
 
+  const priceBackedAssets = useMemo(
+    () =>
+      assets.filter((a) => {
+        if (!a.ticker?.trim()) return false;
+        return ['Stock', 'RSU', 'Crypto', 'Other Investments', 'Superannuation'].includes(a.type);
+      }),
+    [assets]
+  );
+
   const assetCategories: Array<{ value: string; label: string }> = [
     { value: 'all', label: 'All' },
     { value: 'Real Estate', label: 'Real Estate' },
-    { value: 'Investments', label: 'Investments' },
+    { value: 'Other Investments', label: 'Other Investments' },
     { value: 'Vehicles', label: 'Vehicles' },
     { value: 'Crypto', label: 'Crypto' },
     { value: 'Cash', label: 'Cash' },
     { value: 'Superannuation', label: 'Superannuation' },
-    { value: 'Other', label: 'Other' },
+    { value: 'Stock', label: 'Stock' },
+    { value: 'RSU', label: 'RSU' },
   ];
 
   if (error) {
@@ -182,10 +194,10 @@ export function AssetsPage() {
           <div className="space-y-1">
             <h1 className="text-h1-sm sm:text-h1-md lg:text-h1-lg font-bold tracking-tight">Assets</h1>
             <div className="space-y-0.5">
-              <div className="text-data-lg-sm sm:text-data-lg-md lg:text-data-lg-lg font-bold mb-4">
+              <div className="text-display-sm sm:text-display-md lg:text-display-lg font-bold mb-4">
                 {formatCurrency(totalAssetValue)}
               </div>
-              <p className="text-sm text-muted-foreground">Total asset value</p>
+              <p className="text-body text-muted-foreground">Total asset value</p>
             </div>
           </div>
           <Button onClick={() => setCreateModalOpen(true)}>
@@ -240,18 +252,30 @@ export function AssetsPage() {
         <div className="space-y-1">
             <h1 className="text-h1-sm sm:text-h1-md lg:text-h1-lg font-bold tracking-tight">Assets</h1>
             <div className="space-y-0.5">
-              <div className="text-data-lg-sm sm:text-data-lg-md lg:text-data-lg-lg font-bold mb-4">
+              <div className="text-display-sm sm:text-display-md lg:text-display-lg font-bold mb-4">
                 {formatCurrency(totalAssetValue)}
               </div>
-              <p className="text-sm text-muted-foreground">Total asset value</p>
+              <p className="text-body text-muted-foreground">Total asset value</p>
             </div>
         </div>
         <div className="flex flex-col gap-4 sm:items-end">
-          <Button onClick={() => setCreateModalOpen(true)} className="w-full sm:w-auto">
-            <Plus className="h-4 w-4 mr-2" />
-            Add New Asset
-          </Button>
-          <ViewModeToggle viewMode={viewMode} onViewModeChange={setViewMode} />
+          <div className="flex flex-wrap items-center gap-2">
+            {priceBackedAssets.length > 0 && (
+              <ManualRefreshButton
+                assets={priceBackedAssets}
+                onSuccess={() => setRefreshError(null)}
+                onError={(msg) => setRefreshError(msg)}
+              />
+            )}
+            <Button onClick={() => setCreateModalOpen(true)} className="w-full sm:w-auto">
+              <Plus className="h-4 w-4 mr-2" />
+              Add New Asset
+            </Button>
+            <ViewModeToggle viewMode={viewMode} onViewModeChange={setViewMode} />
+          </div>
+          {refreshError && (
+            <p className="text-body text-destructive">{refreshError}</p>
+          )}
         </div>
       </div>
 
@@ -323,6 +347,10 @@ export function AssetsPage() {
           open={editModalOpen}
           onOpenChange={setEditModalOpen}
           onSubmit={handleUpdate}
+          onDeleteRequested={() => {
+            setEditModalOpen(false);
+            setDeleteDialogOpen(true);
+          }}
           isLoading={updateMutation.isPending}
         />
       )}

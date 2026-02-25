@@ -38,7 +38,7 @@ export function LiabilityChangeLog({ liabilityId }: LiabilityChangeLogProps) {
 
   if (error) {
     return (
-      <div className="text-sm text-muted-foreground">
+      <div className="text-body text-muted-foreground">
         Unable to load change history.
       </div>
     );
@@ -113,7 +113,7 @@ export function LiabilityChangeLog({ liabilityId }: LiabilityChangeLogProps) {
 
   if (!history || history.length === 0) {
     return (
-      <div className="text-sm text-muted-foreground">
+      <div className="text-body text-muted-foreground">
         No change history available.
       </div>
     );
@@ -123,7 +123,7 @@ export function LiabilityChangeLog({ liabilityId }: LiabilityChangeLogProps) {
     <div className="space-y-3">
       <div className="flex gap-2 items-center">
         <Select value={sortBy} onValueChange={(value) => setSortBy(value as SortOption)}>
-          <SelectTrigger className="h-8 text-xs">
+          <SelectTrigger className="h-8 text-caption">
             <SelectValue placeholder="Sort by" />
           </SelectTrigger>
           <SelectContent>
@@ -134,7 +134,7 @@ export function LiabilityChangeLog({ liabilityId }: LiabilityChangeLogProps) {
           </SelectContent>
         </Select>
         <Select value={filterBy} onValueChange={(value) => setFilterBy(value as FilterOption)}>
-          <SelectTrigger className="h-8 text-xs">
+          <SelectTrigger className="h-8 text-caption">
             <SelectValue placeholder="Filter" />
           </SelectTrigger>
           <SelectContent>
@@ -148,7 +148,7 @@ export function LiabilityChangeLog({ liabilityId }: LiabilityChangeLogProps) {
           variant="outline"
           size="sm"
           onClick={() => setShowTimeline(!showTimeline)}
-          className="h-8 text-xs"
+          className="h-8 text-caption"
         >
           <TrendingUp className="h-3 w-3 mr-1" />
           {showTimeline ? 'Hide' : 'Show'} Timeline
@@ -158,7 +158,7 @@ export function LiabilityChangeLog({ liabilityId }: LiabilityChangeLogProps) {
           size="sm"
           onClick={handleExportCSV}
           disabled={!filteredAndSortedHistory || filteredAndSortedHistory.length === 0}
-          className="h-8 text-xs ml-auto"
+          className="h-8 text-caption ml-auto"
         >
           <Download className="h-3 w-3 mr-1" />
           Export CSV
@@ -166,7 +166,7 @@ export function LiabilityChangeLog({ liabilityId }: LiabilityChangeLogProps) {
       </div>
       {showTimeline && (
         <div className="border border-border rounded-lg p-3 bg-muted/30">
-          <h4 className="text-xs font-semibold mb-2">Balance Over Time</h4>
+          <h4 className="text-caption font-semibold mb-2">Balance Over Time</h4>
           <LiabilityBalanceTimeline liabilityId={liabilityId} />
         </div>
       )}
@@ -182,10 +182,10 @@ export function LiabilityChangeLog({ liabilityId }: LiabilityChangeLogProps) {
             className="flex items-start justify-between py-2 border-b border-border last:border-0"
           >
             <div className="flex-1 min-w-0">
-              <div className="text-sm text-muted-foreground">
+              <div className="text-body text-muted-foreground">
                 {formatDate(entry.createdAt)}
               </div>
-              <div className="text-sm text-foreground mt-0.5">
+              <div className="text-body text-foreground mt-0.5">
                 {isCreation ? (
                   <>Created with balance {formatCurrency(entry.newBalance)}</>
                 ) : (
@@ -200,7 +200,7 @@ export function LiabilityChangeLog({ liabilityId }: LiabilityChangeLogProps) {
               {!isCreation && (
                 <div className="flex flex-col items-end">
                   <span
-                    className={`text-sm font-medium ${
+                    className={`text-body font-medium ${
                       isDecrease ? 'text-success' : 'text-error'
                     }`}
                   >
@@ -209,7 +209,7 @@ export function LiabilityChangeLog({ liabilityId }: LiabilityChangeLogProps) {
                   </span>
                   {entry.previousBalance !== null && entry.previousBalance !== 0 && (
                     <span
-                      className={`text-xs text-muted-foreground ${
+                      className={`text-caption text-muted-foreground ${
                         isDecrease ? 'text-success' : 'text-error'
                       }`}
                     >

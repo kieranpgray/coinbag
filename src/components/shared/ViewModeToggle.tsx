@@ -25,7 +25,7 @@ export function ViewModeToggle({
 
   return (
     <div className={`flex items-center gap-3 ${className}`}>
-      <Label htmlFor={id} className="text-sm text-muted-foreground">
+      <Label htmlFor={id} className="text-body text-muted-foreground">
         List view
       </Label>
       <Switch
@@ -34,7 +34,7 @@ export function ViewModeToggle({
         onCheckedChange={handleChange}
         aria-label={`Currently showing ${viewMode} view. Toggle to switch between list and card view.`}
       />
-      <Label htmlFor={id} className="text-sm text-muted-foreground">
+      <Label htmlFor={id} className="text-body text-muted-foreground">
         Card view
       </Label>
     </div>

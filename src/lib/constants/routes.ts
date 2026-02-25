@@ -52,7 +52,6 @@ export const NAVIGATION_ITEMS = [
   { name: 'Wealth', path: ROUTES.app.wealth },
   { name: 'Budget', path: ROUTES.app.budget },
   { name: 'Transfers', path: ROUTES.app.transfers },
-  { name: 'Simulate', path: ROUTES.app.scenarios },
   { name: 'Settings', path: ROUTES.app.settings },
 ] as const;
 

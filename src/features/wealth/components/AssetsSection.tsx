@@ -35,12 +35,13 @@ export function AssetsSection({
   const assetCategories: Array<{ value: string; label: string }> = [
     { value: 'all', label: 'All' },
     { value: 'Real Estate', label: 'Real Estate' },
-    { value: 'Investments', label: 'Investments' },
+    { value: 'Other Investments', label: 'Other Investments' },
     { value: 'Vehicles', label: 'Vehicles' },
     { value: 'Crypto', label: 'Crypto' },
     { value: 'Cash', label: 'Cash' },
     { value: 'Superannuation', label: 'Superannuation' },
-    { value: 'Other', label: 'Other' },
+    { value: 'Stock', label: 'Stock' },
+    { value: 'RSU', label: 'RSU' },
   ];
 
   const getAssetsForCategory = (category: string) => {

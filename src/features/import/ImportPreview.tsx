@@ -47,7 +47,7 @@ export function ImportPreview({
       <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium">Total Rows</CardTitle>
+            <CardTitle className="text-body font-medium">Total Rows</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-balance font-bold">{summary.totalRows}</div>
@@ -56,7 +56,7 @@ export function ImportPreview({
 
         <Card className={cn({ 'border-green-500': summary.validRows > 0 })}>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium">Valid</CardTitle>
+            <CardTitle className="text-body font-medium">Valid</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-balance font-bold text-green-600">
@@ -67,7 +67,7 @@ export function ImportPreview({
 
         <Card className={cn({ 'border-red-500': hasErrors })}>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium">Errors</CardTitle>
+            <CardTitle className="text-body font-medium">Errors</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-balance font-bold text-red-600">
@@ -78,7 +78,7 @@ export function ImportPreview({
 
         <Card className={cn({ 'border-yellow-500': hasDuplicates })}>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium">Duplicates</CardTitle>
+            <CardTitle className="text-body font-medium">Duplicates</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-balance font-bold text-yellow-600">
@@ -89,7 +89,7 @@ export function ImportPreview({
 
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium">Warnings</CardTitle>
+            <CardTitle className="text-body font-medium">Warnings</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-balance font-bold text-yellow-600">
@@ -220,7 +220,7 @@ export function ImportPreview({
                 onChange={(e) => onSkipDuplicatesChange(e.target.checked)}
                 className="rounded"
               />
-              <label htmlFor="skip-duplicates" className="text-sm cursor-pointer">
+              <label htmlFor="skip-duplicates" className="text-body cursor-pointer">
                 Skip duplicate items during import
               </label>
             </div>
@@ -293,7 +293,7 @@ function EntityTypePreview({
             <div className="flex items-start justify-between">
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="text-sm font-medium">Row {row.rowNumber}</span>
+                  <span className="text-body font-medium">Row {row.rowNumber}</span>
                   {hasError && (
                     <Badge variant="destructive">Error</Badge>
                   )}
@@ -311,7 +311,7 @@ function EntityTypePreview({
                 </div>
 
                 {isDuplicate && (
-                  <p className="text-sm text-yellow-700 dark:text-yellow-300 mb-2">
+                  <p className="text-body text-yellow-700 dark:text-yellow-300 mb-2">
                     {duplicates.find((d) => d.rowNumber === row.rowNumber)?.matchReason}
                   </p>
                 )}
@@ -322,14 +322,14 @@ function EntityTypePreview({
                       variant="ghost"
                       size="sm"
                       onClick={() => onToggleError(row.rowNumber)}
-                      className="text-sm"
+                      className="text-body"
                     >
                       {isExpanded ? 'Hide' : 'Show'} Errors ({rowErrors.length})
                     </Button>
                     {isExpanded && (
                       <div className="mt-2 space-y-1">
                         {rowErrors.map((error, idx) => (
-                          <div key={idx} className="text-sm text-red-700 dark:text-red-300">
+                          <div key={idx} className="text-body text-red-700 dark:text-red-300">
                             {error.fields.map((field, fieldIdx) => (
                               <div key={fieldIdx}>
                                 <strong>{field.field}:</strong> {field.message}

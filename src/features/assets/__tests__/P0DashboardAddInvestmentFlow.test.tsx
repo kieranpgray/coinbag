@@ -162,7 +162,7 @@ describe('P0: Dashboard Add Investment Flow', () => {
     // Step 6: Create investment (simulate via repository directly to test the path)
     const investmentC = {
       name: 'My Investment',
-      type: 'Investments' as Asset['type'],
+      type: 'Other Investments' as Asset['type'],
       value: 100000,
       dateAdded: new Date().toISOString(),
     };
@@ -231,7 +231,7 @@ describe('P0: Dashboard Add Investment Flow', () => {
     const assetsRepo = repo.createAssetsRepository();
     await assetsRepo.create({
       name: 'New Asset',
-      type: 'Investments',
+      type: 'Other Investments',
       value: 100000,
       dateAdded: new Date().toISOString(),
     }, () => Promise.resolve('token'));

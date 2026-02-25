@@ -482,7 +482,7 @@ export function BudgetPage() {
                   placeholder="e.g., Main Salary"
                 />
                 {incomeErrors.name && (
-                  <p id="name-error" className="text-sm text-destructive" role="alert">
+                  <p id="name-error" className="text-body text-destructive" role="alert">
                     {incomeErrors.name.message}
                   </p>
                 )}
@@ -522,7 +522,7 @@ export function BudgetPage() {
                   {...registerIncome('amount', { valueAsNumber: true })}
                 />
                 {incomeErrors.amount && (
-                  <p id="amount-error" className="text-sm text-destructive" role="alert">
+                  <p id="amount-error" className="text-body text-destructive" role="alert">
                     {incomeErrors.amount.message}
                   </p>
                 )}
@@ -564,11 +564,11 @@ export function BudgetPage() {
                 )}
               />
               {incomeErrors.nextPaymentDate && (
-                <p id="nextPaymentDate-error" className="text-sm text-destructive" role="alert">
+                <p id="nextPaymentDate-error" className="text-body text-destructive" role="alert">
                   {incomeErrors.nextPaymentDate.message}
                 </p>
               )}
-              <p className="text-sm text-muted-foreground">Optional: Leave empty if payment date is unknown</p>
+              <p className="text-body text-muted-foreground">Optional: Leave empty if payment date is unknown</p>
             </div>
             <div className="space-y-2">
               <Label htmlFor="paidToAccountId">Paid to (Optional)</Label>
@@ -636,7 +636,7 @@ export function BudgetPage() {
                     {...registerIncome('name')}
                   />
                   {incomeErrors.name && (
-                    <p id="edit-name-error" className="text-sm text-destructive" role="alert">
+                    <p id="edit-name-error" className="text-body text-destructive" role="alert">
                       {incomeErrors.name.message}
                     </p>
                   )}
@@ -675,7 +675,7 @@ export function BudgetPage() {
                     {...registerIncome('amount', { valueAsNumber: true })}
                   />
                   {incomeErrors.amount && (
-                    <p id="edit-amount-error" className="text-sm text-destructive" role="alert">
+                    <p id="edit-amount-error" className="text-body text-destructive" role="alert">
                       {incomeErrors.amount.message}
                     </p>
                   )}
@@ -716,11 +716,11 @@ export function BudgetPage() {
                   )}
                 />
                 {incomeErrors.nextPaymentDate && (
-                  <p id="edit-nextPaymentDate-error" className="text-sm text-destructive" role="alert">
+                  <p id="edit-nextPaymentDate-error" className="text-body text-destructive" role="alert">
                     {incomeErrors.nextPaymentDate.message}
                   </p>
                 )}
-                <p className="text-sm text-muted-foreground">Optional: Leave empty if payment date is unknown</p>
+                <p className="text-body text-muted-foreground">Optional: Leave empty if payment date is unknown</p>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="edit-paidToAccountId">Paid to (Optional)</Label>

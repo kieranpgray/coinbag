@@ -22,8 +22,8 @@ export function AccountCashFlowRow({ accountFlow }: AccountCashFlowRowProps) {
     <>
       <li className="py-3 border-b border-border last:border-b-0">
         <div className="flex flex-col gap-2">
-          <div className="font-medium text-sm">{accountFlow.accountName}</div>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-1 text-sm">
+          <div className="font-medium text-body">{accountFlow.accountName}</div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-1 text-body">
             {accountFlow.monthlyIncome > 0 && (
               <div className="flex justify-between sm:block">
                 <span className="text-muted-foreground">Income</span>
@@ -59,7 +59,7 @@ export function AccountCashFlowRow({ accountFlow }: AccountCashFlowRowProps) {
               variant="ghost"
               size="sm"
               onClick={() => setBreakdownModalOpen(true)}
-              className="w-fit h-8 px-2 text-xs gap-1 -ml-2"
+              className="w-fit h-8 px-2 text-caption gap-1 -ml-2"
             >
               View breakdown
               <ChevronRight className="h-3 w-3" />

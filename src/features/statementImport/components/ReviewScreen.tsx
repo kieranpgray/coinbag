@@ -117,10 +117,10 @@ export function ReviewScreen({
           <div className="text-center py-12">
             <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
             <h3 className="text-h3 font-semibold mb-2">{t('noTransactionsFound', { ns: 'import' })}</h3>
-            <p className="text-sm text-muted-foreground mb-4">
+            <p className="text-body text-muted-foreground mb-4">
               {t('noTransactionsDescription', { ns: 'import' })}
             </p>
-            <ul className="text-sm text-muted-foreground text-left max-w-md mx-auto space-y-1 mb-6">
+            <ul className="text-body text-muted-foreground text-left max-w-md mx-auto space-y-1 mb-6">
               <li>• {t('checkStatementFormat', { ns: 'import' })}</li>
               <li>• {t('checkFileReadable', { ns: 'import' })}</li>
               <li>• {t('checkTransactionData', { ns: 'import' })}</li>
@@ -157,19 +157,19 @@ export function ReviewScreen({
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div>
-              <p className="text-sm text-muted-foreground">Selected</p>
+              <p className="text-body text-muted-foreground">Selected</p>
               <p className="text-balance font-bold">{summary.total}</p>
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Income</p>
+              <p className="text-body text-muted-foreground">Income</p>
               <p className="text-balance font-bold text-green-600">{formatCurrency(summary.income)}</p>
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Expenses</p>
+              <p className="text-body text-muted-foreground">Expenses</p>
               <p className="text-balance font-bold text-red-600">{formatCurrency(summary.expenses)}</p>
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Net</p>
+              <p className="text-body text-muted-foreground">Net</p>
               <p className={`text-balance font-bold ${summary.net >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                 {formatCurrency(summary.net)}
               </p>
@@ -186,7 +186,7 @@ export function ReviewScreen({
             <p className="font-medium mb-2">Warnings:</p>
             <ul className="list-disc list-inside space-y-1">
               {warnings.map((warning, i) => (
-                <li key={i} className="text-sm">{warning}</li>
+                <li key={i} className="text-body">{warning}</li>
               ))}
             </ul>
           </AlertDescription>
@@ -201,7 +201,7 @@ export function ReviewScreen({
             <p className="font-medium mb-2">Errors:</p>
             <ul className="list-disc list-inside space-y-1">
               {errors.map((error, i) => (
-                <li key={i} className="text-sm">{error}</li>
+                <li key={i} className="text-body">{error}</li>
               ))}
             </ul>
           </AlertDescription>
@@ -259,7 +259,7 @@ export function ReviewScreen({
                       <select
                         value={transaction.type}
                         onChange={(e) => handleUpdateTransaction(index, 'type', e.target.value as 'income' | 'expense')}
-                        className="h-9 rounded-md border border-input bg-background px-3 py-1 text-sm"
+                        className="h-9 rounded-md border border-input bg-background px-3 py-1 text-body"
                       >
                         <option value="income">Income</option>
                         <option value="expense">Expense</option>

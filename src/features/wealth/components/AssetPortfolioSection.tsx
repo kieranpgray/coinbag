@@ -19,12 +19,13 @@ interface AssetPortfolioSectionProps {
  */
 const ASSET_CATEGORIES: Array<Asset['type']> = [
   'Real Estate',
-  'Investments',
+  'Other Investments',
   'Vehicles',
   'Crypto',
   'Cash',
   'Superannuation',
-  'Other',
+  'Stock',
+  'RSU',
 ];
 
 /**
@@ -66,7 +67,7 @@ export function AssetPortfolioSection({
             </h2>
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-lg font-bold">{formatCurrency(totalAssets)}</span>
+            <span className="text-balance font-bold">{formatCurrency(totalAssets)}</span>
           </div>
         </div>
         <div className="flex flex-col items-start sm:items-end gap-3">

@@ -320,7 +320,7 @@ export function StatementUploadStep({
           <FileText className="h-8 w-8 text-primary" />
         </div>
         <h3 className="text-lg font-semibold">Upload Statements (Optional)</h3>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-body text-muted-foreground">
           Upload PDF or image statements for <strong>{accountName}</strong> to import transactions.
           You can skip this step and upload statements later.
         </p>

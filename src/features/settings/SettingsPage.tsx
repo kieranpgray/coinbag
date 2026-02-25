@@ -208,9 +208,9 @@ export function SettingsPage() {
                   {/* Email is managed by Clerk (verification + recovery flows). Keep read-only here. */}
                   <Input id="email" type="email" {...register('email')} readOnly disabled />
                   {errors.email && (
-                    <p className="text-sm text-destructive">{errors.email.message}</p>
+                    <p className="text-body text-destructive">{errors.email.message}</p>
                   )}
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-caption text-muted-foreground">
                     Email changes are managed in your account settings (top-right user menu).
                   </p>
                 </div>
@@ -238,7 +238,7 @@ export function SettingsPage() {
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                 <div className="space-y-0.5">
                   <Label htmlFor="privacy-mode">Privacy Mode</Label>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-body text-muted-foreground">
                     Hide sensitive financial information
                   </p>
                 </div>
@@ -250,7 +250,7 @@ export function SettingsPage() {
                 />
               </div>
               <div className="space-y-3">
-                <Label htmlFor="theme-preference" className="text-base font-medium">
+                <Label htmlFor="theme-preference" className="text-body font-medium">
                   Theme
                 </Label>
                 <Select 
@@ -266,7 +266,7 @@ export function SettingsPage() {
                     <SelectItem value="dark">Dark</SelectItem>
                   </SelectContent>
                 </Select>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-body text-muted-foreground">
                   {themePreference === 'system' 
                     ? 'Theme follows your system preference'
                     : themePreference === 'light'
@@ -278,7 +278,7 @@ export function SettingsPage() {
               {/* Locale Selector */}
               <div className="pt-6 border-t">
                 <div className="space-y-3">
-                  <Label htmlFor="locale-select" className="text-base font-medium">
+                  <Label htmlFor="locale-select" className="text-body font-medium">
                     {t('locale.label', { ns: 'settings' })}
                   </Label>
                   
@@ -296,7 +296,7 @@ export function SettingsPage() {
                   </Select>
                   
                   {detectedCountry && (
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-caption text-muted-foreground">
                       {t('locale.detected', { ns: 'settings', country: detectedCountry })}
                     </p>
                   )}
@@ -328,12 +328,12 @@ export function SettingsPage() {
                   value={taxRate}
                   onChange={(e) => handleTaxRateChange(parseFloat(e.target.value) || 0)}
                 />
-                <p className="text-sm text-muted-foreground">
+                <p className="text-body text-muted-foreground">
                   Your estimated tax rate for capital gains calculations
                 </p>
               </div>
               {taxSettingsConfigured && (
-                <p className="text-sm text-success">
+                <p className="text-body text-success">
                   ✓ Tax settings configured
                 </p>
               )}
@@ -352,7 +352,7 @@ export function SettingsPage() {
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                 <div className="space-y-0.5">
                   <Label htmlFor="portfolio-summary">Portfolio Summary</Label>
-                  <p className="text-sm text-muted-foreground">Weekly portfolio updates</p>
+                  <p className="text-body text-muted-foreground">Weekly portfolio updates</p>
                 </div>
                 <Switch
                   id="portfolio-summary"
@@ -366,7 +366,7 @@ export function SettingsPage() {
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                 <div className="space-y-0.5">
                   <Label htmlFor="spending-alerts">Spending Alerts</Label>
-                  <p className="text-sm text-muted-foreground">Notify about unusual spending</p>
+                  <p className="text-body text-muted-foreground">Notify about unusual spending</p>
                 </div>
                 <Switch
                   id="spending-alerts"
@@ -380,7 +380,7 @@ export function SettingsPage() {
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                 <div className="space-y-0.5">
                   <Label htmlFor="stock-price-alerts">Stock Price Alerts</Label>
-                  <p className="text-sm text-muted-foreground">Price change notifications</p>
+                  <p className="text-body text-muted-foreground">Price change notifications</p>
                 </div>
                 <Switch
                   id="stock-price-alerts"
@@ -394,7 +394,7 @@ export function SettingsPage() {
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                 <div className="space-y-0.5">
                   <Label htmlFor="feature-announcements">Feature Announcements</Label>
-                  <p className="text-sm text-muted-foreground">New feature updates</p>
+                  <p className="text-body text-muted-foreground">New feature updates</p>
                 </div>
                 <Switch
                   id="feature-announcements"
@@ -408,7 +408,7 @@ export function SettingsPage() {
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                 <div className="space-y-0.5">
                   <Label htmlFor="monthly-reports">Monthly Reports</Label>
-                  <p className="text-sm text-muted-foreground">Monthly portfolio and spending report</p>
+                  <p className="text-body text-muted-foreground">Monthly portfolio and spending report</p>
                 </div>
                 <Switch
                   id="monthly-reports"
@@ -422,7 +422,7 @@ export function SettingsPage() {
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                 <div className="space-y-0.5">
                   <Label htmlFor="marketing-promotions">Marketing Promotions</Label>
-                  <p className="text-sm text-muted-foreground">Promotional emails</p>
+                  <p className="text-body text-muted-foreground">Promotional emails</p>
                 </div>
                 <Switch
                   id="marketing-promotions"
@@ -457,7 +457,7 @@ export function SettingsPage() {
                       <Skeleton className="h-5 w-20" />
                     )}
                   </div>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-body text-muted-foreground">
                     Two-factor authentication is managed through your account settings.
                   </p>
                 </div>

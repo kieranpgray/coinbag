@@ -1,4 +1,5 @@
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
+import { useEffect } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
@@ -7,20 +8,26 @@ import { Label } from '@/components/ui/label';
 import { SearchableSelect } from '@/components/ui/searchable-select';
 import { Textarea } from '@/components/ui/textarea';
 import { DatePicker } from '@/components/ui/date-picker';
+import { AddressAutocomplete } from '@/components/shared/AddressAutocomplete';
+import { CurrencyInput } from '@/components/ui/currency-input';
 import type { Asset } from '@/types/domain';
 import { SUPPORTED_EXCHANGES } from '@/constants/exchanges';
 import { SUPPORTED_CRYPTO_SYMBOLS } from '@/constants/cryptoSymbols';
+import { useLocale } from '@/contexts/LocaleContext';
+import { formatNumber } from '@/lib/utils';
 
 // Form schema: name optional at base level (required only for non-Stock/RSU via superRefine)
 // Stock/RSU fields optional here; Task 8/9 add UI and validation for them
 const assetSchema = z
   .object({
     name: z.string().max(100).trim().optional().or(z.literal('')),
-    type: z.enum(['Real Estate', 'Investments', 'Vehicles', 'Crypto', 'Cash', 'Superannuation', 'Stock', 'RSU', 'Other']),
+    type: z.enum(['Real Estate', 'Other Investments', 'Vehicles', 'Crypto', 'Cash', 'Superannuation', 'Stock', 'RSU']),
     value: z.number().min(0, 'Value must be positive'),
     dateAdded: z.string().min(1, 'Date is required'),
     institution: z.string().optional(),
     notes: z.string().optional(),
+    address: z.string().max(200).trim().optional().or(z.literal('')),
+    propertyType: z.string().max(100).trim().optional().or(z.literal('')),
     ticker: z.string().max(20).trim().optional().or(z.literal('')),
     exchange: z.string().trim().optional().or(z.literal('')),
     quantity: z.number().positive().optional(),
@@ -29,9 +36,15 @@ const assetSchema = z
     todaysPrice: z.number().min(0).optional(),
     grantDate: z.string().optional().or(z.literal('')),
     vestingDate: z.string().optional().or(z.literal('')),
+    grantPrice: z.number().min(0).optional(),
   })
   .superRefine((data, ctx) => {
-    if (data.type !== 'Stock' && data.type !== 'RSU' && data.type !== 'Crypto') {
+    if (data.type === 'Real Estate') {
+      const addressVal = data.address?.trim() ?? '';
+      if (!addressVal) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Address is required', path: ['address'] });
+      }
+    } else if (data.type !== 'Stock' && data.type !== 'RSU' && data.type !== 'Crypto') {
       const nameVal = data.name?.trim() ?? '';
       if (!nameVal) {
         ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Name is required', path: ['name'] });
@@ -43,8 +56,8 @@ const assetSchema = z
       if (data.quantity === undefined || data.quantity === null || data.quantity <= 0) {
         ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Quantity is required and must be positive', path: ['quantity'] });
       }
-      if (data.purchasePrice === undefined || data.purchasePrice === null || data.purchasePrice < 0) {
-        ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Purchase price is required', path: ['purchasePrice'] });
+      if (data.todaysPrice === undefined || data.todaysPrice === null || data.todaysPrice < 0) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Current price is required', path: ['todaysPrice'] });
       }
     }
     if (data.type === 'RSU') {
@@ -56,8 +69,7 @@ const assetSchema = z
       if (data.todaysPrice === undefined || data.todaysPrice === null || data.todaysPrice < 0) {
         ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Today's price is required", path: ['todaysPrice'] });
       }
-      const vestingVal = data.vestingDate?.trim() ?? '';
-      if (!vestingVal) ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Vesting date is required', path: ['vestingDate'] });
+      // Vesting date optional per spec
     }
     if (data.type === 'Crypto') {
       const tickerVal = data.ticker?.trim() ?? '';
@@ -77,22 +89,32 @@ const assetSchema = z
 
 type AssetFormData = z.infer<typeof assetSchema>;
 
-const isTypeSpecific = (type: string) => type === 'Stock' || type === 'RSU' || type === 'Crypto';
-
 interface AssetFormProps {
   asset?: Asset;
   onSubmit: (data: Omit<Asset, 'id' | 'change1D' | 'change1W'>) => void;
   onCancel: () => void;
+  onDelete?: () => void;
   isLoading?: boolean;
   defaultType?: Asset['type'];
 }
 
-export function AssetForm({ asset, onSubmit, onCancel, isLoading, defaultType }: AssetFormProps) {
+/** Label for Superannuation/Retirement by locale: Australia → Superannuation, else → Retirement */
+function getSuperannuationRetirementLabel(locale: string): string {
+  const code = locale?.trim() || '';
+  if (code === 'en-AU') return 'Superannuation';
+  return 'Retirement';
+}
+
+export function AssetForm({ asset, onSubmit, onCancel, onDelete, isLoading, defaultType }: AssetFormProps) {
+  const { locale } = useLocale();
+  const superOrRetirementLabel = getSuperannuationRetirementLabel(locale);
+
   const {
     register,
     handleSubmit,
     setValue,
     watch,
+    control,
     formState: { errors },
   } = useForm<AssetFormData>({
     resolver: zodResolver(assetSchema),
@@ -104,6 +126,8 @@ export function AssetForm({ asset, onSubmit, onCancel, isLoading, defaultType }:
           dateAdded: asset.dateAdded.split('T')[0],
           institution: asset.institution,
           notes: asset.notes,
+          address: asset.address ?? '',
+          propertyType: asset.propertyType ?? '',
           ticker: asset.ticker ?? '',
           exchange: asset.exchange ?? '',
           quantity: asset.quantity,
@@ -112,22 +136,34 @@ export function AssetForm({ asset, onSubmit, onCancel, isLoading, defaultType }:
           todaysPrice: asset.todaysPrice,
           grantDate: asset.grantDate ?? '',
           vestingDate: asset.vestingDate ?? '',
+          grantPrice: asset.grantPrice,
         }
       : {
-          type: defaultType,
+          type: defaultType ?? 'Cash',
           dateAdded: new Date().toISOString().split('T')[0],
         },
   });
 
   const selectedType = watch('type') || '';
+  const watchedTicker = watch('ticker');
+  const watchedExchange = watch('exchange');
+
+  // Exchange auto-select: when ticker is set and exchange empty, default by locale (AU -> ASX, else NASDAQ)
+  useEffect(() => {
+    if ((selectedType === 'Stock' || selectedType === 'RSU') && watchedTicker?.trim() && !watchedExchange?.trim()) {
+      const defaultExchange = locale?.trim() === 'en-AU' ? 'ASX' : 'NASDAQ';
+      setValue('exchange', defaultExchange);
+    }
+  }, [selectedType, watchedTicker, watchedExchange, locale, setValue]);
 
   const onSubmitForm = (data: AssetFormData) => {
+    const today = new Date().toISOString().split('T')[0] ?? '';
     if (data.type === 'Stock') {
       const tickerVal = (data.ticker ?? '').trim();
       const qty = Number(data.quantity) || 0;
-      const price = Number(data.purchasePrice) ?? 0;
-      const value = qty * price;
-      const dateAdded = (data.purchaseDate && data.purchaseDate.trim()) || data.dateAdded || new Date().toISOString().split('T')[0] || '';
+      const currentPrice = Number(data.todaysPrice) ?? 0;
+      const value = Math.round(qty * currentPrice * 100) / 100;
+      const dateAdded = (data.purchaseDate && data.purchaseDate.trim()) || data.dateAdded || today;
       onSubmit({
         name: tickerVal || 'Unknown',
         type: 'Stock',
@@ -138,8 +174,9 @@ export function AssetForm({ asset, onSubmit, onCancel, isLoading, defaultType }:
         ticker: tickerVal,
         exchange: (data.exchange ?? '').trim() || undefined,
         quantity: qty,
-        purchasePrice: price,
+        purchasePrice: data.purchasePrice != null ? Number(data.purchasePrice) : undefined,
         purchaseDate: (data.purchaseDate ?? '').trim() || undefined,
+        todaysPrice: currentPrice,
       });
       return;
     }
@@ -147,9 +184,8 @@ export function AssetForm({ asset, onSubmit, onCancel, isLoading, defaultType }:
       const tickerVal = (data.ticker ?? '').trim();
       const qty = Number(data.quantity) || 0;
       const price = Number(data.todaysPrice) ?? 0;
-      const value = qty * price;
-      const dateAdded = (data.grantDate && data.grantDate.trim()) || data.dateAdded || new Date().toISOString().split('T')[0] || '';
-      const vestingVal = (data.vestingDate ?? '').trim();
+      const value = Math.round(qty * price * 100) / 100;
+      const dateAdded = (data.grantDate && data.grantDate.trim()) || data.dateAdded || today;
       onSubmit({
         name: tickerVal ? `${tickerVal} (RSU)` : 'RSU',
         type: 'RSU',
@@ -162,16 +198,17 @@ export function AssetForm({ asset, onSubmit, onCancel, isLoading, defaultType }:
         quantity: qty,
         todaysPrice: price,
         grantDate: (data.grantDate ?? '').trim() || undefined,
-        vestingDate: vestingVal,
+        vestingDate: (data.vestingDate ?? '').trim() || undefined,
+        grantPrice: data.grantPrice != null ? Number(data.grantPrice) : undefined,
       });
       return;
     }
     if (data.type === 'Crypto') {
       const tickerVal = (data.ticker ?? '').trim();
       const qty = Number(data.quantity) || 0;
-      const value = Number(data.value) ?? 0;
+      const value = Math.round((Number(data.value) ?? 0) * 100) / 100;
       const purchasePrice = data.purchasePrice != null ? Number(data.purchasePrice) : undefined;
-      const dateAdded = (data.purchaseDate && data.purchaseDate.trim()) || data.dateAdded || new Date().toISOString().split('T')[0] || '';
+      const dateAdded = (data.purchaseDate && data.purchaseDate.trim()) || data.dateAdded || today;
       onSubmit({
         name: tickerVal || 'Crypto',
         type: 'Crypto',
@@ -186,33 +223,85 @@ export function AssetForm({ asset, onSubmit, onCancel, isLoading, defaultType }:
       });
       return;
     }
+    if (data.type === 'Real Estate') {
+      const addressVal = (data.address ?? '').trim();
+      onSubmit({
+        name: addressVal || 'Property',
+        type: 'Real Estate',
+        value: Math.round((data.value ?? 0) * 100) / 100,
+        dateAdded: data.dateAdded ?? today,
+        notes: data.notes,
+        address: addressVal || undefined,
+        propertyType: (data.propertyType ?? '').trim() || undefined,
+      });
+      return;
+    }
+    if (data.type === 'Cash') {
+      onSubmit({
+        name: 'Cash',
+        type: 'Cash',
+        value: Math.round((data.value ?? 0) * 100) / 100,
+        dateAdded: data.dateAdded ?? today,
+        notes: data.notes,
+      });
+      return;
+    }
+    if (data.type === 'Superannuation') {
+      const nameVal = (data.name ?? '').trim();
+      onSubmit({
+        name: nameVal || superOrRetirementLabel,
+        type: 'Superannuation',
+        value: Math.round((data.value ?? 0) * 100) / 100,
+        dateAdded: data.dateAdded ?? today,
+        notes: data.notes,
+      });
+      return;
+    }
     const nameVal = (data.name ?? '').trim();
     onSubmit({
       name: nameVal || 'Unknown',
       type: data.type,
-      value: data.value,
-      dateAdded: data.dateAdded,
+      value: Math.round((data.value ?? 0) * 100) / 100,
+      dateAdded: data.dateAdded ?? today,
       institution: data.institution,
       notes: data.notes,
     });
   };
 
-  const showGenericFields = !isTypeSpecific(selectedType);
+  const showVehicleSection = selectedType === 'Vehicles';
+  const showRealEstateSection = selectedType === 'Real Estate';
+  const showOtherInvestmentsSection = selectedType === 'Other Investments';
+  const showCashSection = selectedType === 'Cash';
+  const showSuperannuationSection = selectedType === 'Superannuation';
   const showStockSection = selectedType === 'Stock';
   const showRSUSection = selectedType === 'RSU';
   const showCryptoSection = selectedType === 'Crypto';
 
   const stockQty = watch('quantity');
-  const stockPrice = watch('purchasePrice');
-  const stockValue = showStockSection && typeof stockQty === 'number' && typeof stockPrice === 'number' && stockQty > 0 && stockPrice >= 0
-    ? stockQty * stockPrice
+  const stockCurrentPrice = watch('todaysPrice');
+  const stockPurchasePrice = watch('purchasePrice');
+  const stockValue = showStockSection && typeof stockQty === 'number' && typeof stockCurrentPrice === 'number' && stockQty > 0 && stockCurrentPrice >= 0
+    ? Math.round(stockQty * stockCurrentPrice * 100) / 100
     : 0;
+  const stockCostBasis = showStockSection && typeof stockQty === 'number' && typeof stockPurchasePrice === 'number' && stockQty > 0 && stockPurchasePrice >= 0
+    ? stockQty * stockPurchasePrice
+    : null;
+  const stockUnrealisedPL = stockCostBasis != null && typeof stockValue === 'number'
+    ? Math.round((stockValue - stockCostBasis) * 100) / 100
+    : null;
 
   const rsuQty = watch('quantity');
   const rsuPrice = watch('todaysPrice');
+  const rsuGrantPrice = watch('grantPrice');
   const rsuValue = showRSUSection && typeof rsuQty === 'number' && typeof rsuPrice === 'number' && rsuQty > 0 && rsuPrice >= 0
-    ? rsuQty * rsuPrice
+    ? Math.round(rsuQty * rsuPrice * 100) / 100
     : 0;
+  const rsuGrantValue = showRSUSection && typeof rsuQty === 'number' && typeof rsuGrantPrice === 'number' && rsuQty > 0 && rsuGrantPrice >= 0
+    ? rsuQty * rsuGrantPrice
+    : null;
+  const rsuUnrealisedPL = rsuGrantValue != null && typeof rsuValue === 'number'
+    ? Math.round((rsuValue - rsuGrantValue) * 100) / 100
+    : null;
 
   const cryptoQty = watch('quantity');
   const cryptoPurchasePrice = watch('purchasePrice');
@@ -221,7 +310,7 @@ export function AssetForm({ asset, onSubmit, onCancel, isLoading, defaultType }:
     ? cryptoQty * cryptoPurchasePrice
     : null;
   const cryptoUnrealisedPL = cryptoCostBasis != null && typeof cryptoValue === 'number'
-    ? cryptoValue - cryptoCostBasis
+    ? Math.round((cryptoValue - cryptoCostBasis) * 100) / 100
     : null;
 
   const submitDisabled = isLoading;
@@ -239,91 +328,139 @@ export function AssetForm({ asset, onSubmit, onCancel, isLoading, defaultType }:
           onValueChange={(value) => setValue('type', value as AssetFormData['type'])}
           options={[
             { value: 'Real Estate', label: 'Real Estate' },
-            { value: 'Investments', label: 'Investments' },
+            { value: 'Other Investments', label: 'Other Investments' },
             { value: 'Vehicles', label: 'Vehicles' },
             { value: 'Crypto', label: 'Crypto' },
             { value: 'Cash', label: 'Cash' },
-            { value: 'Superannuation', label: 'Superannuation' },
+            { value: 'Superannuation', label: superOrRetirementLabel },
             { value: 'Stock', label: 'Stock' },
             { value: 'RSU', label: 'RSU' },
-            { value: 'Other', label: 'Other' },
           ]}
           placeholder="Select asset type"
           error={errors.type?.message}
         />
       </div>
 
-      {showGenericFields && (
+      {showVehicleSection && (
         <>
           <div className="space-y-2">
-            <Label htmlFor="name">
-              Name <span className="text-destructive">*</span>
-            </Label>
-            <Input
-              id="name"
-              aria-invalid={errors.name ? 'true' : 'false'}
-              aria-describedby={errors.name ? 'name-error' : undefined}
-              className={errors.name ? 'border-destructive' : ''}
-              {...register('name')}
-              placeholder="Asset name"
+            <Label htmlFor="vehicle-name">Name <span className="text-destructive">*</span></Label>
+            <Input id="vehicle-name" aria-invalid={!!errors.name} className={errors.name ? 'border-destructive' : ''} {...register('name')} placeholder="e.g. Toyota Camry" />
+            {errors.name && <p className="text-body text-destructive" role="alert">{errors.name.message}</p>}
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="vehicle-value">Current value ($) <span className="text-destructive">*</span></Label>
+            <Input id="vehicle-value" type="number" step="0.01" min={0} placeholder="0.00" aria-invalid={!!errors.value} className={errors.value ? 'border-destructive' : ''} {...register('value', { valueAsNumber: true })} />
+            {errors.value && <p className="text-body text-destructive" role="alert">{errors.value.message}</p>}
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="vehicle-notes">Notes</Label>
+            <Textarea id="vehicle-notes" {...register('notes')} placeholder="Optional" rows={2} />
+          </div>
+        </>
+      )}
+
+      {showRealEstateSection && (
+        <>
+          <div className="space-y-2">
+            <Label htmlFor="property-address">Address <span className="text-destructive">*</span></Label>
+            <Controller
+              name="address"
+              control={control}
+              render={({ field }) => (
+                <AddressAutocomplete
+                  id="property-address"
+                  value={field.value ?? ''}
+                  onChange={field.onChange}
+                  placeholder="Property address"
+                  aria-invalid={!!errors.address}
+                  className={errors.address ? 'border-destructive' : ''}
+                  maxLength={200}
+                  showFallbackHint
+                />
+              )}
             />
-            {errors.name && (
-              <p id="name-error" className="text-sm text-destructive" role="alert">
-                {errors.name.message}
-              </p>
-            )}
+            {errors.address && <p className="text-body text-destructive" role="alert">{errors.address.message}</p>}
           </div>
-
           <div className="space-y-2">
-            <Label htmlFor="value">
-              Value ($) <span className="text-destructive">*</span>
-            </Label>
-            <Input
-              id="value"
-              type="number"
-              step="0.01"
-              placeholder="0.00"
-              clearOnFocus
-              clearValue={0}
-              aria-invalid={errors.value ? 'true' : 'false'}
-              aria-describedby={errors.value ? 'value-error' : undefined}
-              className={errors.value ? 'border-destructive' : ''}
-              {...register('value', { valueAsNumber: true })}
+            <Label htmlFor="property-value">Current value ($) <span className="text-destructive">*</span></Label>
+            <Input id="property-value" type="number" step="0.01" min={0} placeholder="0.00" aria-invalid={!!errors.value} className={errors.value ? 'border-destructive' : ''} {...register('value', { valueAsNumber: true })} />
+            {errors.value && <p className="text-body text-destructive" role="alert">{errors.value.message}</p>}
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="property-type">Property type</Label>
+            <Input id="property-type" maxLength={100} {...register('propertyType')} placeholder="Optional (e.g. House, Unit)" />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="property-notes">Notes</Label>
+            <Textarea id="property-notes" {...register('notes')} placeholder="Optional" rows={2} />
+          </div>
+        </>
+      )}
+
+      {showOtherInvestmentsSection && (
+        <>
+          <div className="space-y-2">
+            <Label htmlFor="otherinv-name">Name <span className="text-destructive">*</span></Label>
+            <Input id="otherinv-name" aria-invalid={!!errors.name} className={errors.name ? 'border-destructive' : ''} {...register('name')} placeholder="Investment name" />
+            {errors.name && <p className="text-body text-destructive" role="alert">{errors.name.message}</p>}
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="otherinv-value">Current value ($) <span className="text-destructive">*</span></Label>
+            <Input id="otherinv-value" type="number" step="0.01" min={0} placeholder="0.00" aria-invalid={!!errors.value} className={errors.value ? 'border-destructive' : ''} {...register('value', { valueAsNumber: true })} />
+            {errors.value && <p className="text-body text-destructive" role="alert">{errors.value.message}</p>}
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="otherinv-notes">Notes</Label>
+            <Textarea id="otherinv-notes" {...register('notes')} placeholder="Optional" rows={2} />
+          </div>
+        </>
+      )}
+
+      {showCashSection && (
+        <>
+          <div className="space-y-2">
+            <Label htmlFor="cash-value">Balance ($) <span className="text-destructive">*</span></Label>
+            <Input id="cash-value" type="number" step="0.01" min={0} placeholder="0.00" aria-invalid={!!errors.value} className={errors.value ? 'border-destructive' : ''} {...register('value', { valueAsNumber: true })} />
+            {errors.value && <p className="text-body text-destructive" role="alert">{errors.value.message}</p>}
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="cash-notes">Notes</Label>
+            <Textarea id="cash-notes" {...register('notes')} placeholder="Optional" rows={2} />
+          </div>
+        </>
+      )}
+
+      {showSuperannuationSection && (
+        <>
+          <div className="space-y-2">
+            <Label htmlFor="super-name">Fund name <span className="text-destructive">*</span></Label>
+            <Input id="super-name" aria-invalid={!!errors.name} className={errors.name ? 'border-destructive' : ''} {...register('name')} placeholder={`${superOrRetirementLabel} fund name`} />
+            {errors.name && <p className="text-body text-destructive" role="alert">{errors.name.message}</p>}
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="super-value">Balance ($) <span className="text-destructive">*</span></Label>
+            <Controller
+              name="value"
+              control={control}
+              render={({ field }) => (
+                <CurrencyInput
+                  id="super-value"
+                  placeholder="0.00"
+                  aria-invalid={!!errors.value}
+                  className={errors.value ? 'border-destructive' : ''}
+                  value={field.value}
+                  onChange={field.onChange}
+                  decimalPlaces={2}
+                  locale={locale}
+                />
+              )}
             />
-            {errors.value && (
-              <p id="value-error" className="text-sm text-destructive" role="alert">
-                {errors.value.message}
-              </p>
-            )}
+            {errors.value && <p className="text-body text-destructive" role="alert">{errors.value.message}</p>}
           </div>
-
           <div className="space-y-2">
-            <Label htmlFor="dateAdded">
-              Date Added <span className="text-destructive">*</span>
-            </Label>
-            <DatePicker
-              id="dateAdded"
-              shouldShowCalendarButton
-              {...(() => {
-                const { disabled, ...registerProps } = register('dateAdded');
-                return registerProps;
-              })()}
-            />
-            {errors.dateAdded && (
-              <p id="dateAdded-error" className="text-sm text-destructive" role="alert">
-                {errors.dateAdded.message}
-              </p>
-            )}
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="institution">Institution</Label>
-            <Input id="institution" {...register('institution')} placeholder="Optional" />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="notes">Notes</Label>
-            <Textarea id="notes" {...register('notes')} placeholder="Optional notes" rows={3} />
+            <Label htmlFor="super-notes">Notes</Label>
+            <Textarea id="super-notes" {...register('notes')} placeholder="Optional" rows={2} />
           </div>
         </>
       )}
@@ -342,7 +479,7 @@ export function AssetForm({ asset, onSubmit, onCancel, isLoading, defaultType }:
               className={errors.ticker ? 'border-destructive' : ''}
             />
             {errors.ticker && (
-              <p className="text-sm text-destructive" role="alert">{errors.ticker.message}</p>
+              <p className="text-body text-destructive" role="alert">{errors.ticker.message}</p>
             )}
           </div>
           <div className="space-y-2">
@@ -352,7 +489,7 @@ export function AssetForm({ asset, onSubmit, onCancel, isLoading, defaultType }:
               value={watch('exchange') ?? ''}
               onValueChange={(value) => setValue('exchange', value)}
               options={[{ value: '', label: 'Optional' }, ...SUPPORTED_EXCHANGES.map((ex) => ({ value: ex, label: ex }))]}
-              placeholder="Optional"
+              placeholder="Optional (auto from symbol)"
             />
           </div>
           <div className="space-y-2">
@@ -370,52 +507,80 @@ export function AssetForm({ asset, onSubmit, onCancel, isLoading, defaultType }:
               {...register('quantity', { valueAsNumber: true })}
             />
             {errors.quantity && (
-              <p className="text-sm text-destructive" role="alert">{errors.quantity.message}</p>
+              <p className="text-body text-destructive" role="alert">{errors.quantity.message}</p>
             )}
           </div>
           <div className="space-y-2">
-            <Label htmlFor="stock-purchasePrice">
-              Purchase price ($) <span className="text-destructive">*</span>
-            </Label>
+            <Label htmlFor="stock-purchasePrice">Purchase price ($)</Label>
             <Input
               id="stock-purchasePrice"
               type="number"
               step="0.01"
               min={0}
-              placeholder="0.00"
-              aria-invalid={!!errors.purchasePrice}
-              className={errors.purchasePrice ? 'border-destructive' : ''}
+              placeholder="Optional"
               {...register('purchasePrice', { valueAsNumber: true })}
             />
-            {errors.purchasePrice && (
-              <p className="text-sm text-destructive" role="alert">{errors.purchasePrice.message}</p>
-            )}
           </div>
           <div className="space-y-2">
             <Label htmlFor="stock-purchaseDate">Purchase date</Label>
-            <DatePicker
-              id="stock-purchaseDate"
-              {...(() => {
-                const { disabled, ...rest } = register('purchaseDate');
-                return rest;
-              })()}
+            <Controller
+              name="purchaseDate"
+              control={control}
+              render={({ field }) => (
+                <DatePicker
+                  id="stock-purchaseDate"
+                  value={field.value || undefined}
+                  onChange={(e) => field.onChange(e.target.value)}
+                  shouldShowCalendarButton
+                  allowClear
+                  placeholder="Optional"
+                />
+              )}
             />
           </div>
           <div className="space-y-2">
-            <Label>Value ($)</Label>
-            <div className="rounded-md border border-input bg-muted/50 px-3 py-2 text-sm">
-              {stockValue.toLocaleString('en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            <Label htmlFor="stock-todaysPrice">Current price ($) <span className="text-destructive">*</span></Label>
+            <Input
+              id="stock-todaysPrice"
+              type="number"
+              step="0.01"
+              min={0}
+              placeholder="0.00"
+              aria-invalid={!!errors.todaysPrice}
+              className={errors.todaysPrice ? 'border-destructive' : ''}
+              {...register('todaysPrice', { valueAsNumber: true })}
+            />
+            {errors.todaysPrice && <p className="text-body text-destructive" role="alert">{errors.todaysPrice.message}</p>}
+          </div>
+          <div className="space-y-2">
+            <Label>Current value ($)</Label>
+            <div className="rounded-md border border-input bg-muted/50 px-3 py-2 text-body">
+              {formatNumber(stockValue, 'en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </div>
-            <p className="text-xs text-muted-foreground">Quantity × Purchase price</p>
+            <p className="text-caption text-muted-foreground">Quantity × Current price</p>
+          </div>
+          <div className="space-y-2">
+            <Label>Unrealised profit/loss</Label>
+            <div className="rounded-md border border-input bg-muted/50 px-3 py-2 text-body">
+              {stockUnrealisedPL != null
+                ? `${stockUnrealisedPL >= 0 ? '+' : '-'}$${formatNumber(Math.abs(stockUnrealisedPL), 'en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                : '—'}
+            </div>
+            <p className="text-caption text-muted-foreground">Current value − cost basis (enter purchase price to see)</p>
           </div>
           <div className="space-y-2">
             <Label htmlFor="stock-dateAdded">Date added</Label>
-            <DatePicker
-              id="stock-dateAdded"
-              {...(() => {
-                const { disabled, ...rest } = register('dateAdded');
-                return rest;
-              })()}
+            <Controller
+              name="dateAdded"
+              control={control}
+              render={({ field }) => (
+                <DatePicker
+                  id="stock-dateAdded"
+                  value={field.value || undefined}
+                  onChange={(e) => field.onChange(e.target.value)}
+                  shouldShowCalendarButton
+                />
+              )}
             />
           </div>
           <div className="space-y-2">
@@ -439,7 +604,7 @@ export function AssetForm({ asset, onSubmit, onCancel, isLoading, defaultType }:
               className={errors.ticker ? 'border-destructive' : ''}
             />
             {errors.ticker && (
-              <p className="text-sm text-destructive" role="alert">{errors.ticker.message}</p>
+              <p className="text-body text-destructive" role="alert">{errors.ticker.message}</p>
             )}
           </div>
           <div className="space-y-2">
@@ -467,12 +632,12 @@ export function AssetForm({ asset, onSubmit, onCancel, isLoading, defaultType }:
               {...register('quantity', { valueAsNumber: true })}
             />
             {errors.quantity && (
-              <p className="text-sm text-destructive" role="alert">{errors.quantity.message}</p>
+              <p className="text-body text-destructive" role="alert">{errors.quantity.message}</p>
             )}
           </div>
           <div className="space-y-2">
             <Label htmlFor="rsu-todaysPrice">
-              Today&apos;s price ($) <span className="text-destructive">*</span>
+              Current price ($) <span className="text-destructive">*</span>
             </Label>
             <Input
               id="rsu-todaysPrice"
@@ -485,49 +650,89 @@ export function AssetForm({ asset, onSubmit, onCancel, isLoading, defaultType }:
               {...register('todaysPrice', { valueAsNumber: true })}
             />
             {errors.todaysPrice && (
-              <p className="text-sm text-destructive" role="alert">{errors.todaysPrice.message}</p>
+              <p className="text-body text-destructive" role="alert">{errors.todaysPrice.message}</p>
             )}
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="rsu-grantPrice">Price at grant ($)</Label>
+            <Controller
+              name="grantPrice"
+              control={control}
+              render={({ field }) => (
+                <CurrencyInput
+                  id="rsu-grantPrice"
+                  placeholder="Optional"
+                  value={field.value}
+                  onChange={field.onChange}
+                  decimalPlaces={2}
+                  locale={locale}
+                />
+              )}
+            />
           </div>
           <div className="space-y-2">
             <Label htmlFor="rsu-grantDate">Grant date</Label>
-            <DatePicker
-              id="rsu-grantDate"
-              {...(() => {
-                const { disabled, ...rest } = register('grantDate');
-                return rest;
-              })()}
+            <Controller
+              name="grantDate"
+              control={control}
+              render={({ field }) => (
+                <DatePicker
+                  id="rsu-grantDate"
+                  value={field.value || undefined}
+                  onChange={(e) => field.onChange(e.target.value)}
+                  shouldShowCalendarButton
+                  allowClear
+                  placeholder="Optional"
+                />
+              )}
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="rsu-vestingDate">
-              Vesting date <span className="text-destructive">*</span>
-            </Label>
-            <DatePicker
-              id="rsu-vestingDate"
-              {...(() => {
-                const { disabled, ...rest } = register('vestingDate');
-                return rest;
-              })()}
+            <Label htmlFor="rsu-vestingDate">Vesting date</Label>
+            <Controller
+              name="vestingDate"
+              control={control}
+              render={({ field }) => (
+                <DatePicker
+                  id="rsu-vestingDate"
+                  value={field.value || undefined}
+                  onChange={(e) => field.onChange(e.target.value)}
+                  shouldShowCalendarButton
+                  allowClear
+                  placeholder="Optional"
+                />
+              )}
             />
-            {errors.vestingDate && (
-              <p className="text-sm text-destructive" role="alert">{errors.vestingDate.message}</p>
-            )}
           </div>
           <div className="space-y-2">
-            <Label>Value ($)</Label>
-            <div className="rounded-md border border-input bg-muted/50 px-3 py-2 text-sm">
-              {rsuValue.toLocaleString('en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            <Label>Current value ($)</Label>
+            <div className="rounded-md border border-input bg-muted/50 px-3 py-2 text-body">
+              {formatNumber(rsuValue, 'en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </div>
-            <p className="text-xs text-muted-foreground">Quantity × Today&apos;s price</p>
+            <p className="text-caption text-muted-foreground">Quantity × Current price</p>
+          </div>
+          <div className="space-y-2">
+            <Label>Unrealised profit/loss</Label>
+            <div className="rounded-md border border-input bg-muted/50 px-3 py-2 text-body">
+              {rsuUnrealisedPL != null
+                ? `${rsuUnrealisedPL >= 0 ? '+' : '-'}$${formatNumber(Math.abs(rsuUnrealisedPL), 'en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                : '—'}
+            </div>
+            <p className="text-caption text-muted-foreground">Current value − value at grant (enter grant price to see)</p>
           </div>
           <div className="space-y-2">
             <Label htmlFor="rsu-dateAdded">Date added</Label>
-            <DatePicker
-              id="rsu-dateAdded"
-              {...(() => {
-                const { disabled, ...rest } = register('dateAdded');
-                return rest;
-              })()}
+            <Controller
+              name="dateAdded"
+              control={control}
+              render={({ field }) => (
+                <DatePicker
+                  id="rsu-dateAdded"
+                  value={field.value || undefined}
+                  onChange={(e) => field.onChange(e.target.value)}
+                  shouldShowCalendarButton
+                />
+              )}
             />
           </div>
           <div className="space-y-2">
@@ -552,17 +757,24 @@ export function AssetForm({ asset, onSubmit, onCancel, isLoading, defaultType }:
               error={errors.ticker?.message}
             />
             {errors.ticker && (
-              <p className="text-sm text-destructive" role="alert">{errors.ticker.message}</p>
+              <p className="text-body text-destructive" role="alert">{errors.ticker.message}</p>
             )}
           </div>
           <div className="space-y-2">
             <Label htmlFor="crypto-purchaseDate">Purchase date</Label>
-            <DatePicker
-              id="crypto-purchaseDate"
-              {...(() => {
-                const { disabled, ...rest } = register('purchaseDate');
-                return rest;
-              })()}
+            <Controller
+              name="purchaseDate"
+              control={control}
+              render={({ field }) => (
+                <DatePicker
+                  id="crypto-purchaseDate"
+                  value={field.value || undefined}
+                  onChange={(e) => field.onChange(e.target.value)}
+                  shouldShowCalendarButton
+                  allowClear
+                  placeholder="Optional"
+                />
+              )}
             />
           </div>
           <div className="space-y-2">
@@ -591,7 +803,7 @@ export function AssetForm({ asset, onSubmit, onCancel, isLoading, defaultType }:
               {...register('quantity', { valueAsNumber: true })}
             />
             {errors.quantity && (
-              <p className="text-sm text-destructive" role="alert">{errors.quantity.message}</p>
+              <p className="text-body text-destructive" role="alert">{errors.quantity.message}</p>
             )}
           </div>
           <div className="space-y-2">
@@ -609,17 +821,17 @@ export function AssetForm({ asset, onSubmit, onCancel, isLoading, defaultType }:
               {...register('value', { valueAsNumber: true })}
             />
             {errors.value && (
-              <p className="text-sm text-destructive" role="alert">{errors.value.message}</p>
+              <p className="text-body text-destructive" role="alert">{errors.value.message}</p>
             )}
           </div>
           <div className="space-y-2">
             <Label>Unrealised profit/loss</Label>
-            <div className="rounded-md border border-input bg-muted/50 px-3 py-2 text-sm">
+            <div className="rounded-md border border-input bg-muted/50 px-3 py-2 text-body">
               {cryptoUnrealisedPL != null
-                ? `${cryptoUnrealisedPL >= 0 ? '+' : ''}$${cryptoUnrealisedPL.toLocaleString('en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                ? `${cryptoUnrealisedPL >= 0 ? '+' : '-'}$${formatNumber(Math.abs(cryptoUnrealisedPL), 'en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
                 : '—'}
             </div>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-caption text-muted-foreground">
               {cryptoCostBasis != null ? 'Current value − cost basis' : 'Enter purchase price and quantity to see P/L'}
             </p>
           </div>
@@ -631,9 +843,16 @@ export function AssetForm({ asset, onSubmit, onCancel, isLoading, defaultType }:
       )}
 
       <div className="flex justify-end gap-2 pt-4">
-        <Button type="button" variant="outline" onClick={onCancel} disabled={isLoading}>
-          Cancel
-        </Button>
+        {!(asset && onDelete) && (
+          <Button type="button" variant="outline" onClick={onCancel} disabled={isLoading}>
+            Cancel
+          </Button>
+        )}
+        {asset && onDelete && (
+          <Button type="button" variant="outline" onClick={onDelete} disabled={isLoading}>
+            Delete
+          </Button>
+        )}
         <Button type="submit" disabled={submitDisabled}>
           {isLoading ? 'Saving...' : asset ? 'Update' : 'Create'}
         </Button>

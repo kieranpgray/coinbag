@@ -106,7 +106,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
         </DialogDescription>
         <div className="max-h-[300px] overflow-y-auto p-2">
           {filteredCommands.length === 0 ? (
-            <div className="py-6 text-center text-sm text-muted-foreground">
+            <div className="py-6 text-center text-body text-muted-foreground">
               No commands found
             </div>
           ) : (
@@ -116,7 +116,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
                   key={command.id}
                   onClick={() => handleSelect(command)}
                   className={cn(
-                    'flex w-full items-center rounded-sm px-2 py-1.5 text-sm text-left outline-none transition-colors',
+                    'flex w-full items-center rounded-sm px-2 py-1.5 text-body text-left outline-none transition-colors',
                     index === selectedIndex
                       ? 'bg-accent text-accent-foreground'
                       : 'hover:bg-accent hover:text-accent-foreground'
@@ -124,7 +124,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
                 >
                   <span className="flex-1">{command.label}</span>
                   {command.path && (
-                    <span className="text-xs text-muted-foreground">
+                    <span className="text-caption text-muted-foreground">
                       {command.path}
                     </span>
                   )}
@@ -133,14 +133,14 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
             </div>
           )}
         </div>
-        <div className="flex items-center justify-between border-t px-4 py-2 text-xs text-muted-foreground">
+        <div className="flex items-center justify-between border-t px-4 py-2 text-caption text-muted-foreground">
           <div className="flex items-center gap-4">
             <span className="flex items-center gap-1">
               <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-caption font-medium opacity-100">
-                <span className="text-xs">↑</span>
+                <span className="text-caption">↑</span>
               </kbd>
               <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-caption font-medium opacity-100">
-                <span className="text-xs">↓</span>
+                <span className="text-caption">↓</span>
               </kbd>
               <span>Navigate</span>
             </span>

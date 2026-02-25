@@ -54,7 +54,7 @@ export const AssetsBreakdown = memo(function AssetsBreakdown({
           <CardTitle>Asset allocation</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-muted-foreground mb-4">
+          <p className="text-body text-muted-foreground mb-4">
             Add your first asset to see a breakdown.
           </p>
           <Button asChild size="sm">

@@ -137,7 +137,7 @@ export function PayCycleSetup({ onSuccess }: PayCycleSetupProps = {}) {
               )}
             />
             {errors.frequency && (
-              <p className="text-sm text-destructive">{errors.frequency.message}</p>
+              <p className="text-body text-destructive">{errors.frequency.message}</p>
             )}
           </div>
 
@@ -157,7 +157,7 @@ export function PayCycleSetup({ onSuccess }: PayCycleSetupProps = {}) {
               )}
             />
             {errors.nextPayDate && (
-              <p className="text-sm text-destructive">{errors.nextPayDate.message}</p>
+              <p className="text-body text-destructive">{errors.nextPayDate.message}</p>
             )}
           </div>
 
@@ -179,7 +179,7 @@ export function PayCycleSetup({ onSuccess }: PayCycleSetupProps = {}) {
               )}
             />
             {errors.primaryIncomeAccountId && (
-              <p className="text-sm text-destructive">{errors.primaryIncomeAccountId.message}</p>
+              <p className="text-body text-destructive">{errors.primaryIncomeAccountId.message}</p>
             )}
           </div>
 
@@ -201,9 +201,9 @@ export function PayCycleSetup({ onSuccess }: PayCycleSetupProps = {}) {
               )}
             />
             {errors.savingsAccountId && (
-              <p className="text-sm text-destructive">{errors.savingsAccountId.message}</p>
+              <p className="text-body text-destructive">{errors.savingsAccountId.message}</p>
             )}
-            <p className="text-xs text-muted-foreground">
+            <p className="text-caption text-muted-foreground">
               Any money left over after covering expenses will be suggested for transfer here.
             </p>
           </div>

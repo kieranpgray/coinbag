@@ -188,7 +188,7 @@ export function SearchableSelect({
         aria-haspopup="listbox"
         className={cn(
           // Atlassian Design System styling: clean borders, subtle focus states
-          'w-full justify-between h-10 rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground',
+          'w-full justify-between h-10 rounded-md border border-border bg-background px-3 py-2 text-body text-foreground',
           'hover:border-neutral-mid hover:bg-muted/50',
           'focus:outline-none focus:ring-2 focus:ring-primary/20 focus:ring-offset-0 focus:border-primary',
           'disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-muted disabled:hover:border-border',
@@ -246,7 +246,7 @@ export function SearchableSelect({
                     aria-selected={option.value === value}
                     className={cn(
                       // Atlassian Design System styling: improved hover states, better selected state indication
-                      'w-full px-3 py-2 text-left text-sm text-foreground rounded-sm flex items-center justify-between',
+                      'w-full px-3 py-2 text-left text-body text-foreground rounded-sm flex items-center justify-between',
                       'hover:bg-muted',
                       'focus:bg-primary/10 focus:outline-none',
                       index === highlightedIndex && 'bg-primary/10',
@@ -263,7 +263,7 @@ export function SearchableSelect({
                 ))}
               </div>
             ) : (
-              <div className="px-3 py-6 text-center text-sm text-muted-foreground">
+              <div className="px-3 py-6 text-center text-body text-muted-foreground">
                 No options found for &quot;{searchQuery}&quot;
               </div>
             )}
@@ -272,7 +272,7 @@ export function SearchableSelect({
       )}
 
       {error && (
-        <p className="text-sm text-red-500 mt-1">{error}</p>
+        <p className="text-body text-red-500 mt-1">{error}</p>
       )}
     </div>
   );

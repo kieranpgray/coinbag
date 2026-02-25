@@ -22,7 +22,7 @@ export function UploadFileList({ files, onRemoveFile, disabled = false, compact 
 
   return (
     <div className="space-y-2">
-      <p className="text-sm font-medium text-foreground">
+      <p className="text-body text-foreground">
         Selected Files ({files.length})
       </p>
       <div className={`space-y-2 ${compact ? '' : 'max-h-[300px] overflow-y-auto'}`}>
@@ -48,23 +48,23 @@ export function UploadFileList({ files, onRemoveFile, disabled = false, compact 
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
-                <p className="text-sm font-medium truncate">
+                <p className="text-body truncate">
                   {fileWithStatus.file.name}
                 </p>
                 {fileWithStatus.status === 'processing' && fileWithStatus.progress !== undefined && (
-                  <span className="text-xs font-medium text-blue-600 flex-shrink-0">
+                  <span className="text-caption font-medium text-blue-600 flex-shrink-0">
                     {fileWithStatus.progress}%
                   </span>
                 )}
               </div>
               <div className="flex items-center gap-2 mt-1">
-                <p className="text-xs text-muted-foreground">
+                <p className="text-caption text-muted-foreground">
                   {formatFileSize(fileWithStatus.file.size)}
                 </p>
                 {fileWithStatus.status === 'uploading' && (
                   <div className="flex items-center gap-1.5 flex-1">
                     <Loader2 className="h-3 w-3 animate-spin text-primary" />
-                    <span className="text-xs text-muted-foreground">
+                    <span className="text-caption text-muted-foreground">
                       Uploading...
                     </span>
                     {fileWithStatus.progress !== undefined && (
@@ -75,7 +75,7 @@ export function UploadFileList({ files, onRemoveFile, disabled = false, compact 
                             style={{ width: `${fileWithStatus.progress}%` }}
                           />
                         </div>
-                        <span className="text-xs text-muted-foreground">
+                        <span className="text-caption text-muted-foreground">
                           {fileWithStatus.progress}%
                         </span>
                       </>
@@ -86,9 +86,9 @@ export function UploadFileList({ files, onRemoveFile, disabled = false, compact 
                   <div className="flex flex-col gap-1.5 w-full">
                     <div className="flex items-center gap-1.5">
                       <Loader2 className="h-3 w-3 animate-spin text-blue-600" />
-                      <span className="text-xs text-blue-600 font-medium">Analyzing statement...</span>
+                      <span className="text-caption text-blue-600 font-medium">Analyzing statement...</span>
                       {fileWithStatus.progress !== undefined && (
-                        <span className="text-xs text-muted-foreground ml-auto">
+                        <span className="text-caption text-muted-foreground ml-auto">
                           {fileWithStatus.progress}%
                         </span>
                       )}
@@ -102,12 +102,12 @@ export function UploadFileList({ files, onRemoveFile, disabled = false, compact 
                       </div>
                     )}
                     {fileWithStatus.transactionCount !== undefined && fileWithStatus.transactionCount > 0 && (
-                      <span className="text-xs text-muted-foreground">
+                      <span className="text-caption text-muted-foreground">
                         {fileWithStatus.transactionCount} transaction{fileWithStatus.transactionCount !== 1 ? 's' : ''} found so far
                       </span>
                     )}
                     {fileWithStatus.processingStatus && (
-                      <span className="text-xs text-muted-foreground capitalize">
+                      <span className="text-caption text-muted-foreground capitalize">
                         {fileWithStatus.processingStatus === 'processing' ? 'Extracting transactions...' : fileWithStatus.processingStatus}
                       </span>
                     )}
@@ -115,16 +115,16 @@ export function UploadFileList({ files, onRemoveFile, disabled = false, compact 
                 )}
                 {fileWithStatus.status === 'success' && (
                   <div className="flex flex-col gap-0.5">
-                    <span className="text-xs text-green-600 font-medium">Completed</span>
+                    <span className="text-caption text-green-600 font-medium">Completed</span>
                     {fileWithStatus.transactionCount !== undefined && fileWithStatus.transactionCount > 0 && (
-                      <span className="text-xs text-muted-foreground">
+                      <span className="text-caption text-muted-foreground">
                         {fileWithStatus.transactionCount} transaction{fileWithStatus.transactionCount !== 1 ? 's' : ''} imported
                       </span>
                     )}
                   </div>
                 )}
                 {fileWithStatus.status === 'error' && (
-                  <span className="text-xs text-destructive">
+                  <span className="text-caption text-destructive">
                     {fileWithStatus.error || 'Error'}
                   </span>
                 )}
@@ -132,7 +132,7 @@ export function UploadFileList({ files, onRemoveFile, disabled = false, compact 
               {fileWithStatus.status === 'error' && fileWithStatus.error && (
                 <Alert className="mt-2 border-destructive bg-destructive/10">
                   <AlertCircle className="h-4 w-4 text-destructive" />
-                  <AlertDescription className="text-destructive text-xs">
+                  <AlertDescription className="text-destructive text-caption">
                     {fileWithStatus.error}
                   </AlertDescription>
                 </Alert>

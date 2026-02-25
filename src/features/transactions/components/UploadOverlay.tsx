@@ -45,7 +45,7 @@ export function UploadOverlay({ files, error, onDismiss, onRemoveFile, disabled 
           </div>
           
           <div className="space-y-4">
-            <p className="text-sm text-muted-foreground">
+            <p className="text-body text-muted-foreground">
               Upload your bank statement files to import transactions.
             </p>
             

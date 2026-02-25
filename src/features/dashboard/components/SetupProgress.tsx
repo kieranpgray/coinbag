@@ -63,7 +63,7 @@ const CHECKLIST_METADATA: Record<string, { icon: LucideIcon; benefit: string; li
   investments: {
     icon: PieChart,
     benefit: 'Track your stock portfolio and crypto holdings to monitor your long-term growth.',
-    link: ROUTES.wealth.createAsset('Investments'),
+    link: ROUTES.wealth.createAsset('Other Investments'),
   },
 };
 

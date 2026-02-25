@@ -13,6 +13,8 @@ const VALIDATION_LIMITS = {
   institution: { max: 100 },
   notes: { max: 1000 },
   ticker: { max: 20 },
+  address: { max: 200 },
+  propertyType: { max: 100 },
 } as const;
 
 // Base institution validation (optional)
@@ -35,8 +37,8 @@ const institutionSchema = z.preprocess(
     })
 );
 
-// Asset type enum (includes Stock and RSU)
-const assetTypeSchema = z.enum(['Real Estate', 'Investments', 'Vehicles', 'Crypto', 'Cash', 'Superannuation', 'Stock', 'RSU', 'Other'], {
+// Asset type enum (Investments renamed to Other Investments; Other removed)
+const assetTypeSchema = z.enum(['Real Estate', 'Other Investments', 'Vehicles', 'Crypto', 'Cash', 'Superannuation', 'Stock', 'RSU'], {
   errorMap: () => ({ message: 'Invalid asset type' }),
 });
 
@@ -71,6 +73,27 @@ const todaysPriceSchema = z.number()
   .min(0, "Today's price must be non-negative")
   .finite("Today's price must be finite")
   .optional();
+
+const grantPriceSchema = z.number()
+  .min(0, 'Grant price must be non-negative')
+  .finite('Grant price must be finite')
+  .optional();
+
+// Address (Real Estate), max 200 chars
+const addressSchema = z.string()
+  .max(VALIDATION_LIMITS.address.max, `Address must be at most ${VALIDATION_LIMITS.address.max} characters`)
+  .trim()
+  .optional()
+  .or(z.literal(''))
+  .transform((val) => (val === '' ? undefined : val));
+
+// Property type (Real Estate), max 100 chars
+const propertyTypeSchema = z.string()
+  .max(VALIDATION_LIMITS.propertyType.max, `Property type must be at most ${VALIDATION_LIMITS.propertyType.max} characters`)
+  .trim()
+  .optional()
+  .or(z.literal(''))
+  .transform((val) => (val === '' ? undefined : val));
 
 // Optional date (YYYY-MM-DD) for purchase_date, grant_date, vesting_date
 const optionalDateSchema = z.preprocess(
@@ -176,6 +199,8 @@ const assetCreateBaseSchema = z.object({
     .max(VALIDATION_LIMITS.notes.max, `Notes must be less than ${VALIDATION_LIMITS.notes.max} characters`)
     .optional()
     .or(z.literal('')),
+  address: addressSchema,
+  propertyType: propertyTypeSchema,
   // Stock/RSU optional fields
   ticker: tickerSchema,
   exchange: exchangeSchema,
@@ -185,6 +210,7 @@ const assetCreateBaseSchema = z.object({
   todaysPrice: todaysPriceSchema,
   grantDate: optionalDateSchema,
   vestingDate: optionalDateSchema,
+  grantPrice: grantPriceSchema,
 });
 
 export const assetCreateSchema = assetCreateBaseSchema.superRefine((data, ctx) => {
@@ -198,12 +224,7 @@ export const assetCreateSchema = assetCreateBaseSchema.superRefine((data, ctx) =
     if (data.quantity === undefined || data.quantity === null || data.quantity <= 0) {
       ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Quantity is required and must be positive', path: ['quantity'] });
     }
-    if (data.type === 'RSU') {
-      const vestingVal = data.vestingDate === undefined || data.vestingDate === '' ? undefined : data.vestingDate;
-      if (!vestingVal) {
-        ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Vesting date is required for RSU', path: ['vestingDate'] });
-      }
-    }
+    // RSU: vesting date optional per spec
   } else if (data.type === 'Crypto') {
     // Crypto: ticker (coin symbol), quantity, and value required; name optional
     const tickerVal = data.ticker === undefined || data.ticker === '' ? undefined : data.ticker?.trim();
@@ -247,6 +268,9 @@ export const assetUpdateSchema = z.object({
   todaysPrice: todaysPriceSchema,
   grantDate: optionalDateSchema,
   vestingDate: optionalDateSchema,
+  grantPrice: grantPriceSchema,
+  address: addressSchema,
+  propertyType: propertyTypeSchema,
 }).superRefine((data, ctx) => {
   // On update, only apply Stock/RSU rules when type is explicitly provided as Stock or RSU
   if (data.type === 'Stock') {
@@ -266,10 +290,7 @@ export const assetUpdateSchema = z.object({
     if (data.quantity !== undefined && (data.quantity === null || data.quantity <= 0)) {
       ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Quantity must be positive', path: ['quantity'] });
     }
-    const vestingVal = data.vestingDate === undefined || data.vestingDate === '' ? undefined : data.vestingDate;
-    if (!vestingVal) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Vesting date is required for RSU', path: ['vestingDate'] });
-    }
+    // RSU vesting date optional per spec
   }
   if (data.type === 'Crypto') {
     const tickerVal = data.ticker === undefined || data.ticker === '' ? undefined : data.ticker?.trim();
@@ -333,6 +354,11 @@ export const assetEntitySchema = z.object({
   todaysPrice: z.number().finite().nullable().optional().transform((v) => v ?? undefined),
   grantDate: nullableStringSchema,
   vestingDate: nullableStringSchema,
+  grantPrice: z.number().finite().nullable().optional().transform((v) => v ?? undefined),
+  address: nullableStringSchema,
+  propertyType: nullableStringSchema,
+  lastPriceFetchedAt: z.string().nullable().optional().transform((v) => v ?? undefined),
+  priceSource: nullableStringSchema,
 });
 
 export const assetListSchema = z.array(assetEntitySchema);
@@ -358,6 +384,12 @@ export const ASSET_ERROR_CODES = {
 } as const;
 
 
+// Optional date string (YYYY-MM-DD) for valueAsAtDate
+const optionalDateStringSchema = z.string()
+  .nullable()
+  .optional()
+  .transform((v) => v === null ? undefined : v);
+
 // Asset value history schemas
 export const assetValueHistorySchema = z.object({
   id: z.string().uuid('Invalid asset value history ID format'),
@@ -366,6 +398,7 @@ export const assetValueHistorySchema = z.object({
   newValue: assetValueSchema,
   changeAmount: z.number(),
   createdAt: datetimeSchema,
+  valueAsAtDate: optionalDateStringSchema,
 });
 
 export const assetValueHistoryListSchema = z.array(assetValueHistorySchema);

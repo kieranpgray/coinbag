@@ -22,13 +22,16 @@ export interface Category {
 export interface Asset {
   id: string;
   name: string;
-  type: 'Real Estate' | 'Investments' | 'Vehicles' | 'Crypto' | 'Cash' | 'Superannuation' | 'Stock' | 'RSU' | 'Other';
+  type: 'Real Estate' | 'Other Investments' | 'Vehicles' | 'Crypto' | 'Cash' | 'Superannuation' | 'Stock' | 'RSU';
   value: number;
   change1D?: number;
   change1W?: number;
   dateAdded: string;
   institution?: string;
   notes?: string;
+  // Real Estate
+  address?: string;
+  propertyType?: string;
   // Stock/RSU-specific (optional; used when type is Stock or RSU)
   ticker?: string;
   exchange?: string;
@@ -38,6 +41,9 @@ export interface Asset {
   todaysPrice?: number;
   grantDate?: string;
   vestingDate?: string;
+  grantPrice?: number;
+  lastPriceFetchedAt?: string;
+  priceSource?: string;
 }
 
 /**
@@ -66,6 +72,8 @@ export interface AssetValueHistory {
   newValue: number;
   changeAmount: number;
   createdAt: string;
+  /** Date the value is recorded as at (legacy rows may not have it) */
+  valueAsAtDate?: string | null;
 }
 
 /**

@@ -230,10 +230,10 @@ export function MultiStatementFileUpload({
               'text-muted-foreground/50': disabled,
             })}
           />
-          <p className="text-sm font-medium mb-2">
+          <p className="text-body mb-2">
             {isDragging ? 'Drop files here' : 'Drag and drop statement files'}
           </p>
-          <p className="text-xs text-muted-foreground mb-4">
+          <p className="text-caption text-muted-foreground mb-4">
             or click to browse
           </p>
           <Button
@@ -245,7 +245,7 @@ export function MultiStatementFileUpload({
           >
             Select Files
           </Button>
-          <p className="text-xs text-muted-foreground mt-4">
+          <p className="text-caption text-muted-foreground mt-4">
             Supports PDF, JPEG, PNG (max {(maxSize / 1024 / 1024).toFixed(0)}MB per file)
           </p>
         </div>
@@ -254,7 +254,7 @@ export function MultiStatementFileUpload({
       {/* File List */}
       {files.length > 0 && (
         <div className="space-y-2">
-          <p className="text-sm font-medium text-foreground">
+            <p className="text-body text-foreground">
             Selected Files ({files.length})
           </p>
           <div className="space-y-2">
@@ -265,36 +265,36 @@ export function MultiStatementFileUpload({
               >
                 <FileText className="h-5 w-5 text-muted-foreground flex-shrink-0" />
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">
+                  <p className="text-body truncate">
                     {fileWithStatus.file.name}
                   </p>
                   <div className="flex items-center gap-2 mt-1">
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-caption text-muted-foreground">
                       {formatFileSize(fileWithStatus.file.size)}
                     </p>
                     {fileWithStatus.status === 'uploading' && (
                       <>
                         <Loader2 className="h-3 w-3 animate-spin text-primary" />
                         {fileWithStatus.progress !== undefined && (
-                          <span className="text-xs text-muted-foreground">
+                          <span className="text-caption text-muted-foreground">
                             {fileWithStatus.progress}%
                           </span>
                         )}
                       </>
                     )}
                     {fileWithStatus.status === 'success' && (
-                      <span className="text-xs text-green-600">Uploaded</span>
+                      <span className="text-caption text-green-600">Uploaded</span>
                     )}
                     {fileWithStatus.status === 'error' && (
-                      <span className="text-xs text-destructive">
+                      <span className="text-caption text-destructive">
                         {fileWithStatus.error || 'Error'}
                       </span>
                     )}
                     {fileWithStatus.status === 'timeout' && (
-                      <span className="text-xs text-yellow-600">Still processing...</span>
+                      <span className="text-caption text-yellow-600">Still processing...</span>
                     )}
                     {fileWithStatus.status === 'processing' && (
-                      <span className="text-xs text-blue-600">Processing...</span>
+                      <span className="text-caption text-blue-600">Processing...</span>
                     )}
                   </div>
                   {fileWithStatus.status === 'uploading' &&
@@ -307,10 +307,10 @@ export function MultiStatementFileUpload({
                   {fileWithStatus.status === 'error' && fileWithStatus.error && (
                     <Alert className="mt-2 border-destructive bg-destructive/10">
                       <AlertCircle className="h-4 w-4 text-destructive" />
-                      <AlertDescription className="text-destructive text-xs">
+                      <AlertDescription className="text-destructive text-caption">
                         {fileWithStatus.error}
                         {fileWithStatus.canRetry && (
-                          <span className="block mt-1 text-xs">
+                          <span className="block mt-1 text-caption">
                             You can refresh the page to check the status again.
                           </span>
                         )}
@@ -320,7 +320,7 @@ export function MultiStatementFileUpload({
                   {fileWithStatus.status === 'timeout' && fileWithStatus.error && (
                     <Alert className="mt-2 border-yellow-500 bg-yellow-50 dark:bg-yellow-900/20">
                       <AlertCircle className="h-4 w-4 text-yellow-600" />
-                      <AlertDescription className="text-yellow-800 dark:text-yellow-200 text-xs">
+                      <AlertDescription className="text-yellow-800 dark:text-yellow-200 text-caption">
                         {fileWithStatus.error}
                         {fileWithStatus.canRetry && (
                           <span className="block mt-1">

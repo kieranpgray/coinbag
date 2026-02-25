@@ -69,7 +69,7 @@ export function ExpenseItem({
         {/* Info */}
         <div className="flex-1 min-w-0">
           <h4 className="text-foreground mb-0.5 truncate">{expense.name}</h4>
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <div className="flex items-center gap-2 text-caption text-muted-foreground">
             <span>{categoryName}</span>
             <span>•</span>
             <span>Due {nextDueDate}</span>
@@ -81,7 +81,7 @@ export function ExpenseItem({
       <div className="flex items-center gap-4 ml-4">
         <div className="text-right">
           <div className="text-foreground">{formatCurrency(displayAmount)}</div>
-          <div className="text-xs text-muted-foreground">/ {displayFreqLabel}</div>
+          <div className="text-caption text-muted-foreground">/ {displayFreqLabel}</div>
         </div>
 
         {/* Action buttons - shown on hover (desktop) */}

@@ -126,7 +126,7 @@ export function CategoriesPage() {
                 >
                   <div>
                     <h4 className="font-medium">{category.name}</h4>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-body text-muted-foreground">
                       Created {new Date(category.createdAt).toLocaleDateString()}
                     </p>
                   </div>

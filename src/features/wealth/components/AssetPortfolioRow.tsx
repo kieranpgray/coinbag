@@ -21,7 +21,7 @@ export function AssetPortfolioRow({ asset, onClick }: AssetPortfolioRowProps) {
     >
       {/* Left side: Name and institution */}
       <div className="flex-1 min-w-0 pr-4">
-        <div className="text-body-lg font-medium text-foreground truncate">
+        <div className="text-body text-foreground truncate">
           {asset.name}
         </div>
         {asset.institution && (

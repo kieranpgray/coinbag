@@ -17,7 +17,7 @@ export function LiabilityCard({ liability, onEdit, onDelete }: LiabilityCardProp
         <div className="flex items-start justify-between">
           <div>
             <CardTitle>{liability.name}</CardTitle>
-            <p className="text-sm text-muted-foreground mt-1">{liability.type}</p>
+            <p className="text-body text-muted-foreground mt-1">{liability.type}</p>
           </div>
           <div className="flex gap-1">
             <Button
@@ -44,31 +44,31 @@ export function LiabilityCard({ liability, onEdit, onDelete }: LiabilityCardProp
       <CardContent>
         <div className="space-y-2">
           <div className="flex justify-between">
-            <span className="text-sm text-muted-foreground">Balance</span>
+            <span className="text-body text-muted-foreground">Balance</span>
             <span className="font-semibold">{formatCurrency(liability.balance)}</span>
           </div>
           {liability.interestRate !== undefined && (
             <div className="flex justify-between">
-              <span className="text-sm text-muted-foreground">Interest Rate</span>
-              <span className="text-sm">{liability.interestRate}%</span>
+              <span className="text-body text-muted-foreground">Interest Rate</span>
+              <span className="text-body">{liability.interestRate}%</span>
             </div>
           )}
           {liability.monthlyPayment !== undefined && (
             <div className="flex justify-between">
-              <span className="text-sm text-muted-foreground">Monthly Payment</span>
-              <span className="text-sm">{formatCurrency(liability.monthlyPayment)}</span>
+              <span className="text-body text-muted-foreground">Monthly Payment</span>
+              <span className="text-body">{formatCurrency(liability.monthlyPayment)}</span>
             </div>
           )}
           {liability.institution && (
             <div className="flex justify-between">
-              <span className="text-sm text-muted-foreground">Institution</span>
-              <span className="text-sm">{liability.institution}</span>
+              <span className="text-body text-muted-foreground">Institution</span>
+              <span className="text-body">{liability.institution}</span>
             </div>
           )}
           {liability.dueDate && (
             <div className="flex justify-between">
-              <span className="text-sm text-muted-foreground">Due Date</span>
-              <span className="text-sm">{formatDate(liability.dueDate)}</span>
+              <span className="text-body text-muted-foreground">Due Date</span>
+              <span className="text-body">{formatDate(liability.dueDate)}</span>
             </div>
           )}
         </div>

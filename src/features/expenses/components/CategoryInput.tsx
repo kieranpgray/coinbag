@@ -144,7 +144,7 @@ export function CategoryInput({ id, value, onChange, placeholder = "Select categ
         aria-haspopup="listbox"
         className={cn(
           // Atlassian Design System styling: clean borders, subtle focus states
-          "w-full justify-between h-10 rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground",
+          "w-full justify-between h-10 rounded-md border border-border bg-background px-3 py-2 text-body text-foreground",
           "hover:border-neutral-mid hover:bg-muted/50",
           "focus:outline-none focus:ring-2 focus:ring-primary/20 focus:ring-offset-0 focus:border-primary",
           "disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-muted disabled:hover:border-border",
@@ -177,7 +177,7 @@ export function CategoryInput({ id, value, onChange, placeholder = "Select categ
           className="absolute z-10 w-full mt-1 bg-background border border-border rounded-md shadow-sm max-h-80 overflow-hidden flex flex-col"
         >
           {loadError ? (
-            <div className="px-3 py-2 text-sm text-destructive">
+            <div className="px-3 py-2 text-body text-destructive">
               {loadError instanceof Error ? loadError.message : 'Failed to load categories'}
             </div>
           ) : categories.length > 0 ? (
@@ -216,7 +216,7 @@ export function CategoryInput({ id, value, onChange, placeholder = "Select categ
                         aria-selected={category.id === value}
                         className={cn(
                           // Atlassian Design System styling: improved hover states, better selected state indication
-                          "w-full px-3 py-2 text-left text-sm text-foreground rounded-sm flex items-center justify-between",
+                          "w-full px-3 py-2 text-left text-body text-foreground rounded-sm flex items-center justify-between",
                           "hover:bg-muted",
                           "focus:bg-primary/10 focus:outline-none",
                           category.id === value && "bg-primary/10"
@@ -229,7 +229,7 @@ export function CategoryInput({ id, value, onChange, placeholder = "Select categ
                     ))}
                   </div>
                 ) : (
-                  <div className="px-3 py-6 text-center text-sm text-muted-foreground">
+                  <div className="px-3 py-6 text-center text-body text-muted-foreground">
                     No categories found for "{searchQuery}"
                   </div>
                 )}
@@ -239,7 +239,7 @@ export function CategoryInput({ id, value, onChange, placeholder = "Select categ
               <div className="border-t border-border">
                 <button
                   type="button"
-                  className="w-full px-3 py-2 text-left hover:bg-muted text-primary rounded-sm text-sm"
+                  className="w-full px-3 py-2 text-left hover:bg-muted text-primary rounded-sm text-body"
                   onClick={handleOpenCreateDialog}
                 >
                   + Create new category
@@ -248,7 +248,7 @@ export function CategoryInput({ id, value, onChange, placeholder = "Select categ
             </>
           ) : (
             <div className="py-1">
-              <div className="px-3 py-2 text-sm text-muted-foreground">
+              <div className="px-3 py-2 text-body text-muted-foreground">
                 Preparing categories...
               </div>
             </div>
@@ -257,7 +257,7 @@ export function CategoryInput({ id, value, onChange, placeholder = "Select categ
       )}
 
       {error && (
-        <p className="text-sm text-destructive mt-1">{error}</p>
+        <p className="text-body text-destructive mt-1">{error}</p>
       )}
 
       {/* Inline create category dialog */}
@@ -277,7 +277,7 @@ export function CategoryInput({ id, value, onChange, placeholder = "Select categ
           />
 
           {createError && (
-            <p className="text-sm text-destructive mt-2">
+            <p className="text-body text-destructive mt-2">
               {createError}
             </p>
           )}

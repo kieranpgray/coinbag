@@ -144,7 +144,7 @@ export function AccountForm({ account, onSubmit, onCancel, isLoading }: AccountF
           placeholder="e.g., Everyday Account"
         />
         {errors.accountName && (
-          <p id="accountName-error" className="text-sm text-destructive" role="alert">
+          <p id="accountName-error" className="text-body text-destructive" role="alert">
             {errors.accountName.message}
           </p>
         )}
@@ -182,7 +182,7 @@ export function AccountForm({ account, onSubmit, onCancel, isLoading }: AccountF
           placeholder="e.g., ANZ, Commonwealth Bank (optional)"
         />
         {errors.institution && (
-          <p id="institution-error" className="text-sm text-destructive" role="alert">
+          <p id="institution-error" className="text-body text-destructive" role="alert">
             {errors.institution.message}
           </p>
         )}
@@ -216,13 +216,13 @@ export function AccountForm({ account, onSubmit, onCancel, isLoading }: AccountF
                   }
                 })}
               />
-              <p className="text-xs text-muted-foreground">
+              <p className="text-caption text-muted-foreground">
                 {selectedType === 'Credit Card' 
                   ? 'Your total credit limit' 
                   : 'The original loan amount'}
               </p>
               {errors.creditLimit && (
-                <p id="creditLimit-error" className="text-sm text-destructive" role="alert">
+                <p id="creditLimit-error" className="text-body text-destructive" role="alert">
                   {errors.creditLimit.message}
                 </p>
               )}
@@ -252,11 +252,11 @@ export function AccountForm({ account, onSubmit, onCancel, isLoading }: AccountF
                   }
                 })}
               />
-              <p className="text-xs text-muted-foreground">
+              <p className="text-caption text-muted-foreground">
                 How much you currently owe
               </p>
               {errors.balanceOwed && (
-                <p id="balanceOwed-error" className="text-sm text-destructive" role="alert">
+                <p id="balanceOwed-error" className="text-body text-destructive" role="alert">
                   {errors.balanceOwed.message}
                 </p>
               )}
@@ -267,21 +267,21 @@ export function AccountForm({ account, onSubmit, onCancel, isLoading }: AccountF
           {typeof creditLimit === 'number' && !isNaN(creditLimit) && creditLimit > 0 &&
            typeof balanceOwed === 'number' && !isNaN(balanceOwed) && balanceOwed >= 0 && (
             <div className="rounded-lg border border-border bg-muted/30 p-3 space-y-2">
-              <p className="text-sm font-medium text-foreground">Calculated Values</p>
-              <div className="grid grid-cols-2 gap-4 text-sm">
+              <p className="text-body font-medium text-foreground">Calculated Values</p>
+              <div className="grid grid-cols-2 gap-4 text-body">
                 <div>
                   <span className="text-muted-foreground">Account Balance:</span>
                   <span className="ml-2 font-medium text-destructive">
                     {formatCurrency(-balanceOwed)}
                   </span>
-                  <p className="text-xs text-muted-foreground mt-1">Negative balance (amount owed)</p>
+                  <p className="text-caption text-muted-foreground mt-1">Negative balance (amount owed)</p>
                 </div>
                 <div>
                   <span className="text-muted-foreground">Credit Limit:</span>
                   <span className="ml-2 font-medium">
                     {formatCurrency(creditLimit)}
                   </span>
-                  <p className="text-xs text-muted-foreground mt-1">Total credit available</p>
+                  <p className="text-caption text-muted-foreground mt-1">Total credit available</p>
                 </div>
               </div>
             </div>
@@ -312,9 +312,9 @@ export function AccountForm({ account, onSubmit, onCancel, isLoading }: AccountF
               }
             })}
           />
-          <p className="text-xs text-muted-foreground">Current account balance</p>
+          <p className="text-caption text-muted-foreground">Current account balance</p>
           {errors.balance && (
-            <p id="balance-error" className="text-sm text-destructive" role="alert">
+            <p id="balance-error" className="text-body text-destructive" role="alert">
               {errors.balance.message}
             </p>
           )}

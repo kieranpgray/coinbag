@@ -23,19 +23,19 @@ export function BudgetSummaryCard({ expenses }: BudgetSummaryCardProps) {
     <div className="mt-8 p-6 rounded-xl bg-muted border border-border">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
         <div>
-          <div className="text-xs text-muted-foreground mb-1">Total Expenses</div>
+          <div className="text-caption text-muted-foreground mb-1">Total Expenses</div>
           <div className="text-xl text-foreground font-semibold">{formatCurrency(totalExpenses)}</div>
         </div>
         <div>
-          <div className="text-xs text-muted-foreground mb-1">Categories</div>
+          <div className="text-caption text-muted-foreground mb-1">Categories</div>
           <div className="text-xl text-foreground font-semibold">{categories}</div>
         </div>
         <div>
-          <div className="text-xs text-muted-foreground mb-1">Total Items</div>
+          <div className="text-caption text-muted-foreground mb-1">Total Items</div>
           <div className="text-xl text-foreground font-semibold">{totalItems}</div>
         </div>
         <div>
-          <div className="text-xs text-muted-foreground mb-1">Avg per Item</div>
+          <div className="text-caption text-muted-foreground mb-1">Avg per Item</div>
           <div className="text-xl text-foreground font-semibold">
             {formatCurrency(avgPerItem)}
           </div>

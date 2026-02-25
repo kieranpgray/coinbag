@@ -75,7 +75,7 @@ export function TransferSuggestions({
       >
         <div className="p-4 sm:p-6">
           <h2 className="text-xl font-semibold mb-2">{heroHeadline}</h2>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-body text-muted-foreground">
             When you have income in one account and expenses in another, we&apos;ll show what to
             move here so your expenses are covered. Add income and expenses with account
             assignments to get started.
@@ -113,7 +113,7 @@ export function TransferSuggestions({
             />
           ))}
         </ul>
-        <p className="flex items-center gap-2 mt-4 text-xs text-muted-foreground">
+        <p className="flex items-center gap-2 mt-4 text-caption text-muted-foreground">
           <Info className="h-3.5 w-3.5 shrink-0" aria-hidden />
           Calculations based on recurring income and expenses. One-time transactions are excluded.
         </p>
