@@ -1,51 +1,80 @@
-import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
+import { DEFAULT_CATEGORY_NAMES } from '@/data/categories/constants';
 
 /**
  * Generate Excel template file for data import
  */
-export function generateImportTemplate(): Blob {
-  const workbook = XLSX.utils.book_new();
+export function generateImportTemplate(): Promise<Blob> {
+  return new Promise((resolve, reject) => {
+    const workbook = new ExcelJS.Workbook();
 
-  // Create Instructions sheet
-  const instructionsSheet = createInstructionsSheet();
-  XLSX.utils.book_append_sheet(workbook, instructionsSheet, 'Instructions');
+    try {
+      // Create Instructions sheet
+      const instructionsSheet = createInstructionsSheet(workbook);
+      instructionsSheet.state = 'visible';
 
-  // Create Accounts sheet
-  const accountsSheet = createAccountsSheet();
-  XLSX.utils.book_append_sheet(workbook, accountsSheet, 'Accounts');
+      // Create Categories sheet (must be created before Expenses for data validation reference)
+      const categoriesSheet = createCategoriesSheet(workbook);
+      categoriesSheet.state = 'hidden';
 
-  // Create Assets sheet
-  const assetsSheet = createAssetsSheet();
-  XLSX.utils.book_append_sheet(workbook, assetsSheet, 'Assets');
+      // Create Accounts sheet
+      const accountsSheet = createAccountsSheet(workbook);
+      accountsSheet.state = 'visible';
 
-  // Create Liabilities sheet
-  const liabilitiesSheet = createLiabilitiesSheet();
-  XLSX.utils.book_append_sheet(workbook, liabilitiesSheet, 'Liabilities');
+      // Create Assets sheet
+      const assetsSheet = createAssetsSheet(workbook);
+      assetsSheet.state = 'visible';
 
-  // Create Expenses sheet
-  const expensesSheet = createExpensesSheet();
-  XLSX.utils.book_append_sheet(workbook, expensesSheet, 'Expenses');
+      // Create Liabilities sheet
+      const liabilitiesSheet = createLiabilitiesSheet(workbook);
+      liabilitiesSheet.state = 'visible';
 
-  // Create Income sheet
-  const incomeSheet = createIncomeSheet();
-  XLSX.utils.book_append_sheet(workbook, incomeSheet, 'Income');
+      // Create Expenses sheet with data validation
+      const expensesSheet = createExpensesSheet(workbook);
+      expensesSheet.state = 'visible';
 
-  // Generate Excel file
-  const excelBuffer = XLSX.write(workbook, {
-    type: 'array',
-    bookType: 'xlsx',
-    cellStyles: true,
+      // Create Income sheet
+      const incomeSheet = createIncomeSheet(workbook);
+      incomeSheet.state = 'visible';
+
+      // Generate Excel file
+      workbook.xlsx.writeBuffer().then(buffer => {
+        resolve(new Blob([buffer], {
+          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        }));
+      }).catch(reject);
+    } catch (error) {
+      reject(error);
+    }
+  });
+}
+
+/**
+ * Create Categories sheet with all available expense categories
+ */
+function createCategoriesSheet(workbook: ExcelJS.Workbook): ExcelJS.Worksheet {
+  const worksheet = workbook.addWorksheet('Categories');
+
+  // Set column width
+  worksheet.getColumn(1).width = 35;
+
+  // Add header
+  worksheet.addRow(['Available Categories']);
+
+  // Add all categories
+  DEFAULT_CATEGORY_NAMES.forEach(category => {
+    worksheet.addRow([category]);
   });
 
-  return new Blob([excelBuffer], {
-    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-  });
+  return worksheet;
 }
 
 /**
  * Create Instructions sheet
  */
-function createInstructionsSheet(): XLSX.WorkSheet {
+function createInstructionsSheet(workbook: ExcelJS.Workbook): ExcelJS.Worksheet {
+  const worksheet = workbook.addWorksheet('Instructions');
+
   const instructions = [
     ['Supafolio Import Template - Instructions'],
     [],
@@ -56,6 +85,10 @@ function createInstructionsSheet(): XLSX.WorkSheet {
     ['4. Save this file and upload it in the Import section'],
     [],
     ['FIELD DESCRIPTIONS'],
+    [],
+    ['CATEGORIES'],
+    ['- Reference sheet listing all supported expense categories'],
+    ['- Use the dropdown in the Expenses sheet to select; do not type category names manually'],
     [],
     ['ACCOUNTS'],
     ['- institution: Bank or financial institution name (optional, e.g., "Chase Bank")'],
@@ -96,7 +129,7 @@ function createInstructionsSheet(): XLSX.WorkSheet {
     ['- frequency*: Billing frequency - must be one of: weekly, fortnightly, monthly, quarterly, yearly'],
     ['- charge_date*: Next charge date (YYYY-MM-DD format)'],
     ['- next_due_date*: Next due date (YYYY-MM-DD format, must be >= charge_date)'],
-    ['- category_name*: Category name (e.g., "Streaming", "Rent", "Groceries", "Entertainment")'],
+    ['- category_name*: Select from the dropdown list (matches supported categories)'],
     ['- notes: Additional notes (optional)'],
     [],
     ['INCOME'],
@@ -122,18 +155,22 @@ function createInstructionsSheet(): XLSX.WorkSheet {
     ['For help, visit the Import section in Settings or contact support.'],
   ];
 
-  const ws = XLSX.utils.aoa_to_sheet(instructions);
-  
-  // Set column widths
-  ws['!cols'] = [{ wch: 80 }];
-  
-  return ws;
+  instructions.forEach(row => {
+    worksheet.addRow(row);
+  });
+
+  // Set column width
+  worksheet.getColumn(1).width = 80;
+
+  return worksheet;
 }
 
 /**
  * Create Accounts sheet with headers and example row
  */
-function createAccountsSheet(): XLSX.WorkSheet {
+function createAccountsSheet(workbook: ExcelJS.Workbook): ExcelJS.Worksheet {
+  const worksheet = workbook.addWorksheet('Accounts');
+
   const headers = [
     'institution',
     'account_name*',
@@ -152,26 +189,26 @@ function createAccountsSheet(): XLSX.WorkSheet {
     false,
   ];
 
-  const data = [headers, exampleRow];
-  const ws = XLSX.utils.aoa_to_sheet(data);
+  worksheet.addRow(headers);
+  worksheet.addRow(exampleRow);
 
   // Set column widths
-  ws['!cols'] = [
-    { wch: 20 }, // institution
-    { wch: 25 }, // account_name
-    { wch: 15 }, // balance
-    { wch: 15 }, // account_type
-    { wch: 15 }, // last_updated
-    { wch: 10 }, // hidden
-  ];
+  worksheet.getColumn(1).width = 20; // institution
+  worksheet.getColumn(2).width = 25; // account_name
+  worksheet.getColumn(3).width = 15; // balance
+  worksheet.getColumn(4).width = 15; // account_type
+  worksheet.getColumn(5).width = 15; // last_updated
+  worksheet.getColumn(6).width = 10; // hidden
 
-  return ws;
+  return worksheet;
 }
 
 /**
  * Create Assets sheet with headers and example row
  */
-function createAssetsSheet(): XLSX.WorkSheet {
+function createAssetsSheet(workbook: ExcelJS.Workbook): ExcelJS.Worksheet {
+  const worksheet = workbook.addWorksheet('Assets');
+
   const headers = [
     'name*',
     'type*',
@@ -204,33 +241,33 @@ function createAssetsSheet(): XLSX.WorkSheet {
     'Primary residence',
   ];
 
-  const data = [headers, exampleRow];
-  const ws = XLSX.utils.aoa_to_sheet(data);
+  worksheet.addRow(headers);
+  worksheet.addRow(exampleRow);
 
   // Set column widths
-  ws['!cols'] = [
-    { wch: 20 }, // name
-    { wch: 15 }, // type
-    { wch: 15 }, // value
-    { wch: 15 }, // date_added
-    { wch: 12 }, // ticker
-    { wch: 12 }, // exchange
-    { wch: 12 }, // quantity
-    { wch: 14 }, // purchase_price
-    { wch: 14 }, // purchase_date
-    { wch: 12 }, // change_1d
-    { wch: 12 }, // change_1w
-    { wch: 20 }, // institution
-    { wch: 30 }, // notes
-  ];
+  worksheet.getColumn(1).width = 20; // name
+  worksheet.getColumn(2).width = 15; // type
+  worksheet.getColumn(3).width = 15; // value
+  worksheet.getColumn(4).width = 15; // date_added
+  worksheet.getColumn(5).width = 12; // ticker
+  worksheet.getColumn(6).width = 12; // exchange
+  worksheet.getColumn(7).width = 12; // quantity
+  worksheet.getColumn(8).width = 14; // purchase_price
+  worksheet.getColumn(9).width = 14; // purchase_date
+  worksheet.getColumn(10).width = 12; // change_1d
+  worksheet.getColumn(11).width = 12; // change_1w
+  worksheet.getColumn(12).width = 20; // institution
+  worksheet.getColumn(13).width = 30; // notes
 
-  return ws;
+  return worksheet;
 }
 
 /**
  * Create Liabilities sheet with headers and example row
  */
-function createLiabilitiesSheet(): XLSX.WorkSheet {
+function createLiabilitiesSheet(workbook: ExcelJS.Workbook): ExcelJS.Worksheet {
+  const worksheet = workbook.addWorksheet('Liabilities');
+
   const headers = [
     'name*',
     'type*',
@@ -251,27 +288,27 @@ function createLiabilitiesSheet(): XLSX.WorkSheet {
     'Bank of America',
   ];
 
-  const data = [headers, exampleRow];
-  const ws = XLSX.utils.aoa_to_sheet(data);
+  worksheet.addRow(headers);
+  worksheet.addRow(exampleRow);
 
   // Set column widths
-  ws['!cols'] = [
-    { wch: 20 }, // name
-    { wch: 15 }, // type
-    { wch: 15 }, // balance
-    { wch: 15 }, // interest_rate
-    { wch: 15 }, // monthly_payment
-    { wch: 15 }, // due_date
-    { wch: 20 }, // institution
-  ];
+  worksheet.getColumn(1).width = 20; // name
+  worksheet.getColumn(2).width = 15; // type
+  worksheet.getColumn(3).width = 15; // balance
+  worksheet.getColumn(4).width = 15; // interest_rate
+  worksheet.getColumn(5).width = 15; // monthly_payment
+  worksheet.getColumn(6).width = 15; // due_date
+  worksheet.getColumn(7).width = 20; // institution
 
-  return ws;
+  return worksheet;
 }
 
 /**
- * Create Expenses sheet with headers and example row
+ * Create Expenses sheet with headers, example row, and data validation
  */
-function createExpensesSheet(): XLSX.WorkSheet {
+function createExpensesSheet(workbook: ExcelJS.Workbook): ExcelJS.Worksheet {
+  const worksheet = workbook.addWorksheet('Expenses');
+
   const headers = [
     'name*',
     'amount*',
@@ -292,27 +329,41 @@ function createExpensesSheet(): XLSX.WorkSheet {
     'Weekly food shopping',
   ];
 
-  const data = [headers, exampleRow];
-  const ws = XLSX.utils.aoa_to_sheet(data);
+  worksheet.addRow(headers);
+  worksheet.addRow(exampleRow);
 
   // Set column widths
-  ws['!cols'] = [
-    { wch: 20 }, // name
-    { wch: 12 }, // amount
-    { wch: 15 }, // frequency
-    { wch: 15 }, // charge_date
-    { wch: 15 }, // next_due_date
-    { wch: 20 }, // category_name
-    { wch: 30 }, // notes
-  ];
+  worksheet.getColumn(1).width = 20; // name
+  worksheet.getColumn(2).width = 12; // amount
+  worksheet.getColumn(3).width = 15; // frequency
+  worksheet.getColumn(4).width = 15; // charge_date
+  worksheet.getColumn(5).width = 15; // next_due_date
+  worksheet.getColumn(6).width = 20; // category_name
+  worksheet.getColumn(7).width = 30; // notes
 
-  return ws;
+  // TODO: Add data validation to category_name column (column F, starting from row 2)
+  // const lastCategoryRow = DEFAULT_CATEGORY_NAMES.length + 1;
+  // worksheet.dataValidations.add('F2:F1000', {
+  //   type: 'list',
+  //   allowBlank: false,
+  //   formulae: [`Categories!$A$2:$A$${lastCategoryRow}`],
+  //   showErrorMessage: true,
+  //   errorTitle: 'Invalid Category',
+  //   error: 'Please select a category from the dropdown list.',
+  //   showInputMessage: true,
+  //   promptTitle: 'Select Category',
+  //   prompt: 'Choose from the predefined categories.',
+  // });
+
+  return worksheet;
 }
 
 /**
  * Create Income sheet with headers and example row
  */
-function createIncomeSheet(): XLSX.WorkSheet {
+function createIncomeSheet(workbook: ExcelJS.Workbook): ExcelJS.Worksheet {
+  const worksheet = workbook.addWorksheet('Income');
+
   const headers = [
     'name*',
     'source*',
@@ -331,19 +382,17 @@ function createIncomeSheet(): XLSX.WorkSheet {
     'Monthly salary',
   ];
 
-  const data = [headers, exampleRow];
-  const ws = XLSX.utils.aoa_to_sheet(data);
+  worksheet.addRow(headers);
+  worksheet.addRow(exampleRow);
 
   // Set column widths
-  ws['!cols'] = [
-    { wch: 20 }, // name
-    { wch: 15 }, // source
-    { wch: 15 }, // amount
-    { wch: 15 }, // frequency
-    { wch: 18 }, // next_payment_date
-    { wch: 30 }, // notes
-  ];
+  worksheet.getColumn(1).width = 20; // name
+  worksheet.getColumn(2).width = 15; // source
+  worksheet.getColumn(3).width = 15; // amount
+  worksheet.getColumn(4).width = 15; // frequency
+  worksheet.getColumn(5).width = 18; // next_payment_date
+  worksheet.getColumn(6).width = 30; // notes
 
-  return ws;
+  return worksheet;
 }
 

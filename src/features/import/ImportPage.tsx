@@ -43,9 +43,9 @@ export function ImportPage() {
 
   const importService = useMemo(() => new ImportService(getToken), [getToken]);
 
-  const handleDownloadTemplate = useCallback(() => {
+  const handleDownloadTemplate = useCallback(async () => {
     try {
-      const template = generateImportTemplate();
+      const template = await generateImportTemplate();
       const url = URL.createObjectURL(template);
       const link = document.createElement('a');
       link.href = url;
