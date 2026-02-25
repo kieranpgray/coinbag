@@ -68,6 +68,9 @@ const baseExpenseFields = {
   nextDueDate: validDateString.optional().nullable(),
   categoryId: categoryIdSchema,
   paidFromAccountId: accountIdSchema.optional(),
+  notes: z.string()
+    .max(VALIDATION_LIMITS.notes.max, `Notes must be less than ${VALIDATION_LIMITS.notes.max} characters`)
+    .optional(),
 };
 
 // Helper to handle nullable strings from database (transform null to undefined)
@@ -94,6 +97,7 @@ export const expenseEntitySchema = z.object({
   userId: z.string().min(1, 'User ID is required'),
   ...baseExpenseFields,
   paidFromAccountId: nullableStringSchema, // Override paidFromAccountId to handle null from DB
+  notes: nullableStringSchema, // Override notes to handle null from DB
   createdAt: datetimeSchema,
   updatedAt: datetimeSchema,
 }).superRefine((data, ctx) => {
@@ -145,6 +149,7 @@ export const expenseUpdateSchema = z.object({
   nextDueDate: validDateString.nullable().optional(),
   categoryId: categoryIdSchema.optional(),
   paidFromAccountId: baseExpenseFields.paidFromAccountId,
+  notes: baseExpenseFields.notes,
 }).superRefine((data, ctx) => {
   // If both dates are provided, validate next due date is after charge date
   if (data.chargeDate && data.nextDueDate) {

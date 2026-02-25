@@ -169,6 +169,7 @@ export interface Expense {
   nextDueDate?: string | null;
   categoryId: string;
   paidFromAccountId?: string;
+  notes?: string;
 }
 
 /**

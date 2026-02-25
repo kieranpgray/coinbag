@@ -16,7 +16,7 @@ import { z } from 'zod';
  */
 export class SupabaseExpensesRepository implements ExpensesRepository {
   private readonly selectColumns =
-    'id, name, amount, frequency, chargeDate:charge_date, nextDueDate:next_due_date, categoryId:category_id, paidFromAccountId:paid_from_account_id, createdAt:created_at, updatedAt:updated_at, userId:user_id';
+    'id, name, amount, frequency, chargeDate:charge_date, nextDueDate:next_due_date, categoryId:category_id, paidFromAccountId:paid_from_account_id, notes, createdAt:created_at, updatedAt:updated_at, userId:user_id';
 
   /**
    * Maps expense entity (with userId and timestamps) to domain Expense type (without userId)
@@ -31,6 +31,7 @@ export class SupabaseExpensesRepository implements ExpensesRepository {
       nextDueDate: entity.nextDueDate || undefined,
       categoryId: entity.categoryId,
       paidFromAccountId: entity.paidFromAccountId,
+      notes: entity.notes,
     };
   }
 
@@ -166,6 +167,7 @@ export class SupabaseExpensesRepository implements ExpensesRepository {
         next_due_date: validated.nextDueDate,
         category_id: validated.categoryId, // Database uses 'category_id' column (uuid), not 'category'
         paid_from_account_id: validated.paidFromAccountId,
+        notes: validated.notes,
       };
 
       console.log('📤 SupabaseExpensesRepository: Sending to database:', dbInput);
@@ -255,6 +257,7 @@ export class SupabaseExpensesRepository implements ExpensesRepository {
       if (validated.nextDueDate !== undefined) dbInput.next_due_date = validated.nextDueDate ?? null;
       if (validated.categoryId !== undefined) dbInput.category_id = validated.categoryId; // Database uses 'category_id' column (uuid), not 'category'
       if (validated.paidFromAccountId !== undefined) dbInput.paid_from_account_id = validated.paidFromAccountId;
+      if (validated.notes !== undefined) dbInput.notes = validated.notes;
 
       const { data, error } = await supabase
         .from('expenses')

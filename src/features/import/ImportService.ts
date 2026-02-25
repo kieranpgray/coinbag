@@ -131,7 +131,7 @@ export class ImportService {
 
       // Check if category already exists
       if (existingMap.has(normalizedName)) {
-        categoryMap.set(categoryName, existingMap.get(normalizedName)!);
+        categoryMap.set(normalizedName, existingMap.get(normalizedName)!);
         processed++;
         onProgress?.(processed, uniqueNames.length);
         continue;
@@ -147,19 +147,19 @@ export class ImportService {
         if (createResult.error) {
           logger.warn('IMPORT:SERVICE', `Failed to create category "${categoryName}"`, { error: createResult.error.error });
           // Use Uncategorised as fallback
-          categoryMap.set(categoryName, uncategorisedId);
+          categoryMap.set(normalizedName, uncategorisedId);
         } else if (createResult.data) {
-          categoryMap.set(categoryName, createResult.data.id);
+          categoryMap.set(normalizedName, createResult.data.id);
           // Update existing map for subsequent lookups
           existingMap.set(normalizedName, createResult.data.id);
         } else {
           // Fallback to Uncategorised if creation returned no data
-          categoryMap.set(categoryName, uncategorisedId);
+          categoryMap.set(normalizedName, uncategorisedId);
         }
       } catch (error) {
         logger.warn('IMPORT:SERVICE', `Error creating category "${categoryName}"`, { error });
         // Use Uncategorised as fallback
-        categoryMap.set(categoryName, uncategorisedId);
+        categoryMap.set(normalizedName, uncategorisedId);
       }
 
       processed++;
@@ -562,7 +562,8 @@ export class ImportService {
     const validData = rows
       .map((row) => {
         const categoryName = (row.data.categoryName as string) || '';
-        const categoryId = categoryMap.get(categoryName);
+        const normalizedCategoryName = categoryName.toLowerCase().trim().replace(/\s+/g, ' ');
+        const categoryId = categoryMap.get(normalizedCategoryName);
 
         if (!categoryId) {
           // Report as error instead of silently filtering
