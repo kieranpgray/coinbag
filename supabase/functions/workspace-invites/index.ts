@@ -52,6 +52,7 @@ async function fetchClerkUserByEmail(clerkSecretKey: string, email: string): Pro
       'Content-Type': 'application/json',
     },
   });
+  if (res.status >= 500) throw new Error('Clerk API unavailable');
   if (!res.ok) return null;
   const data = await res.json();
   const users = data.data ?? [];
@@ -72,7 +73,7 @@ async function fetchClerkUserById(clerkSecretKey: string, userId: string): Promi
   return res.json();
 }
 
-async function handleCreate(
+export async function handleCreate(
   body: CreateBody,
   supabase: ReturnType<typeof createClient>,
   userId: string
@@ -88,6 +89,11 @@ async function handleCreate(
   const validRoles: WorkspaceRole[] = ['admin', 'edit', 'read'];
   if (!validRoles.includes(role)) {
     return jsonResponse({ error: 'Invalid role' }, 400);
+  }
+
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  if (!uuidRegex.test(workspace_id)) {
+    return jsonResponse({ error: 'Invalid workspace_id format (must be UUID)' }, 400);
   }
 
   // Check inviter is admin
@@ -106,7 +112,12 @@ async function handleCreate(
   // Check invitee is not already a member (by email via Clerk)
   const clerkSecretKey = Deno.env.get('CLERK_SECRET_KEY');
   if (clerkSecretKey) {
-    const existingUser = await fetchClerkUserByEmail(clerkSecretKey, emailTrimmed);
+    let existingUser: Awaited<ReturnType<typeof fetchClerkUserByEmail>>;
+    try {
+      existingUser = await fetchClerkUserByEmail(clerkSecretKey, emailTrimmed);
+    } catch {
+      return jsonResponse({ error: 'Clerk API unavailable' }, 503);
+    }
     if (existingUser) {
       const { data: existingMember } = await supabase
         .from('workspace_memberships')
@@ -176,7 +187,7 @@ async function handleCreate(
   }, 201);
 }
 
-async function handleAccept(
+export async function handleAccept(
   body: AcceptBody,
   supabase: ReturnType<typeof createClient>,
   userId: string
