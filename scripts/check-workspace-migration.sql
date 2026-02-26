@@ -151,4 +151,27 @@ BEGIN
   RAISE NOTICE 'PASS: Domain tables have no unexpected workspace_id IS NULL rows';
 END $$;
 
+-- 8. Goals workspace-scoped unique index (partial: workspace_id IS NOT NULL)
+-- Only runs when domain migration has been applied
+DO $$
+DECLARE
+  v_has_workspace_id boolean;
+BEGIN
+  SELECT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public' AND table_name = 'goals' AND column_name = 'workspace_id'
+  ) INTO v_has_workspace_id;
+  IF NOT v_has_workspace_id THEN
+    RAISE NOTICE 'SKIP: Domain migration not applied (workspace_id missing on goals)';
+    RETURN;
+  END IF;
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_indexes
+    WHERE schemaname = 'public' AND indexname = 'idx_goals_workspace_name_unique'
+  ) THEN
+    RAISE EXCEPTION 'FAIL: idx_goals_workspace_name_unique partial unique index missing';
+  END IF;
+  RAISE NOTICE 'PASS: Goals workspace-scoped unique index exists';
+END $$;
+
 SELECT 'Workspace migration checks complete' AS status;

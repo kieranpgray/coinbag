@@ -215,13 +215,17 @@ CREATE POLICY "Admins can delete invitations" ON workspace_invitations
 
 -- Trigger: auto-add creator as admin when workspace is created
 CREATE OR REPLACE FUNCTION create_workspace_add_creator_as_admin()
-RETURNS TRIGGER AS $$
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
 BEGIN
   INSERT INTO workspace_memberships (workspace_id, user_id, role)
   VALUES (NEW.id, NEW.created_by, 'admin');
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$;
 
 CREATE TRIGGER trigger_workspace_add_creator_as_admin
   AFTER INSERT ON workspaces

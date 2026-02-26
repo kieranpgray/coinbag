@@ -8,6 +8,11 @@ Operational documentation for the workspace context rollout on domain tables (`c
 - **Prerequisite**: `20260226000000_create_workspaces_schema.sql`
 - **Scope**: Adds nullable `workspace_id`, backfills ownership from `user_id`, updates RLS to membership-based with user fallback
 
+### workspace_id on insert
+
+- **During migration**: `workspace_id` is nullable; backfill sets it for existing rows.
+- **After migration**: A `BEFORE INSERT` trigger sets `workspace_id` from `get_default_workspace_id_for_user(user_id)` when it is NULL. Clients may omit `workspace_id` during the transition period; it will be populated automatically.
+
 ## Rollback Steps
 
 If you need to revert the domain-table workspace migration:
@@ -58,9 +63,13 @@ If you need to revert the domain-table workspace migration:
    ALTER TABLE user_preferences DROP COLUMN IF EXISTS workspace_id;
    ```
 
-3. **Drop the helper function**:
+3. **Drop triggers and helper functions**:
 
    ```sql
+   DROP TRIGGER IF EXISTS trigger_categories_set_workspace_id ON categories;
+   DROP TRIGGER IF EXISTS trigger_goals_set_workspace_id ON goals;
+   DROP TRIGGER IF EXISTS trigger_user_preferences_set_workspace_id ON user_preferences;
+   DROP FUNCTION IF EXISTS set_workspace_id_on_insert();
    DROP FUNCTION IF EXISTS get_default_workspace_id_for_user(text);
    ```
 
@@ -83,9 +92,10 @@ The migration is designed to be **re-runnable** (idempotent):
 |------|------------------------|
 | Add columns | `ADD COLUMN IF NOT EXISTS` |
 | Create indexes | `CREATE INDEX IF NOT EXISTS` |
-| Create unique index | `CREATE UNIQUE INDEX IF NOT EXISTS` |
-| Function | `CREATE OR REPLACE FUNCTION` |
+| Goals deduplication | Updates only duplicate names (idempotent after first run) |
 | Backfill | `WHERE workspace_id IS NULL` — only updates rows not yet backfilled |
+| Create unique index | `CREATE UNIQUE INDEX IF NOT EXISTS` (after backfill) |
+| Trigger | `CREATE OR REPLACE FUNCTION`; trigger creation is idempotent |
 | RLS policies | `DROP POLICY IF EXISTS` before `CREATE POLICY` |
 
 **Re-run behaviour**:
@@ -106,3 +116,11 @@ The script asserts:
 
 - Workspace schema tables and constraints exist
 - Domain tables (`categories`, `goals`, `user_preferences`) have no unexpected `workspace_id IS NULL` rows (rows with valid `user_id` must have `workspace_id` set)
+
+## Troubleshooting
+
+| Issue | Cause | Resolution |
+|-------|-------|------------|
+| Migration fails: "duplicate key value violates unique constraint idx_goals_workspace_name_unique" | Pre-existing duplicate goal names per user | The migration deduplicates goals before backfill (renames duplicates to "Name (2)", "Name (3)"). If you hit this on a re-run, run the deduplication UPDATE from Step 4 of the migration manually. |
+| "user_id required" from get_default_workspace_id_for_user | Called in migration context without p_user_id, or RPC without JWT | Migration backfill passes `p_user_id`; RPC must have valid JWT (authenticated session). |
+| RLS denies access to rows with workspace_id IS NULL | Policy requires workspace membership or user_id match | Ensure backfill completed (Step 5b assertion). For inserts, the trigger sets workspace_id when NULL. |

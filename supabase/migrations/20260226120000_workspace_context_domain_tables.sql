@@ -8,7 +8,11 @@
 -- When called via RPC with no args: uses auth.jwt()->>'sub'
 -- When called from migration with p_user_id: uses p_user_id (no JWT in migration context)
 CREATE OR REPLACE FUNCTION get_default_workspace_id_for_user(p_user_id text DEFAULT NULL)
-RETURNS uuid AS $$
+RETURNS uuid
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
 DECLARE
   v_user_id text;
   v_workspace_id uuid;
@@ -40,7 +44,7 @@ BEGIN
 
   RETURN v_workspace_id;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$;
 
 COMMENT ON FUNCTION get_default_workspace_id_for_user(text) IS 'Returns default workspace ID for a user; creates one if none exists. RPC: call with {} to use JWT sub. Migration: pass p_user_id.';
 
@@ -61,10 +65,17 @@ CREATE INDEX IF NOT EXISTS idx_categories_workspace_id ON categories(workspace_i
 CREATE INDEX IF NOT EXISTS idx_goals_workspace_id ON goals(workspace_id);
 CREATE INDEX IF NOT EXISTS idx_user_preferences_workspace_id ON user_preferences(workspace_id);
 
--- Step 4: Add workspace-scoped unique constraint on goals (partial: only when workspace_id IS NOT NULL)
-CREATE UNIQUE INDEX IF NOT EXISTS idx_goals_workspace_name_unique
-  ON goals(workspace_id, name)
-  WHERE workspace_id IS NOT NULL;
+-- Step 4: Deduplicate goals before backfill
+-- For each (user_id, name) with multiple goals, rename duplicates to "Name (2)", "Name (3)" etc.
+-- This prevents idx_goals_workspace_name_unique from failing when backfill assigns same workspace_id
+UPDATE goals g
+SET name = g.name || ' (' || sub.rn || ')'
+FROM (
+  SELECT id, ROW_NUMBER() OVER (PARTITION BY user_id, name ORDER BY id) AS rn
+  FROM goals
+  WHERE user_id IS NOT NULL AND user_id <> ''
+) sub
+WHERE g.id = sub.id AND sub.rn > 1;
 
 -- Step 5: Backfill workspace ownership
 -- For each user with data in categories, goals, or user_preferences:
@@ -95,6 +106,11 @@ BEGIN
 END;
 $$;
 
+-- Step 5a: Add workspace-scoped unique constraint on goals (after backfill and deduplication)
+CREATE UNIQUE INDEX IF NOT EXISTS idx_goals_workspace_name_unique
+  ON goals(workspace_id, name)
+  WHERE workspace_id IS NOT NULL;
+
 -- Step 5b: Post-backfill assertion - fail if any rows were not backfilled
 DO $$
 DECLARE
@@ -115,6 +131,37 @@ BEGIN
   END IF;
 END;
 $$;
+
+-- Step 5c: Trigger to set workspace_id from default when NULL on insert
+-- Ensures new rows get workspace_id even when client omits it (transition period)
+CREATE OR REPLACE FUNCTION set_workspace_id_on_insert()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  IF NEW.workspace_id IS NULL AND NEW.user_id IS NOT NULL AND NEW.user_id <> '' THEN
+    NEW.workspace_id := get_default_workspace_id_for_user(NEW.user_id);
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+CREATE TRIGGER trigger_categories_set_workspace_id
+  BEFORE INSERT ON categories
+  FOR EACH ROW
+  EXECUTE FUNCTION set_workspace_id_on_insert();
+
+CREATE TRIGGER trigger_goals_set_workspace_id
+  BEFORE INSERT ON goals
+  FOR EACH ROW
+  EXECUTE FUNCTION set_workspace_id_on_insert();
+
+CREATE TRIGGER trigger_user_preferences_set_workspace_id
+  BEFORE INSERT ON user_preferences
+  FOR EACH ROW
+  EXECUTE FUNCTION set_workspace_id_on_insert();
 
 -- Step 6: Update RLS policies - membership-based with user-scoped fallback
 -- categories
