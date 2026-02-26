@@ -1,4 +1,5 @@
 import { createAuthenticatedSupabaseClient } from '@/lib/supabaseClient';
+import { getDefaultWorkspaceIdForUser } from '@/lib/repositoryHelpers';
 import type { UserPreferencesRepository } from './repo';
 import { userPreferencesSchema, defaultUserPreferences, type UserPreferences } from '@/contracts/userPreferences';
 import { logger, getCorrelationId } from '@/lib/logger';
@@ -202,6 +203,9 @@ export class SupabaseUserPreferencesRepository implements UserPreferencesReposit
         return { error: { error: 'Invalid preferences payload', code: 'VALIDATION_ERROR' } };
       }
 
+      const workspaceResult = await getDefaultWorkspaceIdForUser(getToken);
+      const workspaceId = 'workspaceId' in workspaceResult ? workspaceResult.workspaceId : undefined;
+
       const supabase = await createAuthenticatedSupabaseClient(getToken);
 
       // user_id is derived via DEFAULT (auth.jwt() ->> 'sub') on insert.
@@ -212,6 +216,7 @@ export class SupabaseUserPreferencesRepository implements UserPreferencesReposit
         tax_settings_configured: validation.data.taxSettingsConfigured,
         email_notifications: validation.data.emailNotifications,
         locale: validation.data.locale,
+        ...(workspaceId && { workspace_id: workspaceId }),
       };
 
       // Progressive fallback for schema compatibility: try with newer columns, fall back to older schemas

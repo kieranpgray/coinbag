@@ -1,5 +1,6 @@
 import type { CategoriesRepository } from './repo';
 import { createAuthenticatedSupabaseClient } from '@/lib/supabaseClient';
+import { ensureUserIdForInsert, getDefaultWorkspaceIdForUser } from '@/lib/repositoryHelpers';
 import { logger, getCorrelationId } from '@/lib/logger';
 import { categoryCreateSchema, categoryUpdateSchema, categoryListSchema, categoryEntitySchema } from '@/contracts/categories';
 
@@ -115,11 +116,26 @@ export class SupabaseCategoriesRepository implements CategoriesRepository {
         };
       }
 
+      const userIdResult = await ensureUserIdForInsert(getToken, 'create category');
+      if ('error' in userIdResult) {
+        return { error: userIdResult.error };
+      }
+      const { userId } = userIdResult;
+
+      const workspaceResult = await getDefaultWorkspaceIdForUser(getToken);
+      const workspaceId = 'workspaceId' in workspaceResult ? workspaceResult.workspaceId : undefined;
+
       const supabase = await createAuthenticatedSupabaseClient(getToken);
+
+      const insertPayload = {
+        user_id: userId,
+        name: validation.data.name,
+        ...(workspaceId && { workspace_id: workspaceId }),
+      };
 
       const { data, error } = await supabase
         .from('categories')
-        .insert([validation.data])
+        .insert([insertPayload])
         .select(this.selectColumns)
         .single();
 

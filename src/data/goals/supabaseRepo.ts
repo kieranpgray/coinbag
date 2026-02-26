@@ -1,6 +1,6 @@
 import type { GoalsRepository } from './repo';
 import { createAuthenticatedSupabaseClient } from '@/lib/supabaseClient';
-import { ensureUserIdForInsert, verifyInsertedUserId } from '@/lib/repositoryHelpers';
+import { ensureUserIdForInsert, getDefaultWorkspaceIdForUser, verifyInsertedUserId } from '@/lib/repositoryHelpers';
 import {
   goalCreateSchema,
   goalUpdateSchema,
@@ -371,10 +371,14 @@ export class SupabaseGoalsRepository implements GoalsRepository {
       }
       const { userId } = userIdResult;
 
+      const workspaceResult = await getDefaultWorkspaceIdForUser(getToken);
+      const workspaceId = 'workspaceId' in workspaceResult ? workspaceResult.workspaceId : undefined;
+
       // Map camelCase to snake_case for database
       const dbInput: Record<string, unknown> = {
         user_id: userId, // EXPLICIT: Set user_id from JWT
         name: validation.data.name,
+        ...(workspaceId && { workspace_id: workspaceId }),
         target_amount: validation.data.targetAmount,
         current_amount: validation.data.currentAmount ?? 0,
         status: validation.data.status ?? 'active',

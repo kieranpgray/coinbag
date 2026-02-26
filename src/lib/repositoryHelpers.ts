@@ -6,6 +6,63 @@
 
 import { getUserIdFromToken } from './supabaseClient';
 import { logger, getCorrelationId } from './logger';
+import { getSupabaseBrowserClient } from './supabase/supabaseBrowserClient';
+
+/**
+ * Get default workspace ID for the current user via Supabase RPC.
+ * Creates a workspace if the user has none.
+ * Call with getToken from auth context.
+ */
+export async function getDefaultWorkspaceIdForUser(
+  getToken: () => Promise<string | null>
+): Promise<{ workspaceId: string } | { error: { error: string; code: string } }> {
+  try {
+    const supabase = getSupabaseBrowserClient(getToken);
+    const { data, error } = await supabase.rpc('get_default_workspace_id_for_user', {});
+
+    if (error) {
+      const correlationId = getCorrelationId();
+      logger.error(
+        'DB:WORKSPACE_ID',
+        'Failed to get default workspace ID',
+        { error: error.message, code: error.code },
+        correlationId || undefined
+      );
+      return {
+        error: {
+          error: 'Authentication failed. Please sign in again.',
+          code: 'AUTH_EXPIRED',
+        },
+      };
+    }
+
+    const workspaceId = typeof data === 'string' ? data : data as string;
+    if (!workspaceId) {
+      return {
+        error: {
+          error: 'No workspace available.',
+          code: 'WORKSPACE_NOT_FOUND',
+        },
+      };
+    }
+
+    return { workspaceId };
+  } catch (err) {
+    const correlationId = getCorrelationId();
+    logger.error(
+      'DB:WORKSPACE_ID',
+      'getDefaultWorkspaceIdForUser error',
+      { error: err instanceof Error ? err.message : String(err) },
+      correlationId || undefined
+    );
+    return {
+      error: {
+        error: 'Authentication failed. Please sign in again.',
+        code: 'AUTH_EXPIRED',
+      },
+    };
+  }
+}
 
 /**
  * Extract and validate user_id from JWT token
