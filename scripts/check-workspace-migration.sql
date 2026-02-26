@@ -26,7 +26,7 @@ BEGIN
   RAISE NOTICE 'PASS: workspace_role enum exists';
 END $$;
 
--- 3. Unique constraints (membership: one per user per workspace; invite: one pending per email per workspace)
+-- 3. Unique constraints (membership: one per user per workspace; invite: one pending per email per workspace; token unique)
 DO $$
 BEGIN
   IF NOT EXISTS (
@@ -42,10 +42,42 @@ BEGIN
   ) THEN
     RAISE EXCEPTION 'FAIL: workspace_invitations partial unique (workspace_id, email) WHERE accepted_at IS NULL missing';
   END IF;
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint c
+    JOIN pg_class t ON t.oid = c.conrelid
+    JOIN pg_attribute a ON a.attrelid = t.oid AND a.attnum = ANY(c.conkey) AND NOT a.attisdropped
+    WHERE t.relname = 'workspace_invitations' AND c.contype = 'u' AND a.attname = 'token'
+  ) THEN
+    RAISE EXCEPTION 'FAIL: workspace_invitations unique constraint on token missing';
+  END IF;
   RAISE NOTICE 'PASS: Unique constraints present';
 END $$;
 
--- 4. RLS enabled
+-- 4. Required indexes exist
+DO $$
+DECLARE
+  idx text;
+  required_indexes text[] := ARRAY[
+    'idx_workspaces_created_by',
+    'idx_workspace_memberships_user_id',
+    'idx_workspace_memberships_workspace_id',
+    'idx_workspace_memberships_user_workspace',
+    'idx_workspace_invitations_workspace_id',
+    'idx_workspace_invitations_token',
+    'idx_workspace_invitations_email',
+    'idx_workspace_invitations_expires_at'
+  ];
+BEGIN
+  FOREACH idx IN ARRAY required_indexes
+  LOOP
+    IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE indexname = idx) THEN
+      RAISE EXCEPTION 'FAIL: Index % does not exist', idx;
+    END IF;
+  END LOOP;
+  RAISE NOTICE 'PASS: All required indexes exist';
+END $$;
+
+-- 5. RLS enabled
 DO $$
 BEGIN
   IF NOT (SELECT relrowsecurity FROM pg_class WHERE relname = 'workspaces') THEN
@@ -60,7 +92,7 @@ BEGIN
   RAISE NOTICE 'PASS: RLS enabled on all workspace tables';
 END $$;
 
--- 5. Creator-as-admin trigger exists
+-- 6. Creator-as-admin trigger exists
 DO $$
 BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'trigger_workspace_add_creator_as_admin') THEN
