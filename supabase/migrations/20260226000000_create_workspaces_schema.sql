@@ -1,6 +1,7 @@
 -- Migration: Create workspaces, workspace_memberships, workspace_invitations
 -- Description: Schema foundations for multi-user workspace collaboration
 -- Prerequisites: pgcrypto extension, auth.jwt() for Clerk JWT sub
+-- Dependencies: update_updated_at_column() (from earlier migrations, e.g. 20251227120113)
 -- Rollback: Drop tables in reverse dependency order
 
 -- Enable required extensions
@@ -110,7 +111,7 @@ CREATE POLICY "Workspace admins can update workspaces" ON workspaces
         AND role = 'admin'
     )
   )
-  WITH CHECK (true);
+  WITH CHECK (created_by = (SELECT w.created_by FROM workspaces w WHERE w.id = workspaces.id LIMIT 1));
 
 CREATE POLICY "Workspace admins can delete workspaces" ON workspaces
   FOR DELETE

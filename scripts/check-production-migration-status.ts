@@ -75,7 +75,11 @@ async function main() {
   }
 
   console.log(`📍 Production URL: ${SUPABASE_URL}`);
-  console.log(`🔑 Anon Key: ${SUPABASE_ANON_KEY.substring(0, 30)}...\n`);
+  if (process.env.DEBUG || process.env.VERBOSE) {
+    console.log(`🔑 Anon Key: ${SUPABASE_ANON_KEY.substring(0, 30)}...\n`);
+  } else {
+    console.log('');
+  }
 
   // Create Supabase client
   const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
