@@ -25,6 +25,9 @@ const TABLES_TO_CHECK = [
   'transactions',
   'statement_imports',
   'expenses', // Renamed from subscriptions
+  'workspaces',
+  'workspace_memberships',
+  'workspace_invitations',
 ];
 
 async function checkTableExists(supabase: SupabaseClient, tableName: string): Promise<boolean> {
