@@ -118,4 +118,37 @@ BEGIN
   RAISE NOTICE 'PASS: Creator-as-admin trigger exists';
 END $$;
 
+-- 7. Domain tables: no unexpected workspace_id IS NULL after migration
+-- Rows with valid user_id (non-null, non-empty) must have workspace_id set
+-- Only runs when domain migration has been applied (workspace_id column exists)
+DO $$
+DECLARE
+  v_has_workspace_id boolean;
+  v_categories_null bigint;
+  v_goals_null bigint;
+  v_prefs_null bigint;
+BEGIN
+  SELECT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public' AND table_name = 'categories' AND column_name = 'workspace_id'
+  ) INTO v_has_workspace_id;
+  IF NOT v_has_workspace_id THEN
+    RAISE NOTICE 'SKIP: Domain migration not applied (workspace_id missing on categories)';
+    RETURN;
+  END IF;
+
+  SELECT COUNT(*) INTO v_categories_null FROM categories
+    WHERE user_id IS NOT NULL AND user_id <> '' AND workspace_id IS NULL;
+  SELECT COUNT(*) INTO v_goals_null FROM goals
+    WHERE user_id IS NOT NULL AND user_id <> '' AND workspace_id IS NULL;
+  SELECT COUNT(*) INTO v_prefs_null FROM user_preferences
+    WHERE user_id IS NOT NULL AND user_id <> '' AND workspace_id IS NULL;
+
+  IF v_categories_null > 0 OR v_goals_null > 0 OR v_prefs_null > 0 THEN
+    RAISE EXCEPTION 'FAIL: Domain tables have unexpected workspace_id IS NULL: categories=%, goals=%, user_preferences=%',
+      v_categories_null, v_goals_null, v_prefs_null;
+  END IF;
+  RAISE NOTICE 'PASS: Domain tables have no unexpected workspace_id IS NULL rows';
+END $$;
+
 SELECT 'Workspace migration checks complete' AS status;

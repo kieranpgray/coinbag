@@ -95,6 +95,27 @@ BEGIN
 END;
 $$;
 
+-- Step 5b: Post-backfill assertion - fail if any rows were not backfilled
+DO $$
+DECLARE
+  v_categories_null bigint;
+  v_goals_null bigint;
+  v_prefs_null bigint;
+BEGIN
+  SELECT COUNT(*) INTO v_categories_null FROM categories
+    WHERE user_id IS NOT NULL AND user_id <> '' AND workspace_id IS NULL;
+  SELECT COUNT(*) INTO v_goals_null FROM goals
+    WHERE user_id IS NOT NULL AND user_id <> '' AND workspace_id IS NULL;
+  SELECT COUNT(*) INTO v_prefs_null FROM user_preferences
+    WHERE user_id IS NOT NULL AND user_id <> '' AND workspace_id IS NULL;
+
+  IF v_categories_null > 0 OR v_goals_null > 0 OR v_prefs_null > 0 THEN
+    RAISE EXCEPTION 'Backfill incomplete: % categories, % goals, % user_preferences rows still have workspace_id IS NULL',
+      v_categories_null, v_goals_null, v_prefs_null;
+  END IF;
+END;
+$$;
+
 -- Step 6: Update RLS policies - membership-based with user-scoped fallback
 -- categories
 DROP POLICY IF EXISTS "Users can view their own categories" ON categories;
