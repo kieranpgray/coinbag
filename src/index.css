@@ -243,6 +243,16 @@
     font-family: var(--font-family-sans);
     font-size: var(--font-size-base);
   }
+
+  /* Hide number input spinners for a plain numeric field appearance */
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  input[type="number"] {
+    -moz-appearance: textfield;
+  }
 }
 
 /* Skip to content link for accessibility */
