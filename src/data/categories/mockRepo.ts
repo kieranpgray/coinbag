@@ -33,7 +33,7 @@ export function clearMockCategories(): void {
  * Mock implementation of CategoriesRepository
  */
 export class MockCategoriesRepository implements CategoriesRepository {
-  async list(_getToken?: () => Promise<string | null>) {
+  async list(_getToken?: () => Promise<string | null>, _workspaceId?: string | null) {
     await randomDelay();
     return {
       data: [...categories],
@@ -55,7 +55,7 @@ export class MockCategoriesRepository implements CategoriesRepository {
     return { data: category };
   }
 
-  async create(input: { name: string }, _getToken?: () => Promise<string | null>) {
+  async create(input: { name: string }, _getToken?: () => Promise<string | null>, _workspaceId?: string | null) {
     await randomDelay();
 
     // Check for duplicate names (case-insensitive)

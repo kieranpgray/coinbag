@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ImportService } from '../ImportService';
-import type { ParsedImportData, ValidationResult } from '../types';
+import type { ParsedImportData } from '../types';
 
 // Mock dependencies
 const mockCategoriesRepo = {
@@ -61,20 +61,6 @@ describe('ImportService - Expenses', () => {
       const categoryMap = new Map<string, string>([
         ['entertainment', 'cat-1'],
       ]);
-
-      const validationResult: ValidationResult = {
-        isValid: true,
-        errors: [],
-        warnings: [],
-        duplicates: [],
-        summary: {
-          totalRows: 1,
-          validRows: 1,
-          errorRows: 0,
-          duplicateRows: 0,
-          warningRows: 0,
-        },
-      };
 
       // Setup category resolution
       mockCategoriesRepo.list.mockResolvedValue({

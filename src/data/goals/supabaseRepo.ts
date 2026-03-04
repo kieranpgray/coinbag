@@ -203,7 +203,6 @@ export class SupabaseGoalsRepository implements GoalsRepository {
       }
 
       if (error) {
-        console.error('Supabase goals list error:', error);
         logger.error('DB:GOALS_LIST', 'Failed to list goals from Supabase', { error: error.message, code: error.code }, correlationId || undefined);
         return {
           data: [],
@@ -217,7 +216,7 @@ export class SupabaseGoalsRepository implements GoalsRepository {
       // Validate response data
       const validation = goalListSchema.safeParse(mappedData);
       if (!validation.success) {
-        console.error('Goals list validation error:', validation.error);
+        logger.error('DB:GOALS_LIST', 'Goals list validation error', { errors: validation.error.errors }, correlationId || undefined);
         return {
           data: [],
           error: {
@@ -233,7 +232,7 @@ export class SupabaseGoalsRepository implements GoalsRepository {
       logger.info('DB:GOALS_LIST', 'Goals listed successfully from Supabase', { count: goals.length }, correlationId || undefined);
       return { data: goals };
     } catch (error) {
-      console.error('List goals error:', error);
+      logger.error('DB:GOALS_LIST', 'List goals error', { error }, getCorrelationId() || undefined);
       return {
         data: [],
         error: this.normalizeSupabaseError(error),
@@ -294,7 +293,6 @@ export class SupabaseGoalsRepository implements GoalsRepository {
       }
 
       if (error) {
-        console.error('Supabase goals get error:', error);
         logger.error('DB:GOALS_GET', 'Failed to get goal from Supabase', { goalId: id, error: error.message, code: error.code }, correlationId || undefined);
         return { error: this.normalizeSupabaseError(error) };
       }
@@ -314,7 +312,7 @@ export class SupabaseGoalsRepository implements GoalsRepository {
       // Validate response data
       const validation = goalEntitySchema.safeParse(mappedData);
       if (!validation.success) {
-        console.error('Goal validation error:', validation.error);
+        logger.error('DB:GOALS_GET', 'Goal validation error', { errors: validation.error.errors }, correlationId || undefined);
         return {
           error: {
             error: 'Invalid data received from server.',
@@ -329,7 +327,7 @@ export class SupabaseGoalsRepository implements GoalsRepository {
       logger.info('DB:GOALS_GET', 'Goal fetched successfully from Supabase', { goalId: goal.id, goalName: goal.name }, correlationId || undefined);
       return { data: goal };
     } catch (error) {
-      console.error('Get goal error:', error);
+      logger.error('DB:GOALS_GET', 'Get goal error', { error }, getCorrelationId() || undefined);
       return { error: this.normalizeSupabaseError(error) };
     }
   }
@@ -441,7 +439,6 @@ export class SupabaseGoalsRepository implements GoalsRepository {
       }
 
       if (error) {
-        console.error('Supabase goals create error:', error);
         logger.error(
           'DB:GOALS_INSERT',
           'Failed to create goal in Supabase',
@@ -467,7 +464,6 @@ export class SupabaseGoalsRepository implements GoalsRepository {
       // Validate response data
       const responseValidation = goalEntitySchema.safeParse(mappedData);
       if (!responseValidation.success) {
-        console.error('Goal create response validation error:', responseValidation.error);
         logger.error('DB:GOALS_INSERT', 'Goal create response validation failed', { errors: responseValidation.error.errors, data }, correlationId || undefined);
         return {
           error: {
@@ -498,7 +494,7 @@ export class SupabaseGoalsRepository implements GoalsRepository {
 
       return { data: goal };
     } catch (error) {
-      console.error('Create goal error:', error);
+      logger.error('DB:GOALS_INSERT', 'Create goal error', { error }, getCorrelationId() || undefined);
       return { error: this.normalizeSupabaseError(error) };
     }
   }
@@ -606,7 +602,6 @@ export class SupabaseGoalsRepository implements GoalsRepository {
             },
           };
         }
-        console.error('Supabase goals update error:', error);
         logger.error('DB:GOALS_UPDATE', 'Failed to update goal in Supabase', { goalId: id, error: error.message, code: error.code, dbInput }, correlationId || undefined);
         return { error: this.normalizeSupabaseError(error) };
       }
@@ -627,7 +622,6 @@ export class SupabaseGoalsRepository implements GoalsRepository {
       // Validate response data
       const responseValidation = goalEntitySchema.safeParse(mappedData);
       if (!responseValidation.success) {
-        console.error('Goal update response validation error:', responseValidation.error);
         logger.error('DB:GOALS_UPDATE', 'Goal update response validation failed', { goalId: id, errors: responseValidation.error.errors, data }, correlationId || undefined);
         return {
           error: {
@@ -649,7 +643,7 @@ export class SupabaseGoalsRepository implements GoalsRepository {
 
       return { data: goal };
     } catch (error) {
-      console.error('Update goal error:', error);
+      logger.error('DB:GOALS_UPDATE', 'Update goal error', { error }, getCorrelationId() || undefined);
       return { error: this.normalizeSupabaseError(error) };
     }
   }
@@ -694,7 +688,6 @@ export class SupabaseGoalsRepository implements GoalsRepository {
             },
           };
         }
-        console.error('Supabase goals delete error:', error);
         logger.error('DB:GOALS_DELETE', 'Failed to delete goal from Supabase', { goalId: id, error: error.message, code: error.code }, correlationId || undefined);
         return { error: this.normalizeSupabaseError(error) };
       }
@@ -702,7 +695,7 @@ export class SupabaseGoalsRepository implements GoalsRepository {
       logger.info('DB:GOALS_DELETE', 'Goal deleted successfully from Supabase', { goalId: id }, correlationId || undefined);
       return {};
     } catch (error) {
-      console.error('Delete goal error:', error);
+      logger.error('DB:GOALS_DELETE', 'Delete goal error', { error }, getCorrelationId() || undefined);
       return { error: this.normalizeSupabaseError(error) };
     }
   }

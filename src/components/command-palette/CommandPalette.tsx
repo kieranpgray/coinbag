@@ -18,12 +18,13 @@ interface CommandItem {
 }
 
 const commands: CommandItem[] = [
-  { id: 'dashboard', label: 'Go to Dashboard', path: '/dashboard', keywords: ['dashboard', 'home', 'main'] },
-  { id: 'wealth', label: 'Go to Wealth', path: '/wealth', keywords: ['wealth', 'assets', 'liabilities', 'investments', 'portfolio', 'debts', 'loans', 'net worth'] },
-  { id: 'accounts', label: 'Go to Accounts', path: '/accounts', keywords: ['accounts', 'bank', 'financial'] },
-  { id: 'settings', label: 'Go to Settings', path: '/settings', keywords: ['settings', 'preferences', 'config'] },
-  { id: 'transfers', label: 'Go to Transfers', path: '/transfers', keywords: ['transfers', 'cash flow', 'move money', 'pay cycle'] },
-  { id: 'budget', label: 'Go to Budget', path: '/budget', keywords: ['budget', 'income', 'expenses', 'subscriptions', 'recurring', 'bills'] },
+  { id: 'dashboard', label: 'Go to Dashboard', path: '/app/dashboard', keywords: ['dashboard', 'home', 'main'] },
+  { id: 'wealth', label: 'Go to Wealth', path: '/app/wealth', keywords: ['wealth', 'assets', 'liabilities', 'investments', 'portfolio', 'debts', 'loans', 'net worth'] },
+  { id: 'accounts', label: 'Go to Accounts', path: '/app/accounts', keywords: ['accounts', 'bank', 'financial'] },
+  { id: 'settings', label: 'Go to Settings', path: '/app/settings', keywords: ['settings', 'preferences', 'config'] },
+  { id: 'team', label: 'Go to Team Settings', path: '/app/settings?tab=team', keywords: ['team', 'workspace', 'members', 'invite', 'collaboration'] },
+  { id: 'transfers', label: 'Go to Transfers', path: '/app/transfers', keywords: ['transfers', 'cash flow', 'move money', 'pay cycle'] },
+  { id: 'budget', label: 'Go to Budget', path: '/app/budget', keywords: ['budget', 'income', 'expenses', 'subscriptions', 'recurring', 'bills'] },
 ];
 
 interface CommandPaletteProps {

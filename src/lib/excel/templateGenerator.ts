@@ -343,10 +343,10 @@ function createExpensesSheet(workbook: ExcelJS.Workbook): ExcelJS.Worksheet {
 
   // TODO: Add data validation to category_name column (column F, starting from row 2)
   // const lastCategoryRow = DEFAULT_CATEGORY_NAMES.length + 1;
-  // worksheet.dataValidations.add('F2:F1000', {
+  // (worksheet as any).dataValidations.add('F2:F1000', {
   //   type: 'list',
   //   allowBlank: false,
-  //   formulae: [`Categories!$A$2:$A$${lastCategoryRow}`],
+  //   formulae: [`=Categories!$A$2:$A$${lastCategoryRow}`],
   //   showErrorMessage: true,
   //   errorTitle: 'Invalid Category',
   //   error: 'Please select a category from the dropdown list.',

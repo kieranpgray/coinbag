@@ -3,6 +3,12 @@
  * Exported for unit testing.
  */
 
+/**
+ * Extracts user_id (sub) from JWT payload. Does NOT verify the JWT.
+ * JWT verification is performed by Supabase when the client is created with
+ * this token. This function is only for extracting the sub claim from an
+ * already-provided token that will be used for Supabase auth.
+ */
 export function getUserIdFromJwt(token: string): string | null {
   try {
     const parts = token.split('.');

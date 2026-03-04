@@ -68,3 +68,7 @@ $$;
 
 COMMENT ON FUNCTION accept_workspace_invitation(text, text) IS
   'Atomically accepts a workspace invitation by token for the given user_id. Returns {ok, error} or {ok, workspace_id, role}.';
+
+-- Grant execute permissions to allow edge functions to call this function
+GRANT EXECUTE ON FUNCTION accept_workspace_invitation(text, text) TO authenticated;
+GRANT EXECUTE ON FUNCTION accept_workspace_invitation(text, text) TO service_role;

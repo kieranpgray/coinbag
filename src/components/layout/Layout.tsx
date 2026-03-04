@@ -1,6 +1,7 @@
 import { Outlet } from 'react-router-dom';
 import { SignedIn, SignedOut, RedirectToSignIn } from '@clerk/clerk-react';
 import { logger } from '@/lib/logger';
+import { WorkspaceProvider } from '@/contexts/WorkspaceContext';
 import { Header } from './Header';
 import { Sidebar } from './Sidebar';
 import { Footer } from './Footer';
@@ -12,6 +13,7 @@ export function Layout() {
   return (
     <>
       <SignedIn>
+        <WorkspaceProvider>
         <div className="h-screen overflow-hidden flex">
           <a href="#main-content" className="skip-to-content">
             Skip to main content
@@ -35,6 +37,7 @@ export function Layout() {
             </div>
           </div>
         </div>
+        </WorkspaceProvider>
       </SignedIn>
       <SignedOut>
         <RedirectToSignIn />

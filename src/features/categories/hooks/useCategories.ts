@@ -2,25 +2,28 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { createCategoriesRepository } from '@/data/categories/repo';
 import { ensureDefaultCategories } from '@/data/categories/ensureDefaults';
 import { useAuth } from '@clerk/clerk-react';
+import { useWorkspaceOptional } from '@/contexts/WorkspaceContext';
 import type { Category } from '@/types/domain';
 
 export function useCategories() {
   const { getToken } = useAuth();
+  const workspace = useWorkspaceOptional();
+  const activeWorkspaceId = workspace?.activeWorkspaceId ?? undefined;
   const repository = createCategoriesRepository();
 
   return useQuery<Category[]>({
-    queryKey: ['categories'],
+    queryKey: ['categories', activeWorkspaceId],
     queryFn: async () => {
-      const result = await repository.list(getToken);
+      const result = await repository.list(getToken, activeWorkspaceId ?? undefined);
       if (result.error) {
         throw result.error;
       }
 
       // Always ensure default categories exist (creates any missing ones)
-      const ensureResult = await ensureDefaultCategories(getToken);
+      const ensureResult = await ensureDefaultCategories(getToken, activeWorkspaceId ?? undefined);
       if (ensureResult.success) {
         // Refetch categories after ensuring defaults (will include any newly created ones)
-        const refreshedResult = await repository.list(getToken);
+        const refreshedResult = await repository.list(getToken, activeWorkspaceId ?? undefined);
         if (refreshedResult.error) {
           throw refreshedResult.error;
         }
@@ -58,18 +61,20 @@ export function useCategory(id: string) {
 export function useCreateCategory() {
   const queryClient = useQueryClient();
   const { getToken } = useAuth();
+  const workspace = useWorkspaceOptional();
+  const activeWorkspaceId = workspace?.activeWorkspaceId ?? undefined;
   const repository = createCategoriesRepository();
 
   return useMutation({
     mutationFn: async (data: { name: string }) => {
-      const result = await repository.create(data, getToken);
+      const result = await repository.create(data, getToken, activeWorkspaceId ?? undefined);
       if (result.error) {
         throw result.error;
       }
       return result.data!;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['categories'] });
+      queryClient.invalidateQueries({ queryKey: ['categories', activeWorkspaceId] });
       // Note: Dashboard expense breakdown uses categoryId, not category name,
       // so category mutations don't need to invalidate dashboard.
       // Components displaying category names will refetch categories query separately.

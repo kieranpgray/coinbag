@@ -1,6 +1,6 @@
 import type { CategoriesRepository } from './repo';
 import { createAuthenticatedSupabaseClient } from '@/lib/supabaseClient';
-import { ensureUserIdForInsert, getDefaultWorkspaceIdForUser } from '@/lib/repositoryHelpers';
+import { ensureUserIdForInsert, resolveWorkspaceId, verifyInsertedUserId } from '@/lib/repositoryHelpers';
 import { logger, getCorrelationId } from '@/lib/logger';
 import { categoryCreateSchema, categoryUpdateSchema, categoryListSchema, categoryEntitySchema } from '@/contracts/categories';
 
@@ -11,14 +11,25 @@ export class SupabaseCategoriesRepository implements CategoriesRepository {
   private readonly selectColumns =
     'id, name, userId:user_id, createdAt:created_at, updatedAt:updated_at';
 
-  async list(getToken: () => Promise<string | null>) {
+  async list(
+    getToken: () => Promise<string | null>,
+    workspaceId?: string | null
+  ) {
     try {
       const supabase = await createAuthenticatedSupabaseClient(getToken);
+      const workspaceResult = await resolveWorkspaceId(getToken, workspaceId);
+      const resolvedWorkspaceId = 'workspaceId' in workspaceResult ? workspaceResult.workspaceId : undefined;
 
-      const { data, error } = await supabase
+      let query = supabase
         .from('categories')
         .select(this.selectColumns)
         .order('name', { ascending: true });
+
+      if (resolvedWorkspaceId) {
+        query = query.eq('workspace_id', resolvedWorkspaceId);
+      }
+
+      const { data, error } = await query;
 
       if (error) {
         logger.error('DB:CATEGORIES_LIST', 'Supabase categories list error', { error }, getCorrelationId() || undefined);
@@ -103,7 +114,11 @@ export class SupabaseCategoriesRepository implements CategoriesRepository {
     }
   }
 
-  async create(input: { name: string }, getToken: () => Promise<string | null>) {
+  async create(
+    input: { name: string },
+    getToken: () => Promise<string | null>,
+    workspaceId?: string | null
+  ) {
     try {
       // Validate input
       const validation = categoryCreateSchema.safeParse(input);
@@ -122,15 +137,15 @@ export class SupabaseCategoriesRepository implements CategoriesRepository {
       }
       const { userId } = userIdResult;
 
-      const workspaceResult = await getDefaultWorkspaceIdForUser(getToken);
-      const workspaceId = 'workspaceId' in workspaceResult ? workspaceResult.workspaceId : undefined;
+      const workspaceResult = await resolveWorkspaceId(getToken, workspaceId);
+      const resolvedWorkspaceId = 'workspaceId' in workspaceResult ? workspaceResult.workspaceId : undefined;
 
       const supabase = await createAuthenticatedSupabaseClient(getToken);
 
       const insertPayload = {
         user_id: userId,
         name: validation.data.name,
-        ...(workspaceId && { workspace_id: workspaceId }),
+        ...(resolvedWorkspaceId && { workspace_id: resolvedWorkspaceId }),
       };
 
       const { data, error } = await supabase
@@ -155,6 +170,9 @@ export class SupabaseCategoriesRepository implements CategoriesRepository {
           },
         };
       }
+
+      // CRITICAL: Verify the inserted record has the correct user_id
+      verifyInsertedUserId(responseValidation.data, userId, 'create category', responseValidation.data.id);
 
       return { data: responseValidation.data };
     } catch (error) {

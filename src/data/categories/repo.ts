@@ -5,9 +5,12 @@ import type { Category } from '@/types/domain';
  */
 export interface CategoriesRepository {
   /**
-   * List all categories for the current user
+   * List all categories for the current user, optionally scoped to workspace
    */
-  list(getToken: () => Promise<string | null>): Promise<{
+  list(
+    getToken: () => Promise<string | null>,
+    workspaceId?: string | null
+  ): Promise<{
     data: Category[];
     error?: { error: string; code: string };
   }>;
@@ -28,7 +31,8 @@ export interface CategoriesRepository {
    */
   create(
     input: { name: string },
-    getToken: () => Promise<string | null>
+    getToken: () => Promise<string | null>,
+    workspaceId?: string | null
   ): Promise<{
     data?: Category;
     error?: { error: string; code: string };

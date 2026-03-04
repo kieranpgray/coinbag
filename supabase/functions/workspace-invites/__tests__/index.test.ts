@@ -197,6 +197,36 @@ describe('workspace-invites handleCreate', () => {
     const body = await parseJsonResponse(res);
     expect(body.error).toContain('role');
   });
+
+  it('returns 200 with action resend when pending invite exists for same email', async () => {
+    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ data: [] }) });
+    const supabase = createMockSupabase({
+      existingInvite: { data: { id: 'inv-existing' }, error: null },
+    });
+
+    const res = await handleCreate(
+      { action: 'create', workspace_id: validWorkspaceId, email: 'resend@b.com', role: 'edit' },
+      supabase as any,
+      userId
+    );
+    expect(res.status).toBe(200);
+    const body = await parseJsonResponse(res);
+    expect(body.success).toBe(true);
+    expect(body.action).toBe('resend');
+  });
+
+  it('returns 503 when CLERK_SECRET_KEY is not set', async () => {
+    mockEnvGet.mockReturnValue(undefined);
+    const supabase = createMockSupabase();
+    const res = await handleCreate(
+      { action: 'create', workspace_id: validWorkspaceId, email: 'test@b.com', role: 'edit' },
+      supabase as any,
+      userId
+    );
+    expect(res.status).toBe(503);
+    const body = await parseJsonResponse(res);
+    expect(body.error).toBe('Invite service unavailable');
+  });
 });
 
 describe('workspace-invites handleAccept', () => {
@@ -257,6 +287,25 @@ describe('workspace-invites handleAccept', () => {
     expect(body.error).toContain('User not found');
   });
 
+  it('returns 503 when Clerk API fails (5xx)', async () => {
+    mockEnvGet.mockReturnValue('sk_test_xxx');
+    mockFetch.mockImplementation(() =>
+      Promise.resolve({ ok: false, status: 503 } as Response)
+    );
+    const supabase = createMockSupabase({
+      existingInvite: {
+        data: { id: 'inv1', email: 'user@example.com', workspace_id: 'ws1' },
+        error: null,
+      },
+    });
+
+    const res = await handleAccept({ action: 'accept', token: 'valid-token' }, supabase as any, userId);
+    expect(mockFetch).toHaveBeenCalled();
+    expect(res.status).toBe(503);
+    const body = await parseJsonResponse(res);
+    expect(body.error).toContain('Clerk');
+  });
+
   it('returns 403 when email does not match invite', async () => {
     mockFetch.mockImplementation(() =>
       Promise.resolve({
@@ -307,5 +356,57 @@ describe('workspace-invites handleAccept', () => {
     expect(body.success).toBe(true);
     expect(body.workspace_id).toBe('ws1');
     expect(body.role).toBe('edit');
+  });
+
+  it('returns 400 when invite already accepted (replay)', async () => {
+    mockFetch.mockImplementation(() =>
+      Promise.resolve({
+        ok: true,
+        json: async () => ({
+          id: userId,
+          email_addresses: [
+            { email_address: 'user@example.com', verification: { status: 'verified' } },
+          ],
+        }),
+      } as unknown as Response)
+    );
+    const supabase = createMockSupabase({
+      existingInvite: {
+        data: { id: 'inv1', email: 'user@example.com', workspace_id: 'ws1' },
+        error: null,
+      },
+      rpcResult: { data: { ok: false, error: 'Invitation already accepted' }, error: null },
+    });
+
+    const res = await handleAccept({ action: 'accept', token: 'replay-token' }, supabase as any, userId);
+    expect(res.status).toBe(400);
+    const body = await parseJsonResponse(res);
+    expect(body.error).toContain('accepted');
+  });
+
+  it('returns 400 when invite expired', async () => {
+    mockFetch.mockImplementation(() =>
+      Promise.resolve({
+        ok: true,
+        json: async () => ({
+          id: userId,
+          email_addresses: [
+            { email_address: 'user@example.com', verification: { status: 'verified' } },
+          ],
+        }),
+      } as unknown as Response)
+    );
+    const supabase = createMockSupabase({
+      existingInvite: {
+        data: { id: 'inv1', email: 'user@example.com', workspace_id: 'ws1' },
+        error: null,
+      },
+      rpcResult: { data: { ok: false, error: 'Invitation has expired' }, error: null },
+    });
+
+    const res = await handleAccept({ action: 'accept', token: 'expired-token' }, supabase as any, userId);
+    expect(res.status).toBe(400);
+    const body = await parseJsonResponse(res);
+    expect(body.error).toMatch(/expired|invitation/i);
   });
 });

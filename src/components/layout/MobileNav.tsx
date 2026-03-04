@@ -8,6 +8,8 @@ import {
   Settings,
   X,
 } from 'lucide-react';
+import { WorkspaceSwitcher } from '@/components/workspace/WorkspaceSwitcher';
+import { useWorkspaceCollaborationEnabled } from '@/hooks/useWorkspaceCollaborationEnabled';
 import { usePrefetchRoute } from '@/hooks/usePrefetchRoute';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -37,6 +39,7 @@ interface MobileNavProps {
 export function MobileNav({ open, onOpenChange }: MobileNavProps) {
   const location = useLocation();
   const navigate = useNavigate();
+  const workspaceCollaborationEnabled = useWorkspaceCollaborationEnabled();
   const { prefetchWealth, prefetchBudget, prefetchAccounts } = usePrefetchRoute();
 
   // Map routes to their prefetch functions
@@ -83,6 +86,13 @@ export function MobileNav({ open, onOpenChange }: MobileNavProps) {
               <X className="h-5 w-5" />
             </Button>
           </div>
+
+          {/* Workspace Switcher - gated by feature flag */}
+          {workspaceCollaborationEnabled && (
+            <div className="p-4 border-b border-border">
+              <WorkspaceSwitcher variant="compact" />
+            </div>
+          )}
 
           {/* Navigation */}
           <nav className="flex-1 overflow-y-auto p-4" role="navigation" aria-label="Primary">

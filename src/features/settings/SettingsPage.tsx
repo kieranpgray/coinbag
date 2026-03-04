@@ -16,6 +16,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import type { UserPreferences } from '@/contracts/userPreferences';
 import { ImportPage } from '@/features/import/ImportPage';
+import { TeamSection } from '@/features/settings/TeamSection';
+import { useWorkspaceCollaborationEnabled } from '@/hooks/useWorkspaceCollaborationEnabled';
 import { useLocale } from '@/contexts/LocaleContext';
 import { getSupportedLocales } from '@/lib/localeRegistry';
 import { useTranslation } from 'react-i18next';
@@ -36,6 +38,7 @@ export function SettingsPage() {
   const updatePrefs = useUpdateUserPreferences();
   const { locale, setLocale: setLocaleContext } = useLocale();
   const { t } = useTranslation(['settings', 'common']);
+  const workspaceCollaborationEnabled = useWorkspaceCollaborationEnabled();
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [detectedCountry, setDetectedCountry] = useState<string | null>(null);
   const [searchParams, setSearchParams] = useSearchParams();
@@ -86,7 +89,9 @@ export function SettingsPage() {
   // Handle tab changes from query params
   useEffect(() => {
     const tab = searchParams.get('tab');
-    if (tab && ['profile', 'preferences', 'tax', 'notifications', 'security', 'import'].includes(tab)) {
+    const validTabs = ['profile', 'preferences', 'tax', 'notifications', 'security', 'import'];
+    if (workspaceCollaborationEnabled) validTabs.push('team');
+    if (tab && validTabs.includes(tab)) {
       setActiveTab(tab);
       // Clear query param after processing
       setSearchParams({});
@@ -179,6 +184,9 @@ export function SettingsPage() {
           <TabsTrigger value="tax">Tax Settings</TabsTrigger>
           <TabsTrigger value="notifications">Notifications</TabsTrigger>
           <TabsTrigger value="security">Security</TabsTrigger>
+          {workspaceCollaborationEnabled && (
+            <TabsTrigger value="team">Team</TabsTrigger>
+          )}
           <TabsTrigger value="import">Import</TabsTrigger>
         </TabsList>
 
@@ -472,6 +480,13 @@ export function SettingsPage() {
             </CardContent>
           </Card>
         </TabsContent>
+
+        {/* Team Tab - gated by feature flag */}
+        {workspaceCollaborationEnabled && (
+          <TabsContent value="team" className="space-y-4">
+            <TeamSection />
+          </TabsContent>
+        )}
 
         {/* Import Tab */}
         <TabsContent value="import" className="space-y-4">

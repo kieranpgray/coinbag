@@ -9,6 +9,20 @@ import { logger, getCorrelationId } from './logger';
 import { getSupabaseBrowserClient } from './supabase/supabaseBrowserClient';
 
 /**
+ * Resolve workspace ID: use provided one or fetch default via RPC.
+ * Use when caller has active workspace from context (e.g. WorkspaceContext).
+ */
+export async function resolveWorkspaceId(
+  getToken: () => Promise<string | null>,
+  workspaceId?: string | null
+): Promise<{ workspaceId: string } | { error: { error: string; code: string } }> {
+  if (workspaceId && workspaceId.trim().length > 0) {
+    return { workspaceId: workspaceId.trim() };
+  }
+  return getDefaultWorkspaceIdForUser(getToken);
+}
+
+/**
  * Get default workspace ID for the current user via Supabase RPC.
  * Creates a workspace if the user has none.
  * Call with getToken from auth context.
@@ -36,7 +50,9 @@ export async function getDefaultWorkspaceIdForUser(
       };
     }
 
-    const workspaceId = typeof data === 'string' ? data : data as string;
+    // Validate RPC returns a non-empty string (rejects objects, arrays, numbers, null)
+    const workspaceId =
+      typeof data === 'string' && data.trim().length > 0 ? data.trim() : null;
     if (!workspaceId) {
       return {
         error: {

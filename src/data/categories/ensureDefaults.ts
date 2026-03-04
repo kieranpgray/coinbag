@@ -8,13 +8,14 @@ import { DEFAULT_CATEGORY_NAMES } from './constants';
  * Returns the full list of categories after ensuring defaults
  */
 export async function ensureDefaultCategories(
-  getToken: () => Promise<string | null>
+  getToken: () => Promise<string | null>,
+  workspaceId?: string | null
 ): Promise<{ success: boolean; error?: string }> {
   const repository = createCategoriesRepository();
 
   try {
     // First, get existing categories to avoid unnecessary create attempts
-    const existingResult = await repository.list(getToken);
+    const existingResult = await repository.list(getToken, workspaceId);
     if (existingResult.error) {
       logger.error('CATEGORIES:ENSURE_DEFAULTS', 'Failed to fetch existing categories', { error: existingResult.error });
       return {
@@ -43,7 +44,7 @@ export async function ensureDefaultCategories(
 
     // Create missing categories
     const createPromises = categoriesToCreate.map(async (name) => {
-      const result = await repository.create({ name }, getToken);
+      const result = await repository.create({ name }, getToken, workspaceId);
       // Treat DUPLICATE_ENTRY and other expected conflicts as success
       if (result.error && !['DUPLICATE_ENTRY', 'CONFLICT'].includes(result.error.code)) {
         logger.warn('CATEGORIES:ENSURE_DEFAULTS', `Failed to create default category "${name}"`, { error: result.error });

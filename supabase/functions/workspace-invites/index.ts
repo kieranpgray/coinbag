@@ -69,6 +69,7 @@ async function fetchClerkUserById(clerkSecretKey: string, userId: string): Promi
       'Content-Type': 'application/json',
     },
   });
+  if (res.status >= 500) throw new Error('Clerk API unavailable');
   if (!res.ok) return null;
   return res.json();
 }
@@ -96,6 +97,11 @@ export async function handleCreate(
     return jsonResponse({ error: 'Invalid workspace_id format (must be UUID)' }, 400);
   }
 
+  const clerkSecretKey = Deno.env.get('CLERK_SECRET_KEY');
+  if (!clerkSecretKey) {
+    return jsonResponse({ error: 'Invite service unavailable' }, 503);
+  }
+
   // Check inviter is admin
   const { data: membership, error: membershipError } = await supabase
     .from('workspace_memberships')
@@ -110,24 +116,21 @@ export async function handleCreate(
   }
 
   // Check invitee is not already a member (by email via Clerk)
-  const clerkSecretKey = Deno.env.get('CLERK_SECRET_KEY');
-  if (clerkSecretKey) {
-    let existingUser: Awaited<ReturnType<typeof fetchClerkUserByEmail>>;
-    try {
-      existingUser = await fetchClerkUserByEmail(clerkSecretKey, emailTrimmed);
-    } catch {
-      return jsonResponse({ error: 'Clerk API unavailable' }, 503);
-    }
-    if (existingUser) {
-      const { data: existingMember } = await supabase
-        .from('workspace_memberships')
-        .select('id')
-        .eq('workspace_id', workspace_id)
-        .eq('user_id', existingUser.id)
-        .single();
-      if (existingMember) {
-        return jsonResponse({ error: 'Already a member' }, 409);
-      }
+  let existingUser: Awaited<ReturnType<typeof fetchClerkUserByEmail>>;
+  try {
+    existingUser = await fetchClerkUserByEmail(clerkSecretKey, emailTrimmed);
+  } catch {
+    return jsonResponse({ error: 'Clerk API unavailable' }, 503);
+  }
+  if (existingUser) {
+    const { data: existingMember } = await supabase
+      .from('workspace_memberships')
+      .select('id')
+      .eq('workspace_id', workspace_id)
+      .eq('user_id', existingUser.id)
+      .single();
+    if (existingMember) {
+      return jsonResponse({ error: 'Already a member' }, 409);
     }
   }
 
@@ -216,7 +219,12 @@ export async function handleAccept(
   const inviteEmail = (invite.email as string).toLowerCase().trim();
 
   // Verify user's email matches invite and is verified in Clerk
-  const clerkUser = await fetchClerkUserById(clerkSecretKey, userId);
+  let clerkUser: Awaited<ReturnType<typeof fetchClerkUserById>>;
+  try {
+    clerkUser = await fetchClerkUserById(clerkSecretKey, userId);
+  } catch {
+    return jsonResponse({ error: 'Clerk API unavailable' }, 503);
+  }
   if (!clerkUser) {
     return jsonResponse({ error: 'User not found' }, 404);
   }
@@ -272,6 +280,7 @@ serve(async (req: Request) => {
     return jsonResponse({ error: 'Server configuration error' }, 500);
   }
 
+  // Supabase validates JWT; invalid tokens are rejected at connection time.
   const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     global: { headers: { Authorization: `Bearer ${clerkToken}` } },
   });

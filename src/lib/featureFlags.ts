@@ -1,17 +1,25 @@
 /**
  * Feature Flags System
- * 
+ *
  * Simple feature flag system for enabling/disabling features.
  * Can be extended to support user-specific flags, A/B testing, etc.
  */
 
-export type FeatureFlag = 
+import { getWorkspaceCollaborationRolloutStage } from './workspaceCollaborationConfig';
+
+function isWorkspaceCollaborationEnabled(): boolean {
+  const stage = getWorkspaceCollaborationRolloutStage();
+  return stage === 'full' || stage === 'percentage' || stage === 'internal';
+}
+
+export type FeatureFlag =
   | 'statement_import'
   | 'statement_import_ocr'
   | 'statement_import_llm'
   | 'statement_import_reupload'
   | 'transaction_deduplication'
-  | 'import_history_view';
+  | 'import_history_view'
+  | 'workspace_collaboration';
 
 interface FeatureFlagConfig {
   enabled: boolean;
@@ -44,6 +52,10 @@ const FEATURE_FLAGS: Record<FeatureFlag, FeatureFlagConfig> = {
   import_history_view: {
     enabled: true,
     description: 'Enable import history view for users',
+  },
+  workspace_collaboration: {
+    enabled: isWorkspaceCollaborationEnabled(),
+    description: 'Enable multi-user workspace collaboration (invites, team, switcher)',
   },
 };
 
