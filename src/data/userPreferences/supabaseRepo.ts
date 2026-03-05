@@ -124,19 +124,49 @@ export class SupabaseUserPreferencesRepository implements UserPreferencesReposit
                   .maybeSingle();
 
                 if (minimalResult.error) {
-                  return { error: this.normalizeSupabaseError(minimalResult.error) };
+                  // Fourth fallback: schema has only original columns (no theme_preference)
+                  const isThemePreferenceError = minimalResult.error && (
+                    (minimalResult.error as any).status === 400 ||
+                    (minimalResult.error as any).code === '42703' ||
+                    (minimalResult.error as any).code === 'PGRST100' ||
+                    (minimalResult.error as any).message?.includes('theme_preference') ||
+                    (minimalResult.error as any).message?.includes('schema cache') ||
+                    (minimalResult.error as any).message?.includes('Could not find')
+                  );
+                  if (isThemePreferenceError) {
+                    const legacyColumns = 'privacy_mode, dark_mode, tax_rate, email_notifications';
+                    const legacyResult = await supabase
+                      .from('user_preferences')
+                      .select(legacyColumns)
+                      .maybeSingle();
+                    if (!legacyResult.error && legacyResult.data) {
+                      data = {
+                        ...legacyResult.data,
+                        tax_settings_configured: false,
+                        locale: 'en-US',
+                        hide_setup_checklist: false,
+                        pay_cycle: null,
+                        transfer_view_mode: null,
+                      } as any;
+                      error = null;
+                    } else {
+                      return { error: this.normalizeSupabaseError(legacyResult.error ?? minimalResult.error) };
+                    }
+                  } else {
+                    return { error: this.normalizeSupabaseError(minimalResult.error) };
+                  }
+                } else {
+                  // Map and add defaults for missing columns
+                  data = minimalResult.data ? {
+                    ...minimalResult.data,
+                    tax_settings_configured: false,
+                    locale: 'en-US',
+                    hide_setup_checklist: false,
+                    pay_cycle: null,
+                    transfer_view_mode: null,
+                  } as any : null;
+                  error = null;
                 }
-
-                // Map and add defaults for missing columns
-                data = minimalResult.data ? {
-                  ...minimalResult.data,
-                  tax_settings_configured: false,
-                  locale: 'en-US',
-                  hide_setup_checklist: false,
-                  pay_cycle: null,
-                  transfer_view_mode: null,
-                } as any : null;
-                error = null;
               } else {
                 return { error: this.normalizeSupabaseError(baseResult.error) };
               }
@@ -355,7 +385,43 @@ export class SupabaseUserPreferencesRepository implements UserPreferencesReposit
                   .single();
 
                 if (baseResult.error) {
-                  return { error: this.normalizeSupabaseError(baseResult.error) };
+                  // Fourth fallback: schema has only original columns (no theme_preference)
+                  const isThemePreferenceError = baseResult.error && (
+                    (baseResult.error as any).status === 400 ||
+                    (baseResult.error as any).code === '42703' ||
+                    (baseResult.error as any).code === 'PGRST100' ||
+                    (baseResult.error as any).code === 'PGRST204' ||
+                    (baseResult.error as any).message?.includes('theme_preference') ||
+                    (baseResult.error as any).message?.includes('schema cache') ||
+                    (baseResult.error as any).message?.includes('Could not find')
+                  );
+                  if (isThemePreferenceError) {
+                    const legacyInput = {
+                      privacy_mode: validation.data.privacyMode,
+                      dark_mode: validation.data.themePreference === 'dark',
+                      tax_rate: validation.data.taxRate,
+                      email_notifications: validation.data.emailNotifications,
+                    };
+                    const legacyResult = await supabase
+                      .from('user_preferences')
+                      .upsert(legacyInput, { onConflict: 'user_id' })
+                      .select('privacy_mode, dark_mode, tax_rate, email_notifications')
+                      .single();
+                    if (!legacyResult.error && legacyResult.data) {
+                      data = {
+                        ...legacyResult.data,
+                        locale: validation.data.locale,
+                        hide_setup_checklist: validation.data.hideSetupChecklist,
+                        pay_cycle: null,
+                        transfer_view_mode: null,
+                      } as any;
+                      error = null;
+                    } else {
+                      return { error: this.normalizeSupabaseError(legacyResult.error ?? baseResult.error) };
+                    }
+                  } else {
+                    return { error: this.normalizeSupabaseError(baseResult.error) };
+                  }
                 } else {
                   // Map and add defaults for missing columns
                   data = baseResult.data ? {
