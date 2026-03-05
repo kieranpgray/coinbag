@@ -347,6 +347,7 @@ export interface DashboardDataSources {
   assetsCount: number;
   liabilitiesCount: number;
   expensesCount: number;
+  subscriptionsCount: number; // Alias for expensesCount (backward compatibility)
   transactionsCount: number;
   incomeCount: number;
   holdingsCount: number; // Count of Investments, Crypto, Stock, or RSU assets

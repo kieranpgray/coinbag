@@ -1,11 +1,19 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { MemoryRouter } from 'react-router-dom';
+import { LocaleProvider } from '@/contexts/LocaleContext';
 import { AccountsPage } from '../AccountsPage';
 import * as accountsHooks from '../hooks';
 
 // Mock the hooks
 vi.mock('../hooks');
+
+// Mock useLocale
+vi.mock('@/hooks/useUserPreferences', () => ({
+  useUserPreferences: () => ({ data: { locale: 'en-US' }, isLoading: false }),
+  useUpdateUserPreferences: () => ({ mutateAsync: vi.fn() }),
+}));
 
 describe('AccountsPage Empty States', () => {
   let queryClient: QueryClient;
@@ -21,9 +29,13 @@ describe('AccountsPage Empty States', () => {
 
   const renderAccounts = () => {
     return render(
-      <QueryClientProvider client={queryClient}>
-        <AccountsPage />
-      </QueryClientProvider>
+      <MemoryRouter>
+        <LocaleProvider>
+          <QueryClientProvider client={queryClient}>
+            <AccountsPage />
+          </QueryClientProvider>
+        </LocaleProvider>
+      </MemoryRouter>
     );
   };
 
@@ -33,6 +45,27 @@ describe('AccountsPage Empty States', () => {
       isLoading: false,
       error: null,
       refetch: vi.fn(),
+    } as any);
+    vi.mocked(accountsHooks.useAccount).mockReturnValue({
+      data: undefined,
+      isLoading: false,
+      error: null,
+      refetch: vi.fn(),
+    } as any);
+    vi.mocked(accountsHooks.useCreateAccount).mockReturnValue({
+      mutateAsync: vi.fn(),
+      isPending: false,
+      error: null,
+    } as any);
+    vi.mocked(accountsHooks.useUpdateAccount).mockReturnValue({
+      mutateAsync: vi.fn(),
+      isPending: false,
+      error: null,
+    } as any);
+    vi.mocked(accountsHooks.useDeleteAccount).mockReturnValue({
+      mutateAsync: vi.fn(),
+      isPending: false,
+      error: null,
     } as any);
 
     renderAccounts();
@@ -50,6 +83,27 @@ describe('AccountsPage Empty States', () => {
       isLoading: false,
       error: new Error('Failed to fetch'),
       refetch: vi.fn(),
+    } as any);
+    vi.mocked(accountsHooks.useAccount).mockReturnValue({
+      data: undefined,
+      isLoading: false,
+      error: null,
+      refetch: vi.fn(),
+    } as any);
+    vi.mocked(accountsHooks.useCreateAccount).mockReturnValue({
+      mutateAsync: vi.fn(),
+      isPending: false,
+      error: null,
+    } as any);
+    vi.mocked(accountsHooks.useUpdateAccount).mockReturnValue({
+      mutateAsync: vi.fn(),
+      isPending: false,
+      error: null,
+    } as any);
+    vi.mocked(accountsHooks.useDeleteAccount).mockReturnValue({
+      mutateAsync: vi.fn(),
+      isPending: false,
+      error: null,
     } as any);
 
     renderAccounts();

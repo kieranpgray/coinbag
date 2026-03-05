@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import {
   Table,
   TableBody,
@@ -12,7 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DatePicker } from '@/components/ui/date-picker';
 import { formatCurrency } from '@/lib/utils';
-import { Pencil, Trash2, Plus, Check, Loader2, AlertCircle } from 'lucide-react';
+import { Pencil, Trash2, Plus, Check, Loader2, AlertCircle, ArrowDown, ArrowUp } from 'lucide-react';
 import { format } from 'date-fns';
 import type { Expense, ExpenseFrequency } from '@/types/domain';
 import { convertToFrequency, normalizeToFrequency, type Frequency } from '../utils/frequencyConversion';
@@ -42,6 +42,24 @@ const FREQUENCIES: Array<{ value: ExpenseFrequency; label: string }> = [
   { value: 'yearly', label: 'Yearly' },
 ] as const;
 
+type SortType = 'text' | 'numeric' | 'date';
+
+interface SortableColumn {
+  id: string;
+  label: string;
+  type: SortType;
+  accessor: string;
+}
+
+const SORTABLE_COLUMNS: SortableColumn[] = [
+  { id: 'name', label: 'Name', type: 'text', accessor: 'name' },
+  { id: 'category', label: 'Category', type: 'text', accessor: 'categoryId' },
+  { id: 'amount', label: 'Amount', type: 'numeric', accessor: 'amount' },
+  { id: 'frequency', label: 'Frequency', type: 'text', accessor: 'frequency' },
+  { id: 'nextDueDate', label: 'Next Due Date', type: 'date', accessor: 'nextDueDate' },
+  { id: 'paidFromAccountId', label: 'Paid From', type: 'text', accessor: 'paidFromAccountId' },
+] as const;
+
 type EditingCell = { expenseId: string; field: string } | null;
 
 /**
@@ -66,6 +84,10 @@ export function ExpenseList({
   const [savingFields, setSavingFields] = useState<Set<string>>(new Set());
   const [fieldErrors, setFieldErrors] = useState<Map<string, string>>(new Map());
   const [savedFields, setSavedFields] = useState<Set<string>>(new Set());
+
+  // Sorting state
+  const [sortColumn, setSortColumn] = useState<string | null>(null);
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   
   // Store original expense data for frequency conversion and revert
   const originalExpensesRef = useRef<Map<string, Expense>>(new Map());
@@ -367,17 +389,185 @@ export function ExpenseList({
     return fieldErrors.get(`${expenseId}-${field}`);
   }, [fieldErrors]);
 
+  // Comparator functions for sorting
+  const getSortValue = useCallback((expense: Expense, column: SortableColumn): string | number | null => {
+    switch (column.id) {
+      case 'name':
+        return expense.name;
+      case 'category':
+        return getCategoryName(expense.categoryId);
+      case 'amount': {
+        // Use display amount when displayFrequency is set for consistency
+        if (displayFrequency) {
+          return convertToFrequency(expense.amount, normalizeToFrequency(expense.frequency), displayFrequency);
+        }
+        return expense.amount;
+      }
+      case 'frequency':
+        return expense.frequency;
+      case 'nextDueDate':
+        return expense.nextDueDate || null;
+      case 'paidFromAccountId':
+        return expense.paidFromAccountId ? (accountMap.get(expense.paidFromAccountId) || 'Unknown Account') : null;
+      default:
+        return null;
+    }
+  }, [categoryMap, accountMap, uncategorisedId, displayFrequency]);
+
+  const compareValues = useCallback((a: any, b: any, type: SortType): number => {
+    // Handle null/undefined values (put them at the end)
+    if (a == null && b == null) return 0;
+    if (a == null) return 1;
+    if (b == null) return -1;
+
+    switch (type) {
+      case 'numeric':
+        return (a as number) - (b as number);
+      case 'date': {
+        const dateA = new Date(a as string).getTime();
+        const dateB = new Date(b as string).getTime();
+        return dateA - dateB;
+      }
+      case 'text':
+      default:
+        return (a as string).localeCompare(b as string, undefined, { numeric: true, sensitivity: 'base' });
+    }
+  }, []);
+
+  const sortExpenses = useCallback((expenses: Expense[], columnId: string, direction: 'asc' | 'desc'): Expense[] => {
+    const column = SORTABLE_COLUMNS.find(col => col.id === columnId);
+    if (!column) return expenses;
+
+    return [...expenses].sort((a, b) => {
+      const valueA = getSortValue(a, column);
+      const valueB = getSortValue(b, column);
+
+      const comparison = compareValues(valueA, valueB, column.type);
+      return direction === 'asc' ? comparison : -comparison;
+    });
+  }, [getSortValue, compareValues]);
+
+  // Handle column sort
+  const handleSort = useCallback((columnId: string) => {
+    if (sortColumn === columnId) {
+      // Same column - cycle through states
+      if (sortDirection === 'desc') {
+        // desc -> asc
+        setSortDirection('asc');
+      } else {
+        // asc -> default (null)
+        setSortColumn(null);
+      }
+    } else {
+      // Different column - set to desc
+      setSortColumn(columnId);
+      setSortDirection('desc');
+    }
+  }, [sortColumn, sortDirection]);
+
+  // Derive sorted expenses
+  const sortedExpenses = useMemo(() => {
+    if (!sortColumn) {
+      return expenses;
+    }
+    return sortExpenses(expenses, sortColumn, sortDirection);
+  }, [expenses, sortColumn, sortDirection, sortExpenses]);
+
   return (
     <div className="rounded-md border border-border">
       <Table className="table-fixed">
         <TableHeader>
           <TableRow>
-            <TableHead className="w-[20%]">Name</TableHead>
-            <TableHead className="w-[15%]">Category</TableHead>
-            <TableHead className="w-[12%] text-right">Amount</TableHead>
-            <TableHead className="w-[12%]">Frequency</TableHead>
-            <TableHead className="w-[15%]">Next Due Date</TableHead>
-            <TableHead className="w-[15%]">Paid From</TableHead>
+            <TableHead className="w-[20%]">
+              <button
+                type="button"
+                onClick={() => handleSort('name')}
+                className="flex items-center gap-2 hover:bg-muted/50 px-2 py-1 rounded transition-colors w-full text-left"
+                aria-label={`Sort by Name${sortColumn === 'name' ? (sortDirection === 'asc' ? ' (ascending)' : ' (descending)') : ''}`}
+                aria-sort={sortColumn === 'name' ? (sortDirection === 'asc' ? 'ascending' : 'descending') : 'none'}
+              >
+                Name
+                <span className="w-4 h-4 flex items-center justify-center flex-shrink-0">
+                  {sortColumn === 'name' && sortDirection === 'desc' && <ArrowDown className="w-3 h-3" />}
+                  {sortColumn === 'name' && sortDirection === 'asc' && <ArrowUp className="w-3 h-3" />}
+                </span>
+              </button>
+            </TableHead>
+            <TableHead className="w-[15%]">
+              <button
+                type="button"
+                onClick={() => handleSort('category')}
+                className="flex items-center gap-2 hover:bg-muted/50 px-2 py-1 rounded transition-colors w-full text-left"
+                aria-label={`Sort by Category${sortColumn === 'category' ? (sortDirection === 'asc' ? ' (ascending)' : ' (descending)') : ''}`}
+                aria-sort={sortColumn === 'category' ? (sortDirection === 'asc' ? 'ascending' : 'descending') : 'none'}
+              >
+                Category
+                <span className="w-4 h-4 flex items-center justify-center flex-shrink-0">
+                  {sortColumn === 'category' && sortDirection === 'desc' && <ArrowDown className="w-3 h-3" />}
+                  {sortColumn === 'category' && sortDirection === 'asc' && <ArrowUp className="w-3 h-3" />}
+                </span>
+              </button>
+            </TableHead>
+            <TableHead className="w-[12%] text-right min-w-[6rem]">
+              <button
+                type="button"
+                onClick={() => handleSort('amount')}
+                className="flex items-center gap-2 hover:bg-muted/50 px-2 py-1 rounded transition-colors w-full text-right justify-end"
+                aria-label={`Sort by Amount${sortColumn === 'amount' ? (sortDirection === 'asc' ? ' (ascending)' : ' (descending)') : ''}`}
+                aria-sort={sortColumn === 'amount' ? (sortDirection === 'asc' ? 'ascending' : 'descending') : 'none'}
+              >
+                Amount
+                <span className="w-4 h-4 flex items-center justify-center flex-shrink-0">
+                  {sortColumn === 'amount' && sortDirection === 'desc' && <ArrowDown className="w-3 h-3" />}
+                  {sortColumn === 'amount' && sortDirection === 'asc' && <ArrowUp className="w-3 h-3" />}
+                </span>
+              </button>
+            </TableHead>
+            <TableHead className="w-[12%]">
+              <button
+                type="button"
+                onClick={() => handleSort('frequency')}
+                className="flex items-center gap-2 hover:bg-muted/50 px-2 py-1 rounded transition-colors w-full text-left"
+                aria-label={`Sort by Frequency${sortColumn === 'frequency' ? (sortDirection === 'asc' ? ' (ascending)' : ' (descending)') : ''}`}
+                aria-sort={sortColumn === 'frequency' ? (sortDirection === 'asc' ? 'ascending' : 'descending') : 'none'}
+              >
+                Frequency
+                <span className="w-4 h-4 flex items-center justify-center flex-shrink-0">
+                  {sortColumn === 'frequency' && sortDirection === 'desc' && <ArrowDown className="w-3 h-3" />}
+                  {sortColumn === 'frequency' && sortDirection === 'asc' && <ArrowUp className="w-3 h-3" />}
+                </span>
+              </button>
+            </TableHead>
+            <TableHead className="w-[15%]">
+              <button
+                type="button"
+                onClick={() => handleSort('nextDueDate')}
+                className="flex items-center gap-2 hover:bg-muted/50 px-2 py-1 rounded transition-colors w-full text-left"
+                aria-label={`Sort by Next Due Date${sortColumn === 'nextDueDate' ? (sortDirection === 'asc' ? ' (ascending)' : ' (descending)') : ''}`}
+                aria-sort={sortColumn === 'nextDueDate' ? (sortDirection === 'asc' ? 'ascending' : 'descending') : 'none'}
+              >
+                Next Due Date
+                <span className="w-4 h-4 flex items-center justify-center flex-shrink-0">
+                  {sortColumn === 'nextDueDate' && sortDirection === 'desc' && <ArrowDown className="w-3 h-3" />}
+                  {sortColumn === 'nextDueDate' && sortDirection === 'asc' && <ArrowUp className="w-3 h-3" />}
+                </span>
+              </button>
+            </TableHead>
+            <TableHead className="w-[15%]">
+              <button
+                type="button"
+                onClick={() => handleSort('paidFromAccountId')}
+                className="flex items-center gap-2 hover:bg-muted/50 px-2 py-1 rounded transition-colors w-full text-left"
+                aria-label={`Sort by Paid From${sortColumn === 'paidFromAccountId' ? (sortDirection === 'asc' ? ' (ascending)' : ' (descending)') : ''}`}
+                aria-sort={sortColumn === 'paidFromAccountId' ? (sortDirection === 'asc' ? 'ascending' : 'descending') : 'none'}
+              >
+                Paid From
+                <span className="w-4 h-4 flex items-center justify-center flex-shrink-0">
+                  {sortColumn === 'paidFromAccountId' && sortDirection === 'desc' && <ArrowDown className="w-3 h-3" />}
+                  {sortColumn === 'paidFromAccountId' && sortDirection === 'asc' && <ArrowUp className="w-3 h-3" />}
+                </span>
+              </button>
+            </TableHead>
             <TableHead className="w-[10%] text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
@@ -400,7 +590,7 @@ export function ExpenseList({
               </TableCell>
             </TableRow>
           ) : (
-            expenses.map((expense) => {
+            sortedExpenses.map((expense: Expense) => {
               const isRowEditing = editingCell?.expenseId === expense.id;
               const displayAmount = displayFrequency
                 ? convertToFrequency(expense.amount, normalizeToFrequency(expense.frequency), displayFrequency)
@@ -479,6 +669,7 @@ export function ExpenseList({
                       <div className="space-y-1 min-w-0">
                         <div className="w-full max-w-full min-w-0">
                           <CategoryInput
+                            variant="compact"
                             value={currentCategoryId ?? uncategorisedId ?? ''}
                             onChange={(value) => {
                               handleFieldChange(expense.id, 'categoryId', value);
@@ -541,7 +732,7 @@ export function ExpenseList({
                       </div>
                     ) : (
                       <div className="flex items-center gap-2 justify-end min-w-0">
-                        <span className="truncate">{formatCurrency(currentAmount)}</span>
+                        <span className="truncate">{formatCurrency(currentAmount, undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}</span>
                         {isSaving(expense.id, 'amount') && <Loader2 className="h-3 w-3 animate-spin text-muted-foreground flex-shrink-0" />}
                         {isSaved(expense.id, 'amount') && <Check className="h-3 w-3 text-green-600 flex-shrink-0" />}
                       </div>

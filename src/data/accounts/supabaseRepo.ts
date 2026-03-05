@@ -1,5 +1,6 @@
 import type { AccountsRepository } from './repo';
 import { createAuthenticatedSupabaseClient } from '@/lib/supabaseClient';
+import type { PostgrestError } from '@supabase/supabase-js';
 import { ensureUserIdForInsert, verifyInsertedUserId } from '@/lib/repositoryHelpers';
 import {
   accountCreateSchema,
@@ -29,23 +30,29 @@ export class SupabaseAccountsRepository implements AccountsRepository {
   private readonly selectColumnsWithoutCreditFields =
     'id, institution, account_name, balance, account_type, last_updated, hidden, user_id, created_at, updated_at';
 
+  // Fallback for very old schemas: minimal columns (no last_updated, hidden)
+  private readonly selectColumnsMinimal =
+    'id, institution, account_name, balance, account_type, user_id, created_at, updated_at';
+
   /**
    * Maps database row (snake_case) to entity schema (camelCase)
    * Converts snake_case database columns to camelCase for entity schema validation
    */
   private mapDbRowToEntity(row: Record<string, unknown>): z.infer<typeof accountEntitySchema> {
+    const lastUpdated = (row.last_updated ?? row.updated_at ?? row.created_at ?? new Date().toISOString()) as string;
+    const hidden = row.hidden === true;
     return {
       id: row.id as string,
       userId: row.user_id as string,
-      institution: row.institution === null ? undefined : (row.institution as string | undefined),
+      institution: (row.institution === null || row.institution === '') ? undefined : (row.institution as string),
       accountName: row.account_name as string,
       balance: row.balance as number,
       accountType: row.account_type as string,
       currency: undefined, // Currency field removed from database
-      creditLimit: row.credit_limit === null ? undefined : (row.credit_limit as number | undefined),
-      balanceOwed: row.balance_owed === null ? undefined : (row.balance_owed as number | undefined),
-      lastUpdated: row.last_updated as string,
-      hidden: row.hidden as boolean,
+      creditLimit: row.credit_limit === null || row.credit_limit === undefined ? undefined : (row.credit_limit as number),
+      balanceOwed: row.balance_owed === null || row.balance_owed === undefined ? undefined : (row.balance_owed as number),
+      lastUpdated,
+      hidden,
       createdAt: row.created_at as string,
       updatedAt: row.updated_at as string,
     };
@@ -130,6 +137,12 @@ export class SupabaseAccountsRepository implements AccountsRepository {
         code: ACCOUNT_ERROR_CODES.VALIDATION_ERROR,
       };
     }
+    if (errorCode === '23502') { // Not-null constraint violation
+      return {
+        error: 'Required account fields are missing. Please check your input and try again.',
+        code: ACCOUNT_ERROR_CODES.VALIDATION_ERROR,
+      };
+    }
     if (errorCode === 'PGRST116') { // No rows found for single()
       return {
         error: 'Account not found.',
@@ -185,11 +198,16 @@ export class SupabaseAccountsRepository implements AccountsRepository {
       if (error) {
         const errorMessage = error.message || '';
         const errorCode = error.code || '';
-        // Check if it's a missing column error (42703) or 400 with column-related message
+        // Check if it's a missing column error (42703, PGRST204) or 400 Bad Request
+        const status = typeof error !== 'undefined' && error !== null && 'status' in error
+          ? (error as { status?: number }).status
+          : undefined;
         const isMissingColumnError = 
           errorCode === '42703' ||
           errorCode === 'PGRST100' ||
-          (errorMessage.includes('column') || errorMessage.includes('credit_limit') || errorMessage.includes('balance_owed'));
+          errorCode === 'PGRST204' ||
+          status === 400 ||
+          (errorMessage.includes('column') || errorMessage.includes('credit_limit') || errorMessage.includes('balance_owed') || errorMessage.toLowerCase().includes('bad request'));
         
         // Check if it's an RLS/permission error
         const isRLSError = 
@@ -202,19 +220,34 @@ export class SupabaseAccountsRepository implements AccountsRepository {
         const shouldTryFallback = isMissingColumnError || (!isRLSError);
         
         if (shouldTryFallback) {
-          // Try fallback query without credit fields
+          // Try fallback 1: without credit fields
           logger.warn('DB:ACCOUNT_LIST', 'Attempting fallback query without credit fields', { 
             originalError: errorMessage,
             code: errorCode,
           }, correlationId || undefined);
           
-          const fallbackResult = await supabase
+          const fallback1Result = await supabase
             .from('accounts')
             .select(this.selectColumnsWithoutCreditFields)
             .order('account_name', { ascending: true });
           
+          let fallbackResult: { data: Array<Record<string, unknown>> | null; error: PostgrestError | null } = fallback1Result;
+          let usedMinimal = false;
+          if (fallback1Result.error && isMissingColumnError) {
+            // Try fallback 2: minimal columns (very old schema)
+            logger.warn('DB:ACCOUNT_LIST', 'Attempting fallback with minimal columns', {
+              fallback1Error: fallback1Result.error.message,
+            }, correlationId || undefined);
+            const fallback2Result = await supabase
+              .from('accounts')
+              .select(this.selectColumnsMinimal)
+              .order('account_name', { ascending: true });
+            fallbackResult = fallback2Result;
+            usedMinimal = !fallback2Result.error;
+          }
+
           if (fallbackResult.error) {
-            // Fallback also failed - log the original error
+            // Fallback(s) failed - log the error
             if (isRLSError) {
               logger.error('DB:ACCOUNT_LIST', 'RLS policy may be blocking query', { 
                 error: errorMessage, 
@@ -223,7 +256,7 @@ export class SupabaseAccountsRepository implements AccountsRepository {
                 details: isSupabaseError(error) ? error.details : undefined,
               }, correlationId || undefined);
             } else {
-              logger.error('DB:ACCOUNT_LIST', 'Failed to list accounts from Supabase (fallback also failed)', { 
+              logger.error('DB:ACCOUNT_LIST', 'Failed to list accounts from Supabase (fallbacks failed)', { 
                 originalError: errorMessage,
                 fallbackError: fallbackResult.error,
                 code: errorCode,
@@ -234,11 +267,13 @@ export class SupabaseAccountsRepository implements AccountsRepository {
             // Keep original error
           } else {
             // Fallback succeeded - use fallback data
-            logger.info('DB:ACCOUNT_LIST', 'Fallback query succeeded (credit fields not available)', {}, correlationId || undefined);
+            logger.info('DB:ACCOUNT_LIST', usedMinimal 
+              ? 'Fallback query succeeded with selectColumnsMinimal (schema fallback workaround)' 
+              : 'Fallback query succeeded (credit fields not available)', {}, correlationId || undefined);
             data = (fallbackResult.data || []).map((row: Record<string, unknown>) => ({
               ...row,
-              credit_limit: null,
-              balance_owed: null
+              credit_limit: (row as { credit_limit?: unknown }).credit_limit ?? null,
+              balance_owed: (row as { balance_owed?: unknown }).balance_owed ?? null,
             })) as typeof data;
             error = null;
           }
@@ -327,41 +362,57 @@ export class SupabaseAccountsRepository implements AccountsRepository {
       if (error) {
         const errorMessage = error.message || '';
         const errorCode = error.code || '';
-        // Check if it's a missing column error (42703) or 400 error
+        const status = typeof error !== 'undefined' && error !== null && 'status' in error
+          ? (error as { status?: number }).status
+          : undefined;
         const isMissingColumnError = 
           errorCode === '42703' ||
           errorCode === 'PGRST100' ||
-          (errorMessage.includes('column') || errorMessage.includes('credit_limit') || errorMessage.includes('balance_owed'));
+          errorCode === 'PGRST204' ||
+          status === 400 ||
+          (errorMessage.includes('column') || errorMessage.includes('credit_limit') || errorMessage.includes('balance_owed') || errorMessage.toLowerCase().includes('bad request'));
         
-        // If we get a 400 error or missing column error, try fallback query
-        const shouldTryFallback = isMissingColumnError;
-        
-        if (shouldTryFallback) {
-          // Try fallback query without credit fields
+        if (isMissingColumnError) {
+          // Try fallback 1: without credit fields
           logger.warn('DB:ACCOUNT_GET', 'Attempting fallback query without credit fields', { 
             accountId: id,
             originalError: errorMessage,
             code: errorCode,
           }, correlationId || undefined);
           
-          const fallbackResult = await supabase
+          let fallbackResult = await supabase
             .from('accounts')
             .select(this.selectColumnsWithoutCreditFields)
             .eq('id', id)
             .single();
           
+          if (fallbackResult.error && isMissingColumnError) {
+            // Try fallback 2: minimal columns
+            logger.warn('DB:ACCOUNT_GET', 'Attempting fallback with minimal columns', { accountId: id }, correlationId || undefined);
+            fallbackResult = await supabase
+              .from('accounts')
+              .select(this.selectColumnsMinimal)
+              .eq('id', id)
+              .single();
+          }
+          
           if (fallbackResult.error) {
-            // Fallback also failed - keep original error
             error = fallbackResult.error;
             data = null;
-          } else {
-            // Fallback succeeded - use fallback data
-            logger.info('DB:ACCOUNT_GET', 'Fallback query succeeded (credit fields not available)', { accountId: id }, correlationId || undefined);
+          } else if (fallbackResult.data) {
+            logger.info('DB:ACCOUNT_GET', 'Fallback query succeeded', { accountId: id }, correlationId || undefined);
+            const row = fallbackResult.data as Record<string, unknown>;
             data = {
-              ...fallbackResult.data,
-              credit_limit: null,
-              balance_owed: null
-            } as any;
+              ...row,
+              credit_limit: row?.credit_limit ?? null,
+              balance_owed: row?.balance_owed ?? null,
+              last_updated: row?.last_updated ?? row?.updated_at ?? row?.created_at ?? new Date().toISOString(),
+              hidden: row?.hidden === true,
+            } as typeof data;
+            error = null;
+          } else {
+            // .single() returned no row
+            data = null;
             error = null;
           }
         }
@@ -455,8 +506,12 @@ export class SupabaseAccountsRepository implements AccountsRepository {
         hidden: validation.data.hidden ?? false,
       };
 
-      // Institution is optional - explicitly handle undefined to null for database
-      dbInput.institution = validation.data.institution ?? null;
+      // Institution is optional - use empty string when blank (works with NOT NULL schema)
+      dbInput.institution = validation.data.institution ?? '';
+
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/d532c30b-ba28-48ae-9049-e559308d64b6', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': '0a9435' }, body: JSON.stringify({ sessionId: '0a9435', location: 'supabaseRepo.ts:create', message: 'dbInput before insert', data: { validationInstitution: validation.data.institution, dbInputInstitution: dbInput.institution, typeofInstitution: typeof dbInput.institution, hasInstitutionKey: 'institution' in dbInput, dbInputKeys: Object.keys(dbInput) }, timestamp: Date.now(), hypothesisId: 'H1' }) }).catch(() => {});
+      // #endregion
 
       // Currency is no longer used - removed from form and database
       // Include credit fields if provided (for credit cards/loans)
@@ -468,6 +523,9 @@ export class SupabaseAccountsRepository implements AccountsRepository {
       }
 
       // Try insert with all columns first
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/d532c30b-ba28-48ae-9049-e559308d64b6', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': '0a9435' }, body: JSON.stringify({ sessionId: '0a9435', location: 'supabaseRepo.ts:beforeFirstInsert', message: 'payload right before first insert', data: { institutionValue: dbInput.institution, institutionType: typeof dbInput.institution }, timestamp: Date.now(), hypothesisId: 'H2' }) }).catch(() => {});
+      // #endregion
       let { data, error } = await supabase
         .from('accounts')
         .insert([dbInput])
@@ -485,7 +543,9 @@ export class SupabaseAccountsRepository implements AccountsRepository {
           const dbInputWithoutCredit = { ...dbInput };
           delete dbInputWithoutCredit.credit_limit;
           delete dbInputWithoutCredit.balance_owed;
-          
+          // #region agent log
+          fetch('http://127.0.0.1:7242/ingest/d532c30b-ba28-48ae-9049-e559308d64b6', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': '0a9435' }, body: JSON.stringify({ sessionId: '0a9435', location: 'supabaseRepo.ts:fallbackInsert', message: 'dbInputWithoutCredit before fallback insert', data: { institutionValue: dbInputWithoutCredit.institution, hasInstitutionKey: 'institution' in dbInputWithoutCredit }, timestamp: Date.now(), hypothesisId: 'H5' }) }).catch(() => {});
+          // #endregion
           const fallbackResult = await supabase
             .from('accounts')
             .insert([dbInputWithoutCredit])
@@ -508,7 +568,55 @@ export class SupabaseAccountsRepository implements AccountsRepository {
         }
       }
 
+      // Backward compatibility: retry with available_balance when DB still has old schema (column NOT NULL)
+      if (error && String(error?.code) === '23502' && (error?.message?.includes('available_balance') ?? false)) {
+        logger.info('DB:ACCOUNT_INSERT:RETRY_AVAILABLE_BALANCE', 'Retrying insert with available_balance for legacy schema', {}, correlationId || undefined);
+        dbInput.available_balance = validation.data.balance ?? 0;
+        const retryResult = await supabase
+          .from('accounts')
+          .insert([dbInput])
+          .select(this.selectColumns)
+          .single();
+
+        if (retryResult.error && (retryResult.error.code === '42703' || retryResult.error.code === 'PGRST204')) {
+          const retryErrorMessage = retryResult.error.message || '';
+          const missingCreditFieldsOnRetry = retryErrorMessage.includes('credit_limit') || retryErrorMessage.includes('balance_owed');
+          if (missingCreditFieldsOnRetry) {
+            logger.warn('DB:ACCOUNT_INSERT', 'Credit columns not found on retry, retrying without credit fields', { dbInput }, correlationId || undefined);
+            const dbInputWithoutCredit = { ...dbInput };
+            delete dbInputWithoutCredit.credit_limit;
+            delete dbInputWithoutCredit.balance_owed;
+            const retryFallbackResult = await supabase
+              .from('accounts')
+              .insert([dbInputWithoutCredit])
+              .select(this.selectColumnsWithoutCreditFields)
+              .single();
+            if (retryFallbackResult.error) {
+              console.error('Supabase accounts create error (retry fallback):', retryFallbackResult.error);
+              return { error: this.normalizeSupabaseError(retryFallbackResult.error) };
+            }
+            data = {
+              ...retryFallbackResult.data,
+              credit_limit: null,
+              balance_owed: null
+            } as typeof data;
+            error = null;
+          } else {
+            return { error: this.normalizeSupabaseError(retryResult.error) };
+          }
+        } else if (retryResult.error) {
+          console.error('Supabase accounts create error (retry):', retryResult.error);
+          return { error: this.normalizeSupabaseError(retryResult.error) };
+        } else {
+          data = retryResult.data;
+          error = null;
+        }
+      }
+
       if (error) {
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/d532c30b-ba28-48ae-9049-e559308d64b6', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': '0a9435' }, body: JSON.stringify({ sessionId: '0a9435', location: 'supabaseRepo.ts:createError', message: 'create failed with error', data: { errorCode: error?.code, errorMessage: error?.message, dbInputInstitution: dbInput.institution }, timestamp: Date.now(), hypothesisId: 'H4' }) }).catch(() => {});
+        // #endregion
         console.error('Supabase accounts create error:', error);
         logger.error(
           'DB:ACCOUNT_INSERT',
@@ -611,12 +719,9 @@ export class SupabaseAccountsRepository implements AccountsRepository {
       // Map camelCase to snake_case for database
       const dbInput: Record<string, unknown> = {};
       // Handle institution: if explicitly provided in input (even if empty/undefined after validation), include it
-      // This allows clearing the institution field by setting it to null
-      // Explicitly handle undefined to null for consistent database mapping
+      // Convert undefined to empty string for database (works with NOT NULL schema)
       if ('institution' in input) {
-        // If institution was explicitly provided, use the validated value (which may be undefined)
-        // Convert undefined to null for database (to clear the field)
-        dbInput.institution = validation.data.institution ?? null;
+        dbInput.institution = validation.data.institution ?? '';
       }
       if (validation.data.accountName !== undefined) dbInput.account_name = validation.data.accountName;
       if (validation.data.balance !== undefined) dbInput.balance = validation.data.balance;
@@ -624,12 +729,68 @@ export class SupabaseAccountsRepository implements AccountsRepository {
       if (validation.data.lastUpdated !== undefined) dbInput.last_updated = validation.data.lastUpdated;
       if (validation.data.hidden !== undefined) dbInput.hidden = validation.data.hidden;
 
-      const { data, error } = await supabase
+      let data: Record<string, unknown> | null = null;
+      let error: { message?: string; code?: string } | null = null;
+
+      const result = await supabase
         .from('accounts')
         .update(dbInput)
         .eq('id', id)
         .select(this.selectColumns)
         .single();
+
+      data = result.data as Record<string, unknown> | null;
+      error = result.error;
+
+      // Fallback: when select fails due to missing columns, retry with reduced select
+      if (error) {
+        const errorMessage = error.message || '';
+        const errorCode = error.code || '';
+        const status = typeof error !== 'undefined' && error !== null && 'status' in error
+          ? (error as { status?: number }).status
+          : undefined;
+        const isMissingColumnError = 
+          errorCode === '42703' ||
+          errorCode === 'PGRST100' ||
+          errorCode === 'PGRST204' ||
+          status === 400 ||
+          (errorMessage.includes('column') || errorMessage.toLowerCase().includes('bad request'));
+
+        if (isMissingColumnError) {
+          // Retry 1: without credit fields in select
+          const retry1 = await supabase
+            .from('accounts')
+            .update(dbInput)
+            .eq('id', id)
+            .select(this.selectColumnsWithoutCreditFields)
+            .single();
+          if (!retry1.error && retry1.data) {
+            data = { ...retry1.data, credit_limit: null, balance_owed: null } as Record<string, unknown>;
+            error = null;
+            logger.info('DB:ACCOUNT_UPDATE', 'Succeeded with selectColumnsWithoutCreditFields', { accountId: id }, correlationId || undefined);
+          } else if (retry1.error && isMissingColumnError) {
+            // Retry 2: minimal select, strip last_updated/hidden from payload if they might not exist
+            const minimalDbInput = { ...dbInput };
+            delete minimalDbInput.last_updated;
+            delete minimalDbInput.hidden;
+            const retry2 = await supabase
+              .from('accounts')
+              .update(minimalDbInput)
+              .eq('id', id)
+              .select(this.selectColumnsMinimal)
+              .single();
+            if (!retry2.error && retry2.data) {
+              data = retry2.data as Record<string, unknown>;
+              error = null;
+              logger.info('DB:ACCOUNT_UPDATE', 'Succeeded with selectColumnsMinimal (schema fallback workaround)', { accountId: id }, correlationId || undefined);
+            } else {
+              error = retry2.error ?? retry1.error ?? error;
+            }
+          } else {
+            error = retry1.error ?? error;
+          }
+        }
+      }
 
       if (error) {
         if (error.code === 'PGRST116') {

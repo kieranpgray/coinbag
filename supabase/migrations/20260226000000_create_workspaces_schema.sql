@@ -87,6 +87,7 @@ ALTER TABLE workspace_memberships ENABLE ROW LEVEL SECURITY;
 ALTER TABLE workspace_invitations ENABLE ROW LEVEL SECURITY;
 
 -- RLS: workspaces - creator can manage their own workspaces
+DROP POLICY IF EXISTS "Users can view workspaces they belong to" ON workspaces;
 CREATE POLICY "Users can view workspaces they belong to" ON workspaces
   FOR SELECT
   USING (
@@ -97,10 +98,12 @@ CREATE POLICY "Users can view workspaces they belong to" ON workspaces
     OR created_by = (auth.jwt() ->> 'sub')
   );
 
+DROP POLICY IF EXISTS "Users can create workspaces" ON workspaces;
 CREATE POLICY "Users can create workspaces" ON workspaces
   FOR INSERT
   WITH CHECK ((auth.jwt() ->> 'sub') = created_by);
 
+DROP POLICY IF EXISTS "Workspace admins can update workspaces" ON workspaces;
 CREATE POLICY "Workspace admins can update workspaces" ON workspaces
   FOR UPDATE
   USING (
@@ -113,6 +116,7 @@ CREATE POLICY "Workspace admins can update workspaces" ON workspaces
   )
   WITH CHECK (created_by = (SELECT w.created_by FROM workspaces w WHERE w.id = workspaces.id LIMIT 1));
 
+DROP POLICY IF EXISTS "Workspace admins can delete workspaces" ON workspaces;
 CREATE POLICY "Workspace admins can delete workspaces" ON workspaces
   FOR DELETE
   USING (
@@ -125,6 +129,7 @@ CREATE POLICY "Workspace admins can delete workspaces" ON workspaces
   );
 
 -- RLS: workspace_memberships - members can view; admins can manage
+DROP POLICY IF EXISTS "Members can view workspace memberships" ON workspace_memberships;
 CREATE POLICY "Members can view workspace memberships" ON workspace_memberships
   FOR SELECT
   USING (
@@ -134,6 +139,7 @@ CREATE POLICY "Members can view workspace memberships" ON workspace_memberships
     )
   );
 
+DROP POLICY IF EXISTS "Admins can insert memberships" ON workspace_memberships;
 CREATE POLICY "Admins can insert memberships" ON workspace_memberships
   FOR INSERT
   WITH CHECK (
@@ -145,6 +151,7 @@ CREATE POLICY "Admins can insert memberships" ON workspace_memberships
     )
   );
 
+DROP POLICY IF EXISTS "Admins can update memberships" ON workspace_memberships;
 CREATE POLICY "Admins can update memberships" ON workspace_memberships
   FOR UPDATE
   USING (
@@ -157,6 +164,7 @@ CREATE POLICY "Admins can update memberships" ON workspace_memberships
   )
   WITH CHECK (true);
 
+DROP POLICY IF EXISTS "Admins can delete memberships" ON workspace_memberships;
 CREATE POLICY "Admins can delete memberships" ON workspace_memberships
   FOR DELETE
   USING (
@@ -169,6 +177,7 @@ CREATE POLICY "Admins can delete memberships" ON workspace_memberships
   );
 
 -- RLS: workspace_invitations - members can view; admins can manage
+DROP POLICY IF EXISTS "Members can view workspace invitations" ON workspace_invitations;
 CREATE POLICY "Members can view workspace invitations" ON workspace_invitations
   FOR SELECT
   USING (
@@ -178,6 +187,7 @@ CREATE POLICY "Members can view workspace invitations" ON workspace_invitations
     )
   );
 
+DROP POLICY IF EXISTS "Admins can create invitations" ON workspace_invitations;
 CREATE POLICY "Admins can create invitations" ON workspace_invitations
   FOR INSERT
   WITH CHECK (
@@ -190,6 +200,7 @@ CREATE POLICY "Admins can create invitations" ON workspace_invitations
     AND invited_by = (auth.jwt() ->> 'sub')
   );
 
+DROP POLICY IF EXISTS "Admins can update invitations" ON workspace_invitations;
 CREATE POLICY "Admins can update invitations" ON workspace_invitations
   FOR UPDATE
   USING (
@@ -202,6 +213,7 @@ CREATE POLICY "Admins can update invitations" ON workspace_invitations
   )
   WITH CHECK (true);
 
+DROP POLICY IF EXISTS "Admins can delete invitations" ON workspace_invitations;
 CREATE POLICY "Admins can delete invitations" ON workspace_invitations
   FOR DELETE
   USING (
@@ -227,24 +239,28 @@ BEGIN
 END;
 $$;
 
+DROP TRIGGER IF EXISTS trigger_workspace_add_creator_as_admin ON workspaces;
 CREATE TRIGGER trigger_workspace_add_creator_as_admin
   AFTER INSERT ON workspaces
   FOR EACH ROW
   EXECUTE FUNCTION create_workspace_add_creator_as_admin();
 
 -- Trigger: updated_at on workspaces
+DROP TRIGGER IF EXISTS update_workspaces_updated_at ON workspaces;
 CREATE TRIGGER update_workspaces_updated_at
   BEFORE UPDATE ON workspaces
   FOR EACH ROW
   EXECUTE FUNCTION update_updated_at_column();
 
 -- Trigger: updated_at on workspace_memberships
+DROP TRIGGER IF EXISTS update_workspace_memberships_updated_at ON workspace_memberships;
 CREATE TRIGGER update_workspace_memberships_updated_at
   BEFORE UPDATE ON workspace_memberships
   FOR EACH ROW
   EXECUTE FUNCTION update_updated_at_column();
 
 -- Trigger: updated_at on workspace_invitations
+DROP TRIGGER IF EXISTS update_workspace_invitations_updated_at ON workspace_invitations;
 CREATE TRIGGER update_workspace_invitations_updated_at
   BEFORE UPDATE ON workspace_invitations
   FOR EACH ROW

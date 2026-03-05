@@ -80,7 +80,7 @@ export function ExpenseItem({
         {/* Amount and Actions */}
       <div className="flex items-center gap-4 ml-4">
         <div className="text-right">
-          <div className="text-foreground">{formatCurrency(displayAmount)}</div>
+          <div className="text-foreground">{formatCurrency(displayAmount, undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}</div>
           <div className="text-caption text-muted-foreground">/ {displayFreqLabel}</div>
         </div>
 

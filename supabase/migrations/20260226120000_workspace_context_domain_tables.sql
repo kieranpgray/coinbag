@@ -148,16 +148,19 @@ BEGIN
 END;
 $$;
 
+DROP TRIGGER IF EXISTS trigger_categories_set_workspace_id ON categories;
 CREATE TRIGGER trigger_categories_set_workspace_id
   BEFORE INSERT ON categories
   FOR EACH ROW
   EXECUTE FUNCTION set_workspace_id_on_insert();
 
+DROP TRIGGER IF EXISTS trigger_goals_set_workspace_id ON goals;
 CREATE TRIGGER trigger_goals_set_workspace_id
   BEFORE INSERT ON goals
   FOR EACH ROW
   EXECUTE FUNCTION set_workspace_id_on_insert();
 
+DROP TRIGGER IF EXISTS trigger_user_preferences_set_workspace_id ON user_preferences;
 CREATE TRIGGER trigger_user_preferences_set_workspace_id
   BEFORE INSERT ON user_preferences
   FOR EACH ROW

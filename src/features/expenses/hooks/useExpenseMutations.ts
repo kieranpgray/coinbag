@@ -48,6 +48,7 @@ export function useExpenseMutations() {
         ['expenses'],
         (old) => old?.map((e) => (e.id === updatedExpense.id ? updatedExpense : e)) ?? []
       );
+      queryClient.invalidateQueries({ queryKey: ['expenses'] });
       queryClient.invalidateQueries({ queryKey: ['expenses', variables.id] });
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
     },

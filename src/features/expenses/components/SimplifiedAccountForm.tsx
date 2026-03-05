@@ -35,10 +35,7 @@ const simplifiedAccountSchema = z.object({
     if (data.accountType === 'Credit Card' || data.accountType === 'Loan') {
       return data.creditLimit !== undefined && data.balanceOwed !== undefined;
     }
-    // Regular accounts require balance
-    if (data.accountType === 'Bank Account' || data.accountType === 'Savings' || data.accountType === 'Other') {
-      return data.balance !== undefined && data.balance !== null && !isNaN(data.balance);
-    }
+    // Regular accounts (Bank Account, Savings, Other): balance is optional, blank defaults to 0 in submit handler
     return true;
   },
   {
@@ -92,8 +89,8 @@ export function SimplifiedAccountForm({ onSubmit, onCancel, isLoading }: Simplif
       // For credit accounts, balance is negative of balance owed
       finalBalance = -data.balanceOwed!;
     } else {
-      // For regular accounts, use the balance field
-      finalBalance = data.balance!;
+      // For regular accounts, use the balance field; blank defaults to 0
+      finalBalance = data.balance ?? 0;
     }
 
     // Convert to AccountCreate format
@@ -262,9 +259,7 @@ export function SimplifiedAccountForm({ onSubmit, onCancel, isLoading }: Simplif
       ) : (
         /* Regular account balance field */
         <div className="space-y-2">
-          <Label htmlFor="balance">
-            Current Balance <span className="text-destructive">*</span>
-          </Label>
+          <Label htmlFor="balance">Current Balance</Label>
           <Input
             id="balance"
             type="number"

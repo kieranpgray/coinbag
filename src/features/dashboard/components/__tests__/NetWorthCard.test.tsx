@@ -2,7 +2,14 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { NetWorthCard } from '../NetWorthCard';
 import { ThemeProvider } from '@/contexts/ThemeContext';
+import { LocaleProvider } from '@/contexts/LocaleContext';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+
+// Mock useLocale
+vi.mock('@/hooks/useUserPreferences', () => ({
+  useUserPreferences: () => ({ data: { locale: 'en-US' }, isLoading: false }),
+  useUpdateUserPreferences: () => ({ mutateAsync: vi.fn() }),
+}));
 
 // Mock the user API
 vi.mock('@/lib/api', () => ({
@@ -29,7 +36,9 @@ const queryClient = new QueryClient({
 function Wrapper({ children }: { children: React.ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider>{children}</ThemeProvider>
+      <ThemeProvider>
+        <LocaleProvider>{children}</LocaleProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }

@@ -392,7 +392,7 @@ describe('P0 Dashboard Verification', () => {
           expect(hasData).toBe(true);
           // Verify setup progress marks subscriptions complete
           const subscriptionsChecklistItem = updatedData?.setupChecklist.find(
-            item => item.id === 'subscriptions'
+            item => item.id === 'expenses'
           );
           expect(subscriptionsChecklistItem?.completed).toBe(true);
         },

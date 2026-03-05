@@ -3,6 +3,10 @@ import { ImportService } from '../ImportService';
 import type { ParsedImportData } from '../types';
 
 // Mock dependencies
+const { mockEnsureDefaultCategories } = vi.hoisted(() => ({
+  mockEnsureDefaultCategories: vi.fn(),
+}));
+
 const mockCategoriesRepo = {
   list: vi.fn(),
   create: vi.fn(),
@@ -11,8 +15,6 @@ const mockCategoriesRepo = {
 const mockExpensesRepo = {
   create: vi.fn(),
 };
-
-const mockEnsureDefaultCategories = vi.fn();
 
 vi.mock('@/data/categories/repo', () => ({
   createCategoriesRepository: vi.fn(() => mockCategoriesRepo),

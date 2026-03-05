@@ -116,6 +116,21 @@ export class SupabaseNetWorthHistoryRepository implements NetWorthHistoryReposit
       const { data, error } = await query;
 
       if (error) {
+        // Check if the error indicates the table doesn't exist (migration not applied)
+        const code = error.code ?? '';
+        const msg = (error.message ?? '').toLowerCase();
+        const isTableMissing = code === '42P01' || (msg.includes('relation') && msg.includes('does not exist'));
+
+        if (isTableMissing) {
+          logger.warn(
+            'DB:NET_WORTH_HISTORY_LIST',
+            'net_worth_history table does not exist (migration not applied), returning empty history',
+            { startDate, endDate },
+            correlationId || undefined
+          );
+          return { data: [] };
+        }
+
         logger.error(
           'DB:NET_WORTH_HISTORY_LIST',
           'Supabase net worth history list error',

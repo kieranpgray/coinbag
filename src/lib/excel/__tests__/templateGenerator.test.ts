@@ -3,6 +3,18 @@ import { generateImportTemplate } from '../templateGenerator';
 
 import { DEFAULT_CATEGORY_NAMES } from '@/data/categories/constants';
 
+// Polyfill Blob.arrayBuffer for jsdom
+if (typeof Blob !== 'undefined' && !Blob.prototype.arrayBuffer) {
+  Blob.prototype.arrayBuffer = function() {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as ArrayBuffer);
+      reader.onerror = reject;
+      reader.readAsArrayBuffer(this);
+    });
+  };
+}
+
 describe('templateGenerator', () => {
   describe('generateImportTemplate', () => {
     it('should return a Promise that resolves to a Blob', async () => {

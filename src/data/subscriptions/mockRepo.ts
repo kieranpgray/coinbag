@@ -1,0 +1,2 @@
+// Backward-compatibility aliases for subscriptions mock repo (now expenses)
+export { seedMockExpenses as seedMockSubscriptions, clearMockExpenses as clearMockSubscriptions } from '@/data/expenses/mockRepo';

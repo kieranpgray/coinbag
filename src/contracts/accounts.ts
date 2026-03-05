@@ -42,6 +42,7 @@ const accountNameSchema = z.string()
 
 // Balance validation (can be negative for credit cards)
 // Use preprocess to handle NaN/empty values and provide user-friendly errors
+// IMPORTANT: .transform(val => val ?? 0) must come before .refine() so refine always receives a number
 const balanceSchema = z.preprocess(
   (val) => {
     // Handle empty/null/undefined values
@@ -54,8 +55,13 @@ const balanceSchema = z.preprocess(
     required_error: "Balance is required",
     invalid_type_error: "Please enter a valid amount"
   })
-    .max(VALIDATION_LIMITS.balance.max, `Balance cannot exceed ${VALIDATION_LIMITS.balance.max}`)
-    .refine(value => /^-?\d+(\.\d{1,2})?$/.test(value.toFixed(2)), 'Balance can have at most 2 decimal places')
+    .optional()
+    .transform((val) => val ?? 0)
+    .pipe(
+      z.number()
+        .max(VALIDATION_LIMITS.balance.max, `Balance cannot exceed ${VALIDATION_LIMITS.balance.max}`)
+        .refine(value => /^-?\d+(\.\d{1,2})?$/.test(value.toFixed(2)), 'Balance can have at most 2 decimal places')
+    )
 );
 
 

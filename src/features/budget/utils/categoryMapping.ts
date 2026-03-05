@@ -16,7 +16,6 @@ const EXPENSE_TYPE_CATEGORY_PREFERENCES: Record<ExpenseType, string[]> = {
     'Entertainment',
     'Software',
     'Cloud Storage',
-    'Gym Membership',
     'News & Media',
   ],
   bills: [
@@ -47,9 +46,6 @@ const EXPENSE_TYPE_CATEGORY_PREFERENCES: Record<ExpenseType, string[]> = {
     'Transportation',
     'Public Transport',
     'Fuel',
-    'Health',
-    'Medical',
-    'Pharmacy',
     'Education',
   ],
   lifestyle: [
@@ -60,6 +56,17 @@ const EXPENSE_TYPE_CATEGORY_PREFERENCES: Record<ExpenseType, string[]> = {
     'Hobbies',
     'Travel',
     'Entertainment',
+  ],
+  health: [
+    'Health',
+    'Medical',
+    'Pharmacy',
+    'Gym Membership',
+    'Medicine / Pharmacy',
+  ],
+  other: [
+    'Uncategorised',
+    'Miscellaneous',
   ],
 };
 

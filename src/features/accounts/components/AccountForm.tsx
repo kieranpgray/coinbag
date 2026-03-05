@@ -290,9 +290,7 @@ export function AccountForm({ account, onSubmit, onCancel, isLoading }: AccountF
       ) : (
         /* Regular account balance field */
         <div className="space-y-2">
-          <Label htmlFor="balance">
-            Current Balance <span className="text-destructive">*</span>
-          </Label>
+          <Label htmlFor="balance">Current Balance</Label>
           <Input
             id="balance"
             type="number"

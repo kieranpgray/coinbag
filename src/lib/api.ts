@@ -672,6 +672,7 @@ export const dashboardApi = {
         assetsCount: assetsData.length,
         liabilitiesCount: liabilitiesData.length,
         expensesCount: expensesData.length,
+        subscriptionsCount: expensesData.length, // Alias for backward compatibility
         transactionsCount: transactionsResult.total,
         incomeCount: incomesData.length,
         holdingsCount,

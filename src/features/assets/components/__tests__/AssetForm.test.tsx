@@ -1,8 +1,15 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { LocaleProvider } from '@/contexts/LocaleContext';
 import { AssetForm } from '../AssetForm';
 import type { Asset } from '@/types/domain';
+
+// Mock useLocale
+vi.mock('@/hooks/useUserPreferences', () => ({
+  useUserPreferences: () => ({ data: { locale: 'en-US' }, isLoading: false }),
+  useUpdateUserPreferences: () => ({ mutateAsync: vi.fn() }),
+}));
 
 describe('AssetForm', () => {
   const mockAsset: Asset = {
@@ -21,7 +28,11 @@ describe('AssetForm', () => {
     const onSubmit = vi.fn();
     const onCancel = vi.fn();
     
-    render(<AssetForm onSubmit={onSubmit} onCancel={onCancel} />);
+    render(
+      <LocaleProvider>
+        <AssetForm onSubmit={onSubmit} onCancel={onCancel} />
+      </LocaleProvider>
+    );
     
     expect(screen.getByLabelText(/name/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/type/i)).toBeInTheDocument();
@@ -32,7 +43,11 @@ describe('AssetForm', () => {
     const onSubmit = vi.fn();
     const onCancel = vi.fn();
     
-    render(<AssetForm asset={mockAsset} onSubmit={onSubmit} onCancel={onCancel} />);
+    render(
+      <LocaleProvider>
+        <AssetForm asset={mockAsset} onSubmit={onSubmit} onCancel={onCancel} />
+      </LocaleProvider>
+    );
     
     expect(screen.getByDisplayValue('Test Asset')).toBeInTheDocument();
   });
@@ -42,7 +57,11 @@ describe('AssetForm', () => {
     const onCancel = vi.fn();
     const user = userEvent.setup();
     
-    render(<AssetForm onSubmit={onSubmit} onCancel={onCancel} />);
+    render(
+      <LocaleProvider>
+        <AssetForm onSubmit={onSubmit} onCancel={onCancel} />
+      </LocaleProvider>
+    );
     
     const submitButton = screen.getByRole('button', { name: /create/i });
     await user.click(submitButton);
@@ -58,11 +77,15 @@ describe('AssetForm', () => {
     const onCancel = vi.fn();
     const user = userEvent.setup();
     
-    render(<AssetForm onSubmit={onSubmit} onCancel={onCancel} />);
+    render(
+      <LocaleProvider>
+        <AssetForm onSubmit={onSubmit} onCancel={onCancel} />
+      </LocaleProvider>
+    );
     
     await user.type(screen.getByLabelText(/name/i), 'New Asset');
     await user.type(screen.getByLabelText(/value/i), '50000');
-    
+
     const submitButton = screen.getByRole('button', { name: /create/i });
     await user.click(submitButton);
     
@@ -75,7 +98,11 @@ describe('AssetForm', () => {
     const onCancel = vi.fn();
     const user = userEvent.setup();
     
-    render(<AssetForm onSubmit={onSubmit} onCancel={onCancel} />);
+    render(
+      <LocaleProvider>
+        <AssetForm onSubmit={onSubmit} onCancel={onCancel} />
+      </LocaleProvider>
+    );
     
     const cancelButton = screen.getByRole('button', { name: /cancel/i });
     await user.click(cancelButton);

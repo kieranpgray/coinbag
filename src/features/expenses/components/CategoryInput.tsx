@@ -5,6 +5,7 @@ import { ChevronDown, Check, Loader2, Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { createCategoriesRepository } from '@/data/categories/repo';
 import { useAuth } from '@clerk/clerk-react';
+import * as Popover from '@radix-ui/react-popover';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { CategoryForm } from '@/features/categories/components/CategoryForm';
 import { useCategories } from '@/features/categories/hooks';
@@ -20,16 +21,19 @@ interface CategoryInputProps {
   placeholder?: string;
   error?: string;
   onCategoriesRefresh?: () => void;
+  /**
+   * Visual variant of the input. 'compact' uses smaller height and font size.
+   */
+  variant?: 'default' | 'compact';
 }
 
-export function CategoryInput({ id, value, onChange, placeholder = "Select category", error, onCategoriesRefresh }: CategoryInputProps) {
+export function CategoryInput({ id, value, onChange, placeholder = "Select category", error, onCategoriesRefresh, variant = 'default' }: CategoryInputProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const buttonRef = useRef<HTMLButtonElement>(null);
-  const dropdownRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const { getToken } = useAuth();
 
@@ -120,21 +124,12 @@ export function CategoryInput({ id, value, onChange, placeholder = "Select categ
     }
   }, [isOpen]);
 
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
 
   return (
-    <div className="relative">
-      <Button
+    <>
+    <Popover.Root open={isOpen} onOpenChange={setIsOpen}>
+      <Popover.Trigger asChild>
+        <Button
         id={id}
         ref={buttonRef}
         type="button"
@@ -144,7 +139,10 @@ export function CategoryInput({ id, value, onChange, placeholder = "Select categ
         aria-haspopup="listbox"
         className={cn(
           // Atlassian Design System styling: clean borders, subtle focus states
-          "w-full justify-between h-10 rounded-md border border-border bg-background px-3 py-2 text-body text-foreground",
+          "w-full justify-between rounded-md border border-border bg-background px-3 py-2 text-foreground overflow-hidden",
+          variant === 'compact'
+            ? "h-8 min-h-0 text-body-sm"
+            : "h-10 text-body",
           "hover:border-neutral-mid hover:bg-muted/50",
           "focus:outline-none focus:ring-2 focus:ring-primary/20 focus:ring-offset-0 focus:border-primary",
           "disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-muted disabled:hover:border-border",
@@ -156,25 +154,31 @@ export function CategoryInput({ id, value, onChange, placeholder = "Select categ
         disabled={isLoading}
       >
         {isLoading ? (
-          <div className="flex items-center gap-2">
-            <Loader2 className="h-4 w-4 animate-spin" />
-            Loading categories...
+          <div className="flex items-center gap-2 min-w-0">
+            <Loader2 className="h-4 w-4 animate-spin flex-shrink-0" />
+            <span className={variant === 'compact' ? undefined : "truncate"} title={variant === 'compact' ? "Loading categories..." : undefined}>
+              {variant === 'compact' ? "Loading..." : "Loading categories..."}
+            </span>
           </div>
         ) : loadError ? (
-          <span className="text-destructive">Error loading categories</span>
+          <span className={cn(variant === 'compact' ? undefined : "truncate", "text-destructive")} title={variant === 'compact' && loadError instanceof Error ? loadError.message : variant === 'compact' ? "Error loading categories" : undefined}>
+            {variant === 'compact' ? "Error" : loadError instanceof Error ? loadError.message : "Error loading categories"}
+          </span>
         ) : selectedCategory ? (
-          selectedCategory.name
+          <span className="truncate min-w-0" title={variant === 'compact' ? selectedCategory.name : undefined}>{selectedCategory.name}</span>
         ) : (
-          placeholder
+          <span className="truncate min-w-0">{placeholder}</span>
         )}
-        {!isLoading && <ChevronDown className={cn("h-4 w-4 text-muted-foreground transition-transform", isOpen && "rotate-180")} />}
-      </Button>
+        {!isLoading && <ChevronDown className={cn("h-4 w-4 text-muted-foreground transition-transform flex-shrink-0", isOpen && "rotate-180")} />}
+        </Button>
+      </Popover.Trigger>
 
-      {isOpen && (
-        <div
-          ref={dropdownRef}
+      <Popover.Portal>
+        <Popover.Content
           role="listbox"
-          className="absolute z-10 w-full mt-1 bg-background border border-border rounded-md shadow-sm max-h-80 overflow-hidden flex flex-col"
+          className="z-10 w-full bg-background border border-border rounded-md shadow-sm max-h-80 overflow-hidden flex flex-col"
+          sideOffset={4}
+          align="start"
         >
           {loadError ? (
             <div className="px-3 py-2 text-body text-destructive">
@@ -253,37 +257,38 @@ export function CategoryInput({ id, value, onChange, placeholder = "Select categ
               </div>
             </div>
           )}
-        </div>
-      )}
+        </Popover.Content>
+      </Popover.Portal>
 
       {error && (
         <p className="text-body text-destructive mt-1">{error}</p>
       )}
+    </Popover.Root>
 
-      {/* Inline create category dialog */}
-      <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Create category</DialogTitle>
-            <DialogDescription>
-              Create a category to organise expenses (optional). You can also do this while adding an expense.
-            </DialogDescription>
-          </DialogHeader>
+    {/* Inline create category dialog */}
+    <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Create category</DialogTitle>
+          <DialogDescription>
+            Create a category to organise expenses (optional). You can also do this while adding an expense.
+          </DialogDescription>
+        </DialogHeader>
 
-          <CategoryForm
-            submitLabel="Create"
-            isSubmitting={isCreating}
-            onSubmit={handleCreateCategory}
-          />
+        <CategoryForm
+          submitLabel="Create"
+          isSubmitting={isCreating}
+          onSubmit={handleCreateCategory}
+        />
 
-          {createError && (
-            <p className="text-body text-destructive mt-2">
-              {createError}
-            </p>
-          )}
-        </DialogContent>
-      </Dialog>
-    </div>
+        {createError && (
+          <p className="text-body text-destructive mt-2">
+            {createError}
+          </p>
+        )}
+      </DialogContent>
+    </Dialog>
+    </>
   );
 }
 

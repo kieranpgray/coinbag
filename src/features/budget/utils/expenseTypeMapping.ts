@@ -1,9 +1,11 @@
 /**
  * Expense type mapping utility
- * Maps subscription category names to expense types for filtering and organization
+ * Maps category names to expense types for filtering and organization
  */
 
-export type ExpenseType = 'subscriptions' | 'bills' | 'repayments' | 'savings' | 'living' | 'lifestyle';
+import { getCategoryNameSafe } from './categoryHelpers';
+
+export type ExpenseType = 'subscriptions' | 'bills' | 'repayments' | 'savings' | 'living' | 'lifestyle' | 'health' | 'other';
 
 /**
  * Default category mappings to expense types
@@ -15,11 +17,9 @@ const EXPENSE_TYPE_MAPPINGS: Record<string, ExpenseType> = {
   streaming: 'subscriptions',
   software: 'subscriptions',
   'cloud storage': 'subscriptions',
-  'gym membership': 'subscriptions',
   'news & media': 'subscriptions',
   'news': 'subscriptions',
   media: 'subscriptions',
-  'fitness / gym': 'subscriptions',
 
   // Bills
   utilities: 'bills',
@@ -65,16 +65,20 @@ const EXPENSE_TYPE_MAPPINGS: Record<string, ExpenseType> = {
   'public transport': 'living',
   fuel: 'living',
   'fuel / gas': 'living',
-  health: 'living',
-  medical: 'living',
-  'medical & dental': 'living',
-  pharmacy: 'living',
-  'medicine / pharmacy': 'living',
   education: 'living',
   'childcare / school fees': 'living',
   'car maintenance & registration': 'living',
   'parking & tolls': 'living',
   rideshare: 'living',
+
+  // Health
+  'gym membership': 'health',
+  'fitness / gym': 'health',
+  health: 'health',
+  medical: 'health',
+  'medical & dental': 'health',
+  pharmacy: 'health',
+  'medicine / pharmacy': 'health',
 
   // Lifestyle
   'dining out': 'lifestyle',
@@ -98,18 +102,18 @@ const EXPENSE_TYPE_MAPPINGS: Record<string, ExpenseType> = {
   'cash withdrawals': 'lifestyle',
 
   // Default fallback
-  other: 'lifestyle',
-  uncategorised: 'lifestyle',
+  other: 'other',
+  uncategorised: 'other',
 };
 
 /**
  * Get expense type for a given category name
  * @param categoryName - The category name to map
- * @returns The expense type, defaults to 'lifestyle' if not found
+ * @returns The expense type, defaults to 'other' if not found
  */
 export function getExpenseType(categoryName: string): ExpenseType {
   if (!categoryName) {
-    return 'lifestyle';
+    return 'other';
   }
   
   const normalized = categoryName.toLowerCase().trim();
@@ -120,21 +124,24 @@ export function getExpenseType(categoryName: string): ExpenseType {
   }
   
   // Partial match (e.g., "Entertainment Services" matches "entertainment")
-  for (const [key, value] of Object.entries(EXPENSE_TYPE_MAPPINGS)) {
-    if (normalized.includes(key) || key.includes(normalized)) {
-      return value;
+  // Require normalized length >= 2 to avoid single-char over-matching
+  if (normalized.length >= 2) {
+    for (const [key, value] of Object.entries(EXPENSE_TYPE_MAPPINGS)) {
+      if (normalized.includes(key) || key.includes(normalized)) {
+        return value;
+      }
     }
   }
   
   // Default fallback
-  return 'lifestyle';
+  return 'other';
 }
 
 /**
  * Get all expense types
  */
 export function getAllExpenseTypes(): ExpenseType[] {
-  return ['subscriptions', 'bills', 'repayments', 'savings', 'living', 'lifestyle'];
+  return ['subscriptions', 'bills', 'repayments', 'savings', 'living', 'lifestyle', 'health', 'other'];
 }
 
 /**
@@ -148,6 +155,8 @@ export function getExpenseTypeLabel(type: ExpenseType): string {
     savings: 'Savings',
     living: 'Living',
     lifestyle: 'Lifestyle',
+    health: 'Health',
+    other: 'Other',
   };
   return labels[type];
 }
@@ -163,6 +172,8 @@ export function getExpenseTypeLabelPlural(type: ExpenseType): string {
     savings: 'savings',
     living: 'living expenses',
     lifestyle: 'lifestyle expenses',
+    health: 'health expenses',
+    other: 'other expenses',
   };
   return labels[type];
 }
@@ -178,6 +189,8 @@ export function getExpenseTypeLabelSingular(type: ExpenseType): string {
     savings: 'saving',
     living: 'living expense',
     lifestyle: 'lifestyle expense',
+    health: 'health expense',
+    other: 'other expense',
   };
   return labels[type];
 }
@@ -198,14 +211,9 @@ export function getExpenseTypesFromExpenses(
   const expenseTypes = new Set<ExpenseType>();
   
   for (const expense of expenses) {
-    // Get category name safely
-    const categoryName = categoryMap.get(expense.categoryId) || 
-      (uncategorisedId && expense.categoryId === uncategorisedId ? 'Uncategorised' : '');
-    
-    if (categoryName) {
-      const expenseType = getExpenseType(categoryName);
-      expenseTypes.add(expenseType);
-    }
+    const categoryName = getCategoryNameSafe(expense.categoryId, categoryMap, uncategorisedId);
+    const expenseType = getExpenseType(categoryName);
+    expenseTypes.add(expenseType);
   }
   
   // Return in a consistent order (same as getAllExpenseTypes)
@@ -232,15 +240,10 @@ export function getExpenseTypeTotals(
   const totals: Record<string, number> = {};
   
   for (const expense of expenses) {
-    // Get category name safely
-    const categoryName = categoryMap.get(expense.categoryId) || 
-      (uncategorisedId && expense.categoryId === uncategorisedId ? 'Uncategorised' : '');
-    
-    if (categoryName) {
-      const expenseType = getExpenseType(categoryName);
-      const monthlyAmount = calculateMonthlyEquivalent(expense.amount, expense.frequency);
-      totals[expenseType] = (totals[expenseType] || 0) + monthlyAmount;
-    }
+    const categoryName = getCategoryNameSafe(expense.categoryId, categoryMap, uncategorisedId);
+    const expenseType = getExpenseType(categoryName);
+    const monthlyAmount = calculateMonthlyEquivalent(expense.amount, expense.frequency);
+    totals[expenseType] = (totals[expenseType] || 0) + monthlyAmount;
   }
   
   // Ensure all expense types are present (even if 0)

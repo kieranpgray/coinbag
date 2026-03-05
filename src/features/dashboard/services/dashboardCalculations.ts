@@ -224,6 +224,7 @@ export const DashboardCalculations = {
         assetsCount: assets.length,
         liabilitiesCount: liabilities.length,
         expensesCount: expenses.length,
+        subscriptionsCount: expenses.length, // Alias for backward compatibility
         transactionsCount: 0, // Transactions feature not yet implemented - will be integrated when available
         incomeCount: incomes.length,
         holdingsCount: holdingsAssets.length,

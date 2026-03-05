@@ -40,7 +40,7 @@ BEGIN
     WHERE n.nspname = 'public' AND t.relname = 'workspace_memberships' AND c.contype = 'u'
     AND array_length(c.conkey, 1) = 2
     AND (
-      SELECT array_agg(a.attname ORDER BY array_position(c.conkey, a.attnum))
+      SELECT array_agg(a.attname ORDER BY array_position(c.conkey, a.attnum))::text[]
       FROM pg_attribute a
       WHERE a.attrelid = t.oid AND a.attnum = ANY(c.conkey) AND NOT a.attisdropped
     ) = ARRAY['workspace_id', 'user_id']

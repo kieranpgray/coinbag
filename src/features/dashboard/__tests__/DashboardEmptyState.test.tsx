@@ -42,7 +42,7 @@ describe('DashboardPage Empty States', () => {
         assets: [],
         liabilities: [],
         accounts: [],
-        subscriptions: [],
+        expenses: [],
         expenseBreakdown: [],
         incomeBreakdown: [],
         dataSources: {

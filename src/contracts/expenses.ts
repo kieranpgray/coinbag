@@ -21,7 +21,12 @@ const VALIDATION_LIMITS = {
 } as const;
 
 // Base schemas for domain types
-export const expenseFrequencySchema = z.enum(['weekly', 'fortnightly', 'monthly', 'quarterly', 'yearly']);
+// Coerce to lowercase so "Quarterly", "QUARTERLY" etc. are accepted and DB always receives valid value
+const EXPENSE_FREQUENCY_VALUES = ['weekly', 'fortnightly', 'monthly', 'quarterly', 'yearly'] as const;
+export const expenseFrequencySchema = z
+  .string()
+  .transform((s) => s.toLowerCase().trim())
+  .pipe(z.enum(EXPENSE_FREQUENCY_VALUES));
 
 // Category ID schema - references categories table
 export const categoryIdSchema = z.string().uuid('Invalid category ID format');

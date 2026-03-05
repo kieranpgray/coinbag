@@ -36,6 +36,10 @@ export class SupabaseAssetsRepository implements AssetsRepository {
   private readonly selectColumnsBasic =
     'id, name, type, value, change_1d, change_1w, date_added, institution, notes, user_id, created_at, updated_at';
 
+  // Fallback for very old schemas: bare minimum (id, name, type, value, date_added, user_id, created_at, updated_at)
+  private readonly selectColumnsMinimal =
+    'id, name, type, value, date_added, user_id, created_at, updated_at';
+
   /**
    * True when the error indicates missing columns (e.g. migration not applied) or 400 Bad Request.
    * Used to trigger fallback select with selectColumnsBasic.
@@ -54,6 +58,49 @@ export class SupabaseAssetsRepository implements AssetsRepository {
       looksLikeBadRequest ||
       (msg.includes('column') && (msg.includes('does not exist') || msg.includes('ticker') || msg.includes('purchase_price') || msg.includes('vesting_date') || msg.includes('last_price_fetched_at') || msg.includes('price_source') || msg.includes('grant_price') || msg.includes('address') || msg.includes('property_type')))
     );
+  }
+
+  /**
+   * Strips optional columns from dbInput based on fallback level.
+   * Used when retrying updates after schema mismatch errors.
+   */
+  private stripOptionalColumnsForFallback(dbInput: Record<string, unknown>, level: 'assetFields' | 'priceFields' | 'basic' | 'minimal'): Record<string, unknown> {
+    const stripped = { ...dbInput };
+
+    if (level === 'assetFields' || level === 'priceFields' || level === 'basic' || level === 'minimal') {
+      // Remove asset-fields columns (address, property_type, grant_price)
+      delete stripped.address;
+      delete stripped.property_type;
+      delete stripped.grant_price;
+    }
+
+    if (level === 'priceFields' || level === 'basic' || level === 'minimal') {
+      // Remove price caching columns
+      delete stripped.last_price_fetched_at;
+      delete stripped.price_source;
+    }
+
+    if (level === 'basic' || level === 'minimal') {
+      // Remove Stock/RSU columns
+      delete stripped.ticker;
+      delete stripped.exchange;
+      delete stripped.quantity;
+      delete stripped.purchase_price;
+      delete stripped.purchase_date;
+      delete stripped.todays_price;
+      delete stripped.grant_date;
+      delete stripped.vesting_date;
+    }
+
+    if (level === 'minimal') {
+      // Remove columns that may not exist in very old schemas
+      delete stripped.change_1d;
+      delete stripped.change_1w;
+      delete stripped.institution;
+      delete stripped.notes;
+    }
+
+    return stripped;
   }
 
   /**
@@ -200,6 +247,7 @@ export class SupabaseAssetsRepository implements AssetsRepository {
         if (!retry1.error && retry1.data) {
           data = retry1.data as unknown[];
           error = null;
+          logger.info('DB:ASSETS_LIST', 'Succeeded with selectColumnsWithoutAssetFields', {}, correlationId || undefined);
         } else if (retry1.error && this.isMissingColumnOrBadRequest(retry1.error)) {
           // Retry 2: without price/asset fields (Stock/RSU only)
           const retry2 = await supabase
@@ -209,6 +257,7 @@ export class SupabaseAssetsRepository implements AssetsRepository {
           if (!retry2.error && retry2.data) {
             data = retry2.data as unknown[];
             error = null;
+            logger.info('DB:ASSETS_LIST', 'Succeeded with selectColumnsWithoutPriceFields', {}, correlationId || undefined);
           } else if (retry2.error && this.isMissingColumnOrBadRequest(retry2.error)) {
             // Retry 3: basic columns only (pre-Stock migration)
             const retry3 = await supabase
@@ -218,8 +267,22 @@ export class SupabaseAssetsRepository implements AssetsRepository {
             if (!retry3.error && retry3.data) {
               data = retry3.data as unknown[];
               error = null;
+              logger.info('DB:ASSETS_LIST', 'Succeeded with selectColumnsBasic', {}, correlationId || undefined);
+            } else if (retry3.error && this.isMissingColumnOrBadRequest(retry3.error)) {
+              // Retry 4: minimal columns only (very old schema)
+              const retry4 = await supabase
+                .from('assets')
+                .select(this.selectColumnsMinimal)
+                .order('date_added', { ascending: false });
+              if (!retry4.error && retry4.data) {
+                data = retry4.data as unknown[];
+                error = null;
+                logger.info('DB:ASSETS_LIST', 'Succeeded with selectColumnsMinimal (schema fallback workaround)', {}, correlationId || undefined);
+              } else if (retry4.error) {
+                logger.error('DB:ASSETS_LIST', 'All fallback selects failed', { error: retry4.error.message }, correlationId || undefined);
+              }
             } else if (retry3.error) {
-              logger.error('DB:ASSETS_LIST', 'All fallback selects failed', { error: retry3.error.message }, correlationId || undefined);
+              logger.error('DB:ASSETS_LIST', 'Fallback 3 failed', { error: retry3.error.message }, correlationId || undefined);
             }
           } else if (retry2.error) {
             logger.error('DB:ASSETS_LIST', 'Fallback 2 failed', { error: retry2.error.message }, correlationId || undefined);
@@ -342,6 +405,7 @@ export class SupabaseAssetsRepository implements AssetsRepository {
           this.selectColumnsWithoutAssetFields,
           this.selectColumnsWithoutPriceFields,
           this.selectColumnsBasic,
+          this.selectColumnsMinimal,
         ] as const;
         for (const cols of retries) {
           const retry = await supabase.from('assets').select(cols).eq('id', id).single();
@@ -776,12 +840,90 @@ export class SupabaseAssetsRepository implements AssetsRepository {
       if (validation.data.address !== undefined) dbInput.address = validation.data.address === '' ? null : validation.data.address?.trim();
       if (validation.data.propertyType !== undefined) dbInput.property_type = validation.data.propertyType === '' ? null : validation.data.propertyType?.trim();
 
-      const { data, error } = await supabase
+      let data: Record<string, unknown> | null = null;
+      let error: { message?: string; code?: string; details?: string; hint?: string } | null = null;
+
+      const result = await supabase
         .from('assets')
         .update(dbInput)
         .eq('id', id)
         .select(this.selectColumns)
         .single();
+
+      data = result.data as Record<string, unknown> | null;
+      error = result.error;
+
+      // Fallback: only when error suggests schema/column mismatch (400, PGRST204, etc.) — not network/RLS/500
+      if (error && this.isMissingColumnOrBadRequest(error)) {
+        const correlationId = getCorrelationId();
+        logger.warn(
+          'DB:ASSETS_UPDATE',
+          'Full update failed (schema may be behind). Retrying with reduced columns.',
+          { error: error.message, code: error.code },
+          correlationId || undefined
+        );
+        // Retry 1: without asset-fields (grant_price, address, property_type)
+        const strippedInput1 = this.stripOptionalColumnsForFallback(dbInput, 'assetFields');
+        const retry1 = await supabase
+          .from('assets')
+          .update(strippedInput1)
+          .eq('id', id)
+          .select(this.selectColumnsWithoutAssetFields)
+          .single();
+        if (!retry1.error && retry1.data) {
+          data = retry1.data as unknown as Record<string, unknown>;
+          error = null;
+        } else if (retry1.error && this.isMissingColumnOrBadRequest(retry1.error)) {
+          // Retry 2: without price/asset fields (Stock/RSU only)
+          const strippedInput2 = this.stripOptionalColumnsForFallback(dbInput, 'priceFields');
+          const retry2 = await supabase
+            .from('assets')
+            .update(strippedInput2)
+            .eq('id', id)
+            .select(this.selectColumnsWithoutPriceFields)
+            .single();
+          if (!retry2.error && retry2.data) {
+            data = retry2.data as unknown as Record<string, unknown>;
+            error = null;
+          } else if (retry2.error && this.isMissingColumnOrBadRequest(retry2.error)) {
+            // Retry 3: basic columns only (pre-Stock migration)
+            const strippedInput3 = this.stripOptionalColumnsForFallback(dbInput, 'basic');
+            const retry3 = await supabase
+              .from('assets')
+              .update(strippedInput3)
+              .eq('id', id)
+              .select(this.selectColumnsBasic)
+              .single();
+            if (!retry3.error && retry3.data) {
+              data = retry3.data as unknown as Record<string, unknown>;
+              error = null;
+              logger.info('DB:ASSETS_UPDATE', 'Succeeded with selectColumnsBasic', {}, correlationId || undefined);
+            } else if (retry3.error && this.isMissingColumnOrBadRequest(retry3.error)) {
+              // Retry 4: minimal columns only (very old schema)
+              const strippedInput4 = this.stripOptionalColumnsForFallback(dbInput, 'minimal');
+              const retry4 = await supabase
+                .from('assets')
+                .update(strippedInput4)
+                .eq('id', id)
+                .select(this.selectColumnsMinimal)
+                .single();
+              if (!retry4.error && retry4.data) {
+                data = retry4.data as unknown as Record<string, unknown>;
+                error = null;
+                logger.info('DB:ASSETS_UPDATE', 'Succeeded with selectColumnsMinimal (schema fallback workaround)', {}, correlationId || undefined);
+              } else if (retry4.error) {
+                logger.error('DB:ASSETS_UPDATE', 'All fallback updates failed', { error: retry4.error.message }, correlationId || undefined);
+              }
+            } else if (retry3.error) {
+              logger.error('DB:ASSETS_UPDATE', 'Fallback 3 failed', { error: retry3.error.message }, correlationId || undefined);
+            }
+          } else if (retry2.error) {
+            logger.error('DB:ASSETS_UPDATE', 'Fallback 2 failed', { error: retry2.error.message }, correlationId || undefined);
+          }
+        } else if (retry1.error) {
+          logger.error('DB:ASSETS_UPDATE', 'Fallback 1 failed', { error: retry1.error.message }, correlationId || undefined);
+        }
+      }
 
       if (error) {
         if (error.code === 'PGRST116') {
@@ -792,11 +934,11 @@ export class SupabaseAssetsRepository implements AssetsRepository {
             },
           };
         }
-        
+
         // Check if it's a constraint violation for type
-        if (error.code === '23514' && error.message.includes('assets_type_check')) {
+        if (error.code === '23514' && error.message && error.message.includes('assets_type_check')) {
           const providedType = dbInput.type;
-          
+
           logger.error('DB:ASSET_UPDATE', 'Asset type constraint violation', {
             assetId: id,
             error: error.message,
@@ -806,14 +948,14 @@ export class SupabaseAssetsRepository implements AssetsRepository {
             allowedTypes,
             hint: 'The database constraint may not include all types. Check if migrations have been run.',
           }, correlationId || undefined);
-          
+
           logger.error('DB:ASSETS_UPDATE', 'Asset type constraint violation', {
             providedType,
             allowedTypes,
             error: error.message,
             hint: 'Ensure migration 20251229160001_add_superannuation_asset_type.sql has been run',
           }, correlationId || undefined);
-          
+
           return {
             error: {
               error: `Invalid asset type "${providedType}". The database constraint may not include this type. Please ensure all migrations have been run, including: 20251229160001_add_superannuation_asset_type.sql`,
@@ -821,7 +963,7 @@ export class SupabaseAssetsRepository implements AssetsRepository {
             },
           };
         }
-        
+
         logger.error('DB:ASSETS_UPDATE', 'Supabase assets update error', {
           message: error.message,
           code: error.code,
@@ -898,6 +1040,21 @@ export class SupabaseAssetsRepository implements AssetsRepository {
         .order('created_at', { ascending: false });
 
       if (error) {
+        // Check if the error indicates the table doesn't exist (migration not applied)
+        const code = error.code ?? '';
+        const msg = (error.message ?? '').toLowerCase();
+        const isTableMissing = code === '42P01' || (msg.includes('relation') && msg.includes('does not exist'));
+
+        if (isTableMissing) {
+          logger.warn(
+            'DB:ASSET_VALUE_HISTORY',
+            'asset_value_history table does not exist (migration not applied), returning empty history',
+            { assetId },
+            correlationId || undefined
+          );
+          return { data: [] };
+        }
+
         logger.error(
           'DB:ASSET_VALUE_HISTORY',
           'Failed to fetch asset value history',
