@@ -8,13 +8,13 @@ import type { WorkspaceRole } from '@/contracts/workspaces';
 const repo = createWorkspaceRepository();
 
 export function useTeamInvitations() {
-  const { getToken } = useAuth();
+  const { getToken, isLoaded, isSignedIn } = useAuth();
   const { activeWorkspaceId } = useWorkspace();
   const queryClient = useQueryClient();
 
   const query = useQuery({
     queryKey: ['teamInvitations', activeWorkspaceId],
-    enabled: Boolean(activeWorkspaceId && getToken),
+    enabled: Boolean(activeWorkspaceId && isLoaded && isSignedIn),
     queryFn: async () => {
       if (!activeWorkspaceId) return { data: [] };
       const { data, error } = await repo.listInvitations(
@@ -34,6 +34,7 @@ export function useTeamInvitations() {
       email: string;
       role: WorkspaceRole;
     }) => {
+      if (!isLoaded || !isSignedIn) throw new Error('Authentication required');
       if (!activeWorkspaceId) throw new Error('No workspace selected');
       const result = await createWorkspaceInvite(
         getToken!,
@@ -55,6 +56,7 @@ export function useTeamInvitations() {
 
   const revokeInvitation = useMutation({
     mutationFn: async (invitationId: string) => {
+      if (!isLoaded || !isSignedIn) throw new Error('Authentication required');
       const { error } = await repo.revokeInvitation(invitationId, getToken!);
       if (error) throw new Error(error.error);
     },

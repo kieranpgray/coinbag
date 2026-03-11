@@ -261,7 +261,7 @@ export class SupabaseCategoriesRepository implements CategoriesRepository {
       // Step 1: Uncategorise all subscriptions that reference this category
       // Set their category_id to NULL before deleting the category
       const { error: uncategoriseError } = await supabase
-        .from('subscriptions')
+        .from('expenses')
         .update({ category_id: null })
         .eq('category_id', id);
 
