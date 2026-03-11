@@ -11,21 +11,15 @@
 // Detect production mode
 // Production if:
 // 1. NODE_ENV is explicitly set to 'production'
-// 2. Running in CI (Vercel, GitHub Actions, etc.) — this script is only run from "build", which is a prod build
+// 2. Vercel deployment environment is production
 // 3. --mode production flag is present
-// 4. Running vite build (when script is invoked with that in argv)
-const isRunningBuild = process.argv.some(arg =>
-  (arg.includes('vite') && arg.includes('build')) ||
-  process.argv.includes('build')
-);
 const hasProductionMode = process.argv.some((arg, i) =>
   arg === '--mode' && process.argv[i + 1] === 'production'
 );
-const isCI = process.env.VERCEL === '1' || process.env.CI === 'true';
+const isVercelProduction = process.env.VERCEL === '1' && process.env.VERCEL_ENV === 'production';
 const isProduction = process.env.NODE_ENV === 'production' ||
-                     isCI ||
-                     hasProductionMode ||
-                     (isRunningBuild && process.env.NODE_ENV !== 'development');
+                     isVercelProduction ||
+                     hasProductionMode;
 
 const dataSource = process.env.VITE_DATA_SOURCE;
 
