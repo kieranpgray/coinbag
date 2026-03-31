@@ -42,3 +42,12 @@ export type WorkspaceMembership = z.infer<typeof workspaceMembershipSchema>;
 export type WorkspaceInvitation = z.infer<typeof workspaceInvitationSchema>;
 
 export const LAST_USED_WORKSPACE_KEY = 'wellthy_last_used_workspace_id';
+
+/** Clerk-backed display fields for team list (edge function response). No email. */
+export interface WorkspaceMemberProfile {
+  userId: string;
+  imageUrl: string | null;
+  firstName: string | null;
+  lastName: string | null;
+}
+

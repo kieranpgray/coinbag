@@ -6,12 +6,10 @@ import { useCommandPalette } from '@/hooks/useCommandPalette';
 import { Button } from '@/components/ui/button';
 import { Eye, EyeOff, Moon, Sun, Grid3x3, Settings, Menu } from 'lucide-react';
 import { MobileNav } from './MobileNav';
-import { WorkspaceSwitcher } from '@/components/workspace/WorkspaceSwitcher';
-import { useWorkspaceCollaborationEnabled } from '@/hooks/useWorkspaceCollaborationEnabled';
+import { UserAccountMenu } from '@/components/layout/UserAccountMenu';
 import { ROUTES } from '@/lib/constants/routes';
 
 export function Header() {
-  const workspaceCollaborationEnabled = useWorkspaceCollaborationEnabled();
   const { darkMode, toggleDarkMode, privacyMode, togglePrivacyMode } = useTheme();
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
@@ -37,12 +35,8 @@ export function Header() {
           </Link>
         </div>
 
-        {/* Workspace Switcher (desktop) - gated by feature flag */}
-        {workspaceCollaborationEnabled && (
-          <div className="hidden md:flex items-center flex-1 max-w-[200px]">
-            <WorkspaceSwitcher />
-          </div>
-        )}
+        {/* Spacer on desktop — workspace switching is in account menu */}
+        <div className="hidden md:flex flex-1" aria-hidden="true" />
 
         {/* Right Actions */}
         <div className="flex items-center gap-3">
@@ -94,10 +88,7 @@ export function Header() {
               <Settings className="h-5 w-5 text-muted-foreground" />
             </Button>
           </Link>
-          {/* Profile Avatar */}
-          <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center ml-1">
-            <span className="text-body text-muted-foreground font-medium">P</span>
-          </div>
+          <UserAccountMenu />
         </div>
       </header>
       <MobileNav open={mobileNavOpen} onOpenChange={setMobileNavOpen} />

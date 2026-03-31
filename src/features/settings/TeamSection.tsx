@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useUser as useClerkUser } from '@clerk/clerk-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -13,11 +13,13 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
+import { UserAvatar } from '@/components/user/UserAvatar';
 import { useWorkspace } from '@/contexts/WorkspaceContext';
 import { useTeamMembers } from '@/hooks/useTeamMembers';
 import { useTeamInvitations } from '@/hooks/useTeamInvitations';
+import { useWorkspaceMemberProfiles } from '@/hooks/useWorkspaceMemberProfiles';
 import { canAdmin } from '@/lib/permissionHelpers';
-import type { WorkspaceRole } from '@/contracts/workspaces';
+import type { WorkspaceMemberProfile, WorkspaceMembership, WorkspaceRole } from '@/contracts/workspaces';
 
 const ROLE_OPTIONS: { value: WorkspaceRole; label: string }[] = [
   { value: 'admin', label: 'Admin' },
@@ -42,6 +44,29 @@ function InviteStatusBadge({
   return <Badge variant="outline">Pending</Badge>;
 }
 
+function displayNameForMember(
+  member: WorkspaceMembership,
+  currentUserId: string,
+  profile: WorkspaceMemberProfile | undefined
+): string {
+  if (member.userId === currentUserId) return 'You';
+  const fromClerk = [profile?.firstName, profile?.lastName].filter(Boolean).join(' ').trim();
+  if (fromClerk) return fromClerk;
+  return member.userId;
+}
+
+function avatarLabelForMember(
+  member: WorkspaceMembership,
+  currentUserId: string,
+  profile: WorkspaceMemberProfile | undefined,
+  selfLabel: string
+): string {
+  if (member.userId === currentUserId) return selfLabel;
+  const fromClerk = [profile?.firstName, profile?.lastName].filter(Boolean).join(' ').trim();
+  if (fromClerk) return fromClerk;
+  return member.userId;
+}
+
 export function TeamSection() {
   const { user: clerkUser } = useClerkUser();
   const { activeWorkspace, currentRole, isLoading: workspaceLoading } = useWorkspace();
@@ -52,6 +77,7 @@ export function TeamSection() {
     updateRole,
     removeMember,
   } = useTeamMembers();
+  const { data: profilesResult, isLoading: profilesLoading } = useWorkspaceMemberProfiles();
   const {
     invitations,
     isLoading: invitationsLoading,
@@ -66,6 +92,19 @@ export function TeamSection() {
 
   const isAdmin = currentRole ? canAdmin(currentRole) : false;
   const currentUserId = clerkUser?.id ?? '';
+
+  const selfAvatarLabel =
+    [clerkUser?.firstName, clerkUser?.lastName].filter(Boolean).join(' ') ||
+    clerkUser?.primaryEmailAddress?.emailAddress ||
+    'You';
+
+  const profileByUserId = useMemo(() => {
+    const m = new Map<string, WorkspaceMemberProfile>();
+    for (const p of profilesResult?.profiles ?? []) {
+      m.set(p.userId, p);
+    }
+    return m;
+  }, [profilesResult?.profiles]);
 
   const handleInvite = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -107,7 +146,7 @@ export function TeamSection() {
       <Card>
         <CardContent className="pt-6">
           <p className="text-body text-muted-foreground">
-            No workspace selected. Please select a workspace from the switcher.
+            No workspace selected. Use the account menu (profile icon) in the top bar to choose a workspace.
           </p>
         </CardContent>
       </Card>
@@ -144,76 +183,88 @@ export function TeamSection() {
             <p className="text-body text-muted-foreground">No members yet.</p>
           ) : (
             <div className="space-y-3">
-              {members.map((member) => (
-                <div
-                  key={member.id}
-                  className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-3 rounded-lg border border-border bg-muted/30"
-                >
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center">
-                      <span className="text-body text-muted-foreground font-medium">
-                        {member.userId === currentUserId ? 'You' : member.userId.slice(0, 2).toUpperCase()}
-                      </span>
-                    </div>
-                    <div>
-                      <p className="text-body font-medium">
-                        {member.userId === currentUserId
-                          ? 'You'
-                          : member.userId}
-                      </p>
-                      <Badge variant="secondary" className="text-caption">
-                        {member.role}
-                      </Badge>
-                    </div>
-                  </div>
-                  {isAdmin && (
+              {profilesLoading && (
+                <p className="text-caption text-muted-foreground">Loading profile photos…</p>
+              )}
+              {members.map((member) => {
+                const profile = profileByUserId.get(member.userId);
+                const title = displayNameForMember(member, currentUserId, profile);
+                const avatarLabel = avatarLabelForMember(
+                  member,
+                  currentUserId,
+                  profile,
+                  selfAvatarLabel
+                );
+                const imageUrl =
+                  member.userId === currentUserId ? clerkUser?.imageUrl : profile?.imageUrl;
+
+                return (
+                  <div
+                    key={member.id}
+                    className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-3 rounded-lg border border-border bg-muted/30"
+                  >
                     <div className="flex items-center gap-2">
-                      <Select
-                        value={member.role}
-                        onValueChange={(v) =>
-                          updateRole.mutate({
-                            membershipId: member.id,
-                            role: v as WorkspaceRole,
-                          })
-                        }
-                        disabled={
-                          member.userId === currentUserId ||
-                          isLastAdmin(member.userId)
-                        }
-                      >
-                        <SelectTrigger className="w-28 h-9">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {ROLE_OPTIONS.map((opt) => (
-                            <SelectItem
-                              key={opt.value}
-                              value={opt.value}
-                              disabled={
-                                isLastAdmin(member.userId) && opt.value !== 'admin'
-                              }
-                            >
-                              {opt.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => removeMember.mutate(member.id)}
-                        disabled={
-                          member.userId === currentUserId ||
-                          isLastAdmin(member.userId)
-                        }
-                        aria-label={`Remove ${member.userId === currentUserId ? 'yourself' : 'member'}`}
-                      >
-                        Remove
-                      </Button>
+                      <UserAvatar
+                        imageUrl={imageUrl}
+                        label={avatarLabel}
+                        alt=""
+                      />
+                      <div>
+                        <p className="text-body font-medium">{title}</p>
+                        <Badge variant="secondary" className="text-caption">
+                          {member.role}
+                        </Badge>
+                      </div>
                     </div>
-                  )}
-                </div>
-              ))}
+                    {isAdmin && (
+                      <div className="flex items-center gap-2">
+                        <Select
+                          value={member.role}
+                          onValueChange={(v) =>
+                            updateRole.mutate({
+                              membershipId: member.id,
+                              role: v as WorkspaceRole,
+                            })
+                          }
+                          disabled={
+                            member.userId === currentUserId ||
+                            isLastAdmin(member.userId)
+                          }
+                        >
+                          <SelectTrigger className="w-28 h-9">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {ROLE_OPTIONS.map((opt) => (
+                              <SelectItem
+                                key={opt.value}
+                                value={opt.value}
+                                disabled={
+                                  isLastAdmin(member.userId) && opt.value !== 'admin'
+                                }
+                              >
+                                {opt.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeMember.mutate(member.id)}
+                          disabled={
+                            member.userId === currentUserId ||
+                            isLastAdmin(member.userId)
+                          }
+                          aria-label={`Remove ${member.userId === currentUserId ? 'yourself' : 'member'}`}
+                        >
+                          Remove
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           )}
         </CardContent>

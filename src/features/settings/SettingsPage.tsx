@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useUser as useClerkUser } from '@clerk/clerk-react';
 import { useUserPreferences, useUpdateUserPreferences } from '@/hooks/useUserPreferences';
 import { useSearchParams, useNavigate } from 'react-router-dom';
@@ -22,6 +23,8 @@ import { useLocale } from '@/contexts/LocaleContext';
 import { getSupportedLocales } from '@/lib/localeRegistry';
 import { useTranslation } from 'react-i18next';
 import { detectCountryFromIP } from '@/lib/ipDetection';
+import { UserAvatar } from '@/components/user/UserAvatar';
+import { WORKSPACE_MEMBER_PROFILES_QUERY_KEY } from '@/lib/workspaceMemberProfilesApi';
 
 const profileSchema = z.object({
   firstName: z.string().optional(),
@@ -44,6 +47,10 @@ export function SettingsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'profile');
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+  const [photoError, setPhotoError] = useState<string | null>(null);
+  const profilePhotoInputRef = useRef<HTMLInputElement>(null);
   
   // Detect country on mount for display
   useEffect(() => {
@@ -63,6 +70,65 @@ export function SettingsPage() {
 
   // Get 2FA status from Clerk (source of truth)
   const twoFactorEnabled = clerkUser?.twoFactorEnabled ?? false;
+  const profilePhotoLabel =
+    [clerkUser?.firstName, clerkUser?.lastName].filter(Boolean).join(' ') ||
+    clerkUser?.primaryEmailAddress?.emailAddress ||
+    'Profile';
+
+  const MAX_PROFILE_PHOTO_BYTES = 5 * 1024 * 1024;
+  const PROFILE_PHOTO_ACCEPT = ['image/jpeg', 'image/png', 'image/webp'] as const;
+
+  const handleProfilePhotoSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file || !clerkUser) return;
+    setPhotoError(null);
+    if (!PROFILE_PHOTO_ACCEPT.includes(file.type as (typeof PROFILE_PHOTO_ACCEPT)[number])) {
+      setPhotoError('Please choose a JPEG, PNG, or WebP image.');
+      return;
+    }
+    if (file.size > MAX_PROFILE_PHOTO_BYTES) {
+      setPhotoError('Image must be 5 MB or smaller.');
+      return;
+    }
+    const userWithPfp = clerkUser as unknown as {
+      setProfileImage?: (args: { file: File | Blob | string | null }) => Promise<unknown>;
+    };
+    if (typeof userWithPfp.setProfileImage !== 'function') {
+      setPhotoError('Profile photo upload is not available.');
+      return;
+    }
+    setIsUploadingPhoto(true);
+    try {
+      await userWithPfp.setProfileImage({ file });
+      await clerkUser.reload();
+      await queryClient.invalidateQueries({ queryKey: [WORKSPACE_MEMBER_PROFILES_QUERY_KEY] });
+    } catch (err) {
+      setPhotoError(err instanceof Error ? err.message : 'Failed to update photo');
+    } finally {
+      setIsUploadingPhoto(false);
+    }
+  };
+
+  const handleRemoveProfilePhoto = async () => {
+    if (!clerkUser) return;
+    setPhotoError(null);
+    const userWithPfp = clerkUser as unknown as {
+      setProfileImage?: (args: { file: File | Blob | string | null }) => Promise<unknown>;
+    };
+    if (typeof userWithPfp.setProfileImage !== 'function') return;
+    setIsUploadingPhoto(true);
+    try {
+      await userWithPfp.setProfileImage({ file: null });
+      await clerkUser.reload();
+      await queryClient.invalidateQueries({ queryKey: [WORKSPACE_MEMBER_PROFILES_QUERY_KEY] });
+    } catch (err) {
+      setPhotoError(err instanceof Error ? err.message : 'Failed to remove photo');
+    } finally {
+      setIsUploadingPhoto(false);
+    }
+  };
+
 
   const {
     register,
@@ -198,6 +264,54 @@ export function SettingsPage() {
               <CardDescription>Update your personal information</CardDescription>
             </CardHeader>
             <CardContent>
+              <div className="space-y-3 pb-6 mb-2 border-b border-border">
+                <Label htmlFor="profile-photo-upload">Profile photo</Label>
+                <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                  <UserAvatar
+                    imageUrl={clerkUser?.imageUrl}
+                    label={profilePhotoLabel}
+                    size="md"
+                    alt=""
+                  />
+                  <div className="flex flex-col gap-2">
+                    <input
+                      ref={profilePhotoInputRef}
+                      id="profile-photo-upload"
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      className="sr-only"
+                      onChange={handleProfilePhotoSelected}
+                      disabled={isUploadingPhoto || !clerkUser}
+                    />
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        disabled={isUploadingPhoto || !clerkUser}
+                        onClick={() => profilePhotoInputRef.current?.click()}
+                      >
+                        {isUploadingPhoto ? 'Working…' : 'Upload photo'}
+                      </Button>
+                      {clerkUser?.hasImage ? (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          disabled={isUploadingPhoto}
+                          onClick={handleRemoveProfilePhoto}
+                        >
+                          Remove photo
+                        </Button>
+                      ) : null}
+                    </div>
+                    {photoError ? (
+                      <p className="text-body text-destructive">{photoError}</p>
+                    ) : null}
+                    <p className="text-caption text-muted-foreground">
+                      JPEG, PNG, or WebP. Max 5 MB.
+                    </p>
+                  </div>
+                </div>
+              </div>
               <form onSubmit={handleSubmit(handleProfileSubmit)} className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
@@ -219,7 +333,7 @@ export function SettingsPage() {
                     <p className="text-body text-destructive">{errors.email.message}</p>
                   )}
                   <p className="text-caption text-muted-foreground">
-                    Email changes are managed in your account settings (top-right user menu).
+                    Email changes are managed in your account settings (account menu (profile icon)).
                   </p>
                 </div>
                 <div className="space-y-2">
