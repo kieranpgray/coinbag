@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { parseExcelFile, validateExcelFile } from '../excelParser';
-import type { ParsedImportData } from '@/features/import/types';
 
 // Mock XLSX library
 vi.mock('xlsx', () => ({

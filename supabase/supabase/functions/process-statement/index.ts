@@ -129,7 +129,6 @@ function parseTransactionsSimple(text: string) {
     if (isNaN(date.getTime())) continue
 
     // Determine transaction type
-    const lowerDesc = description.toLowerCase()
     const type = amount > 0 ? 'income' : 'expense'
 
     transactions.push({
@@ -354,30 +353,6 @@ Instructions:
       throw new Error('Failed to parse structured data from Mistral response')
     }
   })
-}
-
-/**
- * Get existing transactions for deduplication
- */
-async function getExistingTransactions(accountId: string, supabase: any): Promise<any[]> {
-  try {
-    const { data, error } = await supabase
-      .from('transactions')
-      .select('id, transaction_reference, date, description, amount')
-      .eq('account_id', accountId)
-
-    if (error) {
-      logger.warn('STATEMENT:PROCESS', 'Failed to fetch existing transactions', { error: error.message })
-      return []
-    }
-
-    return data || []
-  } catch (error) {
-    logger.warn('STATEMENT:PROCESS', 'Error fetching existing transactions', {
-      error: error instanceof Error ? error.message : String(error)
-    })
-    return []
-  }
 }
 
 /**

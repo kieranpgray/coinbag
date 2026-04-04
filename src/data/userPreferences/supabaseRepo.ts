@@ -253,7 +253,8 @@ export class SupabaseUserPreferencesRepository implements UserPreferencesReposit
         // so that "Save Pay Cycle" still persists when locale migration hasn't been run.
         if (isLocaleMissingError) {
           const withLocale = dbInputWithTransfers as Record<string, unknown>;
-          const { locale: _locale, ...dbInputWithoutLocale } = withLocale;
+          const { locale, ...dbInputWithoutLocale } = withLocale;
+          void locale;
           const selectWithoutLocale =
             'privacy_mode, theme_preference, dark_mode, email_notifications, hide_setup_checklist, pay_cycle, transfer_view_mode';
           const localeFallback = await supabase
@@ -268,7 +269,7 @@ export class SupabaseUserPreferencesRepository implements UserPreferencesReposit
         }
 
         if (error) {
-          let fallbackResult = await supabase
+          const fallbackResult = await supabase
             .from('user_preferences')
             .upsert(dbInputWithChecklist, { onConflict: 'user_id' })
             .select('privacy_mode, theme_preference, dark_mode, email_notifications, locale, hide_setup_checklist')
@@ -294,7 +295,8 @@ export class SupabaseUserPreferencesRepository implements UserPreferencesReposit
               .single();
             
             if (fallbackResult2.error && ((fallbackResult2.error as any).status === 400 || fallbackResult2.error.code === '42703' || fallbackResult2.error.code === 'PGRST100' || fallbackResult2.error.code === 'PGRST204')) {
-              const { locale: __, ...dbInputWithoutLocale } = dbInput;
+              const { locale: localeToOmit, ...dbInputWithoutLocale } = dbInput;
+              void localeToOmit;
               fallbackResult2 = await supabase
                 .from('user_preferences')
                 .upsert(dbInputWithoutLocale, { onConflict: 'user_id' })

@@ -32,15 +32,15 @@ describe('statement-purge', () => {
 
   describe('isStatementFilePurgeEnabled', () => {
     it('returns true when ENABLE_STATEMENT_FILE_PURGE is unset', () => {
-      ;(globalThis as any).Deno.env.get.mockReturnValue(undefined)
+      void (globalThis as any).Deno.env.get.mockReturnValue(undefined)
       expect(isStatementFilePurgeEnabled()).toBe(true)
     })
     it('returns false when set to false', () => {
-      ;(globalThis as any).Deno.env.get.mockReturnValue('false')
+      void (globalThis as any).Deno.env.get.mockReturnValue('false')
       expect(isStatementFilePurgeEnabled()).toBe(false)
     })
     it('returns false when set to 0', () => {
-      ;(globalThis as any).Deno.env.get.mockReturnValue('0')
+      void (globalThis as any).Deno.env.get.mockReturnValue('0')
       expect(isStatementFilePurgeEnabled()).toBe(false)
     })
   })

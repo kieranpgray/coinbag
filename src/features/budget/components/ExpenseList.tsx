@@ -164,7 +164,7 @@ export function ExpenseList({
     }
 
     // Handle frequency conversion for amount
-    let finalChanges = { ...changes };
+    const finalChanges = { ...changes };
     if (displayFrequency && 'amount' in changes && changes.amount !== undefined) {
       const originalExpense = originalExpensesRef.current.get(expenseId);
       if (originalExpense) {

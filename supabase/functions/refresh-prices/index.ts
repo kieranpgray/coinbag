@@ -96,7 +96,7 @@ serve(async (req: Request) => {
         return now - fetchedAt > intervalMs;
       }) ?? [];
 
-    let refreshed = 0;
+    const refreshed = 0;
     let failed = 0;
 
     for (const row of staleRows) {

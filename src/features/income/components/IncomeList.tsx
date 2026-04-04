@@ -266,7 +266,7 @@ export function IncomeList({ incomes, accountMap, onEdit, onDelete, onCreate }: 
   const focusNextCell = useCallback((currentIncomeId: string, currentField: string, direction: 'next' | 'prev' = 'next') => {
     const fields = ['name', 'source', 'amount', 'frequency', 'nextPaymentDate', 'paidToAccountId'];
     const currentIndex = fields.indexOf(currentField);
-    let nextIndex = direction === 'next' ? currentIndex + 1 : currentIndex - 1;
+    const nextIndex = direction === 'next' ? currentIndex + 1 : currentIndex - 1;
     
     if (nextIndex >= 0 && nextIndex < fields.length) {
       // Move to next field in same row

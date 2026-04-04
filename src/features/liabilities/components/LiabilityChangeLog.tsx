@@ -26,24 +26,6 @@ export function LiabilityChangeLog({ liabilityId }: LiabilityChangeLogProps) {
   const [filterBy, setFilterBy] = useState<FilterOption>('all');
   const [showTimeline, setShowTimeline] = useState(false);
 
-  if (isLoading) {
-    return (
-      <div className="space-y-2">
-        <Skeleton className="h-12 w-full" />
-        <Skeleton className="h-12 w-full" />
-        <Skeleton className="h-12 w-full" />
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="text-body text-muted-foreground">
-        Unable to load change history.
-      </div>
-    );
-  }
-
   const filteredAndSortedHistory = useMemo(() => {
     if (!history) return [];
 
@@ -110,6 +92,24 @@ export function LiabilityChangeLog({ liabilityId }: LiabilityChangeLogProps) {
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
   }, [filteredAndSortedHistory, liabilityId]);
+
+  if (isLoading) {
+    return (
+      <div className="space-y-2">
+        <Skeleton className="h-12 w-full" />
+        <Skeleton className="h-12 w-full" />
+        <Skeleton className="h-12 w-full" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-body text-muted-foreground">
+        Unable to load change history.
+      </div>
+    );
+  }
 
   if (!history || history.length === 0) {
     return (

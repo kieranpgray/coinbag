@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { generateImportTemplate } from '../templateGenerator';
 
 import { DEFAULT_CATEGORY_NAMES } from '@/data/categories/constants';

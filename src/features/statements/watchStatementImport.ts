@@ -140,6 +140,7 @@ export async function watchStatementImport(
   }
 
   // Try real-time subscription first (primary method)
+  // eslint-disable-next-line no-async-promise-executor -- large async setup; refactor to async IIFE separately
   return new Promise<WatchStatementImportResult>(async (resolve) => {
     let subscriptionActive = false
     let pollInterval: number | null = null

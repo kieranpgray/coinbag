@@ -69,7 +69,6 @@ export class ImportService {
     // Set existing data for duplicate detection
     if (existingData) {
       // Type assertion needed because existingData uses unknown[] but setExistingData expects specific types
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       this.validation.setExistingData(existingData as any);
     }
 

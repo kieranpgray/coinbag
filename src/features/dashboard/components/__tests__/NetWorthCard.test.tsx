@@ -42,18 +42,35 @@ function Wrapper({ children }: { children: React.ReactNode }) {
   );
 }
 
+const defaultTotals = {
+  totalAssets: 1_200_000,
+  totalLiabilities: 200_000,
+};
+
 describe('NetWorthCard', () => {
   it('renders net worth value', () => {
     render(
-      <NetWorthCard netWorth={1000000} change1D={0.5} change1W={2.3} />,
+      <NetWorthCard
+        netWorth={1000000}
+        {...defaultTotals}
+        change1D={0.5}
+        change1W={2.3}
+      />,
       { wrapper: Wrapper }
     );
-    expect(screen.getByText('Net Worth')).toBeInTheDocument();
+    expect(screen.getAllByText('Net Worth').length).toBeGreaterThan(0);
   });
 
   it('displays loading state', () => {
     render(
-      <NetWorthCard netWorth={0} change1D={0} change1W={0} isLoading={true} />,
+      <NetWorthCard
+        netWorth={0}
+        totalAssets={0}
+        totalLiabilities={0}
+        change1D={0}
+        change1W={0}
+        isLoading={true}
+      />,
       { wrapper: Wrapper }
     );
     // Should show skeleton loaders
@@ -61,22 +78,32 @@ describe('NetWorthCard', () => {
     expect(skeletons.length).toBeGreaterThan(0);
   });
 
-  it('shows positive change in green', () => {
+  it('shows chart period tabs and summary with positive net worth status', () => {
     render(
-      <NetWorthCard netWorth={1000000} change1D={1.5} change1W={3.2} />,
+      <NetWorthCard
+        netWorth={1000000}
+        {...defaultTotals}
+        change1D={1.5}
+        change1W={3.2}
+      />,
       { wrapper: Wrapper }
     );
-    const changeElements = screen.getAllByText(/1D:|1W:/);
-    expect(changeElements.length).toBeGreaterThan(0);
+    expect(screen.getByRole('tab', { name: '30d' })).toBeInTheDocument();
+    expect(screen.getAllByLabelText('Positive status').length).toBeGreaterThan(0);
   });
 
-  it('shows negative change in red', () => {
+  it('shows summary with negative net worth status when net worth is below zero', () => {
     render(
-      <NetWorthCard netWorth={1000000} change1D={-1.5} change1W={-3.2} />,
+      <NetWorthCard
+        netWorth={-50000}
+        totalAssets={100000}
+        totalLiabilities={150000}
+        change1D={-1.5}
+        change1W={-3.2}
+      />,
       { wrapper: Wrapper }
     );
-    const changeElements = screen.getAllByText(/1D:|1W:/);
-    expect(changeElements.length).toBeGreaterThan(0);
+    expect(screen.getByLabelText('Negative status')).toBeInTheDocument();
   });
 });
 
