@@ -7,13 +7,14 @@ import { ChevronRight } from 'lucide-react';
 
 interface AccountCashFlowRowProps {
   accountFlow: AccountCashFlow;
+  viewMode: 'weekly' | 'fortnightly' | 'monthly';
 }
 
 /**
  * List row for one account's cash flow (no Card).
  * Used inside the collapsible "By account" section.
  */
-export function AccountCashFlowRow({ accountFlow }: AccountCashFlowRowProps) {
+export function AccountCashFlowRow({ accountFlow, viewMode }: AccountCashFlowRowProps) {
   const [breakdownModalOpen, setBreakdownModalOpen] = useState(false);
   const netFlow = accountFlow.monthlyIncome - accountFlow.monthlyExpenses;
   const hasExpenses = accountFlow.monthlyExpenses > 0;
@@ -28,7 +29,7 @@ export function AccountCashFlowRow({ accountFlow }: AccountCashFlowRowProps) {
               <div className="flex justify-between sm:block">
                 <span className="text-muted-foreground">Income</span>
                 <span className="font-medium text-green-600 dark:text-green-400 sm:ml-2">
-                  {formatAmountByFrequency(accountFlow.monthlyIncome, 'monthly')}
+                  {formatAmountByFrequency(accountFlow.monthlyIncome, viewMode)}
                 </span>
               </div>
             )}
@@ -36,7 +37,7 @@ export function AccountCashFlowRow({ accountFlow }: AccountCashFlowRowProps) {
               <div className="flex justify-between sm:block">
                 <span className="text-muted-foreground">Expenses</span>
                 <span className="font-medium text-red-600 dark:text-red-400 sm:ml-2">
-                  {formatAmountByFrequency(accountFlow.monthlyExpenses, 'monthly')}
+                  {formatAmountByFrequency(accountFlow.monthlyExpenses, viewMode)}
                 </span>
               </div>
             )}
@@ -48,7 +49,7 @@ export function AccountCashFlowRow({ accountFlow }: AccountCashFlowRowProps) {
                     netFlow >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
                   }`}
                 >
-                  {formatAmountByFrequency(Math.abs(netFlow), 'monthly')}
+                  {formatAmountByFrequency(Math.abs(netFlow), viewMode)}
                   {netFlow >= 0 ? ' in' : ' out'}
                 </span>
               </div>
@@ -71,6 +72,7 @@ export function AccountCashFlowRow({ accountFlow }: AccountCashFlowRowProps) {
         open={breakdownModalOpen}
         onOpenChange={setBreakdownModalOpen}
         accountFlow={accountFlow}
+        viewMode={viewMode}
       />
     </>
   );

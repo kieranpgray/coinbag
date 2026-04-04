@@ -15,6 +15,7 @@ import { SUPPORTED_EXCHANGES } from '@/constants/exchanges';
 import { SUPPORTED_CRYPTO_SYMBOLS } from '@/constants/cryptoSymbols';
 import { useLocale } from '@/contexts/LocaleContext';
 import { formatNumber } from '@/lib/utils';
+import { useSymbolPrice } from '@/hooks/use-symbol-price';
 
 // Form schema: name optional at base level (required only for non-Stock/RSU via superRefine)
 // Stock/RSU fields optional here; Task 8/9 add UI and validation for them
@@ -304,6 +305,18 @@ export function AssetForm({ asset, onSubmit, onCancel, onDelete, isLoading, defa
     : null;
 
   const cryptoQty = watch('quantity');
+
+  // Crypto price lookup (after showCryptoSection and cryptoQty)
+  const cryptoTicker = showCryptoSection ? watch('ticker') : undefined;
+  const { data: priceData, isLoading: isPriceLoading } = useSymbolPrice(cryptoTicker, 'crypto');
+  const cryptoCurrentPrice = priceData?.price;
+  const cryptoValueFromPrice = (cryptoCurrentPrice != null && typeof cryptoQty === 'number' && cryptoQty > 0) ? Math.round(cryptoCurrentPrice * cryptoQty * 100) / 100 : null;
+
+  useEffect(() => {
+    if (cryptoValueFromPrice != null) {
+      setValue('value', cryptoValueFromPrice);
+    }
+  }, [cryptoValueFromPrice, setValue, cryptoQty]);
   const cryptoPurchasePrice = watch('purchasePrice');
   const cryptoValue = watch('value');
   const cryptoCostBasis = showCryptoSection && typeof cryptoQty === 'number' && typeof cryptoPurchasePrice === 'number' && cryptoQty > 0 && cryptoPurchasePrice >= 0
@@ -807,21 +820,46 @@ export function AssetForm({ asset, onSubmit, onCancel, onDelete, isLoading, defa
             )}
           </div>
           <div className="space-y-2">
+            <Label>Initial value</Label>
+            <div className="rounded-md border border-input bg-muted/50 px-3 py-2 text-body">
+              {cryptoCostBasis != null
+                ? `$${formatNumber(cryptoCostBasis, 'en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                : '—'}
+            </div>
+            <p className="text-caption text-muted-foreground">
+              {cryptoCostBasis != null ? 'Purchase price × quantity' : 'Enter purchase price and quantity to see'}
+            </p>
+          </div>
+          <div className="space-y-2">
             <Label htmlFor="crypto-value">
               Current value ($) <span className="text-destructive">*</span>
             </Label>
-            <Input
-              id="crypto-value"
-              type="number"
-              step="0.01"
-              min={0}
-              placeholder="0.00"
-              aria-invalid={!!errors.value}
-              className={errors.value ? 'border-destructive' : ''}
-              {...register('value', { valueAsNumber: true })}
-            />
-            {errors.value && (
-              <p className="text-body text-destructive" role="alert">{errors.value.message}</p>
+            {cryptoValueFromPrice != null ? (
+              <>
+                <div className="rounded-md border border-input bg-muted/50 px-3 py-2 text-body">
+                  ${formatNumber(cryptoValueFromPrice, 'en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </div>
+                <p className="text-caption text-muted-foreground">Current price × quantity</p>
+              </>
+            ) : (
+              <>
+                <Input
+                  id="crypto-value"
+                  type="number"
+                  step="0.01"
+                  min={0}
+                  placeholder="0.00"
+                  aria-invalid={!!errors.value}
+                  className={errors.value ? 'border-destructive' : ''}
+                  {...register('value', { valueAsNumber: true })}
+                />
+                <p className="text-caption text-muted-foreground">
+                  {isPriceLoading ? 'Loading price…' : 'No price data for this coin; enter current value'}
+                </p>
+                {errors.value && (
+                  <p className="text-body text-destructive" role="alert">{errors.value.message}</p>
+                )}
+              </>
             )}
           </div>
           <div className="space-y-2">
@@ -832,7 +870,7 @@ export function AssetForm({ asset, onSubmit, onCancel, onDelete, isLoading, defa
                 : '—'}
             </div>
             <p className="text-caption text-muted-foreground">
-              {cryptoCostBasis != null ? 'Current value − cost basis' : 'Enter purchase price and quantity to see P/L'}
+              {cryptoCostBasis != null ? 'Current value − initial value' : 'Enter purchase price and quantity to see P/L'}
             </p>
           </div>
           <div className="space-y-2">

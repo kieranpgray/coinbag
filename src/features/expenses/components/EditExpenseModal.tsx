@@ -13,15 +13,18 @@ interface EditExpenseModalProps {
   expense: Expense;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  /** Called when the modal is closed after a successful save. Use to skip revert logic in parent. */
+  onCloseAfterSave?: () => void;
 }
 
-export function EditExpenseModal({ expense, open, onOpenChange }: EditExpenseModalProps) {
+export function EditExpenseModal({ expense, open, onOpenChange, onCloseAfterSave }: EditExpenseModalProps) {
   const { update: updateMutation } = useExpenseMutations();
 
   const handleSubmit = async (data: Omit<Expense, 'id'>) => {
     try {
       await updateMutation.mutateAsync({ id: expense.id, data });
       // If we reach here, the mutation was successful
+      onCloseAfterSave?.();
       onOpenChange(false);
       // TODO: Show success toast notification
       console.log('Expense updated successfully');

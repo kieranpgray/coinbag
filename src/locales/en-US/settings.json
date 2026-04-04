@@ -13,11 +13,6 @@
     "label": "Language and Location",
     "detected": "Detected: {{country}}"
   },
-  "taxRate": {
-    "label": "Tax Rate",
-    "placeholder": "0.0",
-    "description": "Your default tax rate percentage"
-  },
   "emailNotifications": {
     "title": "Email Notifications",
     "portfolioSummary": {

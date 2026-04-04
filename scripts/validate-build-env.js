@@ -1,124 +1,145 @@
 #!/usr/bin/env node
 /**
- * Build-time validation
- * 
- * 1. Validates environment variables (VITE_DATA_SOURCE must be 'supabase' in production)
- * 2. Validates TypeScript compilation (no type errors allowed)
- * 
- * This prevents accidentally building with mock repository or broken TypeScript code.
+ * Build-time environment validation.
+ *
+ * Production contract:
+ * - Strictly enforced on Vercel Production deployments.
+ * - Fails early if required env vars are missing/invalid.
  */
 
-// Detect production mode
-// Production if:
-// 1. NODE_ENV is explicitly set to 'production'
-// 2. Vercel deployment environment is production
-// 3. --mode production flag is present
-const hasProductionMode = process.argv.some((arg, i) =>
-  arg === '--mode' && process.argv[i + 1] === 'production'
+const args = process.argv.slice(2);
+const reportOnly = args.includes('--report-only');
+
+const hasProductionMode = process.argv.some(
+  (arg, i) => arg === '--mode' && process.argv[i + 1] === 'production'
 );
-const isVercelProduction = process.env.VERCEL === '1' && process.env.VERCEL_ENV === 'production';
-const isProduction = process.env.NODE_ENV === 'production' ||
-                     isVercelProduction ||
-                     hasProductionMode;
+const isVercel = process.env.VERCEL === '1';
+const vercelEnv = process.env.VERCEL_ENV;
+const branch = process.env.VERCEL_GIT_COMMIT_REF || 'unknown';
+const isVercelProduction = isVercel && vercelEnv === 'production';
+const isNodeProduction = process.env.NODE_ENV === 'production';
+const isProduction = isNodeProduction || isVercelProduction || hasProductionMode;
+const strictProductionGate = isVercelProduction;
 
 const dataSource = process.env.VITE_DATA_SOURCE;
+const supabaseUrl = process.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY;
+const clerkKey = process.env.VITE_CLERK_PUBLISHABLE_KEY;
 
-if (isProduction && dataSource !== 'supabase') {
-  console.error('');
-  console.error('❌ BUILD FAILED: VITE_DATA_SOURCE must be "supabase" in production');
-  console.error(`   Current value: "${dataSource || 'undefined (defaults to mock)'}"`);
-  console.error('');
-  console.error('   This would cause all user data to be lost on every deployment.');
-  console.error('   Set VITE_DATA_SOURCE=supabase before building.');
-  console.error('');
-  console.error('   Example:');
-  console.error('     VITE_DATA_SOURCE=supabase \\');
-  console.error('     VITE_SUPABASE_URL=https://your-project.supabase.co \\');
-  console.error('     VITE_SUPABASE_ANON_KEY=your-key \\');
-  console.error('     pnpm build');
-  console.error('');
-  process.exit(1);
+function logValidationContext() {
+  console.log('🔎 Build environment validation');
+  console.log(
+    `   context: vercel=${isVercel ? '1' : '0'}, vercelEnv=${vercelEnv || 'unset'}, branch=${branch}, nodeEnv=${process.env.NODE_ENV || 'unset'}`
+  );
+  console.log(`   strictProductionGate=${strictProductionGate ? 'true' : 'false'}`);
 }
 
-if (isProduction && dataSource === 'supabase') {
-  console.log('✅ Build validation passed: VITE_DATA_SOURCE=supabase');
-  
-  // Also check for required Supabase credentials
-  if (!process.env.VITE_SUPABASE_URL) {
-    console.warn('⚠️  WARNING: VITE_SUPABASE_URL is not set');
+function fail(lines) {
+  console.error('');
+  for (const line of lines) {
+    console.error(line);
   }
-  if (!process.env.VITE_SUPABASE_ANON_KEY) {
-    console.warn('⚠️  WARNING: VITE_SUPABASE_ANON_KEY is not set');
-  }
-  
-  // Validate Supabase URL format
-  if (process.env.VITE_SUPABASE_URL && !process.env.VITE_SUPABASE_URL.match(/^https:\/\/.*\.supabase\.co$/)) {
-    console.error('');
-    console.error('❌ BUILD FAILED: VITE_SUPABASE_URL must be a valid Supabase URL');
-    console.error(`   Current value: "${process.env.VITE_SUPABASE_URL}"`);
-    console.error('   Expected format: https://<project-id>.supabase.co');
-    console.error('');
+  console.error('');
+  if (!reportOnly) {
     process.exit(1);
   }
 }
 
-// CRITICAL: Validate Clerk key format
-const clerkKey = process.env.VITE_CLERK_PUBLISHABLE_KEY;
-const isDevelopment = !isProduction;
+function validateSupabaseUrl(url) {
+  return /^https:\/\/.*\.supabase\.co$/.test(url);
+}
+
+logValidationContext();
+
+if (isProduction && dataSource !== 'supabase') {
+  fail([
+    '❌ BUILD FAILED: VITE_DATA_SOURCE must be "supabase" in production',
+    `   Current value: "${dataSource || 'undefined (defaults to mock)'}"`,
+    '   This would cause all user data to be lost on every deployment.',
+    '   Set VITE_DATA_SOURCE=supabase in Vercel Project Settings → Environment Variables.',
+  ]);
+}
+
+if (strictProductionGate) {
+  const missingKeys = [];
+
+  if (!dataSource) missingKeys.push('VITE_DATA_SOURCE');
+  if (!supabaseUrl) missingKeys.push('VITE_SUPABASE_URL');
+  if (!supabaseAnonKey) missingKeys.push('VITE_SUPABASE_ANON_KEY');
+  if (!clerkKey) missingKeys.push('VITE_CLERK_PUBLISHABLE_KEY');
+
+  if (missingKeys.length > 0) {
+    fail([
+      '❌ BUILD FAILED: Missing required Vercel Production environment variables',
+      `   Missing: ${missingKeys.join(', ')}`,
+      '   Set these in Vercel → Project Settings → Environment Variables (Production scope).',
+    ]);
+  }
+
+  if (dataSource !== 'supabase') {
+    fail([
+      '❌ BUILD FAILED: VITE_DATA_SOURCE must be "supabase" on Vercel Production deployments',
+      `   Current value: "${dataSource || 'unset'}"`,
+    ]);
+  }
+
+  if (supabaseUrl && !validateSupabaseUrl(supabaseUrl)) {
+    fail([
+      '❌ BUILD FAILED: VITE_SUPABASE_URL must be a valid Supabase URL',
+      `   Current value: "${supabaseUrl}"`,
+      '   Expected format: https://<project-id>.supabase.co',
+    ]);
+  }
+}
+
+if (isProduction && dataSource === 'supabase') {
+  console.log('✅ Build validation passed: VITE_DATA_SOURCE=supabase');
+}
 
 if (clerkKey) {
   const isProductionKey = clerkKey.startsWith('pk_live_');
   const isTestKey = clerkKey.startsWith('pk_test_');
-  
-  // Production build validation
-  if (isProduction) {
+
+  if (strictProductionGate) {
     if (isTestKey) {
-      console.error('');
-      console.error('❌ BUILD FAILED: Test Clerk key detected in production');
-      console.error('   Clerk publishable key starts with "pk_test_" which is for development only.');
-      console.error('   Use production key (pk_live_...) in production builds.');
-      console.error('');
-      console.error('   Get production key from:');
-      console.error('   Clerk Dashboard → API Keys → Production tab');
-      console.error('');
-      process.exit(1);
+      fail([
+        '❌ BUILD FAILED: Test Clerk key detected in Vercel Production',
+        '   Use production key (pk_live_...) in Vercel Production environment variables.',
+      ]);
     }
-    
+
     if (!isProductionKey && !isTestKey) {
-      console.error('');
-      console.error('❌ BUILD FAILED: Invalid Clerk key format');
-      console.error(`   Current value: "${clerkKey.substring(0, 20)}..."`);
-      console.error('   Clerk keys must start with "pk_live_" (production) or "pk_test_" (development)');
-      console.error('');
-      process.exit(1);
+      fail([
+        '❌ BUILD FAILED: Invalid Clerk key format',
+        `   Current value: "${clerkKey.substring(0, 20)}..."`,
+        '   Clerk keys must start with "pk_live_" (production) or "pk_test_" (development).',
+      ]);
     }
-    
+
     if (isProductionKey) {
       console.log('✅ Clerk production key detected');
     }
   }
-  
-  // Development build validation (warn, don't fail)
+
+  const isDevelopment = !isProduction;
   if (isDevelopment && isProductionKey) {
     console.warn('');
     console.warn('⚠️  WARNING: Production Clerk key detected in development mode');
-    console.warn('   Production keys are domain-restricted and will cause authentication failures on localhost.');
+    console.warn('   Production keys are domain-restricted and can fail on localhost.');
     console.warn('   Use test key (pk_test_...) for local development.');
     console.warn('');
-    console.warn('   Get test key from:');
-    console.warn('   Clerk Dashboard → API Keys → Test tab');
-    console.warn('');
-    console.warn('   To fix: Update .env with test key: VITE_CLERK_PUBLISHABLE_KEY=pk_test_...');
-    console.warn('');
   }
-} else if (isProduction) {
-  console.error('');
-  console.error('❌ BUILD FAILED: VITE_CLERK_PUBLISHABLE_KEY is required in production');
-  console.error('');
-  process.exit(1);
+} else if (strictProductionGate) {
+  fail([
+    '❌ BUILD FAILED: VITE_CLERK_PUBLISHABLE_KEY is required in Vercel Production',
+  ]);
 }
 
-// Note: TypeScript validation is handled by the build script itself
-// (via `tsc --noEmit` in package.json), so we don't duplicate it here.
-// This script focuses on environment variable validation.
+if (strictProductionGate && !reportOnly) {
+  console.log('✅ Production environment contract validated');
+}
+
+if (reportOnly) {
+  console.log('ℹ️  Report-only mode enabled; validation failures were not blocking.');
+}
 

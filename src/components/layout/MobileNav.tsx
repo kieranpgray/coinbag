@@ -1,4 +1,5 @@
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
   Wallet,
@@ -7,10 +8,19 @@ import {
   ArrowLeftRight,
   Settings,
   X,
+  ChevronDown,
+  Search,
 } from 'lucide-react';
 import { usePrefetchRoute } from '@/hooks/usePrefetchRoute';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { AccountMenuContent } from './AccountMenuContent';
+import { useCommandPaletteContext } from '@/contexts/CommandPaletteContext';
 import { cn } from '@/lib/utils';
 import { NAVIGATION_ITEMS, ROUTES } from '@/lib/constants/routes';
 
@@ -38,24 +48,26 @@ export function MobileNav({ open, onOpenChange }: MobileNavProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const { prefetchWealth, prefetchBudget, prefetchAccounts } = usePrefetchRoute();
+  const { openPalette } = useCommandPaletteContext();
+  const [accountMenuOpen, setAccountMenuOpen] = useState(false);
 
-  // Map routes to their prefetch functions
   const getPrefetchHandler = (path: string) => {
     switch (path) {
-      case '/app/wealth':
-        return prefetchWealth;
-      case '/app/budget':
-        return prefetchBudget;
-      case '/app/accounts':
-        return prefetchAccounts;
-      default:
-        return undefined;
+      case '/app/wealth': return prefetchWealth;
+      case '/app/budget': return prefetchBudget;
+      case '/app/accounts': return prefetchAccounts;
+      default: return undefined;
     }
   };
 
   const handleLinkClick = (path: string) => {
     navigate(path);
     onOpenChange(false);
+  };
+
+  const handleOpenPalette = () => {
+    onOpenChange(false);
+    openPalette();
   };
 
   return (
@@ -65,27 +77,59 @@ export function MobileNav({ open, onOpenChange }: MobileNavProps) {
         onInteractOutside={(e) => e.preventDefault()}
       >
         <div className="flex h-full flex-col">
-          {/* Header */}
-          <div className="flex items-center justify-between border-b border-border p-4">
-            <Link 
-              to={ROUTES.app.dashboard} 
-              className="text-h1-sm sm:text-h1-md lg:text-h1-lg text-foreground"
-              onClick={() => onOpenChange(false)}
-            >
-              Supafolio
-            </Link>
+          {/* Header strip */}
+          <div className="flex items-center justify-between border-b border-border px-3 py-2 shrink-0">
+            {/* Brand + account menu trigger */}
+            <DropdownMenu open={accountMenuOpen} onOpenChange={setAccountMenuOpen}>
+              <DropdownMenuTrigger asChild>
+                <button
+                  className="flex items-center gap-2 rounded-lg hover:bg-accent transition-colors px-2 py-1.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+                  aria-haspopup="menu"
+                  aria-expanded={accountMenuOpen}
+                  aria-label="Account menu"
+                >
+                  <span className="text-h1-sm sm:text-h1-md lg:text-h1-lg text-foreground">
+                    Supafolio
+                  </span>
+                  <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" sideOffset={4} className="w-64">
+                <AccountMenuContent
+                  onClose={() => {
+                    setAccountMenuOpen(false);
+                    onOpenChange(false);
+                  }}
+                />
+              </DropdownMenuContent>
+            </DropdownMenu>
+
             <Button
               variant="ghost"
               size="icon"
               onClick={() => onOpenChange(false)}
-              aria-label="Close menu"
+              aria-label="Close navigation menu"
             >
               <X className="h-5 w-5" />
             </Button>
           </div>
 
-          {/* Navigation */}
-          <nav className="flex-1 overflow-y-auto p-4" role="navigation" aria-label="Primary">
+          {/* Search / Quick actions */}
+          <div className="px-3 py-2 border-b border-border shrink-0">
+            <Button
+              variant="ghost"
+              className="w-full justify-start gap-2 hover:bg-accent px-3"
+              onClick={handleOpenPalette}
+              aria-label="Search / Quick actions (⌘K)"
+            >
+              <Search className="h-4 w-4 text-muted-foreground shrink-0" />
+              <span className="flex-1 text-left text-body text-muted-foreground">Search</span>
+              <kbd className="text-xs text-muted-foreground/60 font-mono">⌘K</kbd>
+            </Button>
+          </div>
+
+          {/* Primary navigation */}
+          <nav className="flex-1 overflow-y-auto px-3 pt-2" role="navigation" aria-label="Primary">
             <div className="space-y-1">
               {navigation.map((item) => {
                 const isActive = location.pathname === item.path;
@@ -96,10 +140,7 @@ export function MobileNav({ open, onOpenChange }: MobileNavProps) {
                     key={item.path}
                     onClick={() => handleLinkClick(item.path)}
                     onMouseEnter={() => {
-                      // Prefetch data on hover to improve perceived load time
-                      if (prefetchHandler && !isActive) {
-                        prefetchHandler();
-                      }
+                      if (prefetchHandler && !isActive) prefetchHandler();
                     }}
                     className={cn(
                       'nav-item nav-item-default nav-item-hover w-full justify-start focus:outline-none focus:ring-2 focus:ring-primary/30 focus:ring-offset-2',
@@ -119,4 +160,3 @@ export function MobileNav({ open, onOpenChange }: MobileNavProps) {
     </Dialog>
   );
 }
-

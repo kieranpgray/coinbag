@@ -107,4 +107,90 @@ describe('accountCreateSchema', () => {
       }
     });
   });
+
+  describe('credit account fields (Credit Card & Loan)', () => {
+    const baseCreditData = {
+      accountName: 'Test Card',
+      balance: 0,
+      lastUpdated: new Date().toISOString(),
+      hidden: false,
+    };
+
+    it('accepts Loan with both creditLimit and balanceOwed undefined', () => {
+      const result = accountCreateSchema.safeParse({
+        ...baseCreditData,
+        accountType: 'Loan',
+      });
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.creditLimit).toBeUndefined();
+        expect(result.data.balanceOwed).toBeUndefined();
+      }
+    });
+
+    it('accepts Loan with only creditLimit provided', () => {
+      const result = accountCreateSchema.safeParse({
+        ...baseCreditData,
+        accountType: 'Loan',
+        creditLimit: 10000,
+      });
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.creditLimit).toBe(10000);
+        expect(result.data.balanceOwed).toBeUndefined();
+      }
+    });
+
+    it('accepts Loan with only balanceOwed provided', () => {
+      const result = accountCreateSchema.safeParse({
+        ...baseCreditData,
+        accountType: 'Loan',
+        balanceOwed: 5000,
+      });
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.creditLimit).toBeUndefined();
+        expect(result.data.balanceOwed).toBe(5000);
+      }
+    });
+
+    it('accepts Credit Card with both undefined', () => {
+      const result = accountCreateSchema.safeParse({
+        ...baseCreditData,
+        accountType: 'Credit Card',
+      });
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.creditLimit).toBeUndefined();
+        expect(result.data.balanceOwed).toBeUndefined();
+      }
+    });
+
+    it('accepts Credit Card with only creditLimit provided', () => {
+      const result = accountCreateSchema.safeParse({
+        ...baseCreditData,
+        accountType: 'Credit Card',
+        creditLimit: 5000,
+      });
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.creditLimit).toBe(5000);
+        expect(result.data.balanceOwed).toBeUndefined();
+      }
+    });
+
+    it('accepts Credit Card with both provided', () => {
+      const result = accountCreateSchema.safeParse({
+        ...baseCreditData,
+        accountType: 'Credit Card',
+        creditLimit: 10000,
+        balanceOwed: 2000,
+      });
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.creditLimit).toBe(10000);
+        expect(result.data.balanceOwed).toBe(2000);
+      }
+    });
+  });
 });

@@ -1,16 +1,21 @@
 /**
  * Environment Banner
- * 
+ *
  * Displays a banner showing the current environment (DEV/PREVIEW) at the top of the screen.
- * Only visible in non-production builds.
+ * Only visible in non-production builds, only on authenticated app routes (`/app/*`), and
+ * hidden while an app route loading shell is visible so it does not stack on skeleton UIs.
  */
 
 import { useMemo } from 'react';
-
-const isProduction = import.meta.env.MODE === 'production' || import.meta.env.PROD === true;
+import { useLocation } from 'react-router-dom';
+import { useRouteLoadingBannerOptional } from '@/contexts/RouteLoadingBannerContext';
 
 export function EnvironmentBanner() {
+  const location = useLocation();
+  const routeLoading = useRouteLoadingBannerOptional();
+
   const environmentInfo = useMemo(() => {
+    const isProduction = import.meta.env.MODE === 'production' || import.meta.env.PROD === true;
     if (isProduction) {
       return null;
     }
@@ -43,6 +48,14 @@ export function EnvironmentBanner() {
 
   // Don't render in production
   if (!environmentInfo) {
+    return null;
+  }
+
+  if (!location.pathname.startsWith('/app')) {
+    return null;
+  }
+
+  if (routeLoading?.isRouteLoadingShellVisible) {
     return null;
   }
 

@@ -37,9 +37,8 @@ export async function createWorkspaceInvite(
   }
 
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-  const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-  if (!supabaseUrl || !supabaseAnonKey) {
+  if (!supabaseUrl) {
     throw new Error('Supabase configuration missing');
   }
 
@@ -55,7 +54,6 @@ export async function createWorkspaceInvite(
     headers: {
       'Content-Type': 'application/json',
       'x-clerk-token': token,
-      'Authorization': `Bearer ${supabaseAnonKey}`,
     },
     body: JSON.stringify(requestBody),
   });
@@ -66,5 +64,34 @@ export async function createWorkspaceInvite(
     throw new Error(data.error ?? 'Failed to create invite');
   }
 
+  return data;
+}
+
+export interface AcceptWorkspaceInviteResponse {
+  workspace_id: string;
+  role: string;
+}
+
+export async function acceptWorkspaceInvite(
+  getToken: () => Promise<string | null>,
+  token: string
+): Promise<AcceptWorkspaceInviteResponse> {
+  const clerkToken = await getToken();
+  if (!clerkToken) throw new Error('Authentication required');
+
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+  if (!supabaseUrl) throw new Error('Supabase configuration missing');
+
+  const response = await fetch(`${supabaseUrl}/functions/v1/workspace-invites`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-clerk-token': clerkToken,
+    },
+    body: JSON.stringify({ action: 'accept', token }),
+  });
+
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error ?? 'Failed to accept invite');
   return data;
 }

@@ -22,6 +22,7 @@ import { AccountSelect } from '@/components/shared/AccountSelect';
 import { useDebouncedCallback } from '@/hooks/useDebouncedCallback';
 import { expenseUpdateSchema } from '@/contracts/expenses';
 import { cn } from '@/lib/utils';
+import { getExpenseType } from '../utils/expenseTypeMapping';
 
 interface ExpenseListProps {
   expenses: Expense[];
@@ -31,6 +32,12 @@ interface ExpenseListProps {
   onEdit: (expense: Expense) => void;
   onDelete: (expense: Expense) => void;
   onCreate: () => void;
+  onCategoryChanged?: (
+    expense: Expense,
+    nextCategoryId: string,
+    previousCategoryId: string,
+    isRepaymentCategory: boolean
+  ) => void;
   displayFrequency?: Frequency;
 }
 
@@ -74,6 +81,7 @@ export function ExpenseList({
   onEdit,
   onDelete,
   onCreate,
+  onCategoryChanged,
   displayFrequency,
 }: ExpenseListProps) {
   const { update } = useExpenseMutations();
@@ -672,7 +680,16 @@ export function ExpenseList({
                             variant="compact"
                             value={currentCategoryId ?? uncategorisedId ?? ''}
                             onChange={(value) => {
+                              const previousCategoryId = currentCategoryId;
+                              const nextCategoryName = categoryMap.get(value) || '';
+                              const isRepaymentCategory = getExpenseType(nextCategoryName) === 'repayments';
                               handleFieldChange(expense.id, 'categoryId', value);
+                              onCategoryChanged?.(
+                                expense,
+                                value,
+                                previousCategoryId,
+                                isRepaymentCategory
+                              );
                               // Close edit mode after selection
                               setTimeout(() => setEditingCell(null), 100);
                             }}

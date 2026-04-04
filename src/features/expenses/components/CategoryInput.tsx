@@ -106,12 +106,10 @@ export function CategoryInput({ id, value, onChange, placeholder = "Select categ
     }
   };
 
-  const handleToggleOpen = () => {
-    if (!isOpen) {
-      // Clear search query when opening to ensure all categories are shown
-      setSearchQuery('');
-    }
-    setIsOpen(!isOpen);
+  // When opening via keyboard (ArrowDown), clear search so all categories show
+  const handleOpenChange = (open: boolean) => {
+    if (open) setSearchQuery('');
+    setIsOpen(open);
   };
 
   // Focus search input when dropdown opens
@@ -127,7 +125,7 @@ export function CategoryInput({ id, value, onChange, placeholder = "Select categ
 
   return (
     <>
-    <Popover.Root open={isOpen} onOpenChange={setIsOpen}>
+    <Popover.Root open={isOpen} onOpenChange={handleOpenChange} modal={false}>
       <Popover.Trigger asChild>
         <Button
         id={id}
@@ -149,7 +147,6 @@ export function CategoryInput({ id, value, onChange, placeholder = "Select categ
           error && "border-destructive",
           !selectedCategory && "text-muted-foreground"
         )}
-        onClick={handleToggleOpen}
         onKeyDown={handleKeyDown}
         disabled={isLoading}
       >

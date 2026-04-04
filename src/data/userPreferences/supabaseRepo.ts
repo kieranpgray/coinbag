@@ -12,7 +12,7 @@ import { logger, getCorrelationId } from '@/lib/logger';
  */
 export class SupabaseUserPreferencesRepository implements UserPreferencesRepository {
   private readonly selectColumns =
-    'privacy_mode, theme_preference, dark_mode, tax_rate, tax_settings_configured, email_notifications, locale, hide_setup_checklist, pay_cycle, transfer_view_mode';
+    'privacy_mode, theme_preference, dark_mode, email_notifications, locale, hide_setup_checklist, pay_cycle, transfer_view_mode';
 
   /**
    * Map database row (snake_case) to UserPreferences (camelCase)
@@ -44,8 +44,6 @@ export class SupabaseUserPreferencesRepository implements UserPreferencesReposit
     return {
       privacyMode: row.privacy_mode ?? false,
       themePreference,
-      taxRate: row.tax_rate ?? 20,
-      taxSettingsConfigured: row.tax_settings_configured ?? false,
       emailNotifications: row.email_notifications ?? defaultUserPreferences.emailNotifications,
       locale: row.locale ?? 'en-US',
       hideSetupChecklist: row.hide_setup_checklist ?? false,
@@ -81,7 +79,7 @@ export class SupabaseUserPreferencesRepository implements UserPreferencesReposit
       );
       
       if (isSchemaError) {
-        const fallbackColumns = 'privacy_mode, theme_preference, dark_mode, tax_rate, tax_settings_configured, email_notifications, locale, hide_setup_checklist';
+        const fallbackColumns = 'privacy_mode, theme_preference, dark_mode, email_notifications, locale, hide_setup_checklist';
         const fallbackResult = await supabase
           .from('user_preferences')
           .select(fallbackColumns)
@@ -99,73 +97,38 @@ export class SupabaseUserPreferencesRepository implements UserPreferencesReposit
           );
           
           if (isLocaleError) {
-            const baseColumns = 'privacy_mode, theme_preference, dark_mode, tax_rate, tax_settings_configured, email_notifications';
+            const baseColumns = 'privacy_mode, theme_preference, dark_mode, email_notifications';
             const baseResult = await supabase
               .from('user_preferences')
               .select(baseColumns)
               .maybeSingle();
 
             if (baseResult.error) {
-              // Third fallback: try without tax_settings_configured (if migration not run)
-              const isTaxSettingsError = baseResult.error && (
+              const isThemePreferenceError = baseResult.error && (
                 (baseResult.error as any).status === 400 ||
-                baseResult.error.code === '42703' ||
-                baseResult.error.code === 'PGRST100' ||
-                baseResult.error.message?.includes('tax_settings_configured') ||
-                baseResult.error.message?.includes('schema cache') ||
-                baseResult.error.message?.includes('Could not find')
+                (baseResult.error as any).code === '42703' ||
+                (baseResult.error as any).code === 'PGRST100' ||
+                (baseResult.error as any).message?.includes('theme_preference') ||
+                (baseResult.error as any).message?.includes('schema cache') ||
+                (baseResult.error as any).message?.includes('Could not find')
               );
-              
-              if (isTaxSettingsError) {
-                const minimalColumns = 'privacy_mode, theme_preference, dark_mode, tax_rate, email_notifications';
-                const minimalResult = await supabase
+              if (isThemePreferenceError) {
+                const legacyColumns = 'privacy_mode, dark_mode, email_notifications';
+                const legacyResult = await supabase
                   .from('user_preferences')
-                  .select(minimalColumns)
+                  .select(legacyColumns)
                   .maybeSingle();
-
-                if (minimalResult.error) {
-                  // Fourth fallback: schema has only original columns (no theme_preference)
-                  const isThemePreferenceError = minimalResult.error && (
-                    (minimalResult.error as any).status === 400 ||
-                    (minimalResult.error as any).code === '42703' ||
-                    (minimalResult.error as any).code === 'PGRST100' ||
-                    (minimalResult.error as any).message?.includes('theme_preference') ||
-                    (minimalResult.error as any).message?.includes('schema cache') ||
-                    (minimalResult.error as any).message?.includes('Could not find')
-                  );
-                  if (isThemePreferenceError) {
-                    const legacyColumns = 'privacy_mode, dark_mode, tax_rate, email_notifications';
-                    const legacyResult = await supabase
-                      .from('user_preferences')
-                      .select(legacyColumns)
-                      .maybeSingle();
-                    if (!legacyResult.error && legacyResult.data) {
-                      data = {
-                        ...legacyResult.data,
-                        tax_settings_configured: false,
-                        locale: 'en-US',
-                        hide_setup_checklist: false,
-                        pay_cycle: null,
-                        transfer_view_mode: null,
-                      } as any;
-                      error = null;
-                    } else {
-                      return { error: this.normalizeSupabaseError(legacyResult.error ?? minimalResult.error) };
-                    }
-                  } else {
-                    return { error: this.normalizeSupabaseError(minimalResult.error) };
-                  }
-                } else {
-                  // Map and add defaults for missing columns
-                  data = minimalResult.data ? {
-                    ...minimalResult.data,
-                    tax_settings_configured: false,
+                if (!legacyResult.error && legacyResult.data) {
+                  data = {
+                    ...legacyResult.data,
                     locale: 'en-US',
                     hide_setup_checklist: false,
                     pay_cycle: null,
                     transfer_view_mode: null,
-                  } as any : null;
+                  } as any;
                   error = null;
+                } else {
+                  return { error: this.normalizeSupabaseError(legacyResult.error ?? baseResult.error) };
                 }
               } else {
                 return { error: this.normalizeSupabaseError(baseResult.error) };
@@ -242,8 +205,6 @@ export class SupabaseUserPreferencesRepository implements UserPreferencesReposit
       const dbInput: Record<string, unknown> = {
         privacy_mode: validation.data.privacyMode,
         theme_preference: validation.data.themePreference,
-        tax_rate: validation.data.taxRate,
-        tax_settings_configured: validation.data.taxSettingsConfigured,
         email_notifications: validation.data.emailNotifications,
         locale: validation.data.locale,
         ...(workspaceId && { workspace_id: workspaceId }),
@@ -294,7 +255,7 @@ export class SupabaseUserPreferencesRepository implements UserPreferencesReposit
           const withLocale = dbInputWithTransfers as Record<string, unknown>;
           const { locale: _locale, ...dbInputWithoutLocale } = withLocale;
           const selectWithoutLocale =
-            'privacy_mode, theme_preference, dark_mode, tax_rate, tax_settings_configured, email_notifications, hide_setup_checklist, pay_cycle, transfer_view_mode';
+            'privacy_mode, theme_preference, dark_mode, email_notifications, hide_setup_checklist, pay_cycle, transfer_view_mode';
           const localeFallback = await supabase
             .from('user_preferences')
             .upsert(dbInputWithoutLocale, { onConflict: 'user_id' })
@@ -307,27 +268,13 @@ export class SupabaseUserPreferencesRepository implements UserPreferencesReposit
         }
 
         if (error) {
-          // Try without pay_cycle/transfer_view_mode (if those migrations not run)
-          // Also check if tax_settings_configured exists - if 400 error, try without it
           let fallbackResult = await supabase
             .from('user_preferences')
             .upsert(dbInputWithChecklist, { onConflict: 'user_id' })
-            .select('privacy_mode, theme_preference, dark_mode, tax_rate, tax_settings_configured, email_notifications, locale, hide_setup_checklist')
+            .select('privacy_mode, theme_preference, dark_mode, email_notifications, locale, hide_setup_checklist')
             .single();
-        
-        // If we get a 400/PGRST204 error, it might be tax_settings_configured or locale - try without it
-        if (fallbackResult.error && ((fallbackResult.error as any).status === 400 || fallbackResult.error.code === '42703' || fallbackResult.error.code === 'PGRST100' || fallbackResult.error.code === 'PGRST204')) {
-          const withTax = dbInputWithChecklist as Record<string, unknown>;
-          const { tax_settings_configured, ...dbInputWithoutTax } = withTax;
-          fallbackResult = await supabase
-            .from('user_preferences')
-            .upsert(dbInputWithoutTax, { onConflict: 'user_id' })
-            .select('privacy_mode, theme_preference, dark_mode, tax_rate, email_notifications, locale, hide_setup_checklist')
-            .single();
-        }
 
         if (fallbackResult.error) {
-          // Second fallback: try without hide_setup_checklist or locale (if migration not run)
           const isHideChecklistError = fallbackResult.error && (
             (fallbackResult.error as any).status === 400 ||
             fallbackResult.error.code === '42703' ||
@@ -340,26 +287,22 @@ export class SupabaseUserPreferencesRepository implements UserPreferencesReposit
           );
           
           if (isHideChecklistError) {
-            // Remove tax_settings_configured - it likely doesn't exist
-            const { tax_settings_configured: _, ...dbInputWithoutTax } = dbInput;
             let fallbackResult2 = await supabase
               .from('user_preferences')
-              .upsert(dbInputWithoutTax, { onConflict: 'user_id' })
-              .select('privacy_mode, theme_preference, dark_mode, tax_rate, email_notifications, locale')
+              .upsert(dbInput, { onConflict: 'user_id' })
+              .select('privacy_mode, theme_preference, dark_mode, email_notifications, locale')
               .single();
             
-            // If still 400/PGRST204, try without locale too
             if (fallbackResult2.error && ((fallbackResult2.error as any).status === 400 || fallbackResult2.error.code === '42703' || fallbackResult2.error.code === 'PGRST100' || fallbackResult2.error.code === 'PGRST204')) {
-              const { locale: __, ...dbInputWithoutLocale } = dbInputWithoutTax;
+              const { locale: __, ...dbInputWithoutLocale } = dbInput;
               fallbackResult2 = await supabase
                 .from('user_preferences')
                 .upsert(dbInputWithoutLocale, { onConflict: 'user_id' })
-                .select('privacy_mode, theme_preference, dark_mode, tax_rate, email_notifications')
+                .select('privacy_mode, theme_preference, dark_mode, email_notifications')
                 .single();
             }
 
             if (fallbackResult2.error) {
-              // Third fallback: try without both hide_setup_checklist AND locale (if locale migration not run)
               const isLocaleError = fallbackResult2.error && (
                 (fallbackResult2.error as any).status === 400 ||
                 fallbackResult2.error.code === '42703' ||
@@ -374,18 +317,16 @@ export class SupabaseUserPreferencesRepository implements UserPreferencesReposit
                 const baseInput = {
                   privacy_mode: validation.data.privacyMode,
                   theme_preference: validation.data.themePreference,
-                  tax_rate: validation.data.taxRate,
                   email_notifications: validation.data.emailNotifications,
                 };
 
                 const baseResult = await supabase
                   .from('user_preferences')
                   .upsert(baseInput, { onConflict: 'user_id' })
-                  .select('privacy_mode, theme_preference, dark_mode, tax_rate, email_notifications')
+                  .select('privacy_mode, theme_preference, dark_mode, email_notifications')
                   .single();
 
                 if (baseResult.error) {
-                  // Fourth fallback: schema has only original columns (no theme_preference)
                   const isThemePreferenceError = baseResult.error && (
                     (baseResult.error as any).status === 400 ||
                     (baseResult.error as any).code === '42703' ||
@@ -399,13 +340,12 @@ export class SupabaseUserPreferencesRepository implements UserPreferencesReposit
                     const legacyInput = {
                       privacy_mode: validation.data.privacyMode,
                       dark_mode: validation.data.themePreference === 'dark',
-                      tax_rate: validation.data.taxRate,
                       email_notifications: validation.data.emailNotifications,
                     };
                     const legacyResult = await supabase
                       .from('user_preferences')
                       .upsert(legacyInput, { onConflict: 'user_id' })
-                      .select('privacy_mode, dark_mode, tax_rate, email_notifications')
+                      .select('privacy_mode, dark_mode, email_notifications')
                       .single();
                     if (!legacyResult.error && legacyResult.data) {
                       data = {

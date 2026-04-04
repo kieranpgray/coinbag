@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Supafolio — Build wealth with intention</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --ink: #0f0e0c; --ink-2: #3d3b36; --ink-3: #7a776e; --ink-4: #b5b2aa;
+    --paper: #faf9f7; --paper-2: #f2f0eb; --paper-3: #e8e5de;
+    --accent: #1a5c3a; --accent-2: #2a7a4f; --accent-light: #e8f2ec; --accent-glow: rgba(26,92,58,0.12);
+    --gold: #b5892a; --gold-light: #f7f0e0;
+    --serif: 'Instrument Serif', Georgia, serif;
+    --sans: 'DM Sans', system-ui, sans-serif;
+    --r: 4px; --rl: 12px; --rx: 20px;
+  }
+  html { scroll-behavior: smooth; }
+  body { font-family: var(--sans); background: var(--paper); color: var(--ink); font-size: 16px; line-height: 1.6; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+
+  /* NAV */
+  nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; padding: 0 40px; height: 64px; background: rgba(250,249,247,0.92); backdrop-filter: blur(12px); border-bottom: 1px solid var(--paper-3); }
+  .nav-logo { font-family: var(--serif); font-size: 22px; color: var(--ink); text-decoration: none; letter-spacing: -0.02em; }
+  .nav-links { display: flex; align-items: center; gap: 32px; list-style: none; }
+  .nav-links a { font-size: 14px; font-weight: 400; color: var(--ink-2); text-decoration: none; transition: color 0.2s; }
+  .nav-links a:hover { color: var(--ink); }
+  .nav-cta { background: var(--accent) !important; color: #fff !important; padding: 8px 20px !important; border-radius: 100px !important; font-weight: 500 !important; transition: background 0.2s !important; }
+  .nav-cta:hover { background: var(--accent-2) !important; color: #fff !important; }
+
+  /* HERO */
+  .hero { padding: 140px 40px 100px; max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; }
+  .hero-eyebrow { display: inline-block; font-size: 12px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); background: var(--accent-light); padding: 4px 12px; border-radius: 100px; margin-bottom: 24px; }
+  .hero h1 { font-family: var(--serif); font-size: clamp(38px, 4.5vw, 56px); line-height: 1.1; letter-spacing: -0.02em; color: var(--ink); margin-bottom: 24px; }
+  .hero h1 em { font-style: italic; color: var(--accent); }
+  .hero-sub { font-size: 17px; line-height: 1.7; color: var(--ink-2); margin-bottom: 36px; font-weight: 300; }
+  .hero-sub strong { color: var(--ink); font-weight: 500; }
+  .cta-group { display: flex; flex-direction: column; align-items: flex-start; gap: 14px; }
+  .btn-primary { display: inline-flex; align-items: center; gap: 8px; background: var(--accent); color: #fff; padding: 14px 28px; border-radius: 100px; font-size: 16px; font-weight: 500; text-decoration: none; transition: all 0.2s; }
+  .btn-primary:hover { background: var(--accent-2); transform: translateY(-1px); box-shadow: 0 8px 24px var(--accent-glow); }
+  .btn-primary svg { transition: transform 0.2s; }
+  .btn-primary:hover svg { transform: translateX(3px); }
+  .trust-strip { display: flex; align-items: center; gap: 16px; font-size: 13px; color: var(--ink-3); flex-wrap: wrap; }
+  .trust-item { display: flex; align-items: center; gap: 5px; }
+  .trust-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--accent); opacity: 0.6; }
+
+  /* APP FRAME */
+  .app-frame { background: #fff; border: 1px solid var(--paper-3); border-radius: var(--rx); overflow: hidden; box-shadow: 0 24px 64px rgba(0,0,0,0.08), 0 4px 16px rgba(0,0,0,0.04); }
+  .app-topbar { background: var(--paper); border-bottom: 1px solid var(--paper-3); padding: 12px 16px; display: flex; align-items: center; gap: 8px; }
+  .app-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .app-dot-r { background: #ff6159; } .app-dot-y { background: #ffbd2e; } .app-dot-g { background: #28c840; }
+  .app-tab-label { margin-left: auto; font-size: 12px; font-weight: 500; color: var(--ink-3); background: var(--paper-2); padding: 3px 10px; border-radius: 100px; }
+  .app-content { padding: 20px; }
+  .allocate-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
+  .allocate-title { font-size: 12px; font-weight: 500; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.08em; }
+  .allocate-date { font-size: 12px; color: var(--ink-4); }
+  .income-card { background: var(--accent); border-radius: var(--rl); padding: 16px; margin-bottom: 12px; color: #fff; }
+  .income-label { font-size: 12px; opacity: 0.7; margin-bottom: 4px; }
+  .income-amount { font-family: var(--serif); font-size: 30px; line-height: 1; margin-bottom: 4px; }
+  .income-source { font-size: 12px; opacity: 0.65; }
+  .allocation-rows { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+  .alloc-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; background: var(--paper); border-radius: var(--rl); border: 1px solid var(--paper-3); }
+  .alloc-left { display: flex; align-items: center; gap: 10px; }
+  .alloc-icon { width: 28px; height: 28px; border-radius: 7px; display: flex; align-items: center; justify-content: center; font-size: 13px; }
+  .ai-m { background: #e8f0fe; } .ai-s { background: var(--accent-light); } .ai-i { background: var(--gold-light); }
+  .alloc-name { font-size: 13px; font-weight: 500; color: var(--ink); }
+  .alloc-acct { font-size: 11px; color: var(--ink-3); }
+  .alloc-amount { font-size: 13px; font-weight: 500; color: var(--ink); font-variant-numeric: tabular-nums; }
+  .alloc-amount.surplus { color: var(--accent); }
+  .surplus-card { background: var(--accent-light); border: 1px solid rgba(26,92,58,0.15); border-radius: var(--rl); padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; }
+  .surplus-label { font-size: 13px; font-weight: 500; color: var(--accent); }
+  .surplus-sub { font-size: 11px; color: var(--accent); opacity: 0.65; margin-top: 2px; }
+  .surplus-amount { font-family: var(--serif); font-size: 22px; color: var(--accent); }
+  .alloc-bar { height: 3px; background: var(--paper-3); border-radius: 2px; overflow: hidden; margin-top: 4px; }
+  .alloc-bar-fill { height: 100%; border-radius: 2px; background: var(--accent); animation: fillBar 1.8s ease forwards; animation-delay: var(--delay, 0s); width: 0; }
+  @keyframes fillBar { from { width: 0; } to { width: var(--pct); } }
+
+  /* BROKER STRIP */
+  .broker-strip { border-top: 1px solid var(--paper-3); border-bottom: 1px solid var(--paper-3); background: var(--paper-2); padding: 18px 40px; }
+  .broker-inner { max-width: 1100px; margin: 0 auto; display: flex; align-items: center; gap: 24px; flex-wrap: wrap; }
+  .broker-label { font-size: 11px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); white-space: nowrap; flex-shrink: 0; }
+  .broker-div { width: 1px; height: 24px; background: var(--paper-3); flex-shrink: 0; }
+  .broker-logos { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .broker-logo { font-size: 13px; font-weight: 500; color: var(--ink-2); padding: 5px 12px; border: 1px solid var(--paper-3); border-radius: 6px; background: #fff; }
+  .broker-more { font-size: 12px; color: var(--ink-3); margin-left: 4px; }
+
+  /* PROBLEM */
+  .problem { padding: 100px 40px; max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; }
+  .section-label { font-size: 12px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 16px; }
+  .section-label.green { color: var(--accent); }
+  h2.serif { font-family: var(--serif); font-size: clamp(28px, 3.5vw, 40px); line-height: 1.2; letter-spacing: -0.02em; margin-bottom: 24px; }
+  .body-copy { color: var(--ink-2); line-height: 1.75; font-weight: 300; }
+  .body-copy p + p { margin-top: 16px; }
+  .body-copy strong { color: var(--ink); font-weight: 500; }
+  .ss-card { background: #fff; border: 1px solid var(--paper-3); border-radius: var(--rl); padding: 16px; position: relative; }
+  .ss-card::before { content: 'net-worth-2024.xlsx'; position: absolute; top: -11px; left: 16px; font-size: 11px; color: var(--ink-3); background: var(--paper-2); padding: 2px 8px; border-radius: 100px; border: 1px solid var(--paper-3); }
+  .ss-hdr { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 8px; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid var(--paper-3); }
+  .ss-col { font-size: 11px; font-weight: 500; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.06em; }
+  .ss-row { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 8px; padding: 4px 0; }
+  .ss-cell { font-size: 12px; color: var(--ink-2); }
+  .ss-cell.stale { color: var(--ink-4); text-decoration: line-through; }
+  .ss-warn { display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: #fff8e6; border: 1px solid #f0d078; border-radius: 8px; font-size: 12px; color: #8a6a10; margin-top: 10px; }
+
+  /* HOW IT WORKS */
+  .how { padding: 100px 40px; background: var(--paper-2); }
+  .how-inner { max-width: 1100px; margin: 0 auto; }
+  .section-header { text-align: center; margin-bottom: 56px; }
+  .section-eyebrow { font-size: 12px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); margin-bottom: 12px; }
+  .section-header h2 { font-family: var(--serif); font-size: clamp(28px, 3.5vw, 40px); letter-spacing: -0.02em; line-height: 1.2; }
+  .section-header p { margin-top: 14px; font-size: 17px; color: var(--ink-2); font-weight: 300; max-width: 520px; margin-left: auto; margin-right: auto; line-height: 1.65; }
+  .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; background: var(--paper-3); border-radius: var(--rx); overflow: hidden; }
+  .step { background: #fff; padding: 36px 28px; }
+  .step-num { font-family: var(--serif); font-size: 44px; color: var(--paper-3); line-height: 1; margin-bottom: 16px; }
+  .step h3 { font-family: var(--serif); font-size: 22px; letter-spacing: -0.02em; margin-bottom: 12px; }
+  .step p { font-size: 15px; color: var(--ink-2); line-height: 1.65; font-weight: 300; }
+  .step-tags { margin-top: 16px; display: flex; flex-wrap: wrap; gap: 6px; }
+  .step-tag { font-size: 11px; font-weight: 500; padding: 3px 10px; border-radius: 100px; background: var(--paper-2); color: var(--ink-3); border: 1px solid var(--paper-3); }
+
+  /* ALLOCATE */
+  .allocate-sec { padding: 100px 40px; max-width: 1100px; margin: 0 auto; }
+  .allocate-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; }
+  .allocate-copy h2 { font-family: var(--serif); font-size: clamp(28px, 3.5vw, 40px); line-height: 1.2; letter-spacing: -0.02em; margin-bottom: 24px; }
+  .allocate-copy h2 em { font-style: italic; color: var(--accent); }
+  .allocate-copy p { font-size: 16px; color: var(--ink-2); line-height: 1.75; font-weight: 300; margin-bottom: 14px; }
+  .allocate-copy p strong { color: var(--ink); font-weight: 500; }
+  .scenario-badge { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 500; color: var(--ink-3); background: var(--paper-2); border: 1px solid var(--paper-3); padding: 6px 14px; border-radius: 100px; margin-bottom: 20px; }
+  .scenario-av { width: 20px; height: 20px; border-radius: 50%; background: var(--accent-light); display: inline-flex; align-items: center; justify-content: center; font-size: 11px; color: var(--accent); font-weight: 600; }
+
+  /* PROOF */
+  .proof { padding: 100px 40px; background: var(--ink); }
+  .proof-inner { max-width: 1100px; margin: 0 auto; }
+  .proof .section-header h2 { color: #fff; }
+  .proof .section-header p { color: rgba(255,255,255,0.45); }
+  .proof .section-eyebrow { color: rgba(255,255,255,0.35); }
+  .proof-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; background: rgba(255,255,255,0.06); border-radius: var(--rx); overflow: hidden; }
+  .proof-card { background: rgba(255,255,255,0.04); padding: 36px 28px; }
+  .proof-icon { width: 40px; height: 40px; background: rgba(255,255,255,0.08); border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; }
+  .proof-card h3 { font-family: var(--serif); font-size: 20px; color: #fff; margin-bottom: 12px; }
+  .proof-card p { font-size: 15px; color: rgba(255,255,255,0.45); line-height: 1.65; font-weight: 300; }
+
+  /* FAQ */
+  .faq { padding: 100px 40px; max-width: 720px; margin: 0 auto; }
+  .faq .section-header { text-align: left; }
+  .faq-list { margin-top: 48px; }
+  .faq-item { border-bottom: 1px solid var(--paper-3); }
+  .faq-q { display: flex; justify-content: space-between; align-items: center; padding: 20px 0; cursor: pointer; font-size: 16px; font-weight: 500; color: var(--ink); list-style: none; gap: 16px; }
+  .faq-q::-webkit-details-marker { display: none; }
+  .faq-chev { width: 18px; height: 18px; flex-shrink: 0; color: var(--ink-3); transition: transform 0.25s; }
+  details[open] .faq-chev { transform: rotate(180deg); }
+  details[open] .faq-q { color: var(--accent); }
+  .faq-a { font-size: 15px; color: var(--ink-2); line-height: 1.75; font-weight: 300; padding-bottom: 20px; }
+  .faq-a a { color: var(--accent); text-decoration: none; }
+  .faq-a a:hover { text-decoration: underline; }
+
+  /* COMPARISON */
+  .comparison { padding: 100px 40px; background: var(--paper-2); }
+  .comparison-inner { max-width: 1100px; margin: 0 auto; }
+  .compare-table { display: grid; grid-template-columns: 2fr 1fr 1fr; border-radius: var(--rx); overflow: hidden; border: 1px solid var(--paper-3); background: #fff; margin-top: 48px; }
+  .compare-hdr { padding: 16px 20px; font-size: 12px; font-weight: 500; border-bottom: 2px solid var(--paper-3); color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.06em; }
+  .compare-hdr.hl { background: var(--accent); color: rgba(255,255,255,0.8); }
+  .compare-cell { padding: 14px 20px; border-bottom: 1px solid var(--paper-3); font-size: 14px; color: var(--ink-2); }
+  .compare-cell:nth-last-child(-n+3) { border-bottom: none; }
+  .compare-cell.hl { background: var(--accent-light); color: var(--accent); font-weight: 500; }
+  .compare-cell.na { color: var(--ink-4); }
+
+  /* PRICING */
+  .pricing { padding: 100px 40px; max-width: 1100px; margin: 0 auto; }
+  .pricing-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; background: var(--paper-3); border-radius: var(--rx); overflow: hidden; margin-top: 48px; }
+  .pricing-card { background: #fff; padding: 36px 28px; }
+  .pricing-card.featured { background: var(--ink); }
+  .pricing-tier { font-size: 12px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink-3); margin-bottom: 12px; }
+  .pricing-card.featured .pricing-tier { color: rgba(255,255,255,0.35); }
+  .pricing-price { font-family: var(--serif); font-size: 40px; color: var(--ink); line-height: 1; margin-bottom: 4px; }
+  .pricing-card.featured .pricing-price { color: #fff; }
+  .pricing-psub { font-size: 13px; color: var(--ink-3); margin-bottom: 20px; }
+  .pricing-card.featured .pricing-psub { color: rgba(255,255,255,0.3); }
+  .pricing-desc { font-size: 14px; color: var(--ink-2); line-height: 1.65; margin-bottom: 24px; font-weight: 300; }
+  .pricing-card.featured .pricing-desc { color: rgba(255,255,255,0.45); }
+  .pricing-feats { list-style: none; display: flex; flex-direction: column; gap: 10px; margin-bottom: 28px; }
+  .pricing-feats li { display: flex; align-items: flex-start; gap: 8px; font-size: 14px; color: var(--ink-2); font-weight: 300; }
+  .pricing-card.featured .pricing-feats li { color: rgba(255,255,255,0.55); }
+  .pcheck { width: 16px; height: 16px; flex-shrink: 0; color: var(--accent); margin-top: 2px; }
+  .pricing-card.featured .pcheck { color: rgba(255,255,255,0.45); }
+  .pricing-badge { display: inline-block; font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.08em; background: var(--gold-light); color: var(--gold); padding: 3px 8px; border-radius: 100px; margin-bottom: 14px; }
+  .btn-plan { display: block; text-align: center; padding: 12px 20px; border-radius: 100px; font-size: 14px; font-weight: 500; text-decoration: none; transition: all 0.2s; }
+  .btn-ghost { border: 1px solid var(--paper-3); color: var(--ink); }
+  .btn-ghost:hover { border-color: var(--ink-4); background: var(--paper-2); }
+  .btn-white { background: #fff; color: var(--ink); }
+  .btn-white:hover { background: var(--paper); transform: translateY(-1px); }
+  .full-access-note { margin-top: 24px; text-align: center; font-size: 14px; color: var(--ink-3); background: var(--paper-2); border: 1px solid var(--paper-3); border-radius: var(--rl); padding: 16px 24px; }
+  .full-access-note strong { color: var(--ink-2); font-weight: 500; }
+
+  /* FINAL CTA */
+  .final-cta { padding: 120px 40px; text-align: center; background: var(--accent); position: relative; overflow: hidden; }
+  .final-cta::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 70% 60% at 50% 110%, rgba(255,255,255,0.07) 0%, transparent 70%); }
+  .final-inner { position: relative; max-width: 600px; margin: 0 auto; }
+  .final-cta h2 { font-family: var(--serif); font-size: clamp(34px, 5vw, 54px); line-height: 1.1; letter-spacing: -0.02em; color: #fff; margin-bottom: 18px; }
+  .final-cta p { font-size: 18px; color: rgba(255,255,255,0.6); margin-bottom: 36px; font-weight: 300; line-height: 1.65; }
+  .btn-final { display: inline-flex; align-items: center; gap: 8px; background: #fff; color: var(--accent); padding: 14px 28px; border-radius: 100px; font-size: 16px; font-weight: 500; text-decoration: none; transition: all 0.2s; }
+  .btn-final:hover { background: var(--paper); transform: translateY(-1px); box-shadow: 0 8px 32px rgba(0,0,0,0.15); }
+  .final-trust { margin-top: 18px; font-size: 13px; color: rgba(255,255,255,0.4); }
+
+  /* FOOTER */
+  footer { padding: 36px 40px; border-top: 1px solid var(--paper-3); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
+  .footer-logo { font-family: var(--serif); font-size: 18px; color: var(--ink); text-decoration: none; }
+  .footer-links { display: flex; gap: 24px; flex-wrap: wrap; list-style: none; }
+  .footer-links a { font-size: 13px; color: var(--ink-3); text-decoration: none; }
+  .footer-links a:hover { color: var(--ink); }
+  .footer-copy { font-size: 12px; color: var(--ink-4); width: 100%; }
+
+  /* ANIMATIONS */
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+  .fu { animation: fadeUp 0.6s ease forwards; opacity: 0; }
+  .fu-1 { animation-delay: 0.05s; } .fu-2 { animation-delay: 0.2s; } .fu-3 { animation-delay: 0.35s; } .fu-4 { animation-delay: 0.5s; }
+
+  /* RESPONSIVE */
+  @media (max-width: 768px) {
+    nav { padding: 0 20px; }
+    .nav-links { display: none; }
+    .hero, .problem, .allocate-grid { grid-template-columns: 1fr; gap: 40px; padding: 100px 20px 60px; }
+    .steps, .proof-grid, .pricing-grid { grid-template-columns: 1fr; }
+    .how, .proof, .comparison, .pricing, .faq, .allocate-sec { padding: 60px 20px; }
+    .compare-table { grid-template-columns: 1fr 1fr; }
+    .compare-hdr:first-child, .compare-cell:nth-child(3n+1) { display: none; }
+    .final-cta { padding: 80px 20px; }
+    footer { padding: 28px 20px; }
+    .broker-strip { padding: 16px 20px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="/" class="nav-logo">Supafolio</a>
+  <ul class="nav-links">
+    <li><a href="#product">Product</a></li>
+    <li><a href="#pricing">Pricing</a></li>
+    <li><a href="/security">Security</a></li>
+    <li><a href="#signup" class="nav-cta">Sign up free</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section>
+  <div class="hero">
+    <div>
+      <div class="hero-eyebrow fu fu-1">Wealth management · AU &amp; US</div>
+      <h1 class="fu fu-2">You're not trying<br>to spend less.<br>You're trying to <em>build more.</em></h1>
+      <p class="hero-sub fu fu-3">Supafolio is built for people with a growing net worth and a lot of moving parts — <strong>property, shares, RSUs, super, loans.</strong> One place to see your complete picture and a clear plan for where your money needs to go.</p>
+      <div class="cta-group fu fu-4">
+        <a href="#signup" class="btn-primary">
+          Start building — it's free
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+        <div class="trust-strip">
+          <span class="trust-item"><span class="trust-dot"></span>Free forever</span>
+          <span class="trust-item"><span class="trust-dot"></span>Full access for 30 days</span>
+          <span class="trust-item"><span class="trust-dot"></span>No credit card required</span>
+        </div>
+      </div>
+    </div>
+    <div class="fu fu-3">
+      <div class="app-frame">
+        <div class="app-topbar">
+          <div class="app-dot app-dot-r"></div><div class="app-dot app-dot-y"></div><div class="app-dot app-dot-g"></div>
+          <div class="app-tab-label">Allocate</div>
+        </div>
+        <div class="app-content">
+          <div class="allocate-header">
+            <div class="allocate-title">Pay day plan</div>
+            <div class="allocate-date">Fri 14 Feb 2025</div>
+          </div>
+          <div class="income-card">
+            <div class="income-label">Income arriving</div>
+            <div class="income-amount">$5,833</div>
+            <div class="income-source">Salary · CBA Everyday · Fortnightly</div>
+          </div>
+          <div class="allocation-rows">
+            <div class="alloc-row">
+              <div class="alloc-left">
+                <div class="alloc-icon ai-m">🏠</div>
+                <div><div class="alloc-name">Mortgage</div><div class="alloc-acct">ANZ Home Loan</div></div>
+              </div>
+              <div><div class="alloc-amount">−$2,100</div><div class="alloc-bar"><div class="alloc-bar-fill" style="--pct:72%; --delay:0.5s"></div></div></div>
+            </div>
+            <div class="alloc-row">
+              <div class="alloc-left">
+                <div class="alloc-icon ai-s">💰</div>
+                <div><div class="alloc-name">Emergency fund</div><div class="alloc-acct">ING Savings</div></div>
+              </div>
+              <div><div class="alloc-amount">−$500</div><div class="alloc-bar"><div class="alloc-bar-fill" style="--pct:17%; --delay:0.7s"></div></div></div>
+            </div>
+            <div class="alloc-row">
+              <div class="alloc-left">
+                <div class="alloc-icon ai-i">📈</div>
+                <div><div class="alloc-name">Stake — US equities</div><div class="alloc-acct">Investment top-up</div></div>
+              </div>
+              <div><div class="alloc-amount">−$800</div><div class="alloc-bar"><div class="alloc-bar-fill" style="--pct:27%; --delay:0.9s"></div></div></div>
+            </div>
+          </div>
+          <div class="surplus-card">
+            <div><div class="surplus-label">Unallocated surplus</div><div class="surplus-sub">Move to offset or spending</div></div>
+            <div class="surplus-amount">$2,433</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- BROKER STRIP -->
+<div class="broker-strip">
+  <div class="broker-inner">
+    <span class="broker-label">Securely connect</span>
+    <div class="broker-div"></div>
+    <div class="broker-logos">
+      <span class="broker-logo">CommSec</span>
+      <span class="broker-logo">Stake</span>
+      <span class="broker-logo">SelfWealth</span>
+      <span class="broker-logo">NAB Trade</span>
+      <span class="broker-logo">Pearler</span>
+      <span class="broker-more">+ more AU &amp; US brokerages</span>
+    </div>
+  </div>
+</div>
+
+<!-- PROBLEM -->
+<section id="product">
+  <div class="problem">
+    <div>
+      <div class="section-label">The problem</div>
+      <h2 class="serif">Your spreadsheet wasn't built for this.</h2>
+      <div class="body-copy">
+        <p>Most finance tools were built for one job — tracking spending or tracking investments. Neither one tells you what to do when your salary lands, your RSUs vest, or your rental income hits.</p>
+        <p>You're left connecting the dots yourself. Usually in a spreadsheet that's <strong>two months out of date</strong> — one that doesn't account for super, offset accounts, or the fact you get paid fortnightly.</p>
+        <p>Supafolio was built for the gap between knowing your financial position and acting on it.</p>
+      </div>
+    </div>
+    <div>
+      <div class="ss-card">
+        <div class="ss-hdr">
+          <div class="ss-col">Account</div>
+          <div class="ss-col">Balance</div>
+          <div class="ss-col">Updated</div>
+        </div>
+        <div class="ss-row">
+          <div class="ss-cell">Everyday</div>
+          <div class="ss-cell stale">$4,220</div>
+          <div class="ss-cell stale">Nov 2024</div>
+        </div>
+        <div class="ss-row">
+          <div class="ss-cell">Stake portfolio</div>
+          <div class="ss-cell stale">$34,100</div>
+          <div class="ss-cell stale">Oct 2024</div>
+        </div>
+        <div class="ss-row">
+          <div class="ss-cell">Super (est.)</div>
+          <div class="ss-cell stale">$89,000?</div>
+          <div class="ss-cell stale">Jun 2024</div>
+        </div>
+        <div class="ss-row">
+          <div class="ss-cell">Mortgage</div>
+          <div class="ss-cell">$412,000</div>
+          <div class="ss-cell">Manual</div>
+        </div>
+        <div class="ss-warn">⚠️ Some values may be out of date. Update before calculating net worth.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="how">
+  <div class="how-inner">
+    <div class="section-header">
+      <div class="section-eyebrow">How it works</div>
+      <h2>From your complete picture to your next move</h2>
+      <p>Three things Supafolio does that a spreadsheet never will.</p>
+    </div>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">01</div>
+        <h3>See everything</h3>
+        <p>Connect your complete net worth — property, shares, RSUs, super, loans, cash. Manual entry or automatic brokerage sync. Your wealth, always current.</p>
+        <div class="step-tags"><span class="step-tag">Holdings</span><span class="step-tag">Auto-sync</span><span class="step-tag">Net worth</span></div>
+      </div>
+      <div class="step">
+        <div class="step-num">02</div>
+        <h3>Know what's committed</h3>
+        <p>Set up your income sources and recurring expenses at whatever frequency they actually occur. Supafolio normalises everything to your real pay cadence — not a generic monthly budget.</p>
+        <div class="step-tags"><span class="step-tag">Recurring</span><span class="step-tag">Fortnightly pay</span><span class="step-tag">Multi-income</span></div>
+      </div>
+      <div class="step">
+        <div class="step-num">03</div>
+        <h3>Allocate with confidence</h3>
+        <p>Every time money arrives, Supafolio shows you exactly which accounts need funding and what to do with your surplus. No guesswork. No spreadsheet required.</p>
+        <div class="step-tags"><span class="step-tag">Allocate</span><span class="step-tag">Pay day plan</span><span class="step-tag">Surplus</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ALLOCATE DEEP DIVE -->
+<section>
+  <div class="allocate-sec">
+    <div class="allocate-grid">
+      <div class="allocate-copy">
+        <div class="section-label green" style="margin-bottom:16px">Allocate — the hero feature</div>
+        <h2>Every pay cycle,<br>a <em>clear plan.</em></h2>
+        <p>Most financial tools show you a picture. Supafolio shows you what to do with it. Every time income arrives — salary, rental income, RSU vest — Allocate works out what's committed, what's left, and where it should go.</p>
+        <p><strong>No more guessing which account needs topping up.</strong> No more mental arithmetic on a Friday afternoon. Just open Supafolio, see your plan, and move your money with confidence.</p>
+        <p>Set your income sources, link your recurring expenses, and tell Supafolio where your surplus should land. It handles the rest — built around your actual pay cadence, not a simplified monthly average.</p>
+      </div>
+      <div>
+        <div class="scenario-badge">
+          <span class="scenario-av">A</span>
+          Alex · Sydney · Paid fortnightly
+        </div>
+        <div class="app-frame">
+          <div class="app-topbar">
+            <div class="app-dot app-dot-r"></div><div class="app-dot app-dot-y"></div><div class="app-dot app-dot-g"></div>
+            <div class="app-tab-label">Allocate</div>
+          </div>
+          <div class="app-content">
+            <div class="income-card">
+              <div class="income-label">Fortnightly salary</div>
+              <div class="income-amount">$5,833</div>
+              <div class="income-source">+ $1,400 rental income arriving Mon</div>
+            </div>
+            <div class="allocation-rows">
+              <div class="alloc-row">
+                <div class="alloc-left">
+                  <div class="alloc-icon ai-m">🏠</div>
+                  <div><div class="alloc-name">Mortgage</div><div class="alloc-acct">Committed · ANZ</div></div>
+                </div>
+                <div class="alloc-amount">−$2,100</div>
+              </div>
+              <div class="alloc-row">
+                <div class="alloc-left">
+                  <div class="alloc-icon ai-i">📋</div>
+                  <div><div class="alloc-name">Recurring bills</div><div class="alloc-acct">Committed · 6 expenses</div></div>
+                </div>
+                <div class="alloc-amount">−$680</div>
+              </div>
+              <div class="alloc-row">
+                <div class="alloc-left">
+                  <div class="alloc-icon ai-s">💰</div>
+                  <div><div class="alloc-name">Offset account</div><div class="alloc-acct">Surplus destination</div></div>
+                </div>
+                <div class="alloc-amount surplus">+$3,053</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PROOF -->
+<section class="proof">
+  <div class="proof-inner">
+    <div class="section-header" style="margin-bottom:48px">
+      <div class="section-eyebrow">Built for how wealth actually works</div>
+      <h2>Not another budgeting app.</h2>
+      <p>Supafolio is built for the full complexity of a growing financial life — not just your bank account.</p>
+    </div>
+    <div class="proof-grid">
+      <div class="proof-card">
+        <div class="proof-icon">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="2" y="2" width="7" height="7" rx="2" stroke="rgba(255,255,255,0.5)" stroke-width="1.5"/><rect x="11" y="2" width="7" height="7" rx="2" stroke="rgba(255,255,255,0.5)" stroke-width="1.5"/><rect x="2" y="11" width="7" height="7" rx="2" stroke="rgba(255,255,255,0.5)" stroke-width="1.5"/><rect x="11" y="11" width="7" height="7" rx="2" stroke="rgba(255,255,255,0.5)" stroke-width="1.5"/></svg>
+        </div>
+        <h3>Complete wealth tracking</h3>
+        <p>Property, shares, RSUs, super, crypto, vehicles, loans — if it contributes to your net worth, Supafolio tracks it. Manual entry or automatic brokerage sync.</p>
+      </div>
+      <div class="proof-card">
+        <div class="proof-icon">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7" stroke="rgba(255,255,255,0.5)" stroke-width="1.5"/><path d="M10 6v4l2.5 2.5" stroke="rgba(255,255,255,0.5)" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </div>
+        <h3>Real income cadence</h3>
+        <p>Fortnightly salary, monthly rent, quarterly dividends, RSU vests. Supafolio plans around your real income — not a simplified monthly average that never quite adds up.</p>
+      </div>
+      <div class="proof-card">
+        <div class="proof-icon">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 2C5.58 2 2 5.58 2 10s3.58 8 8 8 8-3.58 8-8-3.58-8-8-8z" stroke="rgba(255,255,255,0.5)" stroke-width="1.5"/><path d="M6.5 10.5l2 2 4-4" stroke="rgba(255,255,255,0.5)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <h3>Australian-built</h3>
+        <p>Super, fortnightly pay, offset accounts — Supafolio is built around how Australians actually manage money, not adapted from a US product that doesn't know what super is.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section>
+  <div class="faq">
+    <div class="section-header">
+      <div class="section-eyebrow">Common questions</div>
+      <h2 style="font-family: var(--serif); font-size: clamp(28px,3.5vw,38px); letter-spacing: -0.02em;">Before you sign up</h2>
+    </div>
+    <div class="faq-list">
+      <details class="faq-item">
+        <summary class="faq-q">Is my financial data safe?
+          <svg class="faq-chev" viewBox="0 0 20 20" fill="none"><path d="M5 7.5l5 5 5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </summary>
+        <p class="faq-a">Yes. All data is encrypted at rest and in transit using bank-level standards. Your credentials are never stored in Supafolio — brokerage connections are handled through SnapTrade's secure infrastructure, purpose-built for financial data. <a href="/security">Read more about our security approach →</a></p>
+      </details>
+      <details class="faq-item">
+        <summary class="faq-q">Do you connect directly to my bank?
+          <svg class="faq-chev" viewBox="0 0 20 20" fill="none"><path d="M5 7.5l5 5 5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </summary>
+        <p class="faq-a">For brokerage accounts, yes — via SnapTrade's secure open-finance infrastructure. For bank accounts, Supafolio currently supports manual entry and bank statement upload. Direct bank connection is on the roadmap. Your credentials are never stored in Supafolio at any point.</p>
+      </details>
+      <details class="faq-item">
+        <summary class="faq-q">Is this built for Australians?
+          <svg class="faq-chev" viewBox="0 0 20 20" fill="none"><path d="M5 7.5l5 5 5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </summary>
+        <p class="faq-a">Yes. Supafolio natively supports superannuation, fortnightly pay cycles, AU brokerage accounts (CommSec, Stake, SelfWealth, Pearler and more), and Australian dollar formatting. US support is also available for users with cross-border investments.</p>
+      </details>
+      <details class="faq-item">
+        <summary class="faq-q">What's included in the free plan?
+          <svg class="faq-chev" viewBox="0 0 20 20" fill="none"><path d="M5 7.5l5 5 5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </summary>
+        <p class="faq-a">The free plan includes 1 account, 1 income source, and up to 5 recurring expenses — enough to see how Allocate works. For the first 30 days, all limits are removed so you can experience the full product before deciding whether to upgrade.</p>
+      </details>
+      <details class="faq-item">
+        <summary class="faq-q">What happens after 30 days?
+          <svg class="faq-chev" viewBox="0 0 20 20" fill="none"><path d="M5 7.5l5 5 5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </summary>
+        <p class="faq-a">After 30 days you move to the free plan limits unless you upgrade. Your data is never deleted. You'll always be able to see your net worth and run a basic Allocate plan — upgrading unlocks unlimited accounts, statement import, AI-powered insights, and more.</p>
+      </details>
+      <details class="faq-item">
+        <summary class="faq-q">Can I share access with my partner?
+          <svg class="faq-chev" viewBox="0 0 20 20" fill="none"><path d="M5 7.5l5 5 5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </summary>
+        <p class="faq-a">Yes. Supafolio supports Shared Access — invite a partner or financial advisor with role-based permissions (Admin, Edit, or Read-only). Both see the same complete picture with the right level of control for each person.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- COMPARISON -->
+<section class="comparison">
+  <div class="comparison-inner">
+    <div class="section-header">
+      <div class="section-eyebrow">The comparison</div>
+      <h2>Most people manage their wealth in a spreadsheet.<br>Most spreadsheets are two months out of date.</h2>
+    </div>
+    <div class="compare-table">
+      <div class="compare-hdr"></div>
+      <div class="compare-hdr">Spreadsheet</div>
+      <div class="compare-hdr hl">Supafolio</div>
+      <div class="compare-cell">Keep balances current</div>
+      <div class="compare-cell na">Manual, when you remember</div>
+      <div class="compare-cell hl">Auto-sync or on-demand</div>
+      <div class="compare-cell">Pay cycle planning</div>
+      <div class="compare-cell na">Build your own logic from scratch</div>
+      <div class="compare-cell hl">Built in — Allocate</div>
+      <div class="compare-cell">Super, RSUs, crypto</div>
+      <div class="compare-cell na">Manual rows and formulas</div>
+      <div class="compare-cell hl">Native support</div>
+      <div class="compare-cell">Fortnightly income</div>
+      <div class="compare-cell na">Manually adjust each month</div>
+      <div class="compare-cell hl">Any frequency, normalised</div>
+      <div class="compare-cell">Share with a partner</div>
+      <div class="compare-cell na">Email a file, hope for the best</div>
+      <div class="compare-cell hl">Shared Access with roles</div>
+      <div class="compare-cell">Mobile</div>
+      <div class="compare-cell na">Barely</div>
+      <div class="compare-cell hl">Designed for it</div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section class="pricing" id="pricing">
+  <div class="section-header">
+    <div class="section-eyebrow">Pricing</div>
+    <h2>Start free. Upgrade when you're ready.</h2>
+    <p>No credit card required. Full access for your first 30 days, no matter which plan you start on.</p>
+  </div>
+  <div class="pricing-grid">
+    <div class="pricing-card">
+      <div class="pricing-tier">Free</div>
+      <div class="pricing-price">$0</div>
+      <div class="pricing-psub">forever</div>
+      <div class="pricing-desc">Enough to see your net worth and run a basic Allocate plan every pay cycle.</div>
+      <ul class="pricing-feats">
+        <li><svg class="pcheck" viewBox="0 0 16 16" fill="none"><path d="M3 8l3.5 3.5L13 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>1 account, 1 income source</li>
+        <li><svg class="pcheck" viewBox="0 0 16 16" fill="none"><path d="M3 8l3.5 3.5L13 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Up to 5 recurring expenses</li>
+        <li><svg class="pcheck" viewBox="0 0 16 16" fill="none"><path d="M3 8l3.5 3.5L13 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Net worth overview</li>
+        <li><svg class="pcheck" viewBox="0 0 16 16" fill="none"><path d="M3 8l3.5 3.5L13 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Basic Allocate plan</li>
+      </ul>
+      <a href="#signup" class="btn-plan btn-ghost">Get started free</a>
+    </div>
+    <div class="pricing-card featured">
+      <div class="pricing-badge">Most popular</div>
+      <div class="pricing-tier">Pro</div>
+      <div class="pricing-price">$X</div>
+      <div class="pricing-psub">per month</div>
+      <div class="pricing-desc">For people managing a growing, complex financial life across multiple accounts and income sources.</div>
+      <ul class="pricing-feats">
+        <li><svg class="pcheck" viewBox="0 0 16 16" fill="none"><path d="M3 8l3.5 3.5L13 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Unlimited accounts &amp; income sources</li>
+        <li><svg class="pcheck" viewBox="0 0 16 16" fill="none"><path d="M3 8l3.5 3.5L13 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Unlimited recurring expenses</li>
+        <li><svg class="pcheck" viewBox="0 0 16 16" fill="none"><path d="M3 8l3.5 3.5L13 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Bank statement import</li>
+        <li><svg class="pcheck" viewBox="0 0 16 16" fill="none"><path d="M3 8l3.5 3.5L13 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>AI-powered investment insights</li>
+        <li><svg class="pcheck" viewBox="0 0 16 16" fill="none"><path d="M3 8l3.5 3.5L13 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Shared Access (partner or advisor)</li>
+        <li><svg class="pcheck" viewBox="0 0 16 16" fill="none"><path d="M3 8l3.5 3.5L13 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Automatic brokerage sync</li>
+      </ul>
+      <a href="#signup" class="btn-plan btn-white">Start free — upgrade anytime</a>
+    </div>
+    <div class="pricing-card">
+      <div class="pricing-tier">Enterprise</div>
+      <div class="pricing-price" style="font-size:26px; padding-top:8px; margin-bottom:8px;">Coming soon</div>
+      <div class="pricing-psub">for advisors &amp; firms</div>
+      <div class="pricing-desc">Multi-client management, advisor dashboards, and white-label options for financial planning firms.</div>
+      <ul class="pricing-feats">
+        <li><svg class="pcheck" viewBox="0 0 16 16" fill="none"><path d="M3 8l3.5 3.5L13 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Multi-client workspaces</li>
+        <li><svg class="pcheck" viewBox="0 0 16 16" fill="none"><path d="M3 8l3.5 3.5L13 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Advisor dashboard</li>
+        <li><svg class="pcheck" viewBox="0 0 16 16" fill="none"><path d="M3 8l3.5 3.5L13 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Priority support</li>
+      </ul>
+      <a href="mailto:hello@supafolio.com" class="btn-plan btn-ghost">Register interest</a>
+    </div>
+  </div>
+  <div class="full-access-note">
+    <strong>Not sure yet?</strong> Sign up on any plan and get full Pro access for your first 30 days — no credit card, no commitment. Decide after you've seen what Supafolio can do.
+  </div>
+</section>
+
+<!-- FINAL CTA -->
+<section class="final-cta" id="signup">
+  <div class="final-inner">
+    <h2>Your financial life has outgrown a spreadsheet.</h2>
+    <p>Sign up free and see your complete picture — and your first Allocate plan — in minutes.</p>
+    <a href="#" class="btn-final">
+      Start building — it's free
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </a>
+    <div class="final-trust">Free forever · Full access for 30 days · No credit card required</div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <a href="/" class="footer-logo">Supafolio</a>
+  <ul class="footer-links">
+    <li><a href="#product">Product</a></li>
+    <li><a href="#pricing">Pricing</a></li>
+    <li><a href="/security">Security</a></li>
+    <li><a href="/privacy">Privacy policy</a></li>
+    <li><a href="/terms">Terms</a></li>
+    <li><a href="mailto:hello@supafolio.com">Contact</a></li>
+  </ul>
+  <div class="footer-copy">© 2025 Supafolio. Built in Australia.</div>
+</footer>
+
+</body>
+</html>

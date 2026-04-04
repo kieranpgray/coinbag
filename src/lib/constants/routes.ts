@@ -6,6 +6,7 @@
 export const ROUTES = {
   // Root routes
   root: '/',
+  pricing: '/pricing',
   signIn: '/sign-in',
   signUp: '/sign-up',
 

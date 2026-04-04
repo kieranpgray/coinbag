@@ -18,6 +18,13 @@ import {
   OcrRateLimitError,
   OcrTimeoutError
 } from './ocr-service.ts'
+import {
+  isStatementFilePurgeEnabled,
+  shouldPurgeStorageAfterFullOcrPath,
+  purgeStatementObject,
+  mergeFileStoragePurgedMetadata,
+  purgeStaleStatementFilesForUser,
+} from './statement-purge.ts'
 
 // Simple logger for Edge Functions
 const logger = {
@@ -3766,7 +3773,7 @@ async function processStatement(
         }, correlationId)
         
         // Update status to failed if no transactions were inserted
-        await supabase
+        const insertFailUpdate = await supabase
           .from('statement_imports')
           .update({
             status: 'failed',
@@ -3776,6 +3783,28 @@ async function processStatement(
             correlation_id: correlationId,
           })
           .eq('id', statementImport.id)
+
+        if (
+          !insertFailUpdate.error &&
+          isStatementFilePurgeEnabled() &&
+          statementImport.file_path
+        ) {
+          const removed = await purgeStatementObject(
+            supabase,
+            statementImport.file_path,
+            correlationId,
+            logger
+          )
+          if (removed) {
+            await mergeFileStoragePurgedMetadata(
+              supabase,
+              statementImport.id,
+              correlationId,
+              logger,
+              { file_purge_reason: 'insert_failed' }
+            )
+          }
+        }
 
         throw new Error(`Transaction creation failed: ${insertError.message}`)
       } else if (hasPartialSuccess) {
@@ -4731,6 +4760,7 @@ async function processStatement(
       })
       .eq('id', statementImport.id)
 
+    let failurePurgeEligible = false
     if (failedStatusResult.error) {
       logger.error('STATEMENT:STATUS_UPDATE', 'Failed to update status to failed', {
         statementImportId: statementImport.id,
@@ -4759,10 +4789,69 @@ async function processStatement(
           errorMessage: verify?.error_message,
           verified: true
         }, correlationId)
+        failurePurgeEligible = true
+      }
+    }
+
+    if (
+      failurePurgeEligible &&
+      isStatementFilePurgeEnabled() &&
+      statementImport.file_path
+    ) {
+      const removed = await purgeStatementObject(
+        supabase,
+        statementImport.file_path,
+        correlationId,
+        logger
+      )
+      if (removed) {
+        await mergeFileStoragePurgedMetadata(
+          supabase,
+          statementImport.id,
+          correlationId,
+          logger,
+          { file_purge_reason: 'failed' }
+        )
       }
     }
 
     throw error
+  } finally {
+    if (!isStatementFilePurgeEnabled()) {
+      /* success-path purge disabled via ENABLE_STATEMENT_FILE_PURGE */
+    } else {
+      try {
+        const { data: purgeRow, error: purgeSelectError } = await supabase
+          .from('statement_imports')
+          .select('status, file_path, error_message')
+          .eq('id', statementImport.id)
+          .single()
+
+        if (purgeSelectError) {
+          logger.warn('STATEMENT:STORAGE_PURGE_FINALLY', 'Could not read row for success purge', {
+            statementImportId: statementImport.id,
+            error: purgeSelectError.message
+          }, correlationId)
+        } else if (purgeRow && shouldPurgeStorageAfterFullOcrPath(purgeRow)) {
+          const path = purgeRow.file_path as string
+          const removed = await purgeStatementObject(supabase, path, correlationId, logger)
+          if (removed) {
+            await mergeFileStoragePurgedMetadata(
+              supabase,
+              statementImport.id,
+              correlationId,
+              logger,
+              { file_purge_reason: 'completed' }
+            )
+          }
+        }
+      } catch (finallyErr) {
+        logger.warn('STATEMENT:STORAGE_PURGE_FINALLY', 'Success-path purge finally block error', {
+          statementImportId: statementImport.id,
+          error: finallyErr instanceof Error ? finallyErr.message : String(finallyErr)
+        }, correlationId)
+      }
+    }
   }
 }
 
@@ -4861,6 +4950,8 @@ serve(async (req) => {
       })
     }
 
+    await purgeStaleStatementFilesForUser(supabase, correlationId, logger)
+
     // Rate limiting: Check recent processing activity (max 10 per hour per user)
     // Optimized: Use materialized view for fast lookup (<10ms vs 100-500ms)
     const rateLimitCheckStartTime = Date.now()
@@ -4908,13 +4999,35 @@ serve(async (req) => {
         usedMaterializedView: !viewError && hourlyCount
       }, correlationId)
 
-      await supabase
+      const rateLimitUpdate = await supabase
         .from('statement_imports')
         .update({
           status: 'failed',
           error_message: 'Rate limit exceeded. Please wait before uploading more statements.'
         })
         .eq('id', statementImportId)
+
+      if (
+        !rateLimitUpdate.error &&
+        isStatementFilePurgeEnabled() &&
+        statementImport.file_path
+      ) {
+        const removed = await purgeStatementObject(
+          supabase,
+          statementImport.file_path,
+          correlationId,
+          logger
+        )
+        if (removed) {
+          await mergeFileStoragePurgedMetadata(
+            supabase,
+            statementImportId,
+            correlationId,
+            logger,
+            { file_purge_reason: 'rate_limited' }
+          )
+        }
+      }
 
       return new Response(JSON.stringify({
         error: 'Rate limit exceeded. Please wait before uploading more statements.'
@@ -5243,7 +5356,7 @@ serve(async (req) => {
 
       // Copy transactions from cached import to new import
       // CRITICAL: Do this SYNCHRONOUSLY to ensure transactions are inserted before returning
-      const copyTransactionsSynchronously = async () => {
+      const copyTransactionsSynchronously = async (): Promise<{ shouldPurgeUploadedFile: boolean }> => {
         try {
           logger.info('STATEMENT:CACHE:START', 'Starting copy of cached transactions', {
             statementImportId,
@@ -5275,7 +5388,7 @@ serve(async (req) => {
             }, correlationId)
             // Status already 'completed', no need to update it again
             // Just log the error - status remains 'completed' with existing counts
-            return
+            return { shouldPurgeUploadedFile: false }
           }
 
           logger.info('STATEMENT:CACHE:QUERY', 'Queried cached transactions', {
@@ -5347,6 +5460,7 @@ serve(async (req) => {
                   updateError: updateResult.error.message
                 }, correlationId)
               }
+              return { shouldPurgeUploadedFile: false }
             } else {
               const insertedCount = insertedTransactions?.length || 0
               logger.info('STATEMENT:CACHE:INSERT', 'Successfully copied cached transactions', {
@@ -5452,6 +5566,7 @@ serve(async (req) => {
                   imported_transactions: insertedCount
                 }, correlationId)
               }
+              return { shouldPurgeUploadedFile: true }
             }
           } else {
             // No transactions to copy - status already 'completed', counts already set
@@ -5461,6 +5576,11 @@ serve(async (req) => {
               expectedCount: existingImport.imported_transactions,
               note: 'This may indicate the cached import had no transactions or query failed'
             }, correlationId)
+            const expected = existingImport.imported_transactions ?? 0
+            if (expected > 0) {
+              return { shouldPurgeUploadedFile: false }
+            }
+            return { shouldPurgeUploadedFile: true }
           }
         } catch (error) {
           const errorMessage = error instanceof Error ? error.message : String(error)
@@ -5486,11 +5606,34 @@ serve(async (req) => {
               updateError: updateError instanceof Error ? updateError.message : String(updateError)
             }, correlationId)
           }
+          return { shouldPurgeUploadedFile: false }
         }
       }
 
       // Execute the copy synchronously (await it)
-      await copyTransactionsSynchronously()
+      const cacheCopyOutcome = await copyTransactionsSynchronously()
+
+      if (
+        cacheCopyOutcome.shouldPurgeUploadedFile &&
+        isStatementFilePurgeEnabled() &&
+        statementImport.file_path
+      ) {
+        const removed = await purgeStatementObject(
+          supabase,
+          statementImport.file_path,
+          correlationId,
+          logger
+        )
+        if (removed) {
+          await mergeFileStoragePurgedMetadata(
+            supabase,
+            statementImportId,
+            correlationId,
+            logger,
+            { file_purge_reason: 'cache_copy_success' }
+          )
+        }
+      }
 
       // Return success after transactions are copied
       return new Response(JSON.stringify({
@@ -5545,7 +5688,7 @@ serve(async (req) => {
 
         // Update status to failed
         try {
-          await supabase
+          const bgFailUpdate = await supabase
             .from('statement_imports')
             .update({
               status: 'failed',
@@ -5557,10 +5700,39 @@ serve(async (req) => {
             })
             .eq('id', statementImportId)
 
-          logger.info('STATEMENT:BACKGROUND_ERROR', 'Status updated to failed after background processing error', {
-            statementImportId,
-            errorMessage
-          }, correlationId)
+          if (bgFailUpdate.error) {
+            logger.error('STATEMENT:BACKGROUND_ERROR', 'Failed to persist failed status after background error', {
+              statementImportId,
+              error: bgFailUpdate.error.message
+            }, correlationId)
+          } else {
+            logger.info('STATEMENT:BACKGROUND_ERROR', 'Status updated to failed after background processing error', {
+              statementImportId,
+              errorMessage
+            }, correlationId)
+          }
+
+          if (
+            !bgFailUpdate.error &&
+            isStatementFilePurgeEnabled() &&
+            statementImport.file_path
+          ) {
+            const removed = await purgeStatementObject(
+              supabase,
+              statementImport.file_path,
+              correlationId,
+              logger
+            )
+            if (removed) {
+              await mergeFileStoragePurgedMetadata(
+                supabase,
+                statementImportId,
+                correlationId,
+                logger,
+                { file_purge_reason: 'background_failed' }
+              )
+            }
+          }
         } catch (statusUpdateError) {
           logger.error('STATEMENT:BACKGROUND_ERROR', 'Failed to update status after background processing error', {
             statementImportId,

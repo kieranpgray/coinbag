@@ -139,19 +139,8 @@ export const accountCreateSchema = z.object({
   balanceOwed: balanceOwedSchema,
   lastUpdated: datetimeSchema,
   hidden: z.boolean().default(false),
-}).refine(
-  (data) => {
-    // Credit Card and Loan require creditLimit and balanceOwed
-    if (data.accountType === 'Credit Card' || data.accountType === 'Loan') {
-      return data.creditLimit !== undefined && data.balanceOwed !== undefined;
-    }
-    return true;
-  },
-  {
-    message: 'Credit limit and balance owed are required for Credit Card and Loan accounts',
-    path: ['creditLimit'],
-  }
-);
+});
+// Credit limit and balance owed are optional for Credit Card and Loan
 
 export const accountUpdateSchema = z.object({
   institution: institutionSchema,

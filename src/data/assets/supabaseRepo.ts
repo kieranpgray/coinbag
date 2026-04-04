@@ -22,7 +22,7 @@ export class SupabaseAssetsRepository implements AssetsRepository {
   // Select actual database column names (snake_case)
   // Supabase doesn't support column aliasing in select strings, so we map them manually
   private readonly selectColumns =
-    'id, name, type, value, change_1d, change_1w, date_added, institution, notes, user_id, created_at, updated_at, ticker, exchange, quantity, purchase_price, purchase_date, todays_price, grant_date, vesting_date, grant_price, address, property_type, last_price_fetched_at, price_source';
+    'id, name, type, value, change_1d, change_1w, date_added, institution, notes, user_id, created_at, updated_at, ticker, exchange, quantity, purchase_price, purchase_date, todays_price, grant_date, vesting_date, grant_price, address, property_type, last_price_fetched_at, price_source, data_source, snaptrade_account_id, balance_currency';
 
   // Fallback when asset-fields migration not applied (no grant_price, address, property_type)
   private readonly selectColumnsWithoutAssetFields =
@@ -143,6 +143,9 @@ export class SupabaseAssetsRepository implements AssetsRepository {
       propertyType: row.property_type === null || row.property_type === undefined ? undefined : (row.property_type as string),
       lastPriceFetchedAt: row.last_price_fetched_at === null || row.last_price_fetched_at === undefined ? undefined : (row.last_price_fetched_at as string),
       priceSource: row.price_source === null || row.price_source === undefined ? undefined : (row.price_source as string),
+      dataSource: row.data_source === null || row.data_source === undefined ? undefined : (row.data_source as 'manual' | 'snaptrade'),
+      snaptradeAccountId: row.snaptrade_account_id === null || row.snaptrade_account_id === undefined ? undefined : (row.snaptrade_account_id as string),
+      balanceCurrency: row.balance_currency === null || row.balance_currency === undefined ? undefined : (row.balance_currency as string),
     };
   }
 
@@ -193,6 +196,10 @@ export class SupabaseAssetsRepository implements AssetsRepository {
       propertyType: entity.propertyType,
       lastPriceFetchedAt: entity.lastPriceFetchedAt,
       priceSource: entity.priceSource,
+      dataSource: entity.dataSource,
+      snaptradeAccountId: entity.snaptradeAccountId,
+      balanceCurrency: entity.balanceCurrency,
+      updatedAt: entity.updatedAt,
     };
   }
 

@@ -58,6 +58,17 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Verify deploy env contract (production simulation)
+        run: pnpm verify:deploy-env
+        env:
+          VERCEL: '1'
+          VERCEL_ENV: production
+          VERCEL_GIT_COMMIT_REF: main
+          VITE_DATA_SOURCE: supabase
+          VITE_SUPABASE_URL: https://test.supabase.co
+          VITE_SUPABASE_ANON_KEY: sb_publishable_ci
+          VITE_CLERK_PUBLISHABLE_KEY: pk_live_ci
+
       - name: Build
         run: pnpm build
         env:

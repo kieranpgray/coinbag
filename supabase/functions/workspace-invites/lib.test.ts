@@ -44,6 +44,28 @@ describe('workspace-invites lib', () => {
       const jwt = createJwt({ email: 'a@b.com' });
       expect(getUserIdFromJwt(jwt)).toBeNull();
     });
+
+    it('extracts sub from base64url-encoded JWT (Clerk format)', () => {
+      // Base64url uses - and _ instead of + and /
+      const payloadB64Url = btoa(JSON.stringify({ sub: 'user_clerk123' }))
+        .replace(/\+/g, '-')
+        .replace(/\//g, '_')
+        .replace(/=/g, '');
+      const jwt = `eyJhbGciOiJIUzI1NiJ9.${payloadB64Url}.sig`;
+      expect(getUserIdFromJwt(jwt)).toBe('user_clerk123');
+    });
+
+    it('handles base64url payload that requires padding', () => {
+      // Create a payload whose base64url representation needs padding
+      // This simulates real Clerk JWTs that may not have padding
+      const payload = { sub: 'user_padding_test' };
+      const jsonStr = JSON.stringify(payload);
+      const base64 = btoa(jsonStr);
+      // Convert to base64url and remove padding to simulate Clerk format
+      const base64url = base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+      const jwt = `eyJhbGciOiJIUzI1NiJ9.${base64url}.sig`;
+      expect(getUserIdFromJwt(jwt)).toBe('user_padding_test');
+    });
   });
 
   describe('userHasVerifiedEmail', () => {

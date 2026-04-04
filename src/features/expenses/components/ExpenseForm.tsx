@@ -21,6 +21,7 @@ import { format } from 'date-fns';
 import { useCategories } from '@/features/categories/hooks';
 import { findUncategorisedCategoryId } from '@/data/categories/ensureDefaults';
 import { useAccountLinking } from '@/hooks/useAccountLinking';
+import { isRepaymentCategoryId } from '@/features/expenses/utils/repaymentCategory';
 
 const expenseSchema = z.object({
   name: z.string()
@@ -43,7 +44,9 @@ const expenseSchema = z.object({
   categoryId: z.string()
     .min(1, 'Category is required')
     .uuid('Invalid category selected'),
-  paidFromAccountId: z.string().uuid('Invalid account selected').optional(),
+  paidFromAccountId: z.string().uuid('Invalid account selected').optional().nullable(),
+  linkedRepaymentAccountId: z.string().uuid('Invalid linked account selected').optional().nullable(),
+  isRepaymentCategory: z.boolean().optional(),
 }).superRefine((data, ctx) => {
   // Only validate date order if both dates are provided
   if (data.chargeDate && data.nextDueDate && !validateExpenseDates(data.chargeDate, data.nextDueDate)) {
@@ -67,6 +70,24 @@ const expenseSchema = z.object({
       message: `Amount must be between ${ranges[data.frequency]} for ${data.frequency} frequency`,
       path: ['amount'],
     });
+  }
+
+  if (data.isRepaymentCategory) {
+    if (!data.paidFromAccountId) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Paid from is required for repayment expenses',
+        path: ['paidFromAccountId'],
+      });
+    }
+
+    if (!data.linkedRepaymentAccountId) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Linked repayment account is required for repayment expenses',
+        path: ['linkedRepaymentAccountId'],
+      });
+    }
   }
 });
 
@@ -97,7 +118,7 @@ export function ExpenseForm({ defaultValues, onSubmit, isSubmitting }: ExpenseFo
     handleAccountCreationStateChange,
     getFinalAccountId,
     shouldPreventSubmission,
-  } = useAccountLinking(defaultValues?.paidFromAccountId);
+  } = useAccountLinking(defaultValues?.paidFromAccountId ?? undefined);
   
   // Find uncategorised category or use first available
   const uncategorisedId = findUncategorisedCategoryId(categories);
@@ -121,6 +142,8 @@ export function ExpenseForm({ defaultValues, onSubmit, isSubmitting }: ExpenseFo
       nextDueDate: defaultValues?.nextDueDate ? format(new Date(defaultValues.nextDueDate), 'yyyy-MM-dd') : undefined,
       categoryId: defaultCategoryId,
       paidFromAccountId: defaultValues?.paidFromAccountId,
+      linkedRepaymentAccountId: defaultValues?.linkedRepaymentAccountId,
+      isRepaymentCategory: false,
     },
   });
 
@@ -139,6 +162,17 @@ export function ExpenseForm({ defaultValues, onSubmit, isSubmitting }: ExpenseFo
   const watchedChargeDate = watch('chargeDate') || ''; // Ensure always defined for controlled Select
   const watchedCategoryId = watch('categoryId') || ''; // Ensure always defined for controlled Select
   const watchedPaidFromAccountId = watch('paidFromAccountId') || ''; // Ensure always defined for controlled Select
+  const watchedLinkedRepaymentAccountId = watch('linkedRepaymentAccountId') || '';
+  const watchedIsRepaymentCategory = watchedCategoryId
+    ? isRepaymentCategoryId(watchedCategoryId, categories)
+    : false;
+
+  useEffect(() => {
+    setValue('isRepaymentCategory', watchedIsRepaymentCategory);
+    if (!watchedIsRepaymentCategory) {
+      setValue('linkedRepaymentAccountId', null);
+    }
+  }, [watchedIsRepaymentCategory, setValue]);
 
   // Auto-calculate next due date when frequency or charge date changes
   useEffect(() => {
@@ -160,7 +194,7 @@ export function ExpenseForm({ defaultValues, onSubmit, isSubmitting }: ExpenseFo
     }
 
     // Use hook's utility to get final account ID with fallback
-    const finalAccountId = getFinalAccountId(data.paidFromAccountId);
+    const finalAccountId = getFinalAccountId(data.paidFromAccountId ?? undefined);
 
     const expenseData = {
       name: data.name,
@@ -169,7 +203,10 @@ export function ExpenseForm({ defaultValues, onSubmit, isSubmitting }: ExpenseFo
       chargeDate: data.chargeDate || undefined,
       nextDueDate: data.nextDueDate ?? null,
       categoryId: data.categoryId,
-      paidFromAccountId: finalAccountId,
+      paidFromAccountId: finalAccountId ?? null,
+      linkedRepaymentAccountId: data.isRepaymentCategory
+        ? data.linkedRepaymentAccountId ?? null
+        : null,
     } as Omit<Expense, 'id'>;
 
     onSubmit(expenseData);
@@ -312,7 +349,9 @@ export function ExpenseForm({ defaultValues, onSubmit, isSubmitting }: ExpenseFo
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="paidFromAccountId">Paid from (Optional)</Label>
+        <Label htmlFor="paidFromAccountId">
+          Paid from {watchedIsRepaymentCategory ? <span className="text-destructive">*</span> : '(Optional)'}
+        </Label>
         <AccountSelect
           id="paidFromAccountId"
           value={watchedPaidFromAccountId}
@@ -328,7 +367,33 @@ export function ExpenseForm({ defaultValues, onSubmit, isSubmitting }: ExpenseFo
           error={errors.paidFromAccountId?.message}
           context="expense"
         />
+        <p className="text-caption text-muted-foreground">Source cash account this payment comes from.</p>
       </div>
+
+      {watchedIsRepaymentCategory && (
+        <div className="space-y-2">
+          <Label htmlFor="linkedRepaymentAccountId">
+            Linked repayment account <span className="text-destructive">*</span>
+          </Label>
+          <AccountSelect
+            id="linkedRepaymentAccountId"
+            value={watchedLinkedRepaymentAccountId}
+            onChange={(value) => {
+              setValue('linkedRepaymentAccountId', value || null);
+            }}
+            onAccountCreationStateChange={handleAccountCreationStateChange}
+            onAccountCreationError={(_error) => {
+              // Handled by field-level validation and mutation error states
+            }}
+            placeholder="Select account being repaid"
+            error={errors.linkedRepaymentAccountId?.message}
+            context="expense"
+          />
+          <p className="text-caption text-muted-foreground">
+            Destination account being repaid (for example, loan or credit card).
+          </p>
+        </div>
+      )}
 
       <div className="flex justify-end space-x-2 pt-4">
         <Button

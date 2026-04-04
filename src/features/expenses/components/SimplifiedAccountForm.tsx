@@ -29,20 +29,7 @@ const simplifiedAccountSchema = z.object({
   institution: z.string().max(100, 'Institution must be less than 100 characters').optional(),
   creditLimit: z.number().min(0, 'Credit limit must be positive').max(1000000, 'Credit limit must be less than $1,000,000').optional(),
   balanceOwed: z.number().min(0, 'Balance owed must be positive').max(1000000, 'Balance owed must be less than $1,000,000').optional(),
-}).refine(
-  (data) => {
-    // Credit Card and Loan require creditLimit and balanceOwed
-    if (data.accountType === 'Credit Card' || data.accountType === 'Loan') {
-      return data.creditLimit !== undefined && data.balanceOwed !== undefined;
-    }
-    // Regular accounts (Bank Account, Savings, Other): balance is optional, blank defaults to 0 in submit handler
-    return true;
-  },
-  {
-    message: 'Required fields are missing for this account type',
-    path: ['balance'],
-  }
-);
+});
 
 type SimplifiedAccountFormData = z.infer<typeof simplifiedAccountSchema>;
 
@@ -86,8 +73,9 @@ export function SimplifiedAccountForm({ onSubmit, onCancel, isLoading }: Simplif
     let finalBalance: number;
 
     if (isCreditAccount) {
-      // For credit accounts, balance is negative of balance owed
-      finalBalance = -data.balanceOwed!;
+      finalBalance = (data.balanceOwed != null && !isNaN(data.balanceOwed))
+        ? -data.balanceOwed
+        : 0;
     } else {
       // For regular accounts, use the balance field; blank defaults to 0
       finalBalance = data.balance ?? 0;
@@ -99,8 +87,8 @@ export function SimplifiedAccountForm({ onSubmit, onCancel, isLoading }: Simplif
       accountType: data.accountType,
       balance: finalBalance,
       institution: data.institution || undefined,
-      creditLimit: data.creditLimit,
-      balanceOwed: data.balanceOwed,
+      creditLimit: (data.creditLimit != null && !isNaN(data.creditLimit)) ? data.creditLimit : undefined,
+      balanceOwed: (data.balanceOwed != null && !isNaN(data.balanceOwed)) ? data.balanceOwed : undefined,
       lastUpdated: new Date().toISOString(),
       hidden: false,
     };
@@ -173,7 +161,7 @@ export function SimplifiedAccountForm({ onSubmit, onCancel, isLoading }: Simplif
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="creditLimit">
-                {selectedType === 'Credit Card' ? 'Credit Limit' : 'Loan Amount'} <span className="text-destructive">*</span>
+                {selectedType === 'Credit Card' ? 'Credit Limit' : 'Loan Amount'}
               </Label>
               <Input
                 id="creditLimit"
@@ -201,7 +189,7 @@ export function SimplifiedAccountForm({ onSubmit, onCancel, isLoading }: Simplif
 
             <div className="space-y-2">
               <Label htmlFor="balanceOwed">
-                Balance Owed <span className="text-destructive">*</span>
+                Balance Owed
               </Label>
               <Input
                 id="balanceOwed"

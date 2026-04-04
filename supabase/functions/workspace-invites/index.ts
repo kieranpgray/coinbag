@@ -2,7 +2,7 @@
  * Supabase Edge Function: workspace-invites
  *
  * Routes:
- * - POST /create  - Create or resend invite (upsert for pending)
+ * - POST /create  - Create or resend invite (upsert for pending), sends invite email via Resend
  * - POST /accept  - Accept invite by token
  *
  * Requires Clerk JWT in x-clerk-token header for create/accept.
@@ -38,6 +38,52 @@ function jsonResponse(body: object, status: number) {
     status,
     headers: { ...corsHeaders, 'Content-Type': 'application/json' },
   });
+}
+
+async function sendInviteEmail(params: {
+  resendApiKey: string;
+  fromEmail: string;
+  to: string;
+  workspaceName: string;
+  role: string;
+  inviteUrl: string;
+  expiresAt: string;
+}): Promise<void> {
+  const { resendApiKey, fromEmail, to, workspaceName, role, inviteUrl, expiresAt } = params;
+  const expiryDate = new Date(expiresAt).toLocaleDateString('en-US', {
+    month: 'long', day: 'numeric', year: 'numeric',
+  });
+  const res = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${resendApiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      from: fromEmail,
+      to,
+      subject: `You've been invited to join ${workspaceName} on Wellthy`,
+      html: `
+        <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px 24px;">
+          <h2 style="margin:0 0 16px;">You've been invited</h2>
+          <p style="margin:0 0 24px;color:#374151;">
+            You've been invited to join <strong>${workspaceName}</strong> as <strong>${role}</strong>.
+          </p>
+          <a href="${inviteUrl}"
+             style="display:inline-block;padding:12px 24px;background:#000;color:#fff;text-decoration:none;border-radius:6px;font-weight:500;">
+            Accept invitation
+          </a>
+          <p style="margin:24px 0 0;color:#9ca3af;font-size:13px;">
+            This invite expires on ${expiryDate}. If you weren't expecting this, you can ignore this email.
+          </p>
+        </div>
+      `,
+    }),
+  });
+  if (!res.ok) {
+    const errBody = await res.text();
+    throw new Error(`Resend error ${res.status}: ${errBody}`);
+  }
 }
 
 async function fetchClerkUserByEmail(clerkSecretKey: string, email: string): Promise<{
@@ -115,22 +161,37 @@ export async function handleCreate(
     return jsonResponse({ error: 'Forbidden: must be workspace admin' }, 403);
   }
 
-  // Check invitee is not already a member (by email via Clerk)
-  let existingUser: Awaited<ReturnType<typeof fetchClerkUserByEmail>>;
-  try {
-    existingUser = await fetchClerkUserByEmail(clerkSecretKey, emailTrimmed);
-  } catch {
-    return jsonResponse({ error: 'Clerk API unavailable' }, 503);
-  }
-  if (existingUser) {
-    const { data: existingMember } = await supabase
-      .from('workspace_memberships')
-      .select('id')
-      .eq('workspace_id', workspace_id)
-      .eq('user_id', existingUser.id)
-      .single();
-    if (existingMember) {
-      return jsonResponse({ error: 'Already a member' }, 409);
+  // Fetch workspace name for email (after auth check so we don't leak names to non-members)
+  const { data: workspace } = await supabase
+    .from('workspaces')
+    .select('name')
+    .eq('id', workspace_id)
+    .single();
+  const workspaceName = workspace?.name ?? 'a workspace';
+
+  // Read email env vars
+  const resendApiKey = Deno.env.get('RESEND_API_KEY');
+  const resendFromEmail = Deno.env.get('RESEND_FROM_EMAIL') ?? 'onboarding@resend.dev';
+  const appUrl = Deno.env.get('APP_URL') ?? 'http://localhost:5173';
+
+  // Check invitee is not already a member
+  if (clerkSecretKey) {
+    let existingUser: Awaited<ReturnType<typeof fetchClerkUserByEmail>>;
+    try {
+      existingUser = await fetchClerkUserByEmail(clerkSecretKey, emailTrimmed);
+    } catch {
+      return jsonResponse({ error: 'Clerk API unavailable' }, 503);
+    }
+    if (existingUser) {
+      const { data: existingMember } = await supabase
+        .from('workspace_memberships')
+        .select('id')
+        .eq('workspace_id', workspace_id)
+        .eq('user_id', existingUser.id)
+        .single();
+      if (existingMember) {
+        return jsonResponse({ error: 'Already a member' }, 409);
+      }
     }
   }
 
@@ -161,6 +222,23 @@ export async function handleCreate(
     if (updateError) {
       return jsonResponse({ error: 'Failed to resend invitation' }, 500);
     }
+
+    if (resendApiKey) {
+      try {
+        await sendInviteEmail({
+          resendApiKey,
+          fromEmail: resendFromEmail,
+          to: emailTrimmed,
+          workspaceName,
+          role,
+          inviteUrl: `${appUrl}/accept-invite?token=${token}`,
+          expiresAt: expiresAt.toISOString(),
+        });
+      } catch (emailErr) {
+        console.error('Email send failed (resend path):', emailErr);
+      }
+    }
+
     return jsonResponse({
       success: true,
       action: 'resend',
@@ -180,6 +258,22 @@ export async function handleCreate(
 
   if (insertError) {
     return jsonResponse({ error: 'Failed to create invitation' }, 500);
+  }
+
+  if (resendApiKey) {
+    try {
+      await sendInviteEmail({
+        resendApiKey,
+        fromEmail: resendFromEmail,
+        to: emailTrimmed,
+        workspaceName,
+        role,
+        inviteUrl: `${appUrl}/accept-invite?token=${token}`,
+        expiresAt: expiresAt.toISOString(),
+      });
+    } catch (emailErr) {
+      console.error('Email send failed (create path):', emailErr);
+    }
   }
 
   return jsonResponse({
@@ -218,7 +312,7 @@ export async function handleAccept(
 
   const inviteEmail = (invite.email as string).toLowerCase().trim();
 
-  // Verify user's email matches invite and is verified in Clerk
+  // Verify user's email matches invite via Clerk API
   let clerkUser: Awaited<ReturnType<typeof fetchClerkUserById>>;
   try {
     clerkUser = await fetchClerkUserById(clerkSecretKey, userId);
@@ -269,20 +363,20 @@ serve(async (req: Request) => {
     return jsonResponse({ error: 'Clerk JWT token required in x-clerk-token header' }, 401);
   }
 
+  const supabaseUrl = Deno.env.get('SUPABASE_URL');
+  const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+  if (!supabaseUrl || !serviceRoleKey) {
+    return jsonResponse({ error: 'Server configuration error' }, 500);
+  }
+
   const userId = getUserIdFromJwt(clerkToken);
   if (!userId) {
     return jsonResponse({ error: 'Invalid token' }, 401);
   }
 
-  const supabaseUrl = Deno.env.get('SUPABASE_URL');
-  const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY');
-  if (!supabaseUrl || !supabaseAnonKey) {
-    return jsonResponse({ error: 'Server configuration error' }, 500);
-  }
-
-  // Supabase validates JWT; invalid tokens are rejected at connection time.
-  const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-    global: { headers: { Authorization: `Bearer ${clerkToken}` } },
+  // Use service role for DB operations; we enforce auth in app logic (admin check, email match)
+  const supabase = createClient(supabaseUrl, serviceRoleKey, {
+    auth: { autoRefreshToken: false, persistSession: false },
   });
 
   let body: { action?: string };

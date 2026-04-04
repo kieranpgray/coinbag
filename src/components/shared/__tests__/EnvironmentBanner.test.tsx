@@ -1,92 +1,69 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
+import { RouteLoadingBannerProvider } from '@/contexts/RouteLoadingBannerContext';
 import { EnvironmentBanner } from '../EnvironmentBanner';
 
-describe('EnvironmentBanner', () => {
-  const originalMode = import.meta.env.MODE;
-  const originalProd = import.meta.env.PROD;
+function renderBanner(pathname = '/app/dashboard') {
+  return render(
+    <MemoryRouter
+      initialEntries={[pathname]}
+      future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+    >
+      <RouteLoadingBannerProvider>
+        <EnvironmentBanner />
+      </RouteLoadingBannerProvider>
+    </MemoryRouter>
+  );
+}
 
+describe('EnvironmentBanner', () => {
   beforeEach(() => {
-    // Reset env vars
-    vi.resetModules();
+    vi.unstubAllEnvs();
   });
 
   afterEach(() => {
-    // Restore original values
-    Object.defineProperty(import.meta, 'env', {
-      value: {
-        ...import.meta.env,
-        MODE: originalMode,
-        PROD: originalProd,
-      },
-      writable: true,
-      configurable: true,
-    });
+    vi.unstubAllEnvs();
   });
 
   it('renders in development mode', () => {
-    Object.defineProperty(import.meta, 'env', {
-      value: {
-        ...import.meta.env,
-        MODE: 'development',
-        PROD: false,
-      },
-      writable: true,
-      configurable: true,
-    });
+    vi.stubEnv('MODE', 'development');
+    vi.stubEnv('PROD', false);
 
-    render(<EnvironmentBanner />);
+    renderBanner('/app/dashboard');
     expect(screen.getByText(/DEV Environment/i)).toBeInTheDocument();
   });
 
   it('renders in preview mode', () => {
-    Object.defineProperty(import.meta, 'env', {
-      value: {
-        ...import.meta.env,
-        MODE: 'preview',
-        PROD: false,
-      },
-      writable: true,
-      configurable: true,
-    });
+    vi.stubEnv('MODE', 'preview');
+    vi.stubEnv('PROD', false);
 
-    render(<EnvironmentBanner />);
+    renderBanner('/app/dashboard');
     expect(screen.getByText(/PREVIEW Environment/i)).toBeInTheDocument();
   });
 
   it('does not render in production mode', () => {
-    Object.defineProperty(import.meta, 'env', {
-      value: {
-        ...import.meta.env,
-        MODE: 'production',
-        PROD: true,
-      },
-      writable: true,
-      configurable: true,
-    });
+    vi.stubEnv('MODE', 'production');
+    vi.stubEnv('PROD', true);
 
-    const { container } = render(<EnvironmentBanner />);
-    expect(container.firstChild).toBeNull();
+    renderBanner('/app/dashboard');
+    expect(screen.queryByRole('banner')).not.toBeInTheDocument();
   });
 
   it('has correct accessibility attributes', () => {
-    Object.defineProperty(import.meta, 'env', {
-      value: {
-        ...import.meta.env,
-        MODE: 'development',
-        PROD: false,
-      },
-      writable: true,
-      configurable: true,
-    });
+    vi.stubEnv('MODE', 'development');
+    vi.stubEnv('PROD', false);
 
-    render(<EnvironmentBanner />);
+    renderBanner('/app/dashboard');
     const banner = screen.getByRole('banner');
     expect(banner).toHaveAttribute('aria-label', 'Environment: DEV');
   });
+
+  it('does not render on non-app routes in development', () => {
+    vi.stubEnv('MODE', 'development');
+    vi.stubEnv('PROD', false);
+
+    renderBanner('/');
+    expect(screen.queryByRole('banner')).not.toBeInTheDocument();
+  });
 });
-
-
-
-
-

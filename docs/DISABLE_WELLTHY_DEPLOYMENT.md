@@ -1,23 +1,33 @@
 # Disable Wellthy Deployments - Only Supafolio Deploys
 
 ## Goal
-Configure Vercel so that **only supafolio** deploys when you push to the repository. The wellthy project should be disabled.
+Configure Vercel so that **only supafolio** deploys when you push to the repository. The **wellthy** project must not run builds or deployments.
 
 ## Quick Fix (2 minutes)
 
 ### Step 1: Disable Wellthy Project
 
 1. Go to [Vercel Dashboard](https://vercel.com/dashboard)
-2. Find and select the **wellthy** project
+2. Find and select the **wellthy** project (not supafolio)
 3. Go to **Settings** → **Git**
 4. Scroll down to **"Ignored Build Step"**
-5. Enter this command:
+5. Enter **one** of the following (recommended: use the script so the rule lives in the repo):
+
+   **Option A – Recommended (repo-driven):**
+   ```bash
+   ./scripts/check-build.sh
+   ```
+   The script exits with code 1 when `VERCEL_PROJECT_NAME=wellthy`, so the build is skipped. No other projects are affected.
+
+   **Option B – One-line (dashboard-only):**
    ```bash
    exit 1
    ```
+   This always skips builds for the wellthy project.
+
 6. Click **Save**
 
-This makes the wellthy project **always skip builds**, so it will never deploy.
+This ensures the wellthy project **never** runs a build or deployment.
 
 ### Step 2: Verify Supafolio is Active
 
@@ -31,8 +41,8 @@ This makes the wellthy project **always skip builds**, so it will never deploy.
 
 ## How It Works
 
-- **Wellthy**: `exit 1` always fails → build is skipped → no deployment
-- **Supafolio**: No ignore step (or checks for "supafolio" name) → builds normally → deploys
+- **Wellthy**: Ignored Build Step runs first. With `./scripts/check-build.sh` or `exit 1`, the step fails → build is skipped → no deployment.
+- **Supafolio**: Leave Ignored Build Step **empty** (or use `grep -q '"name": "supafolio"' package.json`) → build runs normally → deploys.
 
 ## Verification
 

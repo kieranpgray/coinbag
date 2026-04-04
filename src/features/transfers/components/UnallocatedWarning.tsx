@@ -6,14 +6,16 @@ import { ROUTES } from '@/lib/constants/routes';
 import { formatAmountByFrequency } from '../utils/frequencyNormalization';
 
 interface UnallocatedWarningProps {
-  amount: number; // Monthly amount
+  /** Total unallocated amount in monthly terms (from calculateUnallocatedTotal); display format controlled by viewMode */
+  amount: number;
+  viewMode: 'weekly' | 'fortnightly' | 'monthly';
 }
 
 /**
  * Warning banner for expenses without account assignment
  * Shows total unallocated amount and navigation to assign accounts
  */
-export function UnallocatedWarning({ amount }: UnallocatedWarningProps) {
+export function UnallocatedWarning({ amount, viewMode }: UnallocatedWarningProps) {
   const navigate = useNavigate();
 
   const handleAssignAccounts = () => {
@@ -27,7 +29,7 @@ export function UnallocatedWarning({ amount }: UnallocatedWarningProps) {
       <AlertTitle className="text-yellow-800 dark:text-yellow-200">Unallocated Expenses</AlertTitle>
       <AlertDescription className="text-yellow-700 dark:text-yellow-300">
         <p className="mb-2">
-          You have {formatAmountByFrequency(amount, 'monthly')} in recurring expenses not assigned to an account.
+          You have {formatAmountByFrequency(amount, viewMode)} in recurring expenses not assigned to an account.
           Assign accounts to see accurate transfer needs.
         </p>
         <Button

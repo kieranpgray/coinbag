@@ -33,6 +33,7 @@ export const categoryIdSchema = z.string().uuid('Invalid category ID format');
 
 // Account ID schema - references accounts table (optional for paid from account)
 export const accountIdSchema = z.string().uuid('Invalid account ID format');
+export const nullableAccountIdSchema = accountIdSchema.nullable().optional();
 
 // Reusable validation schemas
 const validDateString = z.string().refine(
@@ -72,7 +73,8 @@ const baseExpenseFields = {
   chargeDate: validDateString.optional().nullable(),
   nextDueDate: validDateString.optional().nullable(),
   categoryId: categoryIdSchema,
-  paidFromAccountId: accountIdSchema.optional(),
+  paidFromAccountId: nullableAccountIdSchema,
+  linkedRepaymentAccountId: nullableAccountIdSchema,
   notes: z.string()
     .max(VALIDATION_LIMITS.notes.max, `Notes must be less than ${VALIDATION_LIMITS.notes.max} characters`)
     .optional(),
@@ -102,6 +104,7 @@ export const expenseEntitySchema = z.object({
   userId: z.string().min(1, 'User ID is required'),
   ...baseExpenseFields,
   paidFromAccountId: nullableStringSchema, // Override paidFromAccountId to handle null from DB
+  linkedRepaymentAccountId: nullableStringSchema, // Nullable linked repayment account
   notes: nullableStringSchema, // Override notes to handle null from DB
   createdAt: datetimeSchema,
   updatedAt: datetimeSchema,
@@ -153,7 +156,8 @@ export const expenseUpdateSchema = z.object({
   chargeDate: validDateString.optional(),
   nextDueDate: validDateString.nullable().optional(),
   categoryId: categoryIdSchema.optional(),
-  paidFromAccountId: baseExpenseFields.paidFromAccountId,
+  paidFromAccountId: nullableAccountIdSchema,
+  linkedRepaymentAccountId: nullableAccountIdSchema,
   notes: baseExpenseFields.notes,
 }).superRefine((data, ctx) => {
   // If both dates are provided, validate next due date is after charge date

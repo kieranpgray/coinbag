@@ -116,7 +116,7 @@ export default function TransfersPage() {
       )}
 
       {/* Unallocated Warning */}
-      {hasUnallocated && <UnallocatedWarning amount={unallocatedTotal} />}
+      {hasUnallocated && <UnallocatedWarning amount={unallocatedTotal} viewMode={viewMode} />}
 
       {/* Hero: Suggested Transfers (before Cash Flow so it dominates) */}
       {!hasInvalidAccounts && (
@@ -128,7 +128,7 @@ export default function TransfersPage() {
       )}
 
       {/* Supporting: Cash Flow by account (collapsible in Phase 3) */}
-      <CashFlowSummary />
+      <CashFlowSummary viewMode={viewMode} />
 
       {/* Edit Pay Cycle Modal */}
       <Dialog open={editPayCycleOpen} onOpenChange={setEditPayCycleOpen}>

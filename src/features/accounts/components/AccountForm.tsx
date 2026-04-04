@@ -91,23 +91,12 @@ export function AccountForm({ account, onSubmit, onCancel, isLoading }: AccountF
   }, [creditLimit, balanceOwed, isCreditAccount, setValue, watch]);
 
   const onSubmitForm = (data: AccountFormData) => {
-    // For credit accounts, validate required fields and calculate balance
+    // For credit accounts, calculate balance from balanceOwed (optional fields)
     if (isCreditAccount) {
-      // Validate credit fields are valid numbers (schema validation should catch this, but double-check)
-      const limit = typeof data.creditLimit === 'number' && !isNaN(data.creditLimit) ? data.creditLimit : undefined;
-      const owed = typeof data.balanceOwed === 'number' && !isNaN(data.balanceOwed) ? data.balanceOwed : undefined;
-      
-      if (limit === undefined || limit === null || limit < 0) {
-        setValue('creditLimit', 0, { shouldValidate: true });
-        return; // Form validation will catch this
-      }
-      if (owed === undefined || owed === null || owed < 0) {
-        setValue('balanceOwed', 0, { shouldValidate: true });
-        return; // Form validation will catch this
-      }
-      
-      // Calculate balance synchronously before submission
-      data.balance = -owed;
+      const owed = typeof data.balanceOwed === 'number' && !isNaN(data.balanceOwed) && data.balanceOwed >= 0
+        ? data.balanceOwed
+        : undefined;
+      data.balance = owed !== undefined ? -owed : 0;
     } else {
       // For non-credit accounts, ensure balance is provided (default to 0 if undefined/empty)
       if (data.balance === undefined || data.balance === null || data.balance === '' || isNaN(Number(data.balance))) {
@@ -194,7 +183,7 @@ export function AccountForm({ account, onSubmit, onCancel, isLoading }: AccountF
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="creditLimit">
-                {selectedType === 'Credit Card' ? 'Credit Limit' : 'Loan Amount'} <span className="text-destructive">*</span>
+                {selectedType === 'Credit Card' ? 'Credit Limit' : 'Loan Amount'}
               </Label>
               <Input
                 id="creditLimit"
@@ -230,7 +219,7 @@ export function AccountForm({ account, onSubmit, onCancel, isLoading }: AccountF
 
             <div className="space-y-2">
               <Label htmlFor="balanceOwed">
-                Balance Owed <span className="text-destructive">*</span>
+                Balance Owed
               </Label>
               <Input
                 id="balanceOwed"

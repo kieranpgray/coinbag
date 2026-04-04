@@ -4,6 +4,8 @@ import { TransferSuggestionRow } from './TransferSuggestionRow';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Info } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { ROUTES } from '@/lib/constants/routes';
 
 interface TransferSuggestionsProps {
   viewMode: 'weekly' | 'fortnightly' | 'monthly';
@@ -20,7 +22,13 @@ export function TransferSuggestions({
   onViewModeChange,
   nextPayDateFormatted,
 }: TransferSuggestionsProps) {
+  const navigate = useNavigate();
   const { data: suggestions = [], isLoading, error } = useTransferSuggestions();
+  const repaymentRows = suggestions.filter(
+    (suggestion) => suggestion.kind === 'repayment' || suggestion.kind === 'action_required_repayment'
+  );
+  const coverageRows = suggestions.filter((suggestion) => suggestion.kind === 'coverage' || !suggestion.kind);
+  const surplusRows = suggestions.filter((suggestion) => suggestion.kind === 'surplus');
 
   const heroHeadline = nextPayDateFormatted
     ? `Move these amounts by ${nextPayDateFormatted}`
@@ -105,17 +113,55 @@ export function TransferSuggestions({
           </Select>
         </div>
         <ul className="space-y-0 list-none p-0 m-0">
-          {suggestions.map((suggestion, index) => (
-            <TransferSuggestionRow
-              key={`${suggestion.fromAccountId}-${suggestion.toAccountId}-${index}`}
-              suggestion={suggestion}
-              viewMode={viewMode}
-            />
-          ))}
+          {repaymentRows.length > 0 && (
+            <>
+              <li className="pt-1 pb-2 text-caption font-semibold uppercase tracking-wide text-muted-foreground">
+                Required repayments
+              </li>
+              {repaymentRows.map((suggestion, index) => (
+                <TransferSuggestionRow
+                  key={`${suggestion.fromAccountId}-${suggestion.toAccountId}-${index}`}
+                  suggestion={suggestion}
+                  viewMode={viewMode}
+                  onEditExpense={(expenseId) =>
+                    navigate(`${ROUTES.app.budget}?editExpense=${expenseId}`)
+                  }
+                />
+              ))}
+            </>
+          )}
+          {coverageRows.length > 0 && (
+            <>
+              <li className="pt-4 pb-2 text-caption font-semibold uppercase tracking-wide text-muted-foreground">
+                Other transfers (excludes repayments)
+              </li>
+              {coverageRows.map((suggestion, index) => (
+                <TransferSuggestionRow
+                  key={`${suggestion.fromAccountId}-${suggestion.toAccountId}-${index}`}
+                  suggestion={suggestion}
+                  viewMode={viewMode}
+                />
+              ))}
+            </>
+          )}
+          {surplusRows.length > 0 && (
+            <>
+              <li className="pt-4 pb-2 text-caption font-semibold uppercase tracking-wide text-muted-foreground">
+                Surplus
+              </li>
+              {surplusRows.map((suggestion, index) => (
+                <TransferSuggestionRow
+                  key={`${suggestion.fromAccountId}-${suggestion.toAccountId}-${index}`}
+                  suggestion={suggestion}
+                  viewMode={viewMode}
+                />
+              ))}
+            </>
+          )}
         </ul>
         <p className="flex items-center gap-2 mt-4 text-caption text-muted-foreground">
           <Info className="h-3.5 w-3.5 shrink-0" aria-hidden />
-          Calculations based on recurring income and expenses. One-time transactions are excluded.
+          Repayment rows are listed explicitly and excluded from other transfer totals.
         </p>
       </div>
     </section>

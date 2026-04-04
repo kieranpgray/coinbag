@@ -44,6 +44,12 @@ export interface Asset {
   grantPrice?: number;
   lastPriceFetchedAt?: string;
   priceSource?: string;
+  // SnapTrade / connected account fields
+  dataSource?: 'manual' | 'snaptrade';
+  snaptradeAccountId?: string;
+  balanceCurrency?: string;
+  lastSyncedAt?: string;
+  updatedAt?: string;
 }
 
 /**
@@ -168,7 +174,8 @@ export interface Expense {
   chargeDate?: string;
   nextDueDate?: string | null;
   categoryId: string;
-  paidFromAccountId?: string;
+  paidFromAccountId?: string | null;
+  linkedRepaymentAccountId?: string | null;
   notes?: string;
 }
 
@@ -269,7 +276,6 @@ export interface User {
   phoneNumber?: string;
   privacyMode: boolean;
   themePreference: 'system' | 'light' | 'dark';
-  taxRate: number;
   emailNotifications: {
     portfolioSummary: boolean;
     spendingAlerts: boolean;
@@ -326,6 +332,9 @@ export interface TransferSuggestion {
   reason: string;
   expenseIds: string[];
   isSurplus: boolean;
+  kind?: 'repayment' | 'coverage' | 'surplus' | 'action_required_repayment';
+  requiresAction?: boolean;
+  actionExpenseId?: string;
 }
 
 /**

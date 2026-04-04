@@ -152,6 +152,10 @@ VITE_SUPABASE_ANON_KEY=your_supabase_anon_key_here
 - `pnpm run lint` - Run ESLint
 - `pnpm run lint --fix` - Fix ESLint errors
 
+### Vercel (production)
+
+Only the **supafolio** Vercel project should build and deploy from this repo. The **wellthy** project must not run builds. In Vercel Dashboard → **wellthy** → Settings → Git → **Ignored Build Step**, set `./scripts/check-build.sh` or `exit 1`. See [docs/DISABLE_WELLTHY_DEPLOYMENT.md](docs/DISABLE_WELLTHY_DEPLOYMENT.md) and [docs/VERCEL_ENV_CONFIGURATION.md](docs/VERCEL_ENV_CONFIGURATION.md).
+
 ## Safe Deployment Rules
 
 **⚠️ CRITICAL**: Destructive database operations are **BLOCKED** in production.
@@ -281,7 +285,7 @@ src/
 
 ### Settings
 - **Profile**: Personal information management
-- **Preferences**: Dark mode, privacy mode, tax settings
+- **Preferences**: Dark mode, privacy mode, notifications, locale
 - **Notifications**: Email notification preferences
 - **Security**: Two-factor authentication
 

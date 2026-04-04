@@ -4,11 +4,15 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ChevronRight } from 'lucide-react';
 
+interface CashFlowSummaryProps {
+  viewMode: 'weekly' | 'fortnightly' | 'monthly';
+}
+
 /**
  * Collapsible "By account" section — supporting context so Suggested Transfers stays hero.
  * Default closed; uses native <details>/<summary> for accessibility.
  */
-export function CashFlowSummary() {
+export function CashFlowSummary({ viewMode }: CashFlowSummaryProps) {
   const { data: cashFlow = [], isLoading, error } = useCashFlowByAccount();
 
   const accountsWithActivity = cashFlow.filter(
@@ -52,7 +56,7 @@ export function CashFlowSummary() {
         {!isLoading && !error && hasAccounts && (
           <ul className="space-y-0 list-none p-0 m-0">
             {accountsWithActivity.map((accountFlow) => (
-              <AccountCashFlowRow key={accountFlow.accountId} accountFlow={accountFlow} />
+              <AccountCashFlowRow key={accountFlow.accountId} accountFlow={accountFlow} viewMode={viewMode} />
             ))}
           </ul>
         )}

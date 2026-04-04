@@ -19,6 +19,12 @@ interface ExpensesSectionProps {
   onCreate: (expenseType?: ExpenseType) => void;
   onEdit: (expense: Expense) => void;
   onDelete: (expense: Expense) => void;
+  onCategoryChanged?: (
+    expense: Expense,
+    nextCategoryId: string,
+    previousCategoryId: string,
+    isRepaymentCategory: boolean
+  ) => void;
   parentFrequency?: Frequency;
   onFrequencyChange?: (frequency: Frequency) => void;
 }
@@ -35,6 +41,7 @@ export function ExpensesSection({
   onCreate,
   onEdit,
   onDelete,
+  onCategoryChanged,
   parentFrequency,
   onFrequencyChange,
 }: ExpensesSectionProps) {
@@ -152,6 +159,7 @@ export function ExpensesSection({
               onEdit={onEdit}
               onDelete={onDelete}
               onCreate={() => onCreate()}
+              onCategoryChanged={onCategoryChanged}
               displayFrequency={displayFrequency}
             />
           )}
@@ -168,6 +176,7 @@ export function ExpensesSection({
                 onEdit={onEdit}
                 onDelete={onDelete}
                 onCreate={() => onCreate(category)}
+                onCategoryChanged={onCategoryChanged}
                 displayFrequency={displayFrequency}
               />
             ) : (

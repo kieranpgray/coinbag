@@ -1,7 +1,8 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useIncomes, useCreateIncome, useUpdateIncome, useDeleteIncome } from '@/features/income/hooks';
 import { useExpenses } from '@/features/expenses/hooks';
+import { useExpenseMutations } from '@/features/expenses/hooks/useExpenseMutations';
 import { useCategories } from '@/features/categories/hooks';
 import { useAccounts } from '@/features/accounts/hooks';
 import { AccountSelect } from '@/components/shared/AccountSelect';
@@ -43,8 +44,10 @@ import { EditExpenseModal } from '@/features/expenses/components/EditExpenseModa
 import { DeleteExpenseDialog } from '@/features/expenses/components/DeleteExpenseDialog';
 import { findCategoryIdByExpenseType } from './utils/categoryMapping';
 import type { ExpenseType } from './utils/expenseTypeMapping';
+import { getExpenseType } from './utils/expenseTypeMapping';
 import { findUncategorisedCategoryId } from '@/data/categories/ensureDefaults';
 import { formatCurrency } from '@/lib/utils';
+import { logger } from '@/lib/logger';
 
 const incomeSchema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -70,6 +73,7 @@ export function BudgetPage() {
   const { data: expenses = [], isLoading: expensesLoading, error: expensesError, refetch: refetchExpenses } = useExpenses();
   const { data: categories = [] } = useCategories();
   const { data: accounts = [] } = useAccounts();
+  const { update: updateExpenseMutation } = useExpenseMutations();
 
   // Mutations
   const createIncomeMutation = useCreateIncome();
@@ -86,7 +90,10 @@ export function BudgetPage() {
   const [createExpenseModalOpen, setCreateExpenseModalOpen] = useState(false);
   const [defaultCategoryId, setDefaultCategoryId] = useState<string | undefined>(undefined);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
+  const closedAfterSaveRef = useRef(false);
   const [deletingExpense, setDeletingExpense] = useState<Expense | null>(null);
+  const [repaymentEnforcementExpenseId, setRepaymentEnforcementExpenseId] = useState<string | null>(null);
+  const [repaymentNotice, setRepaymentNotice] = useState<string | null>(null);
   
   // Frequency state
   const [breakdownFrequency, setBreakdownFrequency] = useState<Frequency>('monthly');
@@ -96,14 +103,21 @@ export function BudgetPage() {
   // Handle query params for auto-opening create modal
   useEffect(() => {
     const shouldCreate = searchParams.get('create');
+    const editExpenseId = searchParams.get('editExpense');
     if (shouldCreate === 'income') {
       setCreateIncomeModalOpen(true);
       setSearchParams({});
     } else if (shouldCreate === 'expense' || shouldCreate === 'subscription') {
       setCreateExpenseModalOpen(true);
       setSearchParams({});
+    } else if (editExpenseId) {
+      const expenseToEdit = expenses.find((expense) => expense.id === editExpenseId);
+      if (expenseToEdit) {
+        setEditingExpense(expenseToEdit);
+        setSearchParams({});
+      }
     }
-  }, [searchParams, setSearchParams]);
+  }, [searchParams, setSearchParams, expenses]);
 
   // Create category map for quick lookups
   const categoryMap = useMemo(() => {
@@ -294,9 +308,64 @@ export function BudgetPage() {
     setEditingExpense(expense);
   };
 
+  const handleExpenseCategoryChanged = (
+    expense: Expense,
+    nextCategoryId: string,
+    previousCategoryId: string,
+    isRepaymentCategory: boolean
+  ) => {
+    const previousCategoryName = categoryMap.get(previousCategoryId) || '';
+    const wasRepayment = getExpenseType(previousCategoryName) === 'repayments';
+
+    if (!isRepaymentCategory && wasRepayment) {
+      updateExpenseMutation.mutate({
+        id: expense.id,
+        data: {
+          linkedRepaymentAccountId: null,
+        },
+      });
+    }
+
+    if (isRepaymentCategory) {
+      setRepaymentEnforcementExpenseId(expense.id);
+    }
+
+    if (!isRepaymentCategory) {
+      setRepaymentEnforcementExpenseId(null);
+    }
+
+    setRepaymentNotice(null);
+
+    logger.info('repayment_category_change', 'Expense category changed inline', {
+      expenseId: expense.id,
+      nextCategoryId,
+      previousCategoryId,
+      isRepaymentCategory,
+    });
+  };
+
   const handleDeleteExpense = (expense: Expense) => {
     setDeletingExpense(expense);
   };
+
+  useEffect(() => {
+    if (!repaymentEnforcementExpenseId) return;
+    const expense = expenses.find((item) => item.id === repaymentEnforcementExpenseId);
+    if (!expense) return;
+
+    const categoryName = categoryMap.get(expense.categoryId) || '';
+    const isRepayment = getExpenseType(categoryName) === 'repayments';
+    const missingRequiredLinks = !expense.paidFromAccountId || !expense.linkedRepaymentAccountId;
+
+    if (isRepayment && missingRequiredLinks) {
+      setEditingExpense(expense);
+      logger.info('repayment_link_missing', 'Repayment expense missing required account links', {
+        expenseId: expense.id,
+      });
+    }
+
+    setRepaymentEnforcementExpenseId(null);
+  }, [repaymentEnforcementExpenseId, expenses, categoryMap]);
 
   // Loading state
   const isLoading = incomesLoading || expensesLoading;
@@ -337,6 +406,14 @@ export function BudgetPage() {
       </div>
 
       {/* Optional Remaining strip — reduces busyness, not hero */}
+      {repaymentNotice && (
+        <Alert className="border-amber-200 bg-amber-50 text-amber-900">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Repayment setup required</AlertTitle>
+          <AlertDescription>{repaymentNotice}</AlertDescription>
+        </Alert>
+      )}
+
       <div className="rounded-lg border border-border bg-muted/30 px-4 py-3 flex items-center justify-between">
         <span className="text-body-sm text-muted-foreground">Remaining</span>
         <span className={`text-body-lg font-semibold ${remaining >= 0 ? 'text-success' : 'text-error'}`}>
@@ -427,6 +504,7 @@ export function BudgetPage() {
           onCreate={handleCreateExpense}
           onEdit={handleEditExpense}
           onDelete={handleDeleteExpense}
+          onCategoryChanged={handleExpenseCategoryChanged}
           parentFrequency={breakdownFrequency}
           onFrequencyChange={setExpensesFrequency}
         />
@@ -792,8 +870,46 @@ export function BudgetPage() {
         <EditExpenseModal
           expense={editingExpense}
           open={!!editingExpense}
+          onCloseAfterSave={() => {
+            closedAfterSaveRef.current = true;
+          }}
           onOpenChange={(open) => {
-            if (!open) setEditingExpense(null);
+            if (!open) {
+              if (closedAfterSaveRef.current) {
+                closedAfterSaveRef.current = false;
+                setEditingExpense(null);
+                return;
+              }
+              const latestExpense = expenses.find((expense) => expense.id === editingExpense.id);
+              const categoryName = latestExpense ? categoryMap.get(latestExpense.categoryId) || '' : '';
+              const isRepayment = getExpenseType(categoryName) === 'repayments';
+              const missingRequiredLinks =
+                !!latestExpense && (!latestExpense.paidFromAccountId || !latestExpense.linkedRepaymentAccountId);
+
+              if (isRepayment && missingRequiredLinks && uncategorisedId) {
+                updateExpenseMutation.mutate({
+                  id: editingExpense.id,
+                  data: {
+                    categoryId: uncategorisedId,
+                    linkedRepaymentAccountId: null,
+                  },
+                });
+                setRepaymentNotice(
+                  'Repayment setup was incomplete. The category was reverted to Uncategorised.'
+                );
+                logger.info(
+                  'repayment_modal_reverted_to_uncategorised',
+                  'Repayment modal closed before required fields were completed',
+                  { expenseId: editingExpense.id }
+                );
+              } else if (isRepayment && !missingRequiredLinks) {
+                logger.info('repayment_link_completed', 'Repayment account links completed', {
+                  expenseId: editingExpense.id,
+                });
+              }
+
+              setEditingExpense(null);
+            }
           }}
         />
       )}

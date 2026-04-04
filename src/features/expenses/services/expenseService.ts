@@ -20,7 +20,8 @@ export class ExpenseService {
     chargeDate?: string;
     nextDueDate?: string | null;
     categoryId: string;
-    paidFromAccountId?: string;
+    paidFromAccountId?: string | null;
+    linkedRepaymentAccountId?: string | null;
   }): Omit<Expense, 'id'> {
     // Auto-calculate next due date if chargeDate is provided but nextDueDate is not
     let nextDueDate = data.nextDueDate;
@@ -36,6 +37,7 @@ export class ExpenseService {
       nextDueDate,
       categoryId: data.categoryId,
       paidFromAccountId: data.paidFromAccountId,
+      linkedRepaymentAccountId: data.linkedRepaymentAccountId,
     };
 
     // Validate business rules
@@ -60,7 +62,8 @@ export class ExpenseService {
       chargeDate: string;
       nextDueDate: string | null;
       categoryId: string;
-      paidFromAccountId: string;
+      paidFromAccountId: string | null;
+      linkedRepaymentAccountId: string | null;
     }>
   ): Expense {
     // Merge updates with existing data
@@ -176,7 +179,10 @@ export class ExpenseService {
         chargeDate: String(obj.chargeDate || ''),
         nextDueDate: String(obj.nextDueDate || ''),
         categoryId: String(obj.categoryId || ''),
-        paidFromAccountId: obj.paidFromAccountId ? String(obj.paidFromAccountId).trim() : undefined,
+        paidFromAccountId: obj.paidFromAccountId ? String(obj.paidFromAccountId).trim() : null,
+        linkedRepaymentAccountId: obj.linkedRepaymentAccountId
+          ? String(obj.linkedRepaymentAccountId).trim()
+          : null,
       };
 
       const validation = validateExpenseIntegrity(normalized);

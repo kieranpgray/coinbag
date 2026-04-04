@@ -13,7 +13,13 @@ export function getUserIdFromJwt(token: string): string | null {
   try {
     const parts = token.split('.');
     if (parts.length !== 3) return null;
-    const payload = JSON.parse(atob(parts[1]));
+    // Clerk JWTs use base64url; atob expects standard base64
+    let base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+    // Add padding if needed for atob (must be multiple of 4)
+    while (base64.length % 4 !== 0) {
+      base64 += '=';
+    }
+    const payload = JSON.parse(atob(base64));
     return payload.sub ?? null;
   } catch {
     return null;

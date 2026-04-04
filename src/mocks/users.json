@@ -7,7 +7,6 @@
     "phoneNumber": null,
     "privacyMode": false,
     "darkMode": false,
-    "taxRate": 20,
     "emailNotifications": {
       "portfolioSummary": true,
       "spendingAlerts": true,

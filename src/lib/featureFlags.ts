@@ -19,7 +19,10 @@ export type FeatureFlag =
   | 'statement_import_reupload'
   | 'transaction_deduplication'
   | 'import_history_view'
-  | 'workspace_collaboration';
+  | 'workspace_collaboration'
+  | 'account_menu_v2'
+  | 'explicit_repayment_transfers'
+  | 'snaptrade_integration';
 
 interface FeatureFlagConfig {
   enabled: boolean;
@@ -56,6 +59,18 @@ const FEATURE_FLAGS: Record<FeatureFlag, FeatureFlagConfig> = {
   workspace_collaboration: {
     enabled: isWorkspaceCollaborationEnabled(),
     description: 'Enable multi-user workspace collaboration (invites, team, switcher)',
+  },
+  account_menu_v2: {
+    enabled: import.meta.env.VITE_ENABLE_ACCOUNT_MENU_V2 === 'true',
+    description: 'Enable account menu, profile photo upload, and team avatars',
+  },
+  explicit_repayment_transfers: {
+    enabled: import.meta.env.VITE_ENABLE_EXPLICIT_REPAYMENT_TRANSFERS === 'true',
+    description: 'Enable explicit repayment rows in transfer suggestions',
+  },
+  snaptrade_integration: {
+    enabled: import.meta.env.VITE_ENABLE_SNAPTRADE === 'true',
+    description: 'Enable SnapTrade brokerage connection flow on the Wealth page',
   },
 };
 

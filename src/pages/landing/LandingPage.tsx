@@ -1,21 +1,29 @@
 import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@clerk/clerk-react';
-import { LandingNav } from '@/components/landing/LandingNav';
-import { HeroSection } from '@/components/landing/HeroSection';
-import { FeaturesSection } from '@/components/landing/FeaturesSection';
-import { CTASection } from '@/components/landing/CTASection';
-import { Footer } from '@/components/layout/Footer';
-
-const HERO_STORAGE_KEY = 'supafolio_last_hero_variant';
+import { LandingPageV2 } from '@/components/landing/v2/LandingPageV2';
 
 /**
- * Landing page component with hero variant rotation
- * Handles authentication redirects and hero selection
+ * Landing page component.
+ * Keeps authenticated users out of marketing pages.
  */
 export function LandingPage() {
   const { isSignedIn, isLoaded } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Scroll to hash targets (e.g. Product → #how-it-works); scroll-margin-top offsets the fixed nav
+  useEffect(() => {
+    const id = location.hash.replace(/^#/, '');
+    if (!id) return;
+    const t = window.setTimeout(() => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      el.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
+    }, 0);
+    return () => window.clearTimeout(t);
+  }, [location.pathname, location.hash]);
 
   // Handle authentication redirect
   useEffect(() => {
@@ -24,64 +32,10 @@ export function LandingPage() {
     }
   }, [isLoaded, isSignedIn, navigate]);
 
-  // Determine which hero variant to show
-  const heroVariant = getHeroVariant();
-
-  // Don't render anything if user is authenticated (will redirect)
+  // Don't render anything if user is authenticated (will redirect).
   if (isLoaded && isSignedIn) {
     return null;
   }
 
-  return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <LandingNav />
-      <main className="flex-1">
-        <HeroSection variant={heroVariant} />
-        <FeaturesSection />
-        <CTASection />
-      </main>
-      <Footer />
-    </div>
-  );
-}
-
-/**
- * Get hero variant based on URL parameter or rotation logic
- * URL parameter takes precedence, otherwise alternates between 'A' and 'B' per visit using localStorage
- */
-function getHeroVariant(): 'A' | 'B' {
-  // Check for URL override first
-  try {
-    const urlParams = new URLSearchParams(window.location.search);
-    const variantParam = urlParams.get('variant')?.toUpperCase();
-
-    if (variantParam === 'A' || variantParam === 'B') {
-      return variantParam as 'A' | 'B';
-    }
-  } catch (error) {
-    // URL parsing failed, continue with localStorage logic
-    console.warn('URL parameter parsing failed:', error);
-  }
-
-  // Fall back to localStorage rotation logic
-  try {
-    const lastVariant = localStorage.getItem(HERO_STORAGE_KEY);
-
-    let nextVariant: 'A' | 'B';
-    if (!lastVariant) {
-      // First visit - randomly choose
-      nextVariant = Math.random() < 0.5 ? 'A' : 'B';
-    } else {
-      // Alternate from last variant
-      nextVariant = lastVariant === 'A' ? 'B' : 'A';
-    }
-
-    // Store for next visit
-    localStorage.setItem(HERO_STORAGE_KEY, nextVariant);
-    return nextVariant;
-  } catch (error) {
-    // localStorage unavailable, default to A
-    console.warn('localStorage unavailable for hero rotation:', error);
-    return 'A';
-  }
+  return <LandingPageV2 />;
 }

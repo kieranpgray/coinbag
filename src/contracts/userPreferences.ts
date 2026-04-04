@@ -32,8 +32,6 @@ export const payCycleConfigSchema = z.object({
 export const userPreferencesSchema = z.object({
   privacyMode: z.boolean(),
   themePreference: themePreferenceSchema,
-  taxRate: z.number(),
-  taxSettingsConfigured: z.boolean(),
   emailNotifications: emailNotificationsSchema,
   locale: z.string().default('en-US'), // Locale preference (en-US, en-AU, etc.)
   hideSetupChecklist: z.boolean().default(false),
@@ -48,8 +46,6 @@ export type PayCycleConfig = z.infer<typeof payCycleConfigSchema>;
 export const defaultUserPreferences: UserPreferences = {
   privacyMode: false,
   themePreference: 'system',
-  taxRate: 20,
-  taxSettingsConfigured: false,
   locale: 'en-US',
   hideSetupChecklist: false,
   emailNotifications: {

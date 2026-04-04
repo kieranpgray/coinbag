@@ -393,7 +393,6 @@ export function createUser(overrides?: Partial<User>): User {
     phoneNumber: undefined,
     privacyMode: false,
     themePreference: 'system' as const,
-    taxRate: 20,
     emailNotifications: {
       portfolioSummary: true,
       spendingAlerts: true,

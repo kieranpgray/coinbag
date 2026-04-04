@@ -16,12 +16,13 @@ interface AccountBreakdownModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   accountFlow: AccountCashFlow;
+  viewMode: 'weekly' | 'fortnightly' | 'monthly';
 }
 
 /**
  * Modal showing detailed expense breakdown by category for an account
  */
-export function AccountBreakdownModal({ open, onOpenChange, accountFlow }: AccountBreakdownModalProps) {
+export function AccountBreakdownModal({ open, onOpenChange, accountFlow, viewMode }: AccountBreakdownModalProps) {
   const navigate = useNavigate();
 
   const handleViewAll = () => {
@@ -39,7 +40,11 @@ export function AccountBreakdownModal({ open, onOpenChange, accountFlow }: Accou
         <DialogHeader>
           <DialogTitle>{accountFlow.accountName} - Expense Breakdown</DialogTitle>
           <DialogDescription>
-            Monthly expenses grouped by category
+            {viewMode === 'weekly'
+              ? 'Weekly expenses grouped by category'
+              : viewMode === 'fortnightly'
+              ? 'Fortnightly expenses grouped by category'
+              : 'Monthly expenses grouped by category'}
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
@@ -47,6 +52,7 @@ export function AccountBreakdownModal({ open, onOpenChange, accountFlow }: Accou
             {accountFlow.expenseBreakdown.length === 0 ? (
               <p className="text-body text-muted-foreground">No expenses assigned to this account.</p>
             ) : (
+              // monthlyAmount is canonical monthly value; formatAmountByFrequency converts for display
               accountFlow.expenseBreakdown.map((breakdown) => (
                 <div
                   key={breakdown.categoryId}
@@ -54,7 +60,7 @@ export function AccountBreakdownModal({ open, onOpenChange, accountFlow }: Accou
                 >
                   <span className="text-body font-medium">{breakdown.categoryName}</span>
                   <span className="text-body font-semibold">
-                    {formatAmountByFrequency(breakdown.monthlyAmount, 'monthly')}
+                    {formatAmountByFrequency(breakdown.monthlyAmount, viewMode)}
                   </span>
                 </div>
               ))
@@ -64,7 +70,7 @@ export function AccountBreakdownModal({ open, onOpenChange, accountFlow }: Accou
             <div className="flex items-center justify-between border-t pt-2">
               <span className="font-semibold">Total</span>
               <span className="text-lg font-bold">
-                {formatAmountByFrequency(total, 'monthly')}
+                {formatAmountByFrequency(total, viewMode)}
               </span>
             </div>
           )}

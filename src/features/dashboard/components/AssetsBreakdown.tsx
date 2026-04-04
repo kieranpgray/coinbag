@@ -71,15 +71,13 @@ export const AssetsBreakdown = memo(function AssetsBreakdown({
         <CardTitle>Asset allocation</CardTitle>
       </CardHeader>
       <CardContent>
-        {/* Responsive grid: mobile stacks vertically, desktop shows chart (40%) and list (60%) */}
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-          {/* Chart - takes 2 columns on desktop (40%), full width on mobile */}
-          <div className="md:col-span-2">
+        {/* Responsive grid: md 2/5, lg 5/12 chart vs 7/12 list for more list width */}
+        <div className="grid grid-cols-1 md:grid-cols-5 lg:grid-cols-12 gap-4 lg:gap-6">
+          <div className="md:col-span-2 lg:col-span-5">
             <AssetAllocationDonut data={chartData} totalValue={totalValue} />
           </div>
 
-          {/* List - takes 3 columns on desktop (60%), full width on mobile */}
-          <div className="md:col-span-3">
+          <div className="md:col-span-3 lg:col-span-7">
             <AssetAllocationList data={listData} />
           </div>
         </div>

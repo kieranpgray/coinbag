@@ -25,6 +25,7 @@ import { useTranslation } from 'react-i18next';
 import { detectCountryFromIP } from '@/lib/ipDetection';
 import { UserAvatar } from '@/components/user/UserAvatar';
 import { WORKSPACE_MEMBER_PROFILES_QUERY_KEY } from '@/lib/workspaceMemberProfilesApi';
+import { useAccountMenuV2Enabled } from '@/hooks/useAccountMenuV2Enabled';
 
 const profileSchema = z.object({
   firstName: z.string().optional(),
@@ -42,6 +43,7 @@ export function SettingsPage() {
   const { locale, setLocale: setLocaleContext } = useLocale();
   const { t } = useTranslation(['settings', 'common']);
   const workspaceCollaborationEnabled = useWorkspaceCollaborationEnabled();
+  const accountMenuV2Enabled = useAccountMenuV2Enabled();
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [detectedCountry, setDetectedCountry] = useState<string | null>(null);
   const [searchParams, setSearchParams] = useSearchParams();
@@ -141,8 +143,6 @@ export function SettingsPage() {
 
   const [privacyMode, setPrivacyMode] = useState(false);
   const [themePreference, setThemePreference] = useState<'system' | 'light' | 'dark'>('system');
-  const [taxRate, setTaxRate] = useState(20);
-  const [taxSettingsConfigured, setTaxSettingsConfigured] = useState(false);
   const [emailNotifications, setEmailNotifications] = useState({
     portfolioSummary: true,
     spendingAlerts: true,
@@ -155,14 +155,14 @@ export function SettingsPage() {
   // Handle tab changes from query params
   useEffect(() => {
     const tab = searchParams.get('tab');
-    const validTabs = ['profile', 'preferences', 'tax', 'notifications', 'security', 'import'];
+    const validTabs = ['profile', 'preferences', 'notifications', 'security', 'import'];
     if (workspaceCollaborationEnabled) validTabs.push('team');
     if (tab && validTabs.includes(tab)) {
       setActiveTab(tab);
       // Clear query param after processing
       setSearchParams({});
     }
-  }, [searchParams, setSearchParams]);
+  }, [searchParams, setSearchParams, workspaceCollaborationEnabled]);
 
   const clerkEmail = clerkUser?.primaryEmailAddress?.emailAddress ?? '';
   const clerkPhone = clerkUser?.primaryPhoneNumber?.phoneNumber ?? '';
@@ -184,8 +184,6 @@ export function SettingsPage() {
     if (prefs) {
       setPrivacyMode(prefs.privacyMode);
       setThemePreference(prefs.themePreference);
-      setTaxRate(prefs.taxRate);
-      setTaxSettingsConfigured(prefs.taxSettingsConfigured);
       setEmailNotifications({
         ...prefs.emailNotifications,
         monthlyReports: prefs.emailNotifications.monthlyReports ?? false,
@@ -218,12 +216,6 @@ export function SettingsPage() {
     updatePrefs.mutate({ themePreference: value });
   };
 
-  const handleTaxRateChange = (value: number) => {
-    setTaxRate(value);
-    setTaxSettingsConfigured(true);
-    updatePrefs.mutate({ taxRate: value, taxSettingsConfigured: true });
-  };
-
   const handleEmailNotificationChange = (key: keyof typeof emailNotifications, checked: boolean) => {
     const updated = { ...emailNotifications, [key]: checked };
     setEmailNotifications(updated);
@@ -247,7 +239,6 @@ export function SettingsPage() {
         <TabsList>
           <TabsTrigger value="profile">Profile</TabsTrigger>
           <TabsTrigger value="preferences">Preferences</TabsTrigger>
-          <TabsTrigger value="tax">Tax Settings</TabsTrigger>
           <TabsTrigger value="notifications">Notifications</TabsTrigger>
           <TabsTrigger value="security">Security</TabsTrigger>
           {workspaceCollaborationEnabled && (
@@ -264,54 +255,56 @@ export function SettingsPage() {
               <CardDescription>Update your personal information</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3 pb-6 mb-2 border-b border-border">
-                <Label htmlFor="profile-photo-upload">Profile photo</Label>
-                <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-                  <UserAvatar
-                    imageUrl={clerkUser?.imageUrl}
-                    label={profilePhotoLabel}
-                    size="md"
-                    alt=""
-                  />
-                  <div className="flex flex-col gap-2">
-                    <input
-                      ref={profilePhotoInputRef}
-                      id="profile-photo-upload"
-                      type="file"
-                      accept="image/jpeg,image/png,image/webp"
-                      className="sr-only"
-                      onChange={handleProfilePhotoSelected}
-                      disabled={isUploadingPhoto || !clerkUser}
+              {accountMenuV2Enabled && (
+                <div className="space-y-3 pb-6 mb-2 border-b border-border">
+                  <Label htmlFor="profile-photo-upload">Profile photo</Label>
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                    <UserAvatar
+                      imageUrl={clerkUser?.imageUrl}
+                      label={profilePhotoLabel}
+                      size="md"
+                      alt=""
                     />
-                    <div className="flex flex-wrap gap-2">
-                      <Button
-                        type="button"
-                        variant="secondary"
+                    <div className="flex flex-col gap-2">
+                      <input
+                        ref={profilePhotoInputRef}
+                        id="profile-photo-upload"
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        className="sr-only"
+                        onChange={handleProfilePhotoSelected}
                         disabled={isUploadingPhoto || !clerkUser}
-                        onClick={() => profilePhotoInputRef.current?.click()}
-                      >
-                        {isUploadingPhoto ? 'Working…' : 'Upload photo'}
-                      </Button>
-                      {clerkUser?.hasImage ? (
+                      />
+                      <div className="flex flex-wrap gap-2">
                         <Button
                           type="button"
-                          variant="ghost"
-                          disabled={isUploadingPhoto}
-                          onClick={handleRemoveProfilePhoto}
+                          variant="secondary"
+                          disabled={isUploadingPhoto || !clerkUser}
+                          onClick={() => profilePhotoInputRef.current?.click()}
                         >
-                          Remove photo
+                          {isUploadingPhoto ? 'Working...' : 'Upload photo'}
                         </Button>
+                        {clerkUser?.hasImage ? (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            disabled={isUploadingPhoto}
+                            onClick={handleRemoveProfilePhoto}
+                          >
+                            Remove photo
+                          </Button>
+                        ) : null}
+                      </div>
+                      {photoError ? (
+                        <p className="text-body text-destructive">{photoError}</p>
                       ) : null}
+                      <p className="text-caption text-muted-foreground">
+                        JPEG, PNG, or WebP. Max 5 MB.
+                      </p>
                     </div>
-                    {photoError ? (
-                      <p className="text-body text-destructive">{photoError}</p>
-                    ) : null}
-                    <p className="text-caption text-muted-foreground">
-                      JPEG, PNG, or WebP. Max 5 MB.
-                    </p>
                   </div>
                 </div>
-              </div>
+              )}
               <form onSubmit={handleSubmit(handleProfileSubmit)} className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
@@ -424,41 +417,6 @@ export function SettingsPage() {
                   )}
                 </div>
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Tax Settings Tab */}
-        <TabsContent value="tax" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Tax Settings</CardTitle>
-              <CardDescription>Configure your tax preferences for accurate calculations</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="tax-rate">Tax Rate (%)</Label>
-                <Input
-                  id="tax-rate"
-                  type="number"
-                  min="0"
-                  max="100"
-                  step="0.1"
-                  placeholder="0.0"
-                  clearOnFocus
-                  clearValue={0}
-                  value={taxRate}
-                  onChange={(e) => handleTaxRateChange(parseFloat(e.target.value) || 0)}
-                />
-                <p className="text-body text-muted-foreground">
-                  Your estimated tax rate for capital gains calculations
-                </p>
-              </div>
-              {taxSettingsConfigured && (
-                <p className="text-body text-success">
-                  ✓ Tax settings configured
-                </p>
-              )}
             </CardContent>
           </Card>
         </TabsContent>

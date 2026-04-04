@@ -190,19 +190,6 @@ export function ImportPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-h1-sm sm:text-h1-md lg:text-h1-lg font-bold">Import Data</h1>
-          <p className="text-muted-foreground mt-2">
-            Import your financial data from an Excel spreadsheet
-          </p>
-        </div>
-        <Button onClick={handleDownloadTemplate} variant="outline">
-          <Download className="h-4 w-4 mr-2" />
-          Download Template
-        </Button>
-      </div>
-
       {error && (
         <Card className="border-red-500">
           <CardContent className="pt-6">
@@ -213,11 +200,19 @@ export function ImportPage() {
 
       {step === 'upload' && (
         <Card>
-          <CardHeader>
-            <CardTitle>Upload Excel File</CardTitle>
-            <CardDescription>
-              Upload your filled Excel template to import data
-            </CardDescription>
+          <CardHeader className="space-y-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div className="space-y-1.5">
+                <CardTitle>Upload Excel File</CardTitle>
+                <CardDescription>
+                  Upload your filled Excel template to import data
+                </CardDescription>
+              </div>
+              <Button onClick={handleDownloadTemplate} variant="outline" className="w-full sm:w-auto">
+                <Download className="h-4 w-4 mr-2" />
+                Download Template
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
             <FileUpload

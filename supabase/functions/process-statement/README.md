@@ -19,6 +19,8 @@ This Supabase Edge Function handles the complete statement import workflow:
 MISTRAL_API_KEY=your_mistral_api_key_here
 SUPABASE_ANON_KEY=your_anon_key  # Required - used with JWT to enforce RLS on all operations
 SUPABASE_URL=https://your-project.supabase.co
+# Optional: set to false or 0 to disable all statement file Storage purges (success, failure, stale piggyback)
+# ENABLE_STATEMENT_FILE_PURGE=true
 ```
 
 **Important**: 

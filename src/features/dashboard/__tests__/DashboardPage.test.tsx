@@ -49,7 +49,6 @@ vi.mock('@/lib/api', () => ({
       email: 'test@example.com',
       privacyMode: false,
       themePreference: 'system',
-      taxRate: 20,
       emailNotifications: {},
     }),
     updateUser: vi.fn(),

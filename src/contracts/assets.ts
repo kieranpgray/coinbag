@@ -359,6 +359,10 @@ export const assetEntitySchema = z.object({
   propertyType: nullableStringSchema,
   lastPriceFetchedAt: z.string().nullable().optional().transform((v) => v ?? undefined),
   priceSource: nullableStringSchema,
+  // SnapTrade fields (optional — added by migration 20260310000000)
+  dataSource: z.enum(['manual', 'snaptrade']).nullable().optional().transform((v) => v ?? undefined),
+  snaptradeAccountId: z.string().uuid().nullable().optional().transform((v) => v ?? undefined),
+  balanceCurrency: nullableStringSchema,
 });
 
 export const assetListSchema = z.array(assetEntitySchema);

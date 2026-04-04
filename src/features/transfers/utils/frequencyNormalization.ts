@@ -7,11 +7,11 @@ import { formatNumber } from '@/lib/utils';
  */
 
 const CYCLES_PER_MONTH = {
-  weekly: 4.33,      // 52 weeks / 12 months
-  fortnightly: 2.17, // 26 fortnights / 12 months
+  weekly: 52 / 12,     // 52 weeks per year ÷ 12 months = 4.333...
+  fortnightly: 26 / 12, // 26 fortnights per year ÷ 12 months = 2.166...
   monthly: 1,
-  quarterly: 0.333,  // 4 quarters / 12 months (1/3)
-  yearly: 0.0833,    // 1 year / 12 months (1/12)
+  quarterly: 1 / 3,    // 4 quarters per year ÷ 12 months = 0.333...
+  yearly: 1 / 12,      // 1 year ÷ 12 months = 0.0833...
 } as const;
 
 /**

@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { LocaleProvider } from './contexts/LocaleContext';
 import { Routes } from './routes';
+import { RouteLoadingBannerProvider } from './contexts/RouteLoadingBannerContext';
 import { RouteChangeLogger } from './components/shared/RouteChangeLogger';
 import { DebugOverlay } from './components/shared/DebugOverlay';
 import { EnvironmentBanner } from './components/shared/EnvironmentBanner';
@@ -48,17 +49,19 @@ function App() {
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-          <RouteChangeLogger />
-          <LocaleProvider>
-            <ThemeProvider>
-              <EnvironmentBanner />
-              <ErrorBoundary>
-                <Routes />
-              </ErrorBoundary>
-              <DebugOverlay />
-              <DebugPanel open={debugPanelOpen} onOpenChange={setDebugPanelOpen} />
-            </ThemeProvider>
-          </LocaleProvider>
+          <RouteLoadingBannerProvider>
+            <RouteChangeLogger />
+            <LocaleProvider>
+              <ThemeProvider>
+                <EnvironmentBanner />
+                <ErrorBoundary>
+                  <Routes />
+                </ErrorBoundary>
+                <DebugOverlay />
+                <DebugPanel open={debugPanelOpen} onOpenChange={setDebugPanelOpen} />
+              </ThemeProvider>
+            </LocaleProvider>
+          </RouteLoadingBannerProvider>
         </BrowserRouter>
       </QueryClientProvider>
     </ErrorBoundary>

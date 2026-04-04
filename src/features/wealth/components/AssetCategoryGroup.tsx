@@ -17,6 +17,12 @@ interface AssetCategoryGroupProps {
   assets: Asset[];
   onEdit: (asset: Asset) => void;
   onDelete: (asset: Asset) => void;
+  /** Set of brokerage_auth_ids that are currently broken */
+  brokenAuthIds?: Set<string>;
+  /** Called when user clicks "Reconnect" on a broken connection asset */
+  onReconnect?: (brokerageAuthId: string) => void;
+  /** Map from snaptrade_account_id (string uuid) to brokerage_auth_id */
+  accountToBrokerageAuthId?: Map<string, string>;
 }
 
 /**
@@ -42,6 +48,9 @@ export function AssetCategoryGroup({
   assets,
   onEdit,
   onDelete: _onDelete,
+  brokenAuthIds,
+  onReconnect,
+  accountToBrokerageAuthId,
 }: AssetCategoryGroupProps) {
   const categoryTotal = assets.reduce((sum, asset) => sum + asset.value, 0);
 
@@ -63,9 +72,22 @@ export function AssetCategoryGroup({
 
       {/* Asset rows */}
       <div className="mt-1 border border-border rounded-lg bg-surface shadow-sm overflow-hidden">
-        {assets.map((asset) => (
-          <AssetPortfolioRow key={asset.id} asset={asset} onClick={onEdit} />
-        ))}
+        {assets.map((asset) => {
+          const authId = asset.snaptradeAccountId
+            ? accountToBrokerageAuthId?.get(asset.snaptradeAccountId)
+            : undefined;
+          const isConnectionBroken = authId ? (brokenAuthIds?.has(authId) ?? false) : false;
+
+          return (
+            <AssetPortfolioRow
+              key={asset.id}
+              asset={asset}
+              onClick={onEdit}
+              isConnectionBroken={isConnectionBroken}
+              onReconnect={authId && onReconnect ? () => onReconnect(authId) : undefined}
+            />
+          );
+        })}
 
         {/* Category total row */}
         <div className="flex items-center justify-end py-3 px-4 border-t-2 border-border bg-muted/50">

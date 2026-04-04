@@ -150,6 +150,20 @@ describe('Subscription Contracts', () => {
       expect(result.data).toEqual(createInput);
     });
 
+    it('allows nullable repayment account links in create payload', () => {
+      const createInput = {
+        name: 'Loan Repayment',
+        amount: 300,
+        frequency: 'monthly' as const,
+        categoryId: validSubscription.categoryId,
+        paidFromAccountId: null,
+        linkedRepaymentAccountId: null,
+      };
+
+      const result = subscriptionCreateSchema.safeParse(createInput);
+      expect(result.success).toBe(true);
+    });
+
     it('accepts create input without id', () => {
       const createInput = {
         name: validSubscription.name,
@@ -186,6 +200,16 @@ describe('Subscription Contracts', () => {
       const result = subscriptionUpdateSchema.safeParse(updateWithoutId);
       expect(result.success).toBe(true);
       expect(result.data).toEqual(updateWithoutId);
+    });
+
+    it('allows clearing linked repayment account on update', () => {
+      const updateInput = {
+        linkedRepaymentAccountId: null,
+      };
+
+      const result = subscriptionUpdateSchema.safeParse(updateInput);
+      expect(result.success).toBe(true);
+      expect(result.data).toEqual(updateInput);
     });
   });
 
