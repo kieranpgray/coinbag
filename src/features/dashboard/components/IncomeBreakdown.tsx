@@ -6,8 +6,6 @@ import { PrivacyWrapper } from '@/components/shared/PrivacyWrapper';
 import { Link } from 'react-router-dom';
 import type { IncomeBreakdown as IncomeBreakdownType } from '@/types/domain';
 
-const dsV2 = import.meta.env.VITE_DS_V2 === 'true';
-
 interface IncomeBreakdownComponentProps {
   breakdown: IncomeBreakdownType[];
   totalAmount: number;
@@ -58,21 +56,12 @@ export const IncomeBreakdown = memo(function IncomeBreakdownComponent({
         <CardTitle>Income Breakdown</CardTitle>
       </CardHeader>
       <CardContent>
-        {dsV2 ? (
-          <div className="mb-4 rounded-[var(--rl)] border border-border bg-card px-6 py-5 metric-tile">
-            <div className="metric-label">Monthly recurring income</div>
-            <div className="metric-value">
-              <PrivacyWrapper value={totalAmount} />
-            </div>
+        <div className="mb-4 rounded-[var(--rl)] border border-border bg-card px-6 py-5 metric-tile">
+          <div className="metric-label">Monthly recurring income</div>
+          <div className="metric-value">
+            <PrivacyWrapper value={totalAmount} />
           </div>
-        ) : (
-          <div className="mb-4">
-            <div className="text-xl font-bold mb-2">
-              <PrivacyWrapper value={totalAmount} />
-            </div>
-            <p className="text-sm text-muted-foreground">Monthly recurring income</p>
-          </div>
-        )}
+        </div>
         <div className="space-y-3">
           {breakdown.map((item: IncomeBreakdownType) => (
             <div key={item.category}>

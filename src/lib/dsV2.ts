@@ -1,5 +1,5 @@
 /**
- * Build-time flag mirroring `<html data-ds="v2">` (set in main.tsx when VITE_DS_V2=true).
- * Use for conditional DS v2 layout/typography classes alongside CSS `[data-ds='v2']` rules.
+ * @deprecated DS v2 is now the permanent default — this file is retired.
+ * Remove any remaining imports; the flag is always true.
  */
-export const isDsV2 = import.meta.env.VITE_DS_V2 === 'true';
+export const isDsV2 = true;

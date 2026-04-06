@@ -7,8 +7,6 @@ import { PrivacyWrapper } from '@/components/shared/PrivacyWrapper';
 import { StatusIndicator } from '@/components/shared/StatusIndicator';
 import { cn } from '@/lib/utils';
 
-const dsV2 = import.meta.env.VITE_DS_V2 === 'true';
-
 interface BudgetBreakdownTileProps {
   totalIncome: number; // monthly equivalent
   totalExpenses: number; // monthly equivalent, ALL expenses (includes all categories)
@@ -33,7 +31,6 @@ export const BudgetBreakdownTile = memo(function BudgetBreakdownTile({
   isLoading,
   isEmpty,
 }: BudgetBreakdownTileProps) {
-  // Calculate total outgoing (all expenses - totalMonthlyExpenses already includes ALL expense types)
   const totalOutgoing = totalExpenses;
 
   if (isLoading) {
@@ -77,27 +74,18 @@ export const BudgetBreakdownTile = memo(function BudgetBreakdownTile({
   return (
     <Card className="border border-border">
       <CardContent className="p-0">
-        {/* Header */}
         <div className="p-4">
           <h2 className="text-h2-sm sm:text-h2-md lg:text-h2-lg font-semibold text-foreground">
             In and Out
           </h2>
         </div>
 
-        {/* Content */}
         <div className="px-4 pb-4 space-y-3">
-          <div
-            className={cn(
-              'rounded-[var(--rl)] border border-border bg-card px-6 py-5',
-              dsV2 && 'metric-tile'
-            )}
-          >
+          <div className="rounded-[var(--rl)] border border-border bg-card px-6 py-5 metric-tile">
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0">
-                <div className={cn(dsV2 ? 'metric-label' : 'text-body-sm text-muted-foreground')}>
-                  Income
-                </div>
-                <div className={cn(dsV2 ? 'metric-value' : 'text-body-lg font-bold text-foreground')}>
+                <div className="metric-label">Income</div>
+                <div className="metric-value">
                   <PrivacyWrapper value={totalIncome} />
                 </div>
               </div>
@@ -105,18 +93,11 @@ export const BudgetBreakdownTile = memo(function BudgetBreakdownTile({
             </div>
           </div>
 
-          <div
-            className={cn(
-              'rounded-[var(--rl)] border border-border bg-card px-6 py-5',
-              dsV2 && 'metric-tile'
-            )}
-          >
+          <div className="rounded-[var(--rl)] border border-border bg-card px-6 py-5 metric-tile">
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0">
-                <div className={cn(dsV2 ? 'metric-label' : 'text-body-sm text-muted-foreground')}>
-                  Outgoing
-                </div>
-                <div className={cn(dsV2 ? 'metric-value' : 'text-body-lg font-bold text-foreground')}>
+                <div className="metric-label">Outgoing</div>
+                <div className="metric-value">
                   -<PrivacyWrapper value={totalOutgoing} />
                 </div>
               </div>
@@ -124,23 +105,11 @@ export const BudgetBreakdownTile = memo(function BudgetBreakdownTile({
             </div>
           </div>
 
-          <div
-            className={cn(
-              'rounded-[var(--rl)] border border-border bg-card px-6 py-5',
-              dsV2 && 'metric-tile'
-            )}
-          >
+          <div className="rounded-[var(--rl)] border border-border bg-card px-6 py-5 metric-tile">
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0">
-                <div className={cn(dsV2 ? 'metric-label' : 'text-body-sm text-muted-foreground')}>
-                  Remaining
-                </div>
-                <div
-                  className={cn(
-                    dsV2 ? 'metric-value' : 'text-body-lg font-bold text-foreground',
-                    dsV2 && (remaining >= 0 ? 'positive' : 'negative')
-                  )}
-                >
+                <div className="metric-label">Remaining</div>
+                <div className={cn('metric-value', remaining >= 0 ? 'positive' : 'negative')}>
                   <PrivacyWrapper value={remaining} />
                 </div>
               </div>
@@ -156,4 +125,3 @@ export const BudgetBreakdownTile = memo(function BudgetBreakdownTile({
     </Card>
   );
 });
-

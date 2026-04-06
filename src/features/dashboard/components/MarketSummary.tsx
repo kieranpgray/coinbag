@@ -5,8 +5,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Link } from 'react-router-dom';
 import type { MarketSummary as MarketSummaryType } from '@/types/domain';
 
-const dsV2 = import.meta.env.VITE_DS_V2 === 'true';
-
 interface MarketSummaryProps {
   data?: MarketSummaryType;
   isLoading?: boolean;
@@ -52,50 +50,21 @@ export function MarketSummary({ data, isLoading, isUnavailable }: MarketSummaryP
         <CardTitle>Market Summary</CardTitle>
       </CardHeader>
       <CardContent>
-        <div
-          className={cn(
-            'mb-4 rounded-[var(--rl)] border border-border bg-card px-6 py-5',
-            dsV2 && 'metric-tile'
-          )}
-        >
-          <div className={cn(dsV2 ? 'metric-label' : 'text-lg font-semibold mb-2')}>S&amp;P 500</div>
+        <div className="mb-4 rounded-[var(--rl)] border border-border bg-card px-6 py-5 metric-tile">
+          <div className="metric-label">S&amp;P 500</div>
           <div className="flex flex-wrap gap-4 text-sm">
-            <div
-              className={
-                dsV2
-                  ? cn('metric-delta', data.sp500.change1D >= 0 ? 'up' : 'down')
-                  : data.sp500.change1D >= 0
-                    ? 'text-success'
-                    : 'text-error'
-              }
-            >
+            <div className={cn('metric-delta', data.sp500.change1D >= 0 ? 'up' : 'down')}>
               1D: {formatPercentage(data.sp500.change1D)}
             </div>
-            <div
-              className={
-                dsV2
-                  ? cn('metric-delta', data.sp500.change7D >= 0 ? 'up' : 'down')
-                  : data.sp500.change7D >= 0
-                    ? 'text-success'
-                    : 'text-error'
-              }
-            >
+            <div className={cn('metric-delta', data.sp500.change7D >= 0 ? 'up' : 'down')}>
               7D: {formatPercentage(data.sp500.change7D)}
             </div>
-            <div
-              className={
-                dsV2
-                  ? cn('metric-delta', data.sp500.change30D >= 0 ? 'up' : 'down')
-                  : data.sp500.change30D >= 0
-                    ? 'text-success'
-                    : 'text-error'
-              }
-            >
+            <div className={cn('metric-delta', data.sp500.change30D >= 0 ? 'up' : 'down')}>
               30D: {formatPercentage(data.sp500.change30D)}
             </div>
           </div>
         </div>
-        <p className={cn('text-sm text-muted-foreground', dsV2 && 'metric-sub')}>{data.commentary}</p>
+        <p className="text-sm text-muted-foreground metric-sub">{data.commentary}</p>
       </CardContent>
     </Card>
   );

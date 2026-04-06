@@ -4,8 +4,6 @@ import { PrivacyWrapper } from '@/components/shared/PrivacyWrapper';
 import { StatusIndicator } from '@/components/shared/StatusIndicator';
 import { cn } from '@/lib/utils';
 
-const dsV2 = import.meta.env.VITE_DS_V2 === 'true';
-
 interface NetWorthSummaryProps {
   netWorth: number;
   totalAssets: number;
@@ -44,18 +42,11 @@ export const NetWorthSummary = memo(function NetWorthSummary({
 
   return (
     <div className="space-y-3">
-      <div
-        className={cn(
-          'rounded-[var(--rl)] border border-border bg-card px-6 py-5',
-          dsV2 && 'metric-tile'
-        )}
-      >
+      <div className="rounded-[var(--rl)] border border-border bg-card px-6 py-5 metric-tile">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
-            <div className={cn(dsV2 ? 'metric-label' : 'text-body-sm text-muted-foreground')}>
-              Assets
-            </div>
-            <div className={cn(dsV2 ? 'metric-value' : 'text-body-lg font-bold text-foreground')}>
+            <div className="metric-label">Assets</div>
+            <div className="metric-value">
               <PrivacyWrapper value={totalAssets} />
             </div>
           </div>
@@ -63,18 +54,11 @@ export const NetWorthSummary = memo(function NetWorthSummary({
         </div>
       </div>
 
-      <div
-        className={cn(
-          'rounded-[var(--rl)] border border-border bg-card px-6 py-5',
-          dsV2 && 'metric-tile'
-        )}
-      >
+      <div className="rounded-[var(--rl)] border border-border bg-card px-6 py-5 metric-tile">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
-            <div className={cn(dsV2 ? 'metric-label' : 'text-body-sm text-muted-foreground')}>
-              Liabilities
-            </div>
-            <div className={cn(dsV2 ? 'metric-value' : 'text-body-lg font-bold text-foreground')}>
+            <div className="metric-label">Liabilities</div>
+            <div className="metric-value">
               -<PrivacyWrapper value={totalLiabilities} />
             </div>
           </div>
@@ -82,23 +66,11 @@ export const NetWorthSummary = memo(function NetWorthSummary({
         </div>
       </div>
 
-      <div
-        className={cn(
-          'rounded-[var(--rl)] border border-border bg-card px-6 py-5',
-          dsV2 && 'metric-tile'
-        )}
-      >
+      <div className="rounded-[var(--rl)] border border-border bg-card px-6 py-5 metric-tile">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
-            <div className={cn(dsV2 ? 'metric-label' : 'text-body-sm text-muted-foreground')}>
-              Net Worth
-            </div>
-            <div
-              className={cn(
-                dsV2 ? 'metric-value' : 'text-body-lg font-bold text-foreground',
-                dsV2 && (netWorth >= 0 ? 'positive' : 'negative')
-              )}
-            >
+            <div className="metric-label">Net Worth</div>
+            <div className={cn('metric-value', netWorth >= 0 ? 'positive' : 'negative')}>
               <PrivacyWrapper value={netWorth} />
             </div>
           </div>

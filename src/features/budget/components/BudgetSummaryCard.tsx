@@ -1,7 +1,6 @@
-import { cn, formatCurrency } from '@/lib/utils';
+import { formatCurrency } from '@/lib/utils';
 import type { Expense } from '@/types/domain';
 import { calculateMonthlyEquivalent } from '@/features/expenses/utils';
-import { isDsV2 } from '@/lib/dsV2';
 
 interface BudgetSummaryCardProps {
   expenses: Expense[];
@@ -23,26 +22,23 @@ export function BudgetSummaryCard({ expenses }: BudgetSummaryCardProps) {
   return (
     <div className="mt-8 rounded-xl border border-border bg-muted p-6">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-        <div className={cn(isDsV2 && 'metric-tile')}>
-          <div className={cn('text-caption text-muted-foreground mb-1', isDsV2 && 'metric-label')}>Total Expenses</div>
-          <div className={cn('text-xl text-foreground font-semibold', isDsV2 && 'metric-value tabular-nums')}>{formatCurrency(totalExpenses)}</div>
+        <div className="metric-tile">
+          <div className="metric-label">Total Expenses</div>
+          <div className="metric-value tabular-nums">{formatCurrency(totalExpenses)}</div>
         </div>
-        <div className={cn(isDsV2 && 'metric-tile')}>
-          <div className={cn('text-caption text-muted-foreground mb-1', isDsV2 && 'metric-label')}>Categories</div>
-          <div className={cn('text-xl text-foreground font-semibold', isDsV2 && 'metric-value tabular-nums')}>{categories}</div>
+        <div className="metric-tile">
+          <div className="metric-label">Categories</div>
+          <div className="metric-value tabular-nums">{categories}</div>
         </div>
-        <div className={cn(isDsV2 && 'metric-tile')}>
-          <div className={cn('text-caption text-muted-foreground mb-1', isDsV2 && 'metric-label')}>Total Items</div>
-          <div className={cn('text-xl text-foreground font-semibold', isDsV2 && 'metric-value tabular-nums')}>{totalItems}</div>
+        <div className="metric-tile">
+          <div className="metric-label">Total Items</div>
+          <div className="metric-value tabular-nums">{totalItems}</div>
         </div>
-        <div className={cn(isDsV2 && 'metric-tile')}>
-          <div className={cn('text-caption text-muted-foreground mb-1', isDsV2 && 'metric-label')}>Avg per Item</div>
-          <div className={cn('text-xl text-foreground font-semibold', isDsV2 && 'metric-value tabular-nums')}>
-            {formatCurrency(avgPerItem)}
-          </div>
+        <div className="metric-tile">
+          <div className="metric-label">Avg per Item</div>
+          <div className="metric-value tabular-nums">{formatCurrency(avgPerItem)}</div>
         </div>
       </div>
     </div>
   );
 }
-

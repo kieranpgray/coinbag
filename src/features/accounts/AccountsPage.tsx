@@ -41,9 +41,6 @@ import type { AccountCreate } from '@/contracts/accounts';
 import type { FileWithStatus } from '@/components/shared/MultiStatementFileUpload';
 import type { StatementImportEntity } from '@/contracts/statementImports';
 import { useEffect } from 'react';
-import { cn } from '@/lib/utils';
-import { isDsV2 } from '@/lib/dsV2';
-
 export function AccountsPage() {
   const { accountId } = useParams<{ accountId?: string }>();
   const navigate = useNavigate();
@@ -821,54 +818,18 @@ export function AccountsPage() {
               </div>
 
               <div className="flex flex-col gap-3 sm:flex-row sm:gap-6">
-                <div
-                  className={cn(
-                    'bg-card border border-border rounded-[var(--rl)] px-6 py-5 shadow-sm min-w-[200px]',
-                    isDsV2 && 'metric-tile'
-                  )}
-                >
-                  {isDsV2 ? (
-                    <>
-                      <p className="metric-label">Current Balance</p>
-                      <p className="metric-value tabular-nums">
-                        {formatCurrency(selectedAccountData.balance, locale)}
-                      </p>
-                    </>
-                  ) : (
-                    <>
-                      <p className="text-body-sm text-muted-foreground uppercase tracking-wide mb-2 font-medium">
-                        Current Balance
-                      </p>
-                      <p className="text-balance font-bold text-foreground tabular-nums">
-                        {formatCurrency(selectedAccountData.balance, locale)}
-                      </p>
-                    </>
-                  )}
+                <div className="bg-card border border-border rounded-[var(--rl)] px-6 py-5 shadow-sm min-w-[200px] metric-tile">
+                  <p className="metric-label">Current Balance</p>
+                  <p className="metric-value tabular-nums">
+                    {formatCurrency(selectedAccountData.balance, locale)}
+                  </p>
                 </div>
 
-                <div
-                  className={cn(
-                    'bg-card border border-border rounded-[var(--rl)] px-6 py-5 shadow-sm',
-                    isDsV2 && 'metric-tile'
-                  )}
-                >
-                  {isDsV2 ? (
-                    <>
-                      <p className="metric-label">Last Updated</p>
-                      <p className="text-body-lg font-medium text-foreground mt-1">
-                        {formatDate(selectedAccountData.lastUpdated, locale)}
-                      </p>
-                    </>
-                  ) : (
-                    <>
-                      <p className="text-body-sm text-muted-foreground uppercase tracking-wide mb-2 font-medium">
-                        Last Updated
-                      </p>
-                      <p className="text-body-lg font-medium text-foreground">
-                        {formatDate(selectedAccountData.lastUpdated, locale)}
-                      </p>
-                    </>
-                  )}
+                <div className="bg-card border border-border rounded-[var(--rl)] px-6 py-5 shadow-sm metric-tile">
+                  <p className="metric-label">Last Updated</p>
+                  <p className="text-body-lg font-medium text-foreground mt-1">
+                    {formatDate(selectedAccountData.lastUpdated, locale)}
+                  </p>
                 </div>
               </div>
             </div>

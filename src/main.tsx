@@ -45,11 +45,6 @@ if (!rootElement) {
   throw new Error('Root element not found');
 }
 
-/** Design system v2 — toggled via VITE_DS_V2; token overrides live in index.css under [data-ds="v2"] */
-if (import.meta.env.VITE_DS_V2 === 'true') {
-  document.documentElement.setAttribute('data-ds', 'v2');
-}
-
 // Ensure your index.html contains a <div id="root"></div> element for React to mount the app.
 
 if (import.meta.env.VITE_DEBUG_LOGGING === 'true') {

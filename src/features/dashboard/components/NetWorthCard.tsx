@@ -16,10 +16,6 @@ import {
 import { NetWorthChart } from './NetWorthChart';
 import { NetWorthSummary } from './NetWorthSummary';
 import { getCorrelationId, logger } from '@/lib/logger';
-import { cn } from '@/lib/utils';
-
-const dsV2 = import.meta.env.VITE_DS_V2 === 'true';
-
 interface NetWorthCardProps {
   netWorth: number;
   totalAssets: number;
@@ -171,18 +167,8 @@ export const NetWorthCard = memo(function NetWorthCard({
       <CardContent className="p-0">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4">
           <div className="md:col-span-3 order-2 md:order-1">
-            <div
-              className={cn(
-                'rounded-[var(--rl)] border border-border bg-card',
-                dsV2 ? 'chart-container' : 'p-4 md:p-6'
-              )}
-            >
-              <div
-                className={cn(
-                  'flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between mb-4',
-                  dsV2 && 'chart-header'
-                )}
-              >
+            <div className="rounded-[var(--rl)] border border-border bg-card chart-container">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between mb-4 chart-header">
                 <div>
                   <h2 className="text-h2-sm sm:text-h2-md lg:text-h2-lg font-semibold text-foreground">
                     Net Worth
