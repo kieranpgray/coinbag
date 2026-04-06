@@ -210,7 +210,7 @@
 .landing-v2 .proof .section-header h2 { color: #fff; }
 .landing-v2 .proof .section-header p { color: rgba(255,255,255,0.45); }
 .landing-v2 .proof .section-eyebrow { color: rgba(255,255,255,0.35); }
-.landing-v2 .proof-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; background: rgba(255,255,255,0.06); border-radius: var(--rx); overflow: hidden; }
+.landing-v2 .proof-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; background: var(--on-dark-border); border-radius: var(--rx); overflow: hidden; }
 .landing-v2 .proof-card { background: rgba(255,255,255,0.04); padding: 36px 28px; }
 .landing-v2 .proof-icon { width: 40px; height: 40px; background: rgba(255,255,255,0.08); border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; }
 .landing-v2 .proof-card h3 { font-family: var(--serif); font-size: 20px; color: #fff; margin-bottom: 12px; }
