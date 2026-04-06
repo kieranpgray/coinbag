@@ -153,19 +153,19 @@ export function ImportResults({
                 {result.warnings.length} Warning{result.warnings.length !== 1 ? 's' : ''}
               </CardTitle>
             </div>
-            <CardContent>
-              <div className="space-y-2">
-                {result.warnings.slice(0, 5).map((warning, idx) => (
-                  <div
-                    key={idx}
-                    className="text-body p-2 bg-[var(--warning-light)] rounded border border-[var(--warning)]/30"
-                  >
-                    Row {warning.rowNumber} ({warning.entityType}): {warning.message}
-                  </div>
-                ))}
-              </div>
-            </CardContent>
           </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {result.warnings.slice(0, 5).map((warning, idx) => (
+                <div
+                  key={idx}
+                  className="text-body p-2 bg-[var(--warning-light)] rounded border border-[var(--warning)]/30"
+                >
+                  Row {warning.rowNumber} ({warning.entityType}): {warning.message}
+                </div>
+              ))}
+            </div>
+          </CardContent>
         </Card>
       )}
 

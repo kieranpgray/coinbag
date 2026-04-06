@@ -1,8 +1,7 @@
-import { formatCurrency } from '@/lib/utils';
+import { cn, formatCurrency } from '@/lib/utils';
 import type { Expense } from '@/types/domain';
 import { calculateMonthlyEquivalent } from '@/features/expenses/utils';
 import { isDsV2 } from '@/lib/dsV2';
-import { cn } from '@/lib/utils';
 
 interface BudgetSummaryCardProps {
   expenses: Expense[];

@@ -286,6 +286,10 @@
     --color-primary-blue: #3B5BFA;
     --color-success-legacy: #0ECD9D; /* 9.60:1 contrast on dark background - excellent */
     --color-error-legacy: #F6465D; /* 5.58:1 contrast on dark background - excellent */
+
+    /* Warning surfaces — design-system-v2.html on-dark (readable on #0D0E10) */
+    --warning: #f0c040;
+    --warning-light: rgba(181, 138, 16, 0.18);
     
     /* Legacy HSL mappings for dark mode */
     --background: 222.2 84% 4.9%;
@@ -485,6 +489,9 @@
     --danger-tone-strong: #e87e74;
     --danger-tone-mid: #f0a099;
     --danger-tone-light: #f5c4bf;
+
+    --warning: #f0c040;
+    --warning-light: rgba(181, 138, 16, 0.18);
   }
 }
 
