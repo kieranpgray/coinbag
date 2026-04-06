@@ -1,10 +1,27 @@
-import { defineConfig } from 'vite';
+import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
 import fs from 'fs';
 
 // https://vitejs.dev/config/
-export default defineConfig({
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, process.cwd(), '');
+
+  const keyPath = path.resolve(__dirname, '.certs/localhost-key.pem');
+  const certPath = path.resolve(__dirname, '.certs/localhost-cert.pem');
+  const hasCerts = fs.existsSync(keyPath) && fs.existsSync(certPath);
+  /** Set VITE_DEV_HTTP=true in .env / .env.ds-v2 to use http:// (avoids self-signed cert browser warnings). */
+  const preferHttp = env.VITE_DEV_HTTP === 'true';
+
+  const https =
+    preferHttp || !hasCerts
+      ? undefined
+      : {
+          key: fs.readFileSync(keyPath),
+          cert: fs.readFileSync(certPath),
+        };
+
+  return {
   plugins: [react()],
   resolve: {
     alias: {
@@ -12,23 +29,8 @@ export default defineConfig({
     },
   },
   server: {
-    https: (() => {
-      // Check if SSL certificates exist
-      const keyPath = path.resolve(__dirname, '.certs/localhost-key.pem');
-      const certPath = path.resolve(__dirname, '.certs/localhost-cert.pem');
-      
-      if (fs.existsSync(keyPath) && fs.existsSync(certPath)) {
-        return {
-          key: fs.readFileSync(keyPath),
-          cert: fs.readFileSync(certPath),
-        };
-      }
-      
-      // If certificates don't exist, return undefined to use HTTP
-      // User can run `./scripts/generate-ssl-certs.sh` to generate them
-      return undefined;
-    })(),
-    port: parseInt(process.env.VITE_DEV_PORT || '5173', 10),
+    https,
+    port: parseInt(process.env.VITE_DEV_PORT || env.VITE_DEV_PORT || '5173', 10),
     strictPort: true, // fail if port in use so the dev URL is always consistent
   },
   build: {
@@ -66,5 +68,6 @@ export default defineConfig({
       },
     },
   },
+};
 });
 

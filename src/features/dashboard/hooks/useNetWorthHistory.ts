@@ -173,25 +173,30 @@ export function useNetWorthHistory(
   // Calculate S&P 500 daily returns
   const sp500Returns = useMemo(() => {
     if (!sp500Prices || sp500Prices.length === 0) {
-      if (import.meta.env.DEV) {
-        console.log('[useNetWorthHistory] No S&P 500 prices available, will use fallback rate');
-      }
+      logger.debug(
+        'NET_WORTH_HISTORY:SP500',
+        'No S&P 500 prices available, will use fallback rate',
+        undefined,
+        getCorrelationId() || undefined
+      );
       return [];
     }
     const returns = getSP500DailyReturns(sp500Prices);
-    if (import.meta.env.DEV) {
-      console.log(`[useNetWorthHistory] Calculated ${returns.length} S&P 500 daily returns from ${sp500Prices.length} price points`);
-      if (returns.length > 0) {
-        console.log('[useNetWorthHistory] Sample returns:', {
-          first: returns[0],
-          last: returns[returns.length - 1],
-          dateRange: {
-            start: sp500Prices[0]?.date,
-            end: sp500Prices[sp500Prices.length - 1]?.date,
-          },
-        });
-      }
-    }
+    logger.debug(
+      'NET_WORTH_HISTORY:SP500',
+      `Calculated ${returns.length} S&P 500 daily returns from ${sp500Prices.length} price points`,
+      returns.length > 0
+        ? {
+            first: returns[0],
+            last: returns[returns.length - 1],
+            dateRange: {
+              start: sp500Prices[0]?.date,
+              end: sp500Prices[sp500Prices.length - 1]?.date,
+            },
+          }
+        : undefined,
+      getCorrelationId() || undefined
+    );
     return returns;
   }, [sp500Prices]);
 
@@ -274,15 +279,18 @@ export function useNetWorthHistory(
     const useSP500Data = sp500Returns.length > 0;
     const fallbackDailyRate = Math.pow(1 + ANNUAL_APPRECIATION_RATE, 1 / 365) - 1;
     
-    if (import.meta.env.DEV) {
-      console.log('[useNetWorthHistory] Mocked data generation:', {
+    logger.debug(
+      'NET_WORTH_HISTORY:MOCK',
+      'Mocked data generation',
+      {
         useSP500Data,
         sp500ReturnsCount: sp500Returns.length,
         earliestRealDataDate,
         startingValue,
         datesToGenerate: datesToGenerate.length,
-      });
-    }
+      },
+      getCorrelationId() || undefined
+    );
     
     // Work backwards from the last date (closest to cutoff) to calculate historical values
     // Start with the starting value and work backwards
@@ -516,11 +524,12 @@ export function sampleEveryNDays(
             sampled.splice(insertIndex, 0, yearPoint);
           }
           includedYears.add(year);
-        } else if (import.meta.env.DEV) {
-          // Development-only warning if year boundary is missing
-          console.warn(
-            `[useNetWorthHistory] Missing data point for year ${year}. ` +
-            `This may cause X-axis tick issues in 5y view.`
+        } else {
+          logger.debug(
+            'NET_WORTH_HISTORY:SAMPLE',
+            `Missing data point for year ${year} (possible X-axis tick gap in 5y view)`,
+            { year },
+            getCorrelationId() || undefined
           );
         }
       }

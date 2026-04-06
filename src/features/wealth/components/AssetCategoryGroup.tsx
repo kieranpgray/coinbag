@@ -91,7 +91,7 @@ export function AssetCategoryGroup({
 
         {/* Category total row */}
         <div className="flex items-center justify-end py-3 px-4 border-t-2 border-border bg-muted/50">
-          <span className="text-body-lg font-bold text-foreground">
+          <span className="text-body-lg font-bold text-foreground tabular-nums">
             {formatCurrency(categoryTotal)}
           </span>
         </div>

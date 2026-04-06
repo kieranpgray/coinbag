@@ -41,6 +41,8 @@ import type { AccountCreate } from '@/contracts/accounts';
 import type { FileWithStatus } from '@/components/shared/MultiStatementFileUpload';
 import type { StatementImportEntity } from '@/contracts/statementImports';
 import { useEffect } from 'react';
+import { cn } from '@/lib/utils';
+import { isDsV2 } from '@/lib/dsV2';
 
 export function AccountsPage() {
   const { accountId } = useParams<{ accountId?: string }>();
@@ -818,25 +820,55 @@ export function AccountsPage() {
                 </span>
               </div>
 
-              <div className="flex flex-row gap-6">
-                {/* Balance Card */}
-                <div className="bg-card border border-border rounded-xl px-6 py-4 shadow-sm min-w-[200px]">
-                  <p className="text-body-sm text-muted-foreground uppercase tracking-wide mb-2 font-medium">
-                    Current Balance
-                  </p>
-                  <p className="text-balance font-bold text-foreground">
-                    {formatCurrency(selectedAccountData.balance, locale)}
-                  </p>
+              <div className="flex flex-col gap-3 sm:flex-row sm:gap-6">
+                <div
+                  className={cn(
+                    'bg-card border border-border rounded-[var(--rl)] px-6 py-5 shadow-sm min-w-[200px]',
+                    isDsV2 && 'metric-tile'
+                  )}
+                >
+                  {isDsV2 ? (
+                    <>
+                      <p className="metric-label">Current Balance</p>
+                      <p className="metric-value tabular-nums">
+                        {formatCurrency(selectedAccountData.balance, locale)}
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-body-sm text-muted-foreground uppercase tracking-wide mb-2 font-medium">
+                        Current Balance
+                      </p>
+                      <p className="text-balance font-bold text-foreground tabular-nums">
+                        {formatCurrency(selectedAccountData.balance, locale)}
+                      </p>
+                    </>
+                  )}
                 </div>
 
-                {/* Last Updated Card */}
-                <div className="bg-card border border-border rounded-xl px-6 py-4 shadow-sm">
-                  <p className="text-body-sm text-muted-foreground uppercase tracking-wide mb-2 font-medium">
-                    Last Updated
-                  </p>
-                  <p className="text-body-lg font-medium text-foreground">
-                    {formatDate(selectedAccountData.lastUpdated, locale)}
-                  </p>
+                <div
+                  className={cn(
+                    'bg-card border border-border rounded-[var(--rl)] px-6 py-5 shadow-sm',
+                    isDsV2 && 'metric-tile'
+                  )}
+                >
+                  {isDsV2 ? (
+                    <>
+                      <p className="metric-label">Last Updated</p>
+                      <p className="text-body-lg font-medium text-foreground mt-1">
+                        {formatDate(selectedAccountData.lastUpdated, locale)}
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-body-sm text-muted-foreground uppercase tracking-wide mb-2 font-medium">
+                        Last Updated
+                      </p>
+                      <p className="text-body-lg font-medium text-foreground">
+                        {formatDate(selectedAccountData.lastUpdated, locale)}
+                      </p>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
@@ -995,7 +1027,7 @@ export function AccountsPage() {
                 <TableHead>{t('tableHeaders.institution', { ns: 'accounts' })}</TableHead>
                 <TableHead>{t('tableHeaders.accountName', { ns: 'accounts' })}</TableHead>
                 <TableHead>{t('tableHeaders.accountType', { ns: 'accounts' })}</TableHead>
-                <TableHead className="text-right">{t('tableHeaders.balance', { ns: 'accounts' })}</TableHead>
+                <TableHead className="text-right tabular-nums">{t('tableHeaders.balance', { ns: 'accounts' })}</TableHead>
                 <TableHead>{t('tableHeaders.lastUpdated', { ns: 'accounts' })}</TableHead>
                 <TableHead className="text-right">{t('tableHeaders.actions', { ns: 'accounts' })}</TableHead>
               </TableRow>
@@ -1017,7 +1049,9 @@ export function AccountsPage() {
                     <TableCell className="font-medium">{account.institution || '-'}</TableCell>
                     <TableCell>{account.accountName}</TableCell>
                     <TableCell>{account.accountType}</TableCell>
-                    <TableCell className="text-right">{formatCurrency(account.balance, locale)}</TableCell>
+                    <TableCell className="text-right tabular-nums font-medium">
+                      {formatCurrency(account.balance, locale)}
+                    </TableCell>
                     <TableCell>{formatDate(account.lastUpdated, locale)}</TableCell>
                     <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
                       <div className="flex items-center justify-end gap-1">
@@ -1037,7 +1071,7 @@ export function AccountsPage() {
                           onClick={() => handleDelete(account)}
                           aria-label={t('deleteAccount', { ns: 'aria' })}
                         >
-                          <Trash2 className="h-3.5 w-3.5 text-red-500" />
+                          <Trash2 className="h-3.5 w-3.5 text-destructive" />
                         </Button>
                       </div>
                     </TableCell>

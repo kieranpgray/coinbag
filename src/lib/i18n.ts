@@ -147,8 +147,8 @@ i18n
     // Debug mode will log missing keys automatically
     saveMissing: import.meta.env.DEV, // Save missing keys in dev mode
 
-    // Debug mode (disable in production)
-    debug: import.meta.env.DEV,
+    // Verbose i18next logs only when explicitly enabled
+    debug: import.meta.env.VITE_DEBUG_LOGGING === 'true',
   } as Record<string, unknown>) // Type assertion needed due to complex i18next option types
   .then(() => {
     // Normalize the initially detected language immediately after initialization

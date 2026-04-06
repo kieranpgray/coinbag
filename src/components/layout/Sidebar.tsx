@@ -95,14 +95,14 @@ export function Sidebar() {
   };
 
   const showLabels = isDesktop || (isTablet && expanded);
-  const sidebarWidth = isDesktop || (isTablet && expanded) ? 'w-48' : 'w-16';
+  const sidebarWidth = isDesktop || (isTablet && expanded) ? 'w-48' : 'w-14';
 
   const brandTrigger = (
     <DropdownMenuTrigger asChild>
       <button
         className={cn(
-          'flex items-center gap-2 w-full rounded-lg hover:bg-accent transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30',
-          showLabels ? 'px-3 py-2' : 'justify-center px-2 py-2'
+          'flex items-center gap-2 w-full rounded-[var(--rl)] hover:bg-[var(--color-nav-hover)] transition-colors focus:outline-none focus-visible:shadow-[0_0_0_3px_var(--focus-ring)]',
+          showLabels ? 'px-3 py-2' : 'justify-center px-2 py-2 min-h-[40px]'
         )}
         aria-haspopup="menu"
         aria-expanded={menuOpen}
@@ -110,7 +110,7 @@ export function Sidebar() {
       >
         {showLabels ? (
           <>
-            <span className="text-h1-sm sm:text-h1-md lg:text-h1-lg text-foreground flex-1 text-left truncate">
+            <span className="font-serif text-h1-sm sm:text-h1-md lg:text-h1-lg text-foreground flex-1 text-left truncate tracking-tight">
               Supafolio
             </span>
             <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" />
@@ -150,14 +150,14 @@ export function Sidebar() {
   return (
     <aside
       className={cn(
-        'h-screen bg-card border-r border-border flex flex-col hidden md:flex shrink-0 transition-[width] duration-200 ease-in-out',
+        'h-screen bg-[var(--paper)] border-r border-[var(--paper-3)] flex flex-col hidden md:flex shrink-0 transition-[width] duration-200 ease-in-out',
         sidebarWidth
       )}
       aria-label="Main navigation"
     >
       <TooltipProvider delayDuration={300}>
         {/* Brand + account menu */}
-        <div className={cn('shrink-0 border-b border-border', showLabels ? 'p-3' : 'p-2')}>
+        <div className={cn('shrink-0 border-b border-[var(--paper-3)]', showLabels ? 'p-3' : 'p-2')}>
           <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
             {isRail && !expanded ? (
               <Tooltip>
@@ -182,7 +182,7 @@ export function Sidebar() {
         </div>
 
         {/* Search / Quick actions */}
-        <div className={cn('shrink-0 border-b border-border', showLabels ? 'px-3 py-2' : 'px-2 py-2')}>
+        <div className={cn('shrink-0 border-b border-[var(--paper-3)]', showLabels ? 'px-3 py-2' : 'px-2 py-2')}>
           {isRail && !expanded ? (
             <Tooltip>
               <TooltipTrigger asChild>
@@ -210,9 +210,9 @@ export function Sidebar() {
                   if (prefetchHandler && !isActive) prefetchHandler();
                 }}
                 className={cn(
-                  'nav-item nav-item-default nav-item-hover focus:outline-none focus:ring-2 focus:ring-primary/30 focus:ring-offset-2',
+                  'nav-item nav-item-default nav-item-hover focus:outline-none focus-visible:shadow-[0_0_0_3px_var(--focus-ring)]',
                   isActive && 'nav-item-active',
-                  !showLabels && 'justify-center px-2'
+                  !showLabels && 'justify-center px-2 min-h-[40px] min-w-[40px]'
                 )}
                 aria-current={isActive ? 'page' : undefined}
                 aria-label={item.name}
@@ -239,14 +239,14 @@ export function Sidebar() {
 
         {/* Collapse toggle (tablet rail only) */}
         {showToggle && (
-          <div className={cn('p-3 border-t border-border', !expanded && 'flex justify-center')}>
+          <div className={cn('p-3 border-t border-[var(--paper-3)]', !expanded && 'flex justify-center')}>
             <Button
               variant="ghost"
               size="icon"
               onClick={handleToggle}
               aria-expanded={expanded}
               aria-label={expanded ? 'Collapse sidebar' : 'Expand sidebar'}
-              className={cn('text-muted-foreground hover:text-foreground', !expanded && 'w-8 h-8')}
+              className={cn('text-[color:var(--ink-3)] hover:text-foreground', !expanded && 'h-10 w-10 min-h-[40px] min-w-[40px]')}
             >
               {expanded ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
             </Button>

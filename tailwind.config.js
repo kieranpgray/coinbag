@@ -1,3 +1,5 @@
+import tailwindcssAnimate from 'tailwindcss-animate';
+
 /** @type {import('tailwindcss').Config} */
 export default {
   darkMode: ['class'],
@@ -84,7 +86,18 @@ export default {
         lg: 'var(--shadow-lg)',
       },
       fontFamily: {
-        sans: ['"Inter"', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', '"Helvetica Neue"', 'Arial', 'sans-serif'],
+        sans: [
+          'var(--font-family-sans)',
+          '"Inter"',
+          '-apple-system',
+          'BlinkMacSystemFont',
+          '"Segoe UI"',
+          'Roboto',
+          '"Helvetica Neue"',
+          'Arial',
+          'sans-serif',
+        ],
+        serif: ['"Instrument Serif"', 'Georgia', 'serif'],
       },
       fontSize: {
         /* Body text - baseline matches nav (text-sm = 14px) */
@@ -135,8 +148,17 @@ export default {
           '2xl': '80rem', // 1280px - matches max-w-7xl
         },
       },
+      keyframes: {
+        'skeleton-shimmer': {
+          '0%': { backgroundPosition: '200% 0' },
+          '100%': { backgroundPosition: '-200% 0' },
+        },
+      },
+      animation: {
+        'skeleton-shimmer': 'skeleton-shimmer 2s ease-in-out infinite',
+      },
     },
   },
-  plugins: [],
+  plugins: [tailwindcssAnimate],
 };
 

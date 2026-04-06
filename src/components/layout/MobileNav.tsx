@@ -73,22 +73,22 @@ export function MobileNav({ open, onOpenChange }: MobileNavProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="fixed left-0 top-0 z-50 h-full w-[280px] max-w-[85vw] translate-x-0 translate-y-0 rounded-none border-r border-border bg-card p-0 data-[state=open]:slide-in-from-left data-[state=closed]:slide-out-to-left sm:w-[320px] [&>button]:hidden"
+        className="fixed left-0 top-0 z-50 h-full w-[280px] max-w-[85vw] translate-x-0 translate-y-0 rounded-none border-r border-[var(--paper-3)] bg-[var(--paper)] p-0 data-[state=open]:slide-in-from-left data-[state=closed]:slide-out-to-left sm:w-[320px] [&>button]:hidden"
         onInteractOutside={(e) => e.preventDefault()}
       >
         <div className="flex h-full flex-col">
           {/* Header strip */}
-          <div className="flex items-center justify-between border-b border-border px-3 py-2 shrink-0">
+          <div className="flex items-center justify-between border-b border-[var(--paper-3)] px-3 py-2 shrink-0 min-h-14">
             {/* Brand + account menu trigger */}
             <DropdownMenu open={accountMenuOpen} onOpenChange={setAccountMenuOpen}>
               <DropdownMenuTrigger asChild>
                 <button
-                  className="flex items-center gap-2 rounded-lg hover:bg-accent transition-colors px-2 py-1.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+                  className="flex items-center gap-2 rounded-[var(--rl)] hover:bg-[var(--color-nav-hover)] transition-colors px-2 py-1.5 focus:outline-none focus-visible:shadow-[0_0_0_3px_var(--focus-ring)]"
                   aria-haspopup="menu"
                   aria-expanded={accountMenuOpen}
                   aria-label="Account menu"
                 >
-                  <span className="text-h1-sm sm:text-h1-md lg:text-h1-lg text-foreground">
+                  <span className="font-serif text-h1-sm sm:text-h1-md lg:text-h1-lg text-foreground tracking-tight">
                     Supafolio
                   </span>
                   <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" />
@@ -109,13 +109,14 @@ export function MobileNav({ open, onOpenChange }: MobileNavProps) {
               size="icon"
               onClick={() => onOpenChange(false)}
               aria-label="Close navigation menu"
+              className="min-h-11 min-w-11 shrink-0"
             >
               <X className="h-5 w-5" />
             </Button>
           </div>
 
           {/* Search / Quick actions */}
-          <div className="px-3 py-2 border-b border-border shrink-0">
+          <div className="px-3 py-2 border-b border-[var(--paper-3)] shrink-0">
             <Button
               variant="ghost"
               className="w-full justify-start gap-2 hover:bg-accent px-3"
@@ -143,7 +144,7 @@ export function MobileNav({ open, onOpenChange }: MobileNavProps) {
                       if (prefetchHandler && !isActive) prefetchHandler();
                     }}
                     className={cn(
-                      'nav-item nav-item-default nav-item-hover w-full justify-start focus:outline-none focus:ring-2 focus:ring-primary/30 focus:ring-offset-2',
+                      'nav-item nav-item-default nav-item-hover w-full justify-start min-h-11 focus:outline-none focus-visible:shadow-[0_0_0_3px_var(--focus-ring)]',
                       isActive && 'nav-item-active'
                     )}
                     aria-current={isActive ? 'page' : undefined}

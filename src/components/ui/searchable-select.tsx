@@ -187,12 +187,13 @@ export function SearchableSelect({
         aria-expanded={isOpen}
         aria-haspopup="listbox"
         className={cn(
-          // Atlassian Design System styling: clean borders, subtle focus states
-          'w-full justify-between h-10 rounded-md border border-border bg-background px-3 py-2 text-body text-foreground',
+          'w-full justify-between min-h-[42px] h-10 rounded-[12px] border bg-background px-3 py-2 text-body text-foreground',
           'hover:border-neutral-mid hover:bg-muted/50',
-          'focus:outline-none focus:ring-2 focus:ring-primary/20 focus:ring-offset-0 focus:border-primary',
+          'focus-visible:outline-none focus-visible:shadow-[0_0_0_3px_var(--focus-ring)] focus-visible:border-primary focus-visible:ring-0',
           'disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-muted disabled:hover:border-border',
-          error && 'border-destructive',
+          error &&
+            'border-[color:var(--danger)] shadow-[0_0_0_3px_rgba(192,57,43,0.1)] focus-visible:border-[color:var(--danger)] focus-visible:shadow-[0_0_0_3px_rgba(192,57,43,0.15)]',
+          !error && 'border-border',
           !selectedOption && 'text-muted-foreground',
           className
         )}
@@ -215,10 +216,10 @@ export function SearchableSelect({
         <div
           ref={dropdownRef}
           role="listbox"
-          className="absolute z-50 w-full mt-1 bg-background border border-border rounded-md max-h-80 overflow-hidden flex flex-col shadow-lg"
+          className="absolute z-50 w-full mt-1 bg-background border border-border rounded-[12px] max-h-80 overflow-hidden flex flex-col shadow-[0_8px_24px_rgba(0,0,0,0.1)]"
         >
           {/* Search input */}
-          <div className="p-2 border-b border-border">
+          <div className="p-2 border-b border-[var(--paper-3)]">
             <div className="relative">
               <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
@@ -245,19 +246,18 @@ export function SearchableSelect({
                     role="option"
                     aria-selected={option.value === value}
                     className={cn(
-                      // Atlassian Design System styling: improved hover states, better selected state indication
-                      'w-full px-3 py-2 text-left text-body text-foreground rounded-sm flex items-center justify-between',
-                      'hover:bg-muted',
-                      'focus:bg-primary/10 focus:outline-none',
-                      index === highlightedIndex && 'bg-primary/10',
-                      option.value === value && 'bg-primary/10'
+                      'w-full px-3 py-2 text-left text-body text-foreground rounded-[12px] flex items-center justify-between',
+                      'hover:bg-[var(--accent-light)] hover:text-primary',
+                      'focus:bg-[var(--accent-light)] focus:text-primary focus:outline-none',
+                      index === highlightedIndex && 'bg-[var(--accent-light)] text-primary',
+                      option.value === value && 'bg-[var(--accent-light)] text-primary'
                     )}
                     onClick={() => handleSelect(option.value)}
                     onMouseEnter={() => setHighlightedIndex(index)}
                   >
                     <span>{option.label}</span>
                     {option.value === value && (
-                      <Check className="h-4 w-4 text-blue-600" />
+                      <Check className="h-4 w-4 text-primary" />
                     )}
                   </button>
                 ))}

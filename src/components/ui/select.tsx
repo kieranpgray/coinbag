@@ -30,23 +30,24 @@ const SelectValue = SelectPrimitive.Value;
 const SelectTrigger = React.forwardRef<
   React.ElementRef<typeof SelectPrimitive.Trigger>,
   React.ComponentPropsWithoutRef<typeof SelectPrimitive.Trigger>
->(({ className, children, ...props }, ref) => (
+>(({ className, children, 'aria-invalid': ariaInvalid, ...props }, ref) => {
+  const hasError = ariaInvalid === true || ariaInvalid === 'true' || className?.includes('border-destructive');
+  return (
   <SelectPrimitive.Trigger
     ref={ref}
       className={cn(
-        // Design system styling: 12px border radius, clean borders, subtle focus states
-        'flex h-10 w-full items-center justify-between rounded-[12px] border border-border bg-background px-3 py-2 text-body text-foreground',
+        'flex min-h-[42px] h-10 w-full items-center justify-between rounded-[12px] border bg-background px-3 py-2 text-body text-foreground',
+        hasError
+          ? 'border-[color:var(--danger)] shadow-[0_0_0_3px_rgba(192,57,43,0.1)]'
+          : 'border-border hover:border-neutral-mid hover:bg-muted/50',
         'placeholder:text-muted-foreground',
-        // Subtle hover state
-        'hover:border-neutral-mid hover:bg-muted/50',
-        // Subtle focus ring (not heavy)
-        'focus:outline-none focus:ring-2 focus:ring-primary/20 focus:ring-offset-0 focus:border-primary',
-        // Disabled state
+        'focus:outline-none focus:shadow-[0_0_0_3px_var(--focus-ring)] focus:border-primary',
+        hasError && 'focus:border-[color:var(--danger)] focus:shadow-[0_0_0_3px_rgba(192,57,43,0.15)]',
         'disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-muted disabled:hover:border-border',
-        // Text overflow handling
         '[&>span]:line-clamp-1',
         className
       )}
+    aria-invalid={ariaInvalid}
     {...props}
   >
     {children}
@@ -54,7 +55,8 @@ const SelectTrigger = React.forwardRef<
       <ChevronDown className="h-4 w-4 text-muted-foreground" />
     </SelectPrimitive.Icon>
   </SelectPrimitive.Trigger>
-));
+  );
+});
 SelectTrigger.displayName = SelectPrimitive.Trigger.displayName;
 
 const SelectScrollUpButton = React.forwardRef<
@@ -170,7 +172,7 @@ const SelectSeparator = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <SelectPrimitive.Separator
     ref={ref}
-    className={cn('-mx-1 my-1 h-px bg-muted', className)}
+    className={cn('-mx-1 my-1 h-px bg-[var(--paper-3)]', className)}
     {...props}
   />
 ));

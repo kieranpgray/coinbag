@@ -11,9 +11,9 @@ import type { LiabilityBreakdown } from '@/types/domain';
  * Uses red theme hex values that work in both light and dark modes
  */
 const LIABILITY_TYPE_COLORS: Record<LiabilityBreakdown['category'], string> = {
-  'Loans': '#DC2626', // red-600, primary red
-  'Credit Cards': '#EF4444', // red-500, medium red
-  'Other': '#F87171', // red-400, lighter red
+  Loans: 'var(--danger-tone-strong)',
+  'Credit Cards': 'var(--danger-tone-mid)',
+  Other: 'var(--danger-tone-light)',
 };
 
 /**

@@ -8,7 +8,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { formatCurrency } from '@/lib/utils';
+import { formatCurrency, cn } from '@/lib/utils';
+import { isDsV2 } from '@/lib/dsV2';
 import { isFeatureEnabled } from '@/lib/featureFlags';
 import { AssetCategoryGroup } from './AssetCategoryGroup';
 import { AccountSelectionModal } from '@/features/snaptrade/components/AccountSelectionModal';
@@ -131,9 +132,21 @@ export function AssetPortfolioSection({
               Assets
             </h2>
           </div>
-          <div className="flex items-baseline gap-2">
-            <span className="text-balance font-bold">{formatCurrency(totalAssets)}</span>
-          </div>
+          {isDsV2 ? (
+            <div
+              className={cn(
+                'mt-2 inline-block rounded-[var(--rl)] border border-border bg-card px-6 py-5',
+                'metric-tile'
+              )}
+            >
+              <div className="metric-label">Total assets</div>
+              <div className="metric-value tabular-nums">{formatCurrency(totalAssets)}</div>
+            </div>
+          ) : (
+            <div className="flex items-baseline gap-2">
+              <span className="text-balance font-bold tabular-nums">{formatCurrency(totalAssets)}</span>
+            </div>
+          )}
         </div>
 
         <div className="flex flex-col items-start sm:items-end gap-2">

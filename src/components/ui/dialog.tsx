@@ -18,7 +18,7 @@ const DialogOverlay = React.forwardRef<
   <DialogPrimitive.Overlay
     ref={ref}
     className={cn(
-      'fixed inset-0 z-50 bg-black/50 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0',
+      'fixed inset-0 z-50 bg-[rgba(15,14,12,0.5)] backdrop-blur-[4px] data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0',
       className
     )}
     {...props}
@@ -35,7 +35,7 @@ const DialogContent = React.forwardRef<
     <DialogPrimitive.Content
       ref={ref}
       className={cn(
-        'fixed left-[50%] top-[4rem] z-50 grid w-full max-w-lg max-h-[calc(100vh-3rem)] translate-x-[-50%] gap-4 border bg-background p-6 duration-200 rounded-xl',
+        'fixed left-[50%] top-[4rem] z-50 grid w-full max-w-lg max-h-[calc(100vh-3rem)] translate-x-[-50%] gap-4 border border-border bg-background p-8 duration-200 rounded-[20px] shadow-[0_32px_80px_rgba(0,0,0,0.18)]',
         'data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95',
         className
       )}
@@ -45,9 +45,7 @@ const DialogContent = React.forwardRef<
         <X className="h-4 w-4" />
         <span className="sr-only">Close</span>
       </DialogPrimitive.Close>
-      <div className="overflow-y-auto max-h-[calc(100vh-8rem)] pr-2">
-        {children}
-      </div>
+      <div className="overflow-y-auto max-h-[calc(100vh-8rem)] pr-2">{children}</div>
     </DialogPrimitive.Content>
   </DialogPortal>
 ));
@@ -102,4 +100,3 @@ export {
   DialogTitle,
   DialogDescription,
 };
-

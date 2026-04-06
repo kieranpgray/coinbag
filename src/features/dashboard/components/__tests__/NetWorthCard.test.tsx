@@ -73,8 +73,7 @@ describe('NetWorthCard', () => {
       />,
       { wrapper: Wrapper }
     );
-    // Should show skeleton loaders
-    const skeletons = document.querySelectorAll('.animate-pulse');
+    const skeletons = document.querySelectorAll('.animate-skeleton-shimmer');
     expect(skeletons.length).toBeGreaterThan(0);
   });
 

@@ -48,7 +48,7 @@ export function AssetPortfolioRow({ asset, onClick, isConnectionBroken, onReconn
     } else if (freshnessLabel) {
       sublineParts.push({
         text: freshnessLabel,
-        className: isStale ? 'text-amber-500' : undefined,
+        className: isStale ? 'text-[var(--warning)]' : undefined,
       });
     }
   } else if (asset.institution) {
@@ -67,7 +67,7 @@ export function AssetPortfolioRow({ asset, onClick, isConnectionBroken, onReconn
         <div className="flex items-center gap-1.5">
           {isStale && isConnected && !isConnectionBroken && (
             <span
-              className="inline-block h-1.5 w-1.5 rounded-full bg-amber-400 shrink-0"
+              className="inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--warning)]"
               aria-label="Balance may be outdated"
             />
           )}
@@ -110,7 +110,7 @@ export function AssetPortfolioRow({ asset, onClick, isConnectionBroken, onReconn
 
       {/* Right side: Value */}
       <div className="flex-shrink-0">
-        <span className="text-body-lg font-medium text-foreground">
+        <span className="text-body-lg font-medium text-foreground tabular-nums">
           {formatCurrency(asset.value)}
         </span>
       </div>

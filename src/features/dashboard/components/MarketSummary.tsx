@@ -1,9 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { formatPercentage } from '@/lib/utils';
+import { formatPercentage, cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Link } from 'react-router-dom';
 import type { MarketSummary as MarketSummaryType } from '@/types/domain';
+
+const dsV2 = import.meta.env.VITE_DS_V2 === 'true';
 
 interface MarketSummaryProps {
   data?: MarketSummaryType;
@@ -50,21 +52,50 @@ export function MarketSummary({ data, isLoading, isUnavailable }: MarketSummaryP
         <CardTitle>Market Summary</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="mb-4">
-          <div className="text-lg font-semibold mb-2">S&P 500</div>
-          <div className="flex gap-4 text-sm">
-            <div className={data.sp500.change1D >= 0 ? 'text-success' : 'text-error'}>
+        <div
+          className={cn(
+            'mb-4 rounded-[var(--rl)] border border-border bg-card px-6 py-5',
+            dsV2 && 'metric-tile'
+          )}
+        >
+          <div className={cn(dsV2 ? 'metric-label' : 'text-lg font-semibold mb-2')}>S&amp;P 500</div>
+          <div className="flex flex-wrap gap-4 text-sm">
+            <div
+              className={
+                dsV2
+                  ? cn('metric-delta', data.sp500.change1D >= 0 ? 'up' : 'down')
+                  : data.sp500.change1D >= 0
+                    ? 'text-success'
+                    : 'text-error'
+              }
+            >
               1D: {formatPercentage(data.sp500.change1D)}
             </div>
-            <div className={data.sp500.change7D >= 0 ? 'text-success' : 'text-error'}>
+            <div
+              className={
+                dsV2
+                  ? cn('metric-delta', data.sp500.change7D >= 0 ? 'up' : 'down')
+                  : data.sp500.change7D >= 0
+                    ? 'text-success'
+                    : 'text-error'
+              }
+            >
               7D: {formatPercentage(data.sp500.change7D)}
             </div>
-            <div className={data.sp500.change30D >= 0 ? 'text-success' : 'text-error'}>
+            <div
+              className={
+                dsV2
+                  ? cn('metric-delta', data.sp500.change30D >= 0 ? 'up' : 'down')
+                  : data.sp500.change30D >= 0
+                    ? 'text-success'
+                    : 'text-error'
+              }
+            >
               30D: {formatPercentage(data.sp500.change30D)}
             </div>
           </div>
         </div>
-        <p className="text-sm text-muted-foreground">{data.commentary}</p>
+        <p className={cn('text-sm text-muted-foreground', dsV2 && 'metric-sub')}>{data.commentary}</p>
       </CardContent>
     </Card>
   );

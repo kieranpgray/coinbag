@@ -15,6 +15,10 @@ import {
 } from '../hooks/useNetWorthHistory';
 import { NetWorthChart } from './NetWorthChart';
 import { NetWorthSummary } from './NetWorthSummary';
+import { getCorrelationId, logger } from '@/lib/logger';
+import { cn } from '@/lib/utils';
+
+const dsV2 = import.meta.env.VITE_DS_V2 === 'true';
 
 interface NetWorthCardProps {
   netWorth: number;
@@ -102,10 +106,15 @@ export const NetWorthCard = memo(function NetWorthCard({
       
       const missingYears = expectedYears.filter(year => !actualYears.has(year));
       if (missingYears.length > 0) {
-        console.warn(
-          `[NetWorthCard] 5y filtered data missing expected years: ${missingYears.join(', ')}. ` +
-          `Expected years: ${expectedYears.join(', ')}, ` +
-          `Actual years: ${Array.from(actualYears).sort().join(', ')}`
+        logger.debug(
+          'NET_WORTH_CARD:5Y',
+          '5y filtered data missing expected calendar years',
+          {
+            missingYears,
+            expectedYears,
+            actualYears: Array.from(actualYears).sort(),
+          },
+          getCorrelationId() || undefined
         );
       }
     }
@@ -160,42 +169,49 @@ export const NetWorthCard = memo(function NetWorthCard({
   return (
     <Card className="border border-border">
       <CardContent className="p-0">
-        {/* Header */}
-        <div className="p-4">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <h2 className="text-h2-sm sm:text-h2-md lg:text-h2-lg font-semibold text-foreground">
-              Net Worth
-            </h2>
-            <Tabs 
-              value={timePeriod} 
-              onValueChange={(value) => setTimePeriod(value as NetWorthTimePeriod)}
-              aria-label="Select time period for net worth chart"
-            >
-              <TabsList className="w-full sm:w-auto">
-                <TabsTrigger value="30d">30d</TabsTrigger>
-                <TabsTrigger value="90d">90d</TabsTrigger>
-                <TabsTrigger value="1y">1y</TabsTrigger>
-                <TabsTrigger value="5y">5y</TabsTrigger>
-              </TabsList>
-            </Tabs>
-          </div>
-        </div>
-
-        {/* Content - Hero layout with chart and summary */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 px-4 pb-4">
-          {/* Chart - 75% on desktop, full width on mobile */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4">
           <div className="md:col-span-3 order-2 md:order-1">
-            <NetWorthChart 
-              data={filteredHistoryData} 
-              timePeriod={timePeriod}
-              isLoading={isLoading || historyLoading} 
-              isEmpty={isEmpty} 
-            />
+            <div
+              className={cn(
+                'rounded-[var(--rl)] border border-border bg-card',
+                dsV2 ? 'chart-container' : 'p-4 md:p-6'
+              )}
+            >
+              <div
+                className={cn(
+                  'flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between mb-4',
+                  dsV2 && 'chart-header'
+                )}
+              >
+                <div>
+                  <h2 className="text-h2-sm sm:text-h2-md lg:text-h2-lg font-semibold text-foreground">
+                    Net Worth
+                  </h2>
+                </div>
+                <Tabs
+                  value={timePeriod}
+                  onValueChange={(value) => setTimePeriod(value as NetWorthTimePeriod)}
+                  aria-label="Select time period for net worth chart"
+                >
+                  <TabsList className="w-full sm:w-auto">
+                    <TabsTrigger value="30d">30d</TabsTrigger>
+                    <TabsTrigger value="90d">90d</TabsTrigger>
+                    <TabsTrigger value="1y">1y</TabsTrigger>
+                    <TabsTrigger value="5y">5y</TabsTrigger>
+                  </TabsList>
+                </Tabs>
+              </div>
+              <NetWorthChart
+                data={filteredHistoryData}
+                timePeriod={timePeriod}
+                isLoading={isLoading || historyLoading}
+                isEmpty={isEmpty}
+              />
+            </div>
           </div>
-          
-          {/* Summary - 25% on desktop, full width on mobile, appears first on mobile */}
+
           <div className="md:col-span-1 order-1 md:order-2 border-t md:border-t-0 md:border-l border-border pt-4 md:pt-0 md:pl-4">
-            <NetWorthSummary 
+            <NetWorthSummary
               netWorth={netWorth}
               totalAssets={totalAssets}
               totalLiabilities={totalLiabilities}

@@ -46,6 +46,7 @@ const CurrencyInput = React.forwardRef<HTMLInputElement, CurrencyInputProps>(
     clearValue,
     onFocus,
     onBlur,
+    'aria-invalid': ariaInvalid,
     ...props
   }, ref) => {
     const [displayValue, setDisplayValue] = React.useState('');
@@ -128,19 +129,22 @@ const CurrencyInput = React.forwardRef<HTMLInputElement, CurrencyInputProps>(
       // Don't call onChange here - we parse on blur
     }, []);
 
-    // Check for error state via aria-invalid or className (before spreading props)
-    const hasError = props['aria-invalid'] === 'true' || className?.includes('border-destructive');
+    const hasError =
+      ariaInvalid === true ||
+      ariaInvalid === 'true' ||
+      className?.includes('border-destructive');
 
     return (
       <input
         {...props}
         ref={inputRef}
         type="text"
+        aria-invalid={ariaInvalid}
         className={cn(
-          // Base styles matching the Input component
-          'flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
-          // Error state
-          hasError && 'border-destructive focus-visible:ring-destructive',
+          'flex min-h-[42px] h-10 w-full rounded-[12px] border bg-background px-3 py-2 text-body text-foreground file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50',
+          hasError
+            ? 'border-[color:var(--danger)] shadow-[0_0_0_3px_rgba(192,57,43,0.1)] focus-visible:outline-none focus-visible:shadow-[0_0_0_3px_rgba(192,57,43,0.15)] focus-visible:border-[color:var(--danger)]'
+            : 'border-border hover:border-neutral-mid focus-visible:outline-none focus-visible:shadow-[0_0_0_3px_var(--focus-ring)] focus-visible:border-primary',
           className
         )}
         value={displayValue}

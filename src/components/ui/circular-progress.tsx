@@ -18,7 +18,7 @@ interface CircularProgressProps extends React.HTMLAttributes<HTMLDivElement> {
   strokeWidth?: number;
   /**
    * Color of the progress ring
-   * @default 'hsl(var(--primary))'
+   * @default 'var(--color-primary)'
    */
   color?: string;
 }
@@ -31,21 +31,18 @@ interface CircularProgressProps extends React.HTMLAttributes<HTMLDivElement> {
 export function CircularProgress({
   value,
   size = 56,
-  strokeWidth = 4, // Increased default thickness
-  color = 'hsl(var(--primary))',
+  strokeWidth = 4,
+  color = 'var(--color-primary)',
   className,
   ...props
 }: CircularProgressProps) {
-  // Clamp value between 0 and 1
   const clampedValue = Math.min(Math.max(value, 0), 1);
 
-  // Calculate SVG dimensions
   const center = size / 2;
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
 
-  // Calculate stroke dash offset (starts at 12 o'clock, so full circle is at top)
-  const strokeDashoffset = circumference - (clampedValue * circumference);
+  const strokeDashoffset = circumference - clampedValue * circumference;
 
   return (
     <div
@@ -58,18 +55,16 @@ export function CircularProgress({
         height={size}
         viewBox={`0 0 ${size} ${size}`}
         className="transform -rotate-90"
-        aria-hidden="true" // Mark as decorative since progress is announced textually
+        aria-hidden="true"
       >
-        {/* Background circle (full ring) */}
         <circle
           cx={center}
           cy={center}
           r={radius}
-          stroke="hsl(var(--muted))"
+          stroke="var(--paper-3)"
           strokeWidth={strokeWidth}
           fill="none"
         />
-        {/* Progress circle */}
         <circle
           cx={center}
           cy={center}

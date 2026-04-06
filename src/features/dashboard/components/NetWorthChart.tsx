@@ -327,13 +327,13 @@ export const NetWorthChart = memo(function NetWorthChart({
         >
           <defs>
             <linearGradient id="netWorthGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.1} />
-              <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+              <stop offset="5%" stopColor="var(--chart-1)" stopOpacity={0.12} />
+              <stop offset="95%" stopColor="var(--chart-1)" stopOpacity={0} />
             </linearGradient>
           </defs>
           <CartesianGrid
             strokeDasharray="3 3"
-            stroke="hsl(var(--border))"
+            stroke="var(--paper-3)"
             vertical={false}
           />
           <XAxis
@@ -341,7 +341,7 @@ export const NetWorthChart = memo(function NetWorthChart({
             type="category"
             tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
             tickFormatter={formatXAxisTick}
-            stroke="hsl(var(--border))"
+            stroke="var(--paper-3)"
             ticks={xAxisTicks}
             interval={0}
           />
@@ -349,7 +349,7 @@ export const NetWorthChart = memo(function NetWorthChart({
             <YAxis
               tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
               tickFormatter={formatYAxisTick}
-              stroke="hsl(var(--border))"
+              stroke="var(--paper-3)"
               domain={yDomain}
               ticks={yTicks}
             />
@@ -358,7 +358,7 @@ export const NetWorthChart = memo(function NetWorthChart({
           <Area
             type="monotone"
             dataKey="value"
-            stroke="hsl(var(--primary))"
+            stroke="var(--chart-1)"
             strokeWidth={2}
             fill="url(#netWorthGradient)"
             isAnimationActive={!prefersReducedMotion}

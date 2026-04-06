@@ -90,8 +90,8 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px] p-0">
-        <div className="flex items-center border-b px-4">
+      <DialogContent className="sm:max-w-[600px] gap-0 overflow-hidden rounded-[20px] border border-[var(--paper-3)] p-0 shadow-[0_32px_80px_rgba(0,0,0,0.18)]">
+        <div className="flex items-center border-b border-[var(--paper-3)] px-4">
           <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
           <Input
             placeholder="Type a command or search..."
@@ -117,10 +117,10 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
                   key={command.id}
                   onClick={() => handleSelect(command)}
                   className={cn(
-                    'flex w-full items-center rounded-sm px-2 py-1.5 text-body text-left outline-none transition-colors',
+                    'flex w-full items-center rounded-[12px] px-3 py-2 text-body text-left outline-none transition-colors',
                     index === selectedIndex
-                      ? 'bg-accent text-accent-foreground'
-                      : 'hover:bg-accent hover:text-accent-foreground'
+                      ? 'bg-[var(--accent-light)] text-primary'
+                      : 'hover:bg-[var(--accent-light)] hover:text-primary'
                   )}
                 >
                   <span className="flex-1">{command.label}</span>
@@ -134,26 +134,26 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
             </div>
           )}
         </div>
-        <div className="flex items-center justify-between border-t px-4 py-2 text-caption text-muted-foreground">
+        <div className="flex items-center justify-between border-t border-[var(--paper-3)] px-4 py-2 text-body-sm text-muted-foreground">
           <div className="flex items-center gap-4">
             <span className="flex items-center gap-1">
-              <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-caption font-medium opacity-100">
-                <span className="text-caption">↑</span>
+              <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded-[4px] border border-[var(--paper-3)] bg-[var(--paper-2)] px-1.5 font-mono text-[11px] font-medium opacity-100">
+                <span className="text-[11px]">↑</span>
               </kbd>
-              <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-caption font-medium opacity-100">
-                <span className="text-caption">↓</span>
+              <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded-[4px] border border-[var(--paper-3)] bg-[var(--paper-2)] px-1.5 font-mono text-[11px] font-medium opacity-100">
+                <span className="text-[11px]">↓</span>
               </kbd>
               <span>Navigate</span>
             </span>
             <span className="flex items-center gap-1">
-              <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-caption font-medium opacity-100">
+              <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded-[4px] border border-[var(--paper-3)] bg-[var(--paper-2)] px-1.5 font-mono text-[11px] font-medium opacity-100">
                 Enter
               </kbd>
               <span>Select</span>
             </span>
           </div>
           <span className="flex items-center gap-1">
-            <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100">
+            <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded-[4px] border border-[var(--paper-3)] bg-[var(--paper-2)] px-1.5 font-mono text-[11px] font-medium opacity-100">
               Esc
             </kbd>
             <span>Close</span>

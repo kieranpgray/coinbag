@@ -5,6 +5,9 @@ import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { PrivacyWrapper } from '@/components/shared/PrivacyWrapper';
 import { StatusIndicator } from '@/components/shared/StatusIndicator';
+import { cn } from '@/lib/utils';
+
+const dsV2 = import.meta.env.VITE_DS_V2 === 'true';
 
 interface BudgetBreakdownTileProps {
   totalIncome: number; // monthly equivalent
@@ -83,47 +86,68 @@ export const BudgetBreakdownTile = memo(function BudgetBreakdownTile({
 
         {/* Content */}
         <div className="px-4 pb-4 space-y-3">
-          {/* Income Row */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="text-body-sm text-muted-foreground">Income</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-body-lg font-bold text-foreground">
-                <PrivacyWrapper value={totalIncome} />
-              </span>
-              <StatusIndicator status="positive" label="Positive status" />
-            </div>
-          </div>
-
-          {/* Outgoing Row (combined expenses, savings, repayments) */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="text-body-sm text-muted-foreground">Outgoing</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-body-lg font-bold text-foreground">
-                -<PrivacyWrapper value={totalOutgoing} />
-              </span>
-              <StatusIndicator status="negative" label="Outgoing status" />
+          <div
+            className={cn(
+              'rounded-[var(--rl)] border border-border bg-card px-6 py-5',
+              dsV2 && 'metric-tile'
+            )}
+          >
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0">
+                <div className={cn(dsV2 ? 'metric-label' : 'text-body-sm text-muted-foreground')}>
+                  Income
+                </div>
+                <div className={cn(dsV2 ? 'metric-value' : 'text-body-lg font-bold text-foreground')}>
+                  <PrivacyWrapper value={totalIncome} />
+                </div>
+              </div>
+              <StatusIndicator status="positive" label="Positive status" className="shrink-0 mt-1" />
             </div>
           </div>
 
-          {/* Separator */}
-          <div className="border-t border-border my-2" />
-
-          {/* Remaining Row */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="text-body-sm text-muted-foreground">Remaining</span>
+          <div
+            className={cn(
+              'rounded-[var(--rl)] border border-border bg-card px-6 py-5',
+              dsV2 && 'metric-tile'
+            )}
+          >
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0">
+                <div className={cn(dsV2 ? 'metric-label' : 'text-body-sm text-muted-foreground')}>
+                  Outgoing
+                </div>
+                <div className={cn(dsV2 ? 'metric-value' : 'text-body-lg font-bold text-foreground')}>
+                  -<PrivacyWrapper value={totalOutgoing} />
+                </div>
+              </div>
+              <StatusIndicator status="negative" label="Outgoing status" className="shrink-0 mt-1" />
             </div>
-            <div className="flex items-center gap-2">
-              <span className="text-body-lg font-bold text-foreground">
-                <PrivacyWrapper value={remaining} />
-              </span>
+          </div>
+
+          <div
+            className={cn(
+              'rounded-[var(--rl)] border border-border bg-card px-6 py-5',
+              dsV2 && 'metric-tile'
+            )}
+          >
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0">
+                <div className={cn(dsV2 ? 'metric-label' : 'text-body-sm text-muted-foreground')}>
+                  Remaining
+                </div>
+                <div
+                  className={cn(
+                    dsV2 ? 'metric-value' : 'text-body-lg font-bold text-foreground',
+                    dsV2 && (remaining >= 0 ? 'positive' : 'negative')
+                  )}
+                >
+                  <PrivacyWrapper value={remaining} />
+                </div>
+              </div>
               <StatusIndicator
                 status={remaining >= 0 ? 'positive' : 'negative'}
                 label={remaining >= 0 ? 'Positive status' : 'Negative status'}
+                className="shrink-0 mt-1"
               />
             </div>
           </div>

@@ -11,17 +11,20 @@ export function Header() {
   return (
     <>
       {/* Mobile-only header bar — hidden on md+ (desktop uses sidebar for all controls) */}
-      <header className="h-14 border-b border-border bg-card flex items-center px-4 gap-3 md:hidden">
+      <header className="min-h-14 h-14 border-b border-[var(--paper-3)] bg-[var(--paper)] flex items-center px-4 gap-3 md:hidden">
         <Button
           variant="ghost"
           size="icon"
           onClick={() => setMobileNavOpen(true)}
           aria-label="Open navigation menu"
-          className="p-2 rounded-lg hover:bg-accent"
+          className="min-h-11 min-w-11 shrink-0"
         >
-          <Menu className="h-5 w-5 text-muted-foreground" />
+          <Menu className="h-5 w-5 text-[color:var(--ink-3)]" />
         </Button>
-        <Link to={ROUTES.app.dashboard} className="text-h1-sm sm:text-h1-md lg:text-h1-lg text-foreground">
+        <Link
+          to={ROUTES.app.dashboard}
+          className="font-serif text-h1-sm sm:text-h1-md lg:text-h1-lg text-foreground tracking-tight"
+        >
           Supafolio
         </Link>
       </header>

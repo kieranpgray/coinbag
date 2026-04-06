@@ -1,9 +1,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { formatCurrency, formatDate } from '@/lib/utils';
+import { formatCurrency, formatDate, cn } from '@/lib/utils';
 import { Pencil, Trash2 } from 'lucide-react';
 import { useLocale } from '@/contexts/LocaleContext';
 import type { Account } from '@/types/domain';
+import { isDsV2 } from '@/lib/dsV2';
 
 interface AccountCardProps {
   account: Account;
@@ -55,24 +56,32 @@ export function AccountCard({ account, onEdit, onDelete, onClick }: AccountCardP
               }}
               aria-label="Delete account"
             >
-              <Trash2 className="h-4 w-4 text-red-500" />
+              <Trash2 className="h-4 w-4 text-destructive" />
             </Button>
           </div>
         </div>
       </CardHeader>
       <CardContent className="pt-0">
         <div className="space-y-2">
-          <div className="flex justify-between">
-            <span className="text-body text-muted-foreground">Type</span>
-            <span className="text-body">{account.accountType}</span>
+          <div className="flex justify-between gap-4">
+            <span className={cn(isDsV2 ? 'metric-label' : 'text-body text-muted-foreground')}>
+              Type
+            </span>
+            <span className="text-body text-right">{account.accountType}</span>
           </div>
-          <div className="flex justify-between">
-            <span className="text-body text-muted-foreground">Balance</span>
-            <span className="font-semibold">{formatCurrency(account.balance, locale)}</span>
+          <div className="flex justify-between gap-4">
+            <span className={cn(isDsV2 ? 'metric-label' : 'text-body text-muted-foreground')}>
+              Balance
+            </span>
+            <span className={cn('text-right tabular-nums font-semibold text-foreground')}>
+              {formatCurrency(account.balance, locale)}
+            </span>
           </div>
-          <div className="flex justify-between">
-            <span className="text-body text-muted-foreground">Last Updated</span>
-            <span className="text-body">{formatDate(account.lastUpdated, locale)}</span>
+          <div className="flex justify-between gap-4">
+            <span className={cn(isDsV2 ? 'metric-label' : 'text-body text-muted-foreground')}>
+              Last Updated
+            </span>
+            <span className="text-body text-right">{formatDate(account.lastUpdated, locale)}</span>
           </div>
         </div>
       </CardContent>

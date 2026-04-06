@@ -14,7 +14,7 @@ const TableHeader = React.forwardRef<
   HTMLTableSectionElement,
   React.HTMLAttributes<HTMLTableSectionElement>
 >(({ className, ...props }, ref) => (
-  <thead ref={ref} className={cn('[&_tr]:border-b', className)} {...props} />
+  <thead ref={ref} className={cn('bg-[var(--paper-2)] [&_tr]:border-b', className)} {...props} />
 ));
 TableHeader.displayName = 'TableHeader';
 
@@ -45,7 +45,7 @@ const TableRow = React.forwardRef<
   <tr
     ref={ref}
     className={cn(
-      'border-b border-border transition-colors hover:bg-muted/40 data-[state=selected]:bg-muted/40',
+      'border-b border-border transition-colors hover:bg-[var(--paper)] data-[state=selected]:bg-muted/40',
       className
     )}
     {...props}
@@ -60,7 +60,7 @@ const TableHead = React.forwardRef<
   <th
     ref={ref}
     className={cn(
-      'h-12 px-4 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0',
+      'h-12 px-4 text-left align-middle text-[12px] font-medium uppercase tracking-[0.04em] text-[color:var(--ink-3)] [&:has([role=checkbox])]:pr-0',
       className
     )}
     {...props}
@@ -68,12 +68,24 @@ const TableHead = React.forwardRef<
 ));
 TableHead.displayName = 'TableHead';
 
-const TableCell = React.forwardRef<
-  HTMLTableCellElement,
-  React.TdHTMLAttributes<HTMLTableCellElement>
->(({ className, ...props }, ref) => (
-  <td ref={ref} className={cn('p-4 align-middle [&:has([role=checkbox])]:pr-0', className)} {...props} />
-));
+export interface TableCellProps extends React.TdHTMLAttributes<HTMLTableCellElement> {
+  /** Right-align and use tabular figures for numeric columns */
+  numeric?: boolean;
+}
+
+const TableCell = React.forwardRef<HTMLTableCellElement, TableCellProps>(
+  ({ className, numeric, ...props }, ref) => (
+    <td
+      ref={ref}
+      className={cn(
+        'p-4 align-middle [&:has([role=checkbox])]:pr-0',
+        numeric && 'text-right tabular-nums',
+        className
+      )}
+      {...props}
+    />
+  )
+);
 TableCell.displayName = 'TableCell';
 
 const TableCaption = React.forwardRef<
@@ -85,4 +97,3 @@ const TableCaption = React.forwardRef<
 TableCaption.displayName = 'TableCaption';
 
 export { Table, TableHeader, TableBody, TableFooter, TableHead, TableRow, TableCell, TableCaption };
-

@@ -2,7 +2,8 @@ import { useMemo } from 'react';
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { formatCurrency } from '@/lib/utils';
+import { formatCurrency, cn } from '@/lib/utils';
+import { isDsV2 } from '@/lib/dsV2';
 import { LiabilityCategoryGroup } from './LiabilityCategoryGroup';
 import type { Liability } from '@/types/domain';
 
@@ -57,9 +58,21 @@ export function LiabilityPortfolioSection({
               Liabilities
             </h2>
           </div>
-          <div className="flex items-baseline gap-2">
-            <span className="text-lg font-bold">{formatCurrency(totalLiabilities)}</span>
-          </div>
+          {isDsV2 ? (
+            <div
+              className={cn(
+                'mt-2 inline-block rounded-[var(--rl)] border border-border bg-card px-6 py-5',
+                'metric-tile'
+              )}
+            >
+              <div className="metric-label">Total liabilities</div>
+              <div className="metric-value tabular-nums">{formatCurrency(totalLiabilities)}</div>
+            </div>
+          ) : (
+            <div className="flex items-baseline gap-2">
+              <span className="text-lg font-bold tabular-nums">{formatCurrency(totalLiabilities)}</span>
+            </div>
+          )}
         </div>
         <div className="flex flex-col items-start sm:items-end gap-3">
           <Button

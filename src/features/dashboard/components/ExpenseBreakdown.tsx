@@ -7,6 +7,8 @@ import { Link } from 'react-router-dom';
 import { useCategories } from '@/features/categories/hooks';
 import type { ExpenseBreakdown as ExpenseBreakdownType } from '@/types/domain';
 
+const dsV2 = import.meta.env.VITE_DS_V2 === 'true';
+
 interface ExpenseBreakdownComponentProps {
   breakdown: ExpenseBreakdownType[];
   totalAmount: number;
@@ -72,12 +74,21 @@ export const ExpenseBreakdown = memo(function ExpenseBreakdownComponent({
         <CardTitle>Expense Breakdown</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="mb-4">
-          <div className="text-xl font-bold mb-2">
-            <PrivacyWrapper value={totalAmount} />
+        {dsV2 ? (
+          <div className="mb-4 rounded-[var(--rl)] border border-border bg-card px-6 py-5 metric-tile">
+            <div className="metric-label">Monthly recurring expenses</div>
+            <div className="metric-value">
+              <PrivacyWrapper value={totalAmount} />
+            </div>
           </div>
-          <p className="text-sm text-muted-foreground">Monthly recurring expenses</p>
-        </div>
+        ) : (
+          <div className="mb-4">
+            <div className="text-xl font-bold mb-2">
+              <PrivacyWrapper value={totalAmount} />
+            </div>
+            <p className="text-sm text-muted-foreground">Monthly recurring expenses</p>
+          </div>
+        )}
         <div className="space-y-3">
           {breakdownWithNames.map((item: typeof breakdownWithNames[0]) => (
             <div key={item.categoryId}>
@@ -87,7 +98,7 @@ export const ExpenseBreakdown = memo(function ExpenseBreakdownComponent({
               </div>
               <div className="w-full bg-muted rounded-full h-2">
                 <div
-                  className="bg-orange-500 h-2 rounded-full"
+                  className="h-2 rounded-full bg-[var(--chart-1)]"
                   style={{ width: `${item.percentage}%` }}
                 />
               </div>

@@ -53,3 +53,6 @@ __pycache__/
 
 # Git worktrees (isolated feature branches)
 .worktrees
+
+# Supabase CLI local cache (pooler URL, etc.)
+supabase/.temp/

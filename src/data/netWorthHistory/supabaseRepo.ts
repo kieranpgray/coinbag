@@ -116,16 +116,26 @@ export class SupabaseNetWorthHistoryRepository implements NetWorthHistoryReposit
       const { data, error } = await query;
 
       if (error) {
-        // Check if the error indicates the table doesn't exist (migration not applied)
-        const code = error.code ?? '';
+        const code = String(error.code ?? '');
         const msg = (error.message ?? '').toLowerCase();
-        const isTableMissing = code === '42P01' || (msg.includes('relation') && msg.includes('does not exist'));
+        const errAny = error as { status?: number; statusCode?: number };
+        const http404 = errAny.status === 404 || errAny.statusCode === 404;
+        // Table missing in Postgres, not exposed in PostgREST schema, or REST 404 / schema cache
+        const isTableMissing =
+          http404 ||
+          code === '42P01' ||
+          code === 'PGRST205' ||
+          code === 'PGRST301' ||
+          (msg.includes('relation') && msg.includes('does not exist')) ||
+          msg.includes('schema cache') ||
+          msg.includes('could not find the table') ||
+          /\b404\b/.test(msg);
 
         if (isTableMissing) {
           logger.warn(
             'DB:NET_WORTH_HISTORY_LIST',
-            'net_worth_history table does not exist (migration not applied), returning empty history',
-            { startDate, endDate },
+            'net_worth_history unavailable (migration, schema, or API); returning empty history',
+            { startDate, endDate, code, message: error.message },
             correlationId || undefined
           );
           return { data: [] };

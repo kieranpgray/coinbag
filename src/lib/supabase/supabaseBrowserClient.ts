@@ -62,8 +62,8 @@ export function getSupabaseBrowserClient(
         // Get token from closure-captured getter
         const token = await _tokenGetter!();
         
-        // Enhanced debug logging in dev mode for verification
-        if (import.meta.env.DEV || import.meta.env.VITE_DEBUG_LOGGING === 'true') {
+        // Verbose per-request logging only when explicitly enabled (avoids noisy dev consoles)
+        if (import.meta.env.VITE_DEBUG_LOGGING === 'true') {
           const url = typeof input === 'string' ? input : (input instanceof URL ? input.toString() : (input instanceof Request ? input.url : String(input)));
           const method = init.method || 'GET';
           const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
@@ -107,7 +107,7 @@ export function getSupabaseBrowserClient(
         try {
           response = await originalFetch(input, customInit);
         } catch (fetchError) {
-          if (import.meta.env.DEV) {
+          if (import.meta.env.VITE_DEBUG_LOGGING === 'true') {
             const reqUrl = typeof input === 'string' ? input : (input instanceof Request ? input.url : String(input));
             if (reqUrl.includes('/rest/v1/')) {
               console.warn('[Supabase Fetch] Request failed:', fetchError);
@@ -116,8 +116,8 @@ export function getSupabaseBrowserClient(
           throw fetchError;
         }
 
-        // Log failed REST responses in dev so failures are visible in console
-        if ((import.meta.env.DEV || import.meta.env.VITE_DEBUG_LOGGING === 'true') && !response.ok) {
+        // Log failed REST responses only when debug logging is enabled
+        if (import.meta.env.VITE_DEBUG_LOGGING === 'true' && !response.ok) {
           const reqUrl = typeof input === 'string' ? input : (input instanceof Request ? input.url : String(input));
           if (reqUrl.includes('/rest/v1/')) {
             try {

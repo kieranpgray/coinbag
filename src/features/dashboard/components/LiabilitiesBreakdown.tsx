@@ -11,6 +11,8 @@ import {
   transformBreakdownForList,
 } from '../utils/liabilityAllocation';
 
+const dsV2 = import.meta.env.VITE_DS_V2 === 'true';
+
 interface LiabilitiesBreakdownProps {
   breakdown: LiabilityBreakdown[];
   totalBalance: number;
@@ -73,7 +75,13 @@ export const LiabilitiesBreakdown = memo(function LiabilitiesBreakdown({
       <CardContent>
         <div className="grid grid-cols-1 md:grid-cols-5 lg:grid-cols-12 gap-4 lg:gap-6">
           <div className="md:col-span-2 lg:col-span-5">
-            <LiabilitiesAllocationDonut data={chartData} totalBalance={totalBalance} />
+            {dsV2 ? (
+              <div className="chart-container flex h-full min-h-[200px] items-center justify-center">
+                <LiabilitiesAllocationDonut data={chartData} totalBalance={totalBalance} />
+              </div>
+            ) : (
+              <LiabilitiesAllocationDonut data={chartData} totalBalance={totalBalance} />
+            )}
           </div>
 
           <div className="md:col-span-3 lg:col-span-7">

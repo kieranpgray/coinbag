@@ -39,7 +39,7 @@ export function LiabilityPortfolioRow({ liability, onClick }: LiabilityPortfolio
 
       {/* Right side: Balance */}
       <div className="flex-shrink-0">
-        <span className="text-body-lg font-medium text-foreground">
+        <span className="text-body-lg font-medium text-foreground tabular-nums">
           {formatCurrency(liability.balance)}
         </span>
       </div>

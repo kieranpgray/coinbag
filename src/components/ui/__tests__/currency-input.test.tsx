@@ -59,4 +59,14 @@ describe('CurrencyInput', () => {
 
     expect(mockOnChange).toHaveBeenCalledWith(undefined);
   });
+
+  it('applies error styling when aria-invalid is boolean true', () => {
+    const mockOnChange = vi.fn();
+    render(
+      <CurrencyInput value={100} onChange={mockOnChange} aria-invalid={true} />
+    );
+    const input = screen.getByRole('textbox');
+    expect(input).toHaveAttribute('aria-invalid', 'true');
+    expect(input.className).toMatch(/danger|rgba\(192,57,43/);
+  });
 });

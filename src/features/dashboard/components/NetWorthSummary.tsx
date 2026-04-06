@@ -2,6 +2,9 @@ import { memo } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PrivacyWrapper } from '@/components/shared/PrivacyWrapper';
 import { StatusIndicator } from '@/components/shared/StatusIndicator';
+import { cn } from '@/lib/utils';
+
+const dsV2 = import.meta.env.VITE_DS_V2 === 'true';
 
 interface NetWorthSummaryProps {
   netWorth: number;
@@ -40,48 +43,69 @@ export const NetWorthSummary = memo(function NetWorthSummary({
   }
 
   return (
-    <div className="space-y-4">
-      {/* Assets Row */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <span className="text-body-sm text-muted-foreground">Assets</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="text-body-lg font-bold text-foreground">
-            <PrivacyWrapper value={totalAssets} />
-          </span>
-          <StatusIndicator status="positive" label="Positive status" />
-        </div>
-      </div>
-
-      {/* Liabilities Row */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <span className="text-body-sm text-muted-foreground">Liabilities</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="text-body-lg font-bold text-foreground">
-            -<PrivacyWrapper value={totalLiabilities} />
-          </span>
-          <StatusIndicator status="negative" label="Liability status" />
+    <div className="space-y-3">
+      <div
+        className={cn(
+          'rounded-[var(--rl)] border border-border bg-card px-6 py-5',
+          dsV2 && 'metric-tile'
+        )}
+      >
+        <div className="flex items-start justify-between gap-2">
+          <div className="min-w-0">
+            <div className={cn(dsV2 ? 'metric-label' : 'text-body-sm text-muted-foreground')}>
+              Assets
+            </div>
+            <div className={cn(dsV2 ? 'metric-value' : 'text-body-lg font-bold text-foreground')}>
+              <PrivacyWrapper value={totalAssets} />
+            </div>
+          </div>
+          <StatusIndicator status="positive" label="Positive status" className="shrink-0 mt-1" />
         </div>
       </div>
 
-      {/* Separator */}
-      <div className="border-t border-border my-2" />
-
-      {/* Net Worth Row */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <span className="text-body-sm text-muted-foreground">Net Worth</span>
+      <div
+        className={cn(
+          'rounded-[var(--rl)] border border-border bg-card px-6 py-5',
+          dsV2 && 'metric-tile'
+        )}
+      >
+        <div className="flex items-start justify-between gap-2">
+          <div className="min-w-0">
+            <div className={cn(dsV2 ? 'metric-label' : 'text-body-sm text-muted-foreground')}>
+              Liabilities
+            </div>
+            <div className={cn(dsV2 ? 'metric-value' : 'text-body-lg font-bold text-foreground')}>
+              -<PrivacyWrapper value={totalLiabilities} />
+            </div>
+          </div>
+          <StatusIndicator status="negative" label="Liability status" className="shrink-0 mt-1" />
         </div>
-        <div className="flex items-center gap-2">
-          <span className="text-body-lg font-bold text-foreground">
-            <PrivacyWrapper value={netWorth} />
-          </span>
+      </div>
+
+      <div
+        className={cn(
+          'rounded-[var(--rl)] border border-border bg-card px-6 py-5',
+          dsV2 && 'metric-tile'
+        )}
+      >
+        <div className="flex items-start justify-between gap-2">
+          <div className="min-w-0">
+            <div className={cn(dsV2 ? 'metric-label' : 'text-body-sm text-muted-foreground')}>
+              Net Worth
+            </div>
+            <div
+              className={cn(
+                dsV2 ? 'metric-value' : 'text-body-lg font-bold text-foreground',
+                dsV2 && (netWorth >= 0 ? 'positive' : 'negative')
+              )}
+            >
+              <PrivacyWrapper value={netWorth} />
+            </div>
+          </div>
           <StatusIndicator
             status={netWorth >= 0 ? 'positive' : 'negative'}
             label={netWorth >= 0 ? 'Positive status' : 'Negative status'}
+            className="shrink-0 mt-1"
           />
         </div>
       </div>

@@ -11,18 +11,17 @@ import {
 import type { AssetBreakdown } from '@/types/domain';
 
 /**
- * Color mapping for asset types
- * Uses explicit hex values that work in both light and dark modes
+ * Color mapping for asset types — CSS variables from index.css (--chart-1…6, legacy + DS v2).
  */
 const ASSET_TYPE_COLORS: Record<AssetBreakdown['category'], string> = {
-  'Real Estate': '#3B5BFA',
-  'Other Investments': '#00A86B',
-  'Vehicles': '#8B65FF',
-  'Crypto': '#FFA500',
-  'Cash': '#5FA5FF',
-  'Superannuation': '#6366F1',
-  'Stock': '#0EA5E9',
-  'RSU': '#A855F7',
+  'Real Estate': 'var(--chart-4)',
+  'Other Investments': 'var(--chart-2)',
+  'Vehicles': 'var(--chart-5)',
+  Crypto: 'var(--chart-1)',
+  Cash: 'var(--chart-3)',
+  Superannuation: 'var(--chart-6)',
+  Stock: 'var(--chart-1)',
+  RSU: 'var(--chart-2)',
 };
 
 /**

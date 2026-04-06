@@ -18,13 +18,13 @@ describe('Button', () => {
     expect(handleClick).toHaveBeenCalledTimes(1);
   });
 
-  it('applies variant classes correctly', () => {
+  it('applies variant data attribute correctly', () => {
     const { rerender } = render(<Button variant="destructive">Delete</Button>);
     const button = screen.getByRole('button');
-    expect(button.className).toContain('destructive');
-    
+    expect(button.getAttribute('data-variant')).toBe('destructive');
+
     rerender(<Button variant="outline">Outline</Button>);
-    expect(button.className).toContain('outline');
+    expect(button.getAttribute('data-variant')).toBe('outline');
   });
 
   it('can be disabled', () => {
