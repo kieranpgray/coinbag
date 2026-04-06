@@ -64,7 +64,7 @@ export function TransferSuggestions({
         aria-label="Suggested transfers"
       >
         <div className="p-4 sm:p-6">
-          <h2 className="text-xl font-semibold mb-2">{heroHeadline}</h2>
+          <h2 className="text-h2-sm sm:text-h2-md font-semibold mb-2">{heroHeadline}</h2>
           <Alert className="border-destructive bg-destructive/10">
             <AlertDescription>
               Failed to load transfer suggestions. Please try again.
@@ -82,7 +82,7 @@ export function TransferSuggestions({
         aria-label="Suggested transfers"
       >
         <div className="p-4 sm:p-6">
-          <h2 className="text-xl font-semibold mb-2">{heroHeadline}</h2>
+          <h2 className="text-h2-sm sm:text-h2-md font-semibold mb-2">{heroHeadline}</h2>
           <p className="text-body text-muted-foreground">
             When you have income in one account and expenses in another, we&apos;ll show what to
             move here so your expenses are covered. Add income and expenses with account
@@ -100,7 +100,7 @@ export function TransferSuggestions({
     >
       <div className="p-4 sm:p-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-          <h2 className="text-xl font-semibold">{heroHeadline}</h2>
+          <h2 className="text-h2-sm sm:text-h2-md font-semibold">{heroHeadline}</h2>
           <Select value={viewMode} onValueChange={onViewModeChange}>
             <SelectTrigger className="w-full sm:w-[140px]" aria-label="View amount by period">
               <SelectValue />

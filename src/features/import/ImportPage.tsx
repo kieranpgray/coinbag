@@ -191,9 +191,9 @@ export function ImportPage() {
   return (
     <div className="space-y-6">
       {error && (
-        <Card className="border-red-500">
+        <Card className="border-destructive">
           <CardContent className="pt-6">
-            <div className="text-red-500">{error}</div>
+            <div className="text-destructive">{error}</div>
           </CardContent>
         </Card>
       )}

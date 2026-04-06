@@ -28,7 +28,7 @@ export function TransferSuggestionRow({ suggestion, viewMode, onEditExpense }: T
           {suggestion.isSurplus && (
             <Badge
               variant="secondary"
-              className="shrink-0 bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+              className="shrink-0 bg-success/15 text-success"
             >
               Surplus
             </Badge>

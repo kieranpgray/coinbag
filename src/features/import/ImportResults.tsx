@@ -31,11 +31,11 @@ export function ImportResults({
     <div className="space-y-6">
       {/* Success Summary */}
       {totalImported > 0 && (
-        <Card className="border-green-500">
+        <Card className="border-success/50">
           <CardHeader>
             <div className="flex items-center gap-2">
-              <CheckCircle2 className="h-5 w-5 text-green-500" />
-              <CardTitle className="text-green-500">Import Completed</CardTitle>
+              <CheckCircle2 className="h-5 w-5 text-success" />
+              <CardTitle className="text-success">Import Completed</CardTitle>
             </div>
             <CardDescription>
               Successfully imported {totalImported} item{totalImported !== 1 ? 's' : ''} in{' '}
@@ -52,25 +52,25 @@ export function ImportResults({
               )}
               {result.imported.assets > 0 && (
                 <div>
-                  <div className="text-xl font-bold">{result.imported.assets}</div>
+                  <div className="text-balance font-bold">{result.imported.assets}</div>
                   <div className="text-body text-muted-foreground">Assets</div>
                 </div>
               )}
               {result.imported.liabilities > 0 && (
                 <div>
-                  <div className="text-xl font-bold">{result.imported.liabilities}</div>
+                  <div className="text-balance font-bold">{result.imported.liabilities}</div>
                   <div className="text-body text-muted-foreground">Liabilities</div>
                 </div>
               )}
               {(result.imported.expenses > 0 || result.imported.subscriptions > 0) && (
                 <div>
-                  <div className="text-xl font-bold">{result.imported.expenses + result.imported.subscriptions}</div>
+                  <div className="text-balance font-bold">{result.imported.expenses + result.imported.subscriptions}</div>
                   <div className="text-body text-muted-foreground">Expenses</div>
                 </div>
               )}
               {result.imported.income > 0 && (
                 <div>
-                  <div className="text-xl font-bold">{result.imported.income}</div>
+                  <div className="text-balance font-bold">{result.imported.income}</div>
                   <div className="text-body text-muted-foreground">Income</div>
                 </div>
               )}
@@ -81,11 +81,11 @@ export function ImportResults({
 
       {/* Errors */}
       {hasErrors && (
-        <Card className="border-red-500">
+        <Card className="border-destructive/50">
           <CardHeader>
             <div className="flex items-center gap-2">
-              <XCircle className="h-5 w-5 text-red-500" />
-              <CardTitle className="text-red-500">
+              <XCircle className="h-5 w-5 text-destructive" />
+              <CardTitle className="text-destructive">
                 {result.errors.length} Error{result.errors.length !== 1 ? 's' : ''} Occurred
               </CardTitle>
             </div>
@@ -98,12 +98,12 @@ export function ImportResults({
               {result.errors.slice(0, 5).map((error, idx) => (
                 <div
                   key={idx}
-                  className="text-body p-2 bg-red-50 dark:bg-red-950 rounded border border-red-200 dark:border-red-800"
+                  className="text-body p-2 bg-destructive/10 rounded border border-destructive/30"
                 >
                   <div className="font-medium">
                     Row {error.rowNumber} ({error.entityType}):
                   </div>
-                  <div className="text-red-700 dark:text-red-300">
+                  <div className="text-destructive">
                     {error.fields.map((field, fieldIdx) => (
                       <div key={fieldIdx}>
                         <strong>{field.field}:</strong> {field.message}
@@ -128,11 +128,11 @@ export function ImportResults({
 
       {/* Duplicates */}
       {hasDuplicates && (
-        <Card className="border-yellow-500">
+        <Card className="border-[var(--warning)]">
           <CardHeader>
             <div className="flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-yellow-500" />
-              <CardTitle className="text-yellow-500">
+              <AlertTriangle className="h-5 w-5 text-[var(--warning)]" />
+              <CardTitle className="text-[var(--warning)]">
                 {result.duplicates.length} Duplicate{result.duplicates.length !== 1 ? 's' : ''} Skipped
               </CardTitle>
             </div>
@@ -145,11 +145,11 @@ export function ImportResults({
 
       {/* Warnings */}
       {hasWarnings && (
-        <Card className="border-yellow-500">
+        <Card className="border-[var(--warning)]">
           <CardHeader>
             <div className="flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-yellow-500" />
-              <CardTitle className="text-yellow-500">
+              <AlertTriangle className="h-5 w-5 text-[var(--warning)]" />
+              <CardTitle className="text-[var(--warning)]">
                 {result.warnings.length} Warning{result.warnings.length !== 1 ? 's' : ''}
               </CardTitle>
             </div>
@@ -158,7 +158,7 @@ export function ImportResults({
                 {result.warnings.slice(0, 5).map((warning, idx) => (
                   <div
                     key={idx}
-                    className="text-body p-2 bg-yellow-50 dark:bg-yellow-950 rounded border border-yellow-200 dark:border-yellow-800"
+                    className="text-body p-2 bg-[var(--warning-light)] rounded border border-[var(--warning)]/30"
                   >
                     Row {warning.rowNumber} ({warning.entityType}): {warning.message}
                   </div>

@@ -28,7 +28,7 @@ export function AccountCashFlowRow({ accountFlow, viewMode }: AccountCashFlowRow
             {accountFlow.monthlyIncome > 0 && (
               <div className="flex justify-between sm:block">
                 <span className="text-muted-foreground">Income</span>
-                <span className="font-medium text-green-600 dark:text-green-400 sm:ml-2">
+                <span className="font-medium text-success sm:ml-2">
                   {formatAmountByFrequency(accountFlow.monthlyIncome, viewMode)}
                 </span>
               </div>
@@ -36,7 +36,7 @@ export function AccountCashFlowRow({ accountFlow, viewMode }: AccountCashFlowRow
             {accountFlow.monthlyExpenses > 0 && (
               <div className="flex justify-between sm:block">
                 <span className="text-muted-foreground">Expenses</span>
-                <span className="font-medium text-red-600 dark:text-red-400 sm:ml-2">
+                <span className="font-medium text-error sm:ml-2">
                   {formatAmountByFrequency(accountFlow.monthlyExpenses, viewMode)}
                 </span>
               </div>
@@ -46,7 +46,7 @@ export function AccountCashFlowRow({ accountFlow, viewMode }: AccountCashFlowRow
                 <span className="text-muted-foreground">Net flow</span>
                 <span
                   className={`font-semibold sm:ml-2 ${
-                    netFlow >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
+                    netFlow >= 0 ? 'text-success' : 'text-error'
                   }`}
                 >
                   {formatAmountByFrequency(Math.abs(netFlow), viewMode)}

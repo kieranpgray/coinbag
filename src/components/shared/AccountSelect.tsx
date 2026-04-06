@@ -285,7 +285,7 @@ export function AccountSelect({ id, value, onChange, placeholder = "Select accou
         )}
 
         {error && (
-          <p className="text-body text-red-500 mt-1">{error}</p>
+          <p className="text-body text-destructive mt-1">{error}</p>
         )}
       </div>
 

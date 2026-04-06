@@ -51,7 +51,7 @@ export function NumericValue({
       className={cn(
         sizeClasses[size],
         emphasisClasses[emphasis],
-        'text-foreground',
+        'text-foreground tabular-nums',
         className
       )}
     >

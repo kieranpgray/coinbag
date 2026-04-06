@@ -407,7 +407,7 @@ export function BudgetPage() {
 
       {/* Optional Remaining strip — reduces busyness, not hero */}
       {repaymentNotice && (
-        <Alert className="border-amber-200 bg-amber-50 text-amber-900">
+        <Alert className="border-[var(--warning)] bg-[var(--warning-light)] text-[var(--warning)]">
           <AlertCircle className="h-4 w-4" />
           <AlertTitle>Repayment setup required</AlertTitle>
           <AlertDescription>{repaymentNotice}</AlertDescription>

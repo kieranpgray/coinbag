@@ -283,7 +283,7 @@ export function MultiStatementFileUpload({
                       </>
                     )}
                     {fileWithStatus.status === 'success' && (
-                      <span className="text-caption text-green-600">Uploaded</span>
+                      <span className="text-caption text-success">Uploaded</span>
                     )}
                     {fileWithStatus.status === 'error' && (
                       <span className="text-caption text-destructive">
@@ -291,10 +291,10 @@ export function MultiStatementFileUpload({
                       </span>
                     )}
                     {fileWithStatus.status === 'timeout' && (
-                      <span className="text-caption text-yellow-600">Still processing...</span>
+                      <span className="text-caption text-[var(--warning)]">Still processing...</span>
                     )}
                     {fileWithStatus.status === 'processing' && (
-                      <span className="text-caption text-blue-600">Processing...</span>
+                      <span className="text-caption text-primary">Processing...</span>
                     )}
                   </div>
                   {fileWithStatus.status === 'uploading' &&
@@ -318,9 +318,9 @@ export function MultiStatementFileUpload({
                     </Alert>
                   )}
                   {fileWithStatus.status === 'timeout' && fileWithStatus.error && (
-                    <Alert className="mt-2 border-yellow-500 bg-yellow-50 dark:bg-yellow-900/20">
-                      <AlertCircle className="h-4 w-4 text-yellow-600" />
-                      <AlertDescription className="text-yellow-800 dark:text-yellow-200 text-caption">
+                    <Alert className="mt-2 border-[var(--warning)] bg-[var(--warning-light)]">
+                      <AlertCircle className="h-4 w-4 text-[var(--warning)]" />
+                      <AlertDescription className="text-[var(--warning)] text-caption">
                         {fileWithStatus.error}
                         {fileWithStatus.canRetry && (
                           <span className="block mt-1">

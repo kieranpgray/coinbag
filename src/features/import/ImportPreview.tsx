@@ -54,34 +54,34 @@ export function ImportPreview({
           </CardContent>
         </Card>
 
-        <Card className={cn({ 'border-green-500': summary.validRows > 0 })}>
+        <Card className={cn({ 'border-success/50': summary.validRows > 0 })}>
           <CardHeader className="pb-3">
             <CardTitle className="text-body font-medium">Valid</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-balance font-bold text-green-600">
+            <div className="text-balance font-bold text-success">
               {summary.validRows}
             </div>
           </CardContent>
         </Card>
 
-        <Card className={cn({ 'border-red-500': hasErrors })}>
+        <Card className={cn({ 'border-destructive/50': hasErrors })}>
           <CardHeader className="pb-3">
             <CardTitle className="text-body font-medium">Errors</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-balance font-bold text-red-600">
+            <div className="text-balance font-bold text-destructive">
               {summary.errorRows}
             </div>
           </CardContent>
         </Card>
 
-        <Card className={cn({ 'border-yellow-500': hasDuplicates })}>
+        <Card className={cn({ 'border-[var(--warning)]': hasDuplicates })}>
           <CardHeader className="pb-3">
             <CardTitle className="text-body font-medium">Duplicates</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-balance font-bold text-yellow-600">
+            <div className="text-balance font-bold text-[var(--warning)]">
               {summary.duplicateRows}
             </div>
           </CardContent>
@@ -92,7 +92,7 @@ export function ImportPreview({
             <CardTitle className="text-body font-medium">Warnings</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-balance font-bold text-yellow-600">
+            <div className="text-balance font-bold text-[var(--warning)]">
               {summary.warningRows}
             </div>
           </CardContent>
@@ -187,11 +187,11 @@ export function ImportPreview({
 
       {/* Alerts */}
       {hasErrors && (
-        <Card className="border-red-500">
+        <Card className="border-destructive">
           <CardHeader>
             <div className="flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-red-500" />
-              <CardTitle className="text-red-500">Validation Errors</CardTitle>
+              <AlertTriangle className="h-5 w-5 text-destructive" />
+              <CardTitle className="text-destructive">Validation Errors</CardTitle>
             </div>
             <CardDescription>
               Please fix the errors before importing. You can download an error report to fix them in Excel.
@@ -201,11 +201,11 @@ export function ImportPreview({
       )}
 
       {hasDuplicates && (
-        <Card className="border-yellow-500">
+        <Card className="border-[var(--warning)]">
           <CardHeader>
             <div className="flex items-center gap-2">
-              <Info className="h-5 w-5 text-yellow-500" />
-              <CardTitle className="text-yellow-500">Duplicate Items Found</CardTitle>
+              <Info className="h-5 w-5 text-[var(--warning)]" />
+              <CardTitle className="text-[var(--warning)]">Duplicate Items Found</CardTitle>
             </div>
             <CardDescription>
               {validation.duplicates.length} item(s) already exist in your data.
@@ -284,8 +284,8 @@ function EntityTypePreview({
             className={cn(
               'border rounded-lg p-4',
               {
-                'border-red-500 bg-red-50 dark:bg-red-950': hasError,
-                'border-yellow-500 bg-yellow-50 dark:bg-yellow-950': isDuplicate && !hasError,
+                'border-destructive/50 bg-destructive/10': hasError,
+                'border-[var(--warning)] bg-[var(--warning-light)]': isDuplicate && !hasError,
                 'border-border': !hasError && !isDuplicate,
               }
             )}
@@ -298,12 +298,12 @@ function EntityTypePreview({
                     <Badge variant="destructive">Error</Badge>
                   )}
                   {isDuplicate && (
-                    <Badge variant="outline" className="border-yellow-500 text-yellow-700">
+                    <Badge variant="outline" className="border-[var(--warning)] text-[var(--warning)]">
                       Duplicate
                     </Badge>
                   )}
                   {!hasError && !isDuplicate && (
-                    <Badge variant="outline" className="border-green-500 text-green-700">
+                    <Badge variant="outline" className="border-success/50 text-success">
                       <CheckCircle2 className="h-3 w-3 mr-1" />
                       Valid
                     </Badge>
@@ -311,7 +311,7 @@ function EntityTypePreview({
                 </div>
 
                 {isDuplicate && (
-                  <p className="text-body text-yellow-700 dark:text-yellow-300 mb-2">
+                  <p className="text-body text-[var(--warning)] mb-2">
                     {duplicates.find((d) => d.rowNumber === row.rowNumber)?.matchReason}
                   </p>
                 )}
@@ -329,7 +329,7 @@ function EntityTypePreview({
                     {isExpanded && (
                       <div className="mt-2 space-y-1">
                         {rowErrors.map((error, idx) => (
-                          <div key={idx} className="text-body text-red-700 dark:text-red-300">
+                          <div key={idx} className="text-body text-destructive">
                             {error.fields.map((field, fieldIdx) => (
                               <div key={fieldIdx}>
                                 <strong>{field.field}:</strong> {field.message}
