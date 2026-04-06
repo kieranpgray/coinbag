@@ -60,7 +60,7 @@
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 2px;
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--on-dark-hover);
   border-radius: var(--rx);
   overflow: hidden;
 }
@@ -84,7 +84,7 @@
 .security-page .summary-title {
   font-size: 15px;
   font-weight: 500;
-  color: #fff;
+  color: var(--on-dark-primary);
   margin-bottom: 6px;
 }
 
@@ -327,11 +327,11 @@
 }
 
 .security-page .dont-section .section-label {
-  color: rgba(255, 255, 255, 0.35);
+  color: var(--on-dark-muted);
 }
 
 .security-page .dont-section h2 {
-  color: #fff;
+  color: var(--on-dark-primary);
 }
 
 .security-page .dont-section .section-intro {
@@ -342,7 +342,7 @@
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 2px;
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--on-dark-hover);
   border-radius: var(--rx);
   overflow: hidden;
 }
@@ -360,7 +360,7 @@
   height: 28px;
   border-radius: 6px;
   background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--on-dark-border);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -371,7 +371,7 @@
 .security-page .dont-title {
   font-size: 14px;
   font-weight: 500;
-  color: #fff;
+  color: var(--on-dark-primary);
   margin-bottom: 4px;
 }
 

@@ -1,36 +1,19 @@
-@import '@fontsource/dm-sans/latin-300.css';
-@import '@fontsource/dm-sans/latin-400.css';
-@import '@fontsource/dm-sans/latin-500.css';
-
-/* Instrument Serif: woff2 in /fonts (see index.html preload for latin-400 normal) */
-@font-face {
-  font-family: 'Instrument Serif';
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url('/fonts/instrument-serif-latin-400-normal.woff2') format('woff2');
-}
-@font-face {
-  font-family: 'Instrument Serif';
-  font-style: italic;
-  font-weight: 400;
-  font-display: swap;
-  src: url('/fonts/instrument-serif-latin-400-italic.woff2') format('woff2');
-}
+/* DM Sans + Instrument Serif are loaded globally via src/index.css — no duplicate imports needed */
 
 .landing-v2 *,
 .landing-v2 *::before,
 .landing-v2 *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 .landing-v2 {
-  --ink: #0f0e0c; --ink-2: #3d3b36; --ink-3: #7a776e; --ink-4: #b5b2aa;
-  --paper: #faf9f7; --paper-2: #f2f0eb; --paper-3: #e8e5de;
-  --accent: #1a5c3a; --accent-2: #2a7a4f; --accent-light: #e8f2ec; --accent-glow: rgba(26,92,58,0.12);
-  --gold: #b5892a; --gold-light: #f7f0e0;
-  --serif: 'Instrument Serif', Georgia, serif;
-  --sans: 'DM Sans', system-ui, sans-serif;
-  --rl: 12px; --rx: 20px;
-  font-family: var(--sans);
+  /*
+   * All DS v2 tokens (--ink, --paper, --accent-light, --gold, --serif, --rl, --rx, etc.)
+   * come from [data-ds="v2"] / :root in src/index.css.
+   * --accent is the only local override: it maps the brand-green shorthand used throughout
+   * this file to the global primary colour token, since the global --accent is reserved
+   * for the shadcn surface-hover HSL value.
+   */
+  --accent: var(--color-primary);
+  font-family: var(--font-family-sans);
   background: var(--paper);
   color: var(--ink);
   font-size: 16px;
