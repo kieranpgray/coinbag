@@ -19,14 +19,16 @@ This specification defines the price caching and refresh feature for portfolio a
 - **Price cache:** `symbol_prices.symbol` and `symbol_prices.asset_class` remain as-is (global cache is separate from assets).
 - **Mapping:** In app/API, derive **symbol** = `asset.ticker` (normalized, e.g. uppercase) and **asset_class** from `asset.type` via a single mapping:
 
-| Asset type      | asset_class |
-|-----------------|-------------|
-| Stock, RSU      | stock       |
-| Crypto          | crypto      |
-| Superannuation  | super       |
-| Investments     | stock       |
-| (ETF 24h if spec)| etf         |
-| forex, 401k     | (future)    |
+
+| Asset type        | asset_class |
+| ----------------- | ----------- |
+| Stock, RSU        | stock       |
+| Crypto            | crypto      |
+| Superannuation    | super       |
+| Investments       | stock       |
+| (ETF 24h if spec) | etf         |
+| forex, 401k       | (future)    |
+
 
 ---
 
@@ -74,16 +76,19 @@ This specification defines the price caching and refresh feature for portfolio a
 ## 7. Tables and migrations
 
 ### symbol_prices
+
 - Columns: id, symbol, asset_class, price, currency, source, market, fetched_at, created_at
 - UNIQUE(symbol, asset_class); indexes on symbol, fetched_at, asset_class
 - RLS: SELECT for authenticated; policy uses `auth.jwt() ->> 'sub'` (for authenticated check)
 
 ### user_price_refreshes
+
 - Columns: id, user_id (text NOT NULL), refresh_type, symbols_refreshed (text[]), created_at
 - No FK to auth.users
 - Indexes on user_id, created_at
 - RLS: SELECT and INSERT with `(auth.jwt() ->> 'sub') = user_id`
 
 ### assets (additions)
+
 - last_price_fetched_at, price_source
 - Index: `idx_assets_ticker_type ON assets(ticker, type) WHERE ticker IS NOT NULL`
