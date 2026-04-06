@@ -72,7 +72,8 @@ export function MultiStatementFileUpload({
       if (!validMimeTypes.includes(file.type)) {
         return {
           valid: false,
-          error: 'Invalid file type. Please upload a PDF or image (JPEG/PNG)',
+          error:
+            "That format isn't supported. Download a PDF statement from your bank instead.",
         };
       }
 
@@ -86,7 +87,8 @@ export function MultiStatementFileUpload({
       if (!hasValidExtension) {
         return {
           valid: false,
-          error: `Invalid file type. Please upload ${accept}`,
+          error:
+            "That format isn't supported. Download a PDF statement from your bank instead.",
         };
       }
 
@@ -230,11 +232,10 @@ export function MultiStatementFileUpload({
               'text-muted-foreground/50': disabled,
             })}
           />
-          <p className="text-body mb-2">
-            {isDragging ? 'Drop files here' : 'Drag and drop statement files'}
-          </p>
-          <p className="text-caption text-muted-foreground mb-4">
-            or click to browse
+          <p className="text-body mb-4">
+            {isDragging
+              ? 'Drop your statement here'
+              : 'Drop your statement here, or tap to browse'}
           </p>
           <Button
             type="button"
@@ -246,7 +247,7 @@ export function MultiStatementFileUpload({
             Select Files
           </Button>
           <p className="text-caption text-muted-foreground mt-4">
-            Supports PDF, JPEG, PNG (max {(maxSize / 1024 / 1024).toFixed(0)}MB per file)
+            PDF supported · Processed securely · Never shared
           </p>
         </div>
       </div>
@@ -294,7 +295,9 @@ export function MultiStatementFileUpload({
                       <span className="text-caption text-[var(--warning)]">Still processing...</span>
                     )}
                     {fileWithStatus.status === 'processing' && (
-                      <span className="text-caption text-primary">Processing...</span>
+                      <span className="text-caption text-primary">
+                        Processing your statement...
+                      </span>
                     )}
                   </div>
                   {fileWithStatus.status === 'uploading' &&

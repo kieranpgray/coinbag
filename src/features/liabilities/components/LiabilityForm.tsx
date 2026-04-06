@@ -6,11 +6,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { SearchableSelect } from '@/components/ui/searchable-select';
 import { DatePicker } from '@/components/ui/date-picker';
+import { useLocale } from '@/contexts/LocaleContext';
 import type { Liability, SubscriptionFrequency } from '@/types/domain';
 
 const liabilitySchema = z.object({
   name: z.string().min(1, 'Name is required'),
-  type: z.enum(['Loans', 'Credit Cards', 'Other']),
+  type: z.enum(['Home loan', 'Personal loan', 'Car loan', 'Credit card', 'HECS / HELP debt', 'Other liability']),
   balance: z.number().min(0, 'Balance must be positive'),
   interestRate: z.preprocess(
     (val) => {
@@ -58,6 +59,9 @@ export function LiabilityForm({
   onDelete,
   isLoading,
 }: LiabilityFormProps) {
+  const { locale } = useLocale();
+  const isAU = locale === 'en-AU';
+
   const {
     register,
     handleSubmit,
@@ -79,14 +83,14 @@ export function LiabilityForm({
           repaymentFrequency: liability.repaymentFrequency,
         }
       : {
-          type: 'Loans',
+          type: 'Home loan',
           dueDate: new Date().toISOString().split('T')[0],
         },
   });
 
-  const selectedType = watch('type') || 'Loans'; // Ensure always defined for controlled Select
-  const isLoan = selectedType === 'Loans';
-  const isLoanOrCreditCard = selectedType === 'Loans' || selectedType === 'Credit Cards';
+  const selectedType = watch('type') || 'Home loan';
+  const isLoan = selectedType === 'Home loan' || selectedType === 'Personal loan' || selectedType === 'Car loan';
+  const isLoanOrCreditCard = isLoan || selectedType === 'Credit card' || selectedType === 'HECS / HELP debt';
 
   const onSubmitForm = (formData: LiabilityFormData) => {
     onSubmit({
@@ -106,7 +110,7 @@ export function LiabilityForm({
     <form onSubmit={handleSubmit(onSubmitForm as (data: LiabilityFormData) => void)} className="space-y-4">
       <div className="space-y-2">
         <Label htmlFor="name">
-          Name <span className="text-destructive">*</span>
+          What's this liability called? <span className="text-destructive">*</span>
         </Label>
         <Input
           id="name"
@@ -132,9 +136,12 @@ export function LiabilityForm({
           value={selectedType}
           onValueChange={(value) => setValue('type', value as LiabilityFormData['type'])}
           options={[
-            { value: 'Loans', label: 'Loans' },
-            { value: 'Credit Cards', label: 'Credit Cards' },
-            { value: 'Other', label: 'Other' },
+            { value: 'Home loan', label: 'Home loan' },
+            { value: 'Personal loan', label: 'Personal loan' },
+            { value: 'Car loan', label: 'Car loan' },
+            { value: 'Credit card', label: 'Credit card' },
+            ...(isAU ? [{ value: 'HECS / HELP debt', label: 'HECS / HELP debt' }] : []),
+            { value: 'Other liability', label: 'Other liability' },
           ]}
           placeholder="Select liability type"
           error={errors.type?.message}
@@ -143,7 +150,7 @@ export function LiabilityForm({
 
       <div className="space-y-2">
         <Label htmlFor="balance">
-          Balance ($) <span className="text-destructive">*</span>
+          Balance owed <span className="text-destructive">*</span>
         </Label>
         <Input
           id="balance"

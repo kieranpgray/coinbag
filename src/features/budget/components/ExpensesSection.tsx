@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { Plus } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
@@ -16,6 +17,9 @@ interface ExpensesSectionProps {
   categoryMap: Map<string, string>;
   accountMap: Map<string, string>;
   uncategorisedId?: string;
+  /** When false, empty state prompts income first (surplus needs income). */
+  hasIncome: boolean;
+  onAddIncome: () => void;
   onCreate: (expenseType?: ExpenseType) => void;
   onEdit: (expense: Expense) => void;
   onDelete: (expense: Expense) => void;
@@ -38,6 +42,8 @@ export function ExpensesSection({
   categoryMap,
   accountMap,
   uncategorisedId,
+  hasIncome,
+  onAddIncome,
   onCreate,
   onEdit,
   onDelete,
@@ -45,6 +51,7 @@ export function ExpensesSection({
   parentFrequency,
   onFrequencyChange,
 }: ExpensesSectionProps) {
+  const { t } = useTranslation('pages');
   const [activeTab, setActiveTab] = useState<ExpenseType | 'all'>('all');
   const [localFrequency, setLocalFrequency] = useState<Frequency | undefined>(parentFrequency);
   const hasManualOverride = useRef(false);
@@ -142,12 +149,21 @@ export function ExpensesSection({
         <TabsContent value="all" className="mt-6">
           {expenses.length === 0 ? (
             <div className="rounded-lg border border-border bg-muted/20 py-10 px-4 text-center">
-              <p className="text-muted-foreground text-body-sm mb-4">
-                Add expenses to see your total spend and remaining budget.
+              <p className="text-muted-foreground text-body-sm mb-4 text-balance max-w-md mx-auto">
+                {hasIncome
+                  ? t('emptyStates.budgetNoExpenses.body')
+                  : t('emptyStates.budgetNoExpensesNeedIncome.body')}
               </p>
-              <Button size="sm" onClick={() => onCreate()} className="bg-primary text-primary-foreground">
+              <Button
+                size="sm"
+                onClick={() => (hasIncome ? onCreate() : onAddIncome())}
+                className="bg-primary text-primary-foreground"
+                aria-label={
+                  hasIncome ? t('emptyStates.budgetNoExpenses.cta') : t('emptyStates.budgetNoExpensesNeedIncome.cta')
+                }
+              >
                 <Plus className="h-4 w-4 mr-2" />
-                Add expense
+                {hasIncome ? t('emptyStates.budgetNoExpenses.cta') : t('emptyStates.budgetNoExpensesNeedIncome.cta')}
               </Button>
             </div>
           ) : (

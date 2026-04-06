@@ -1,4 +1,5 @@
 import { useState, useCallback, useMemo } from 'react';
+import { toast } from 'sonner';
 import { useAuth } from '@clerk/clerk-react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Download, Loader2 } from 'lucide-react';
@@ -112,6 +113,15 @@ export function ImportPage() {
       setImportResult(result);
       setStep('results');
 
+      const totalImported =
+        result.imported.accounts +
+        result.imported.assets +
+        result.imported.liabilities +
+        result.imported.expenses +
+        result.imported.income +
+        result.imported.subscriptions;
+      toast.success(`${totalImported} transaction${totalImported === 1 ? '' : 's'} added.`);
+
       // Batch invalidate all related queries efficiently
       // Using predicate to invalidate multiple queries at once reduces overhead
       // This ensures the UI refreshes with newly imported data
@@ -144,6 +154,7 @@ export function ImportPage() {
       queryClient.refetchQueries({ queryKey: ['dashboard'] });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Import failed');
+      toast.error("We couldn't read that file. Try a PDF or CSV export from your bank.");
       setStep('preview');
     } finally {
       finishImport();

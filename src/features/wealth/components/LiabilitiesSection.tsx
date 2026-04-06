@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -30,13 +31,17 @@ export function LiabilitiesSection({
   onDelete,
   viewMode = 'cards',
 }: LiabilitiesSectionProps) {
+  const { t } = useTranslation('pages');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
 
   const liabilityCategories: Array<{ value: string; label: string }> = [
     { value: 'all', label: 'All' },
-    { value: 'Loans', label: 'Loans' },
-    { value: 'Credit Cards', label: 'Credit Cards' },
-    { value: 'Other', label: 'Other' },
+    { value: 'Home loan', label: 'Home loan' },
+    { value: 'Personal loan', label: 'Personal loan' },
+    { value: 'Car loan', label: 'Car loan' },
+    { value: 'Credit card', label: 'Credit card' },
+    { value: 'HECS / HELP debt', label: 'HECS / HELP debt' },
+    { value: 'Other liability', label: 'Other liability' },
   ];
 
   const getLiabilitiesForCategory = (category: string) => {
@@ -61,12 +66,12 @@ export function LiabilitiesSection({
 
   // Cards view: render existing tabbed card interface
   return (
-    <section className="space-y-6" aria-label="Liabilities section">
+    <section className="space-y-6" aria-label={`${t('whatYouOwe')} section`}>
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <div className="flex items-center gap-3 mb-2">
-            <h2 className="text-foreground text-h2-sm sm:text-h2-md lg:text-h2-lg font-semibold">Liabilities</h2>
+            <h2 className="text-foreground text-h2-sm sm:text-h2-md lg:text-h2-lg font-semibold">{t('whatYouOwe')}</h2>
           </div>
           <div className="flex items-baseline gap-2">
             <span className="text-lg font-bold">
@@ -80,10 +85,10 @@ export function LiabilitiesSection({
             variant="outline"
             className="border-border"
             onClick={onCreate}
-            aria-label="Add liability"
+            aria-label="Add a liability"
           >
             <Plus className="h-4 w-4 mr-1" />
-            Add Liability
+            Add a liability
           </Button>
         </div>
       </div>
@@ -104,13 +109,35 @@ export function LiabilitiesSection({
               <Card>
                 <CardContent className="py-12 text-center">
                   <div className="space-y-4">
-                    <p className="text-muted-foreground">
-                      No liabilities found. Add your first liability to track debts and payments.
-                    </p>
-                    <Button onClick={onCreate} size="sm">
-                      <Plus className="h-4 w-4 mr-2" />
-                      Add Your First Liability
-                    </Button>
+                    {category.value === 'all' || liabilities.length === 0 ? (
+                      <>
+                        <p className="text-muted-foreground text-balance max-w-lg mx-auto">
+                          {t('emptyStates.holdingsNoLiabilities.body')}
+                        </p>
+                        <Button
+                          onClick={onCreate}
+                          size="sm"
+                          aria-label={t('emptyStates.holdingsNoLiabilities.ctaAriaLabel')}
+                        >
+                          <Plus className="h-4 w-4 mr-2" />
+                          {t('emptyStates.holdingsNoLiabilities.cta')}
+                        </Button>
+                      </>
+                    ) : (
+                      <>
+                        <p className="text-muted-foreground text-balance max-w-lg mx-auto">
+                          {t('emptyStates.holdingsLiabilityTabEmpty', { category: category.label })}
+                        </p>
+                        <Button
+                          onClick={onCreate}
+                          size="sm"
+                          aria-label={t('emptyStates.holdingsNoLiabilities.ctaAriaLabel')}
+                        >
+                          <Plus className="h-4 w-4 mr-2" />
+                          {t('emptyStates.holdingsNoLiabilities.cta')}
+                        </Button>
+                      </>
+                    )}
                   </div>
                 </CardContent>
               </Card>

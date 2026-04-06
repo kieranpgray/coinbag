@@ -35,12 +35,12 @@ function randomDate(daysAgo: number): string {
 /**
  * Asset types
  */
-const ASSET_TYPES: Asset['type'][] = ['Real Estate', 'Other Investments', 'Vehicles', 'Crypto', 'Cash', 'Superannuation', 'Stock', 'RSU'];
+const ASSET_TYPES: Asset['type'][] = ['Property', 'Other asset', 'Vehicle', 'Crypto', 'Cash', 'Super', 'Shares', 'RSUs'];
 
 /**
  * Liability types
  */
-const LIABILITY_TYPES: Liability['type'][] = ['Loans', 'Credit Cards', 'Other'];
+const LIABILITY_TYPES: Liability['type'][] = ['Home loan', 'Personal loan', 'Car loan', 'Credit card', 'HECS / HELP debt', 'Other liability'];
 
 /**
  * Goal types
@@ -121,8 +121,9 @@ export function createLiability(overrides?: Partial<Liability>): Liability {
   const typeIndex = randomBetween(0, LIABILITY_TYPES.length - 1);
   const type = LIABILITY_TYPES[typeIndex]! as Liability['type']; // Safe: index is guaranteed to be valid
   const balance = randomBetween(1000, 500000);
-  const interestRate = type === 'Loans' ? randomBetween(2, 12) : randomBetween(15, 25);
-  const monthlyPayment = type === 'Loans' ? randomBetween(200, 2000) : undefined;
+  const isLoanType = type === 'Home loan' || type === 'Personal loan' || type === 'Car loan';
+  const interestRate = isLoanType ? randomBetween(2, 12) : randomBetween(15, 25);
+  const monthlyPayment = isLoanType ? randomBetween(200, 2000) : undefined;
   const dueDate = randomDate(30);
   const institutionIndex = randomBetween(0, INSTITUTIONS.length - 1);
   const institution = INSTITUTIONS[institutionIndex]!; // Safe: index is guaranteed to be valid
@@ -532,7 +533,7 @@ export function calculateDashboardData(
   const expensesCount = expenses.length;
   const transactionsCount = 0; // Mock transactions not implemented yet
   const incomeCount = incomes.length; // Use actual income count from incomes array
-  const holdingsCount = assets.filter(a => a.type === 'Other Investments' || a.type === 'Crypto' || a.type === 'Stock' || a.type === 'RSU').length;
+  const holdingsCount = assets.filter(a => a.type === 'Other asset' || a.type === 'Crypto' || a.type === 'Shares' || a.type === 'RSUs').length;
 
   const checklist = createSetupChecklist(
     accountsCount,

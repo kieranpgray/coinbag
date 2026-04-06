@@ -16,7 +16,7 @@ export async function fetchWorkspaceMemberProfiles(
 ): Promise<WorkspaceMemberProfilesResponse> {
   const token = await getToken();
   if (!token) {
-    throw new Error('Authentication required');
+    throw new Error('Your session has expired. Sign in to continue.');
   }
 
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;

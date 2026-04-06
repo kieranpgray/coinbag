@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
 import { useUser as useClerkUser } from '@clerk/clerk-react';
 import { useUserPreferences, useUpdateUserPreferences } from '@/hooks/useUserPreferences';
@@ -194,13 +195,15 @@ export function SettingsPage() {
   const handleProfileSubmit = async (data: ProfileFormData) => {
     if (!clerkUser) return;
 
-    // Identity is managed by Clerk. We only update fields that are safe/allowed here.
     setIsSavingProfile(true);
     try {
       await clerkUser.update({
         firstName: data.firstName?.trim() || undefined,
         lastName: data.lastName?.trim() || undefined,
       });
+      toast.success('Settings saved.');
+    } catch {
+      toast.error("Couldn't save your changes. Try again.");
     } finally {
       setIsSavingProfile(false);
     }
@@ -242,7 +245,7 @@ export function SettingsPage() {
           <TabsTrigger value="notifications">Notifications</TabsTrigger>
           <TabsTrigger value="security">Security</TabsTrigger>
           {workspaceCollaborationEnabled && (
-            <TabsTrigger value="team">Team</TabsTrigger>
+            <TabsTrigger value="team">Shared Access</TabsTrigger>
           )}
           <TabsTrigger value="import">Import</TabsTrigger>
         </TabsList>

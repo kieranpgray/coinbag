@@ -1,4 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
+import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 import { useAssets, useCreateAsset, useUpdateAsset, useDeleteAsset } from '@/features/assets/hooks';
 import { useViewMode } from '@/hooks/useViewMode';
 import { useSearchParams } from 'react-router-dom';
@@ -10,6 +12,7 @@ import { AssetCard } from '@/features/assets/components/AssetCard';
 import { CreateAssetModal } from '@/features/assets/components/CreateAssetModal';
 import { EditAssetModal } from '@/features/assets/components/EditAssetModal';
 import { DeleteAssetDialog } from '@/features/assets/components/DeleteAssetDialog';
+import { useDisconnectBrokerageSync } from '@/features/snaptrade/hooks/useDisconnectBrokerageSync';
 import { ViewModeToggle } from '@/components/shared/ViewModeToggle';
 import { ManualRefreshButton } from '@/components/shared/ManualRefreshButton';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -19,11 +22,40 @@ import { RefreshCw, AlertTriangle, Plus } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 import type { Asset } from '@/types/domain';
 
+const ASSET_TYPES_FROM_QUERY: readonly Asset['type'][] = [
+  'Property',
+  'Other asset',
+  'Vehicle',
+  'Crypto',
+  'Cash',
+  'Super',
+  'Shares',
+  'RSUs',
+];
+
+function normalizeAssetTypeFromQueryParam(type: string | null): Asset['type'] | undefined {
+  if (!type) return undefined;
+  let t = type;
+  if (t === 'Investments' || t === 'Other') t = 'Other Investments';
+  const legacy: Record<string, Asset['type']> = {
+    'Other Investments': 'Other asset',
+    'Real Estate': 'Property',
+    Vehicles: 'Vehicle',
+    Superannuation: 'Super',
+    Stock: 'Shares',
+    RSU: 'RSUs',
+  };
+  const mapped = legacy[t] ?? (t as Asset['type']);
+  return ASSET_TYPES_FROM_QUERY.includes(mapped) ? mapped : undefined;
+}
+
 export function AssetsPage() {
+  const { t } = useTranslation('pages');
   const { data: assets = [], isLoading, error, refetch } = useAssets();
   const createMutation = useCreateAsset();
   const updateMutation = useUpdateAsset();
   const deleteMutation = useDeleteAsset();
+  const disconnectBrokerageMutation = useDisconnectBrokerageSync();
   const [searchParams, setSearchParams] = useSearchParams();
   const [viewMode, setViewMode] = useViewMode();
 
@@ -39,7 +71,7 @@ export function AssetsPage() {
   // CRITICAL: Only depend on searchParams - assets/selectedAsset changes should NOT retrigger this effect
   useEffect(() => {
     const shouldCreate = searchParams.get('create') === '1';
-    const type = searchParams.get('type') as Asset['type'] | null;
+    const type = searchParams.get('type');
     const correlationId = getCorrelationId();
     
     logger.debug(
@@ -64,8 +96,9 @@ export function AssetsPage() {
       );
       
       setCreateModalOpen(true);
-      if (type && ['Real Estate', 'Other Investments', 'Vehicles', 'Crypto', 'Cash', 'Superannuation', 'Stock', 'RSU'].includes(type)) {
-        setDefaultAssetType(type);
+      const normalizedType = normalizeAssetTypeFromQueryParam(type);
+      if (normalizedType) {
+        setDefaultAssetType(normalizedType);
       }
       // Clear the query params after processing
       setSearchParams({});
@@ -120,6 +153,7 @@ export function AssetsPage() {
           },
           correlationId || undefined
         );
+        toast.success(`${data.name} added to Holdings.`);
         setCreateModalOpen(false);
       },
       onError: (error) => {
@@ -129,6 +163,7 @@ export function AssetsPage() {
           { error: String(error) },
           correlationId || undefined
         );
+        toast.error("Couldn't save your changes. Try again.");
       },
     });
   };
@@ -140,12 +175,17 @@ export function AssetsPage() {
 
   const handleUpdate = (data: Partial<Asset>) => {
     if (!selectedAsset) return;
+    const name = selectedAsset.name;
     updateMutation.mutate(
       { id: selectedAsset.id, data },
       {
         onSuccess: () => {
+          toast.success(`${name} updated.`);
           setEditModalOpen(false);
           setSelectedAsset(null);
+        },
+        onError: () => {
+          toast.error("Couldn't save your changes. Try again.");
         },
       }
     );
@@ -158,10 +198,15 @@ export function AssetsPage() {
 
   const handleConfirmDelete = () => {
     if (!selectedAsset) return;
+    const name = selectedAsset.name;
     deleteMutation.mutate(selectedAsset.id, {
       onSuccess: () => {
+        toast.success(`${name} removed.`);
         setDeleteDialogOpen(false);
         setSelectedAsset(null);
+      },
+      onError: () => {
+        toast.error("Couldn't save your changes. Try again.");
       },
     });
   };
@@ -170,21 +215,21 @@ export function AssetsPage() {
     () =>
       assets.filter((a) => {
         if (!a.ticker?.trim()) return false;
-        return ['Stock', 'RSU', 'Crypto', 'Other Investments', 'Superannuation'].includes(a.type);
+        return ['Shares', 'RSUs', 'Crypto', 'Other asset', 'Super'].includes(a.type);
       }),
     [assets]
   );
 
   const assetCategories: Array<{ value: string; label: string }> = [
     { value: 'all', label: 'All' },
-    { value: 'Real Estate', label: 'Real Estate' },
-    { value: 'Other Investments', label: 'Other Investments' },
-    { value: 'Vehicles', label: 'Vehicles' },
+    { value: 'Property', label: 'Property' },
+    { value: 'Other asset', label: 'Other asset' },
+    { value: 'Vehicle', label: 'Vehicle' },
     { value: 'Crypto', label: 'Crypto' },
     { value: 'Cash', label: 'Cash' },
-    { value: 'Superannuation', label: 'Superannuation' },
-    { value: 'Stock', label: 'Stock' },
-    { value: 'RSU', label: 'RSU' },
+    { value: 'Super', label: 'Super' },
+    { value: 'Shares', label: 'Shares' },
+    { value: 'RSUs', label: 'RSUs' },
   ];
 
   if (error) {
@@ -202,7 +247,7 @@ export function AssetsPage() {
           </div>
           <Button onClick={() => setCreateModalOpen(true)}>
             <Plus className="h-4 w-4 mr-2" />
-            Add New Asset
+            Add an asset
           </Button>
         </div>
         <Alert>
@@ -269,7 +314,7 @@ export function AssetsPage() {
             )}
             <Button onClick={() => setCreateModalOpen(true)} className="w-full sm:w-auto">
               <Plus className="h-4 w-4 mr-2" />
-              Add New Asset
+              Add an asset
             </Button>
             <ViewModeToggle viewMode={viewMode} onViewModeChange={setViewMode} />
           </div>
@@ -307,9 +352,13 @@ export function AssetsPage() {
                         <p className="text-muted-foreground">
                           No assets found. Start building your portfolio.
                         </p>
-                        <Button onClick={() => setCreateModalOpen(true)} size="sm">
+                        <Button
+                          onClick={() => setCreateModalOpen(true)}
+                          size="sm"
+                          aria-label="Add my first asset"
+                        >
                           <Plus className="h-4 w-4 mr-2" />
-                          Add Your First Asset
+                          Add my first asset →
                         </Button>
                       </div>
                     </CardContent>
@@ -351,6 +400,17 @@ export function AssetsPage() {
             setEditModalOpen(false);
             setDeleteDialogOpen(true);
           }}
+          onDisconnectBrokerageSync={async (assetId) => {
+            try {
+              await disconnectBrokerageMutation.mutateAsync(assetId);
+              toast.success(t('snaptrade.disconnectSuccessToast'));
+              setSelectedAsset(null);
+            } catch (err) {
+              toast.error(t('snaptrade.disconnectErrorToast'));
+              throw err;
+            }
+          }}
+          isDisconnectingBrokerage={disconnectBrokerageMutation.isPending}
           isLoading={updateMutation.isPending}
         />
       )}

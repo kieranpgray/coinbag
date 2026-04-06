@@ -18,13 +18,13 @@ interface CommandItem {
 }
 
 const commands: CommandItem[] = [
-  { id: 'dashboard', label: 'Go to Dashboard', path: '/app/dashboard', keywords: ['dashboard', 'home', 'main'] },
-  { id: 'wealth', label: 'Go to Wealth', path: '/app/wealth', keywords: ['wealth', 'assets', 'liabilities', 'investments', 'portfolio', 'debts', 'loans', 'net worth'] },
-  { id: 'accounts', label: 'Go to Accounts', path: '/app/accounts', keywords: ['accounts', 'bank', 'financial'] },
+  { id: 'dashboard', label: 'Go to Overview', path: '/app/dashboard', keywords: ['overview', 'dashboard', 'home', 'main'] },
+  { id: 'wealth', label: 'Go to Holdings', path: '/app/wealth', keywords: ['holdings', 'wealth', 'assets', 'liabilities', 'investments', 'portfolio', 'debts', 'loans', 'net worth'] },
+  { id: 'accounts', label: 'Go to Activity', path: '/app/accounts', keywords: ['activity', 'accounts', 'bank', 'financial'] },
   { id: 'settings', label: 'Go to Settings', path: '/app/settings', keywords: ['settings', 'preferences', 'config'] },
-  { id: 'team', label: 'Go to Team Settings', path: '/app/settings?tab=team', keywords: ['team', 'workspace', 'members', 'invite', 'collaboration'] },
-  { id: 'transfers', label: 'Go to Transfers', path: '/app/transfers', keywords: ['transfers', 'cash flow', 'move money', 'pay cycle'] },
-  { id: 'budget', label: 'Go to Budget', path: '/app/budget', keywords: ['budget', 'income', 'expenses', 'subscriptions', 'recurring', 'bills'] },
+  { id: 'team', label: 'Go to Shared Access', path: '/app/settings?tab=team', keywords: ['shared access', 'team', 'workspace', 'members', 'invite', 'collaboration'] },
+  { id: 'transfers', label: 'Go to Allocate', path: '/app/transfers', keywords: ['allocate', 'transfers', 'cash flow', 'move money', 'pay cycle'] },
+  { id: 'budget', label: 'Go to Recurring', path: '/app/budget', keywords: ['recurring', 'budget', 'income', 'expenses', 'subscriptions', 'bills'] },
 ];
 
 interface CommandPaletteProps {
@@ -94,7 +94,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
         <div className="flex items-center border-b border-[var(--paper-3)] px-4">
           <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
           <Input
-            placeholder="Type a command or search..."
+            placeholder="Search or jump to..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             onKeyDown={handleKeyDown}
@@ -108,7 +108,10 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
         <div className="max-h-[300px] overflow-y-auto p-2">
           {filteredCommands.length === 0 ? (
             <div className="py-6 text-center text-body text-muted-foreground">
-              No commands found
+              {searchQuery.trim()
+                ? `No results for "${searchQuery.trim()}"`
+                : /* TODO: commands list is never empty today; if it becomes empty, refine empty-state copy */
+                  'No results for that search'}
             </div>
           ) : (
             <div className="space-y-1">

@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { toast } from 'sonner';
 import { useUser as useClerkUser } from '@clerk/clerk-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,10 +9,12 @@ import { Badge } from '@/components/ui/badge';
 import {
   Select,
   SelectContent,
-  SelectItem,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import * as SelectPrimitive from '@radix-ui/react-select';
+import { Check } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import { UserAvatar } from '@/components/user/UserAvatar';
 import { useWorkspace } from '@/contexts/WorkspaceContext';
@@ -21,11 +24,65 @@ import { useWorkspaceMemberProfiles } from '@/hooks/useWorkspaceMemberProfiles';
 import { canAdmin } from '@/lib/permissionHelpers';
 import type { WorkspaceMemberProfile, WorkspaceMembership, WorkspaceRole } from '@/contracts/workspaces';
 
-const ROLE_OPTIONS: { value: WorkspaceRole; label: string }[] = [
-  { value: 'admin', label: 'Admin' },
-  { value: 'edit', label: 'Edit' },
-  { value: 'read', label: 'Read' },
+const ROLE_OPTIONS: { value: WorkspaceRole; label: string; description: string }[] = [
+  {
+    value: 'admin',
+    label: 'Admin',
+    description: 'Full access. Can view, edit, and manage workspace members.',
+  },
+  {
+    value: 'edit',
+    label: 'Can edit',
+    description: 'Can view and edit everything. Cannot manage members.',
+  },
+  {
+    value: 'read',
+    label: 'Can view',
+    description: 'Can view everything. Cannot make any changes.',
+  },
 ];
+
+function roleAccessLabel(role: WorkspaceRole): string {
+  return ROLE_OPTIONS.find((o) => o.value === role)?.label ?? role;
+}
+
+function AccessLevelSelectItem({
+  value,
+  label,
+  description,
+  disabled,
+}: {
+  value: WorkspaceRole;
+  label: string;
+  description: string;
+  disabled?: boolean;
+}) {
+  return (
+    <SelectPrimitive.Item
+      value={value}
+      disabled={disabled}
+      textValue={label}
+      className={cn(
+        'relative flex w-full cursor-default select-none items-start rounded-sm py-2 pl-8 pr-2 text-body text-foreground outline-none',
+        'hover:bg-muted focus:bg-primary/10 focus:text-foreground',
+        'data-[highlighted]:bg-primary/10',
+        'data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[disabled]:text-muted-foreground',
+      )}
+    >
+      <span className="absolute left-2 top-2 flex h-3.5 w-3.5 items-center justify-center">
+        <SelectPrimitive.ItemIndicator>
+          <Check className="h-4 w-4 text-primary" />
+        </SelectPrimitive.ItemIndicator>
+      </span>
+      <div className="flex min-w-0 flex-col gap-0.5 text-left">
+        <SelectPrimitive.ItemText asChild>
+          <span>{label}</span>
+        </SelectPrimitive.ItemText>
+        <span className="text-caption text-muted-foreground font-normal leading-snug">{description}</span>
+      </div>
+    </SelectPrimitive.Item>
+  );
+}
 
 function InviteStatusBadge({
   acceptedAt,
@@ -41,7 +98,7 @@ function InviteStatusBadge({
   if (isExpired) {
     return <Badge variant="destructive">Expired</Badge>;
   }
-  return <Badge variant="outline">Pending</Badge>;
+  return <Badge variant="outline">Invite sent · Pending</Badge>;
 }
 
 function displayNameForMember(
@@ -116,9 +173,11 @@ export function TeamSection() {
     }
     try {
       await createInvitation.mutateAsync({ email, role: inviteRole });
+      toast.success(`Invite sent to ${email}.`);
       setInviteEmail('');
       setInviteRole('edit');
     } catch (err) {
+      toast.error("Couldn't send invite. Try again.");
       setInviteError(err instanceof Error ? err.message : 'Failed to send invite');
     }
   };
@@ -159,7 +218,7 @@ export function TeamSection() {
         <CardHeader>
           <CardTitle>Team Members</CardTitle>
           <CardDescription>
-            Manage who has access to {activeWorkspace.name}
+            Manage who can see and edit your financial picture.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -180,7 +239,20 @@ export function TeamSection() {
           {membersLoading ? (
             <Skeleton className="h-24 w-full" />
           ) : members.length === 0 ? (
-            <p className="text-body text-muted-foreground">No members yet.</p>
+            <div className="space-y-4 py-4 text-center">
+              <p className="text-body-lg font-semibold text-foreground">One picture. Two people.</p>
+              <p className="text-body text-muted-foreground max-w-lg mx-auto">
+                Invite your partner or financial advisor to see the same Holdings, Allocate plan, and net worth — with
+                the right level of access for each person.
+              </p>
+              {isAdmin && (
+                <Button variant="default" asChild>
+                  <a href="#workspace-invite" className="no-underline">
+                    Invite a partner or advisor →
+                  </a>
+                </Button>
+              )}
+            </div>
           ) : (
             <div className="space-y-3">
               {profilesLoading && (
@@ -212,7 +284,7 @@ export function TeamSection() {
                       <div>
                         <p className="text-body font-medium">{title}</p>
                         <Badge variant="secondary" className="text-caption">
-                          {member.role}
+                          {roleAccessLabel(member.role)}
                         </Badge>
                       </div>
                     </div>
@@ -231,20 +303,20 @@ export function TeamSection() {
                             isLastAdmin(member.userId)
                           }
                         >
-                          <SelectTrigger className="w-28 h-9">
+                          <SelectTrigger className="min-w-[7.5rem] w-auto h-9">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
                             {ROLE_OPTIONS.map((opt) => (
-                              <SelectItem
+                              <AccessLevelSelectItem
                                 key={opt.value}
                                 value={opt.value}
+                                label={opt.label}
+                                description={opt.description}
                                 disabled={
                                   isLastAdmin(member.userId) && opt.value !== 'admin'
                                 }
-                              >
-                                {opt.label}
-                              </SelectItem>
+                              />
                             ))}
                           </SelectContent>
                         </Select>
@@ -256,9 +328,9 @@ export function TeamSection() {
                             member.userId === currentUserId ||
                             isLastAdmin(member.userId)
                           }
-                          aria-label={`Remove ${member.userId === currentUserId ? 'yourself' : 'member'}`}
+                          aria-label="Remove access"
                         >
-                          Remove
+                          Remove access
                         </Button>
                       </div>
                     )}
@@ -271,7 +343,7 @@ export function TeamSection() {
       </Card>
 
       {isAdmin && (
-        <Card>
+        <Card id="workspace-invite">
           <CardHeader>
             <CardTitle>Pending Invitations</CardTitle>
             <CardDescription>
@@ -285,14 +357,14 @@ export function TeamSection() {
                 <Input
                   id="invite-email"
                   type="email"
-                  placeholder="colleague@example.com"
+                  placeholder="their@email.com"
                   value={inviteEmail}
                   onChange={(e) => setInviteEmail(e.target.value)}
                   disabled={createInvitation.isPending}
                 />
               </div>
               <div className="w-full sm:w-28 space-y-2">
-                <Label htmlFor="invite-role">Role</Label>
+                <Label htmlFor="invite-role">Access level</Label>
                 <Select
                   value={inviteRole}
                   onValueChange={(v) => setInviteRole(v as WorkspaceRole)}
@@ -302,9 +374,12 @@ export function TeamSection() {
                   </SelectTrigger>
                   <SelectContent>
                     {ROLE_OPTIONS.map((opt) => (
-                      <SelectItem key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </SelectItem>
+                      <AccessLevelSelectItem
+                        key={opt.value}
+                        value={opt.value}
+                        label={opt.label}
+                        description={opt.description}
+                      />
                     ))}
                   </SelectContent>
                 </Select>
@@ -313,8 +388,9 @@ export function TeamSection() {
                 <Button
                   type="submit"
                   disabled={createInvitation.isPending || !inviteEmail.trim()}
+                  aria-label="Invite a partner or advisor"
                 >
-                  {createInvitation.isPending ? 'Sending...' : 'Invite'}
+                  {createInvitation.isPending ? 'Sending...' : 'Invite a partner or advisor →'}
                 </Button>
               </div>
             </form>
@@ -353,7 +429,7 @@ export function TeamSection() {
                           expiresAt={inv.expiresAt}
                         />
                         <Badge variant="outline" className="text-caption">
-                          {inv.role}
+                          {roleAccessLabel(inv.role)}
                         </Badge>
                       </div>
                       <Button

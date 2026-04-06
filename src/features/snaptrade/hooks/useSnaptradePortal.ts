@@ -1,12 +1,21 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { useAuth } from '@clerk/clerk-react';
 import { useQueryClient } from '@tanstack/react-query';
+import i18n from 'i18next';
 import {
   getPortalUrl,
   getSnaptradeAccounts,
   importSnaptradeAccounts,
   type SnaptradeAccount,
 } from '../api/snaptradeApi';
+
+function snaptradeSyncErrorMessage(brokerageDisplayName?: string | null): string {
+  const name = brokerageDisplayName?.trim();
+  if (name) {
+    return i18n.t('pages:snaptrade.syncErrorWithName', { brokerage: name });
+  }
+  return i18n.t('pages:snaptrade.syncErrorGeneric');
+}
 
 export type PortalStatus =
   | 'idle'
@@ -49,6 +58,8 @@ export function useSnaptradePortal() {
   const syncPollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const syncStartRef = useRef<number>(0);
   const authorizationIdRef = useRef<string | null>(null);
+  /** Preserved for error copy and retry after URL/portal failures */
+  const pendingReconnectRef = useRef<{ authId: string; name: string | null } | null>(null);
 
   const clearSyncPoll = () => {
     if (syncPollRef.current) {
@@ -57,16 +68,32 @@ export function useSnaptradePortal() {
     }
   };
 
+  const clearPendingReconnect = () => {
+    pendingReconnectRef.current = null;
+  };
+
   // Start connect flow — fetches portal URL, then SDK opens
   const startConnect = useCallback(
-    async (reconnect?: string) => {
+    async (reconnect?: string, brokerageDisplayName?: string | null) => {
+      if (reconnect) {
+        pendingReconnectRef.current = {
+          authId: reconnect,
+          name: brokerageDisplayName?.trim() ? brokerageDisplayName.trim() : null,
+        };
+      } else {
+        clearPendingReconnect();
+      }
       setState((s) => ({ ...s, status: 'loading_url', errorMessage: null }));
       try {
         const { redirectURI } = await getPortalUrl(getToken, reconnect);
         setState((s) => ({ ...s, status: 'portal_open', loginLink: redirectURI }));
-      } catch (err: unknown) {
-        const msg = (err as Error).message ?? 'Could not open broker connection. Please try again.';
-        setState((s) => ({ ...s, status: 'url_error', errorMessage: msg }));
+      } catch {
+        const name = pendingReconnectRef.current?.name ?? null;
+        setState((s) => ({
+          ...s,
+          status: 'url_error',
+          errorMessage: snaptradeSyncErrorMessage(name),
+        }));
       }
     },
     [getToken]
@@ -107,9 +134,13 @@ export function useSnaptradePortal() {
           // Still pending
           setState((s) => ({ ...s, status: 'selecting', syncPending: true, accounts: [] }));
           return false;
-        } catch (err: unknown) {
-          const msg = (err as Error).message ?? 'Failed to load your accounts. Please try again.';
-          setState((s) => ({ ...s, status: 'accounts_error', errorMessage: msg }));
+        } catch {
+          const name = pendingReconnectRef.current?.name ?? null;
+          setState((s) => ({
+            ...s,
+            status: 'accounts_error',
+            errorMessage: snaptradeSyncErrorMessage(name),
+          }));
           return true; // stop polling on error
         }
       };
@@ -142,6 +173,7 @@ export function useSnaptradePortal() {
       await importSnaptradeAccounts(getToken, authorizationId, accountIds);
       // Invalidate assets cache so WealthPage refreshes
       queryClient.invalidateQueries({ queryKey: ['assets'] });
+      clearPendingReconnect();
       setState(INITIAL_STATE);
       return true;
     } catch (err: unknown) {
@@ -164,20 +196,32 @@ export function useSnaptradePortal() {
   );
 
   const handlePortalExit = useCallback(() => {
+    clearPendingReconnect();
     setState(INITIAL_STATE);
   }, []);
 
-  const handlePortalError = useCallback((error: { errorCode?: string; statusCode?: string; detail?: string }) => {
-    const msg = error.detail ?? 'Something went wrong with the broker connection. Please try again.';
-    setState((s) => ({ ...s, status: 'url_error', loginLink: null, errorMessage: msg }));
+  const handlePortalError = useCallback((_error: { errorCode?: string; statusCode?: string; detail?: string }) => {
+    const name = pendingReconnectRef.current?.name ?? null;
+    setState((s) => ({
+      ...s,
+      status: 'url_error',
+      loginLink: null,
+      errorMessage: snaptradeSyncErrorMessage(name),
+    }));
   }, []);
 
   const retryConnect = useCallback(() => {
-    startConnect();
+    const pending = pendingReconnectRef.current;
+    if (pending) {
+      void startConnect(pending.authId, pending.name);
+    } else {
+      void startConnect();
+    }
   }, [startConnect]);
 
   const skipImport = useCallback(() => {
     clearSyncPoll();
+    clearPendingReconnect();
     setState(INITIAL_STATE);
   }, []);
 

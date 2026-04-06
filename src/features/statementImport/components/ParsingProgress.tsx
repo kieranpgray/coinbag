@@ -10,9 +10,9 @@ interface ParsingProgressProps {
 
 export function ParsingProgress({ progress, status, message }: ParsingProgressProps) {
   const statusMessages = {
-    extracting: 'Extracting text from statement...',
-    parsing: 'Parsing transactions...',
-    validating: 'Validating transactions...',
+    extracting: 'Processing your statement...',
+    parsing: 'Processing your statement...',
+    validating: 'Processing your statement...',
   };
 
   return (

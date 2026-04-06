@@ -17,12 +17,12 @@ import { useLocale } from '@/contexts/LocaleContext';
 import { formatNumber } from '@/lib/utils';
 import { useSymbolPrice } from '@/hooks/use-symbol-price';
 
-// Form schema: name optional at base level (required only for non-Stock/RSU via superRefine)
-// Stock/RSU fields optional here; Task 8/9 add UI and validation for them
+// Form schema: name optional at base level (required only for non-Shares/RSUs via superRefine)
+// Shares/RSUs fields optional here; Task 8/9 add UI and validation for them
 const assetSchema = z
   .object({
     name: z.string().max(100).trim().optional().or(z.literal('')),
-    type: z.enum(['Real Estate', 'Other Investments', 'Vehicles', 'Crypto', 'Cash', 'Superannuation', 'Stock', 'RSU']),
+    type: z.enum(['Property', 'Other asset', 'Vehicle', 'Crypto', 'Cash', 'Super', 'Shares', 'RSUs']),
     value: z.number().min(0, 'Value must be positive'),
     dateAdded: z.string().min(1, 'Date is required'),
     institution: z.string().optional(),
@@ -40,18 +40,18 @@ const assetSchema = z
     grantPrice: z.number().min(0).optional(),
   })
   .superRefine((data, ctx) => {
-    if (data.type === 'Real Estate') {
+    if (data.type === 'Property') {
       const addressVal = data.address?.trim() ?? '';
       if (!addressVal) {
         ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Address is required', path: ['address'] });
       }
-    } else if (data.type !== 'Stock' && data.type !== 'RSU' && data.type !== 'Crypto') {
+    } else if (data.type !== 'Shares' && data.type !== 'RSUs' && data.type !== 'Crypto') {
       const nameVal = data.name?.trim() ?? '';
       if (!nameVal) {
         ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Name is required', path: ['name'] });
       }
     }
-    if (data.type === 'Stock') {
+    if (data.type === 'Shares') {
       const tickerVal = data.ticker?.trim() ?? '';
       if (!tickerVal) ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Ticker is required', path: ['ticker'] });
       if (data.quantity === undefined || data.quantity === null || data.quantity <= 0) {
@@ -61,7 +61,7 @@ const assetSchema = z
         ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Current price is required', path: ['todaysPrice'] });
       }
     }
-    if (data.type === 'RSU') {
+    if (data.type === 'RSUs') {
       const tickerVal = data.ticker?.trim() ?? '';
       if (!tickerVal) ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Ticker is required', path: ['ticker'] });
       if (data.quantity === undefined || data.quantity === null || data.quantity <= 0) {
@@ -99,16 +99,16 @@ interface AssetFormProps {
   defaultType?: Asset['type'];
 }
 
-/** Label for Superannuation/Retirement by locale: Australia → Superannuation, else → Retirement */
-function getSuperannuationRetirementLabel(locale: string): string {
+/** Display label for Super type by locale: Australia → Super, else → Retirement (stored value is always Super) */
+function getSuperDisplayLabel(locale: string): string {
   const code = locale?.trim() || '';
-  if (code === 'en-AU') return 'Superannuation';
+  if (code === 'en-AU') return 'Super';
   return 'Retirement';
 }
 
 export function AssetForm({ asset, onSubmit, onCancel, onDelete, isLoading, defaultType }: AssetFormProps) {
   const { locale } = useLocale();
-  const superOrRetirementLabel = getSuperannuationRetirementLabel(locale);
+  const superDisplayLabel = getSuperDisplayLabel(locale);
 
   const {
     register,
@@ -151,7 +151,7 @@ export function AssetForm({ asset, onSubmit, onCancel, onDelete, isLoading, defa
 
   // Exchange auto-select: when ticker is set and exchange empty, default by locale (AU -> ASX, else NASDAQ)
   useEffect(() => {
-    if ((selectedType === 'Stock' || selectedType === 'RSU') && watchedTicker?.trim() && !watchedExchange?.trim()) {
+    if ((selectedType === 'Shares' || selectedType === 'RSUs') && watchedTicker?.trim() && !watchedExchange?.trim()) {
       const defaultExchange = locale?.trim() === 'en-AU' ? 'ASX' : 'NASDAQ';
       setValue('exchange', defaultExchange);
     }
@@ -159,7 +159,7 @@ export function AssetForm({ asset, onSubmit, onCancel, onDelete, isLoading, defa
 
   const onSubmitForm = (data: AssetFormData) => {
     const today = new Date().toISOString().split('T')[0] ?? '';
-    if (data.type === 'Stock') {
+    if (data.type === 'Shares') {
       const tickerVal = (data.ticker ?? '').trim();
       const qty = Number(data.quantity) || 0;
       const currentPrice = Number(data.todaysPrice) ?? 0;
@@ -167,7 +167,7 @@ export function AssetForm({ asset, onSubmit, onCancel, onDelete, isLoading, defa
       const dateAdded = (data.purchaseDate && data.purchaseDate.trim()) || data.dateAdded || today;
       onSubmit({
         name: tickerVal || 'Unknown',
-        type: 'Stock',
+        type: 'Shares',
         value,
         dateAdded: dateAdded as string,
         institution: data.institution,
@@ -181,15 +181,15 @@ export function AssetForm({ asset, onSubmit, onCancel, onDelete, isLoading, defa
       });
       return;
     }
-    if (data.type === 'RSU') {
+    if (data.type === 'RSUs') {
       const tickerVal = (data.ticker ?? '').trim();
       const qty = Number(data.quantity) || 0;
       const price = Number(data.todaysPrice) ?? 0;
       const value = Math.round(qty * price * 100) / 100;
       const dateAdded = (data.grantDate && data.grantDate.trim()) || data.dateAdded || today;
       onSubmit({
-        name: tickerVal ? `${tickerVal} (RSU)` : 'RSU',
-        type: 'RSU',
+        name: tickerVal ? `${tickerVal} (RSUs)` : 'RSUs',
+        type: 'RSUs',
         value,
         dateAdded: dateAdded as string,
         institution: data.institution,
@@ -224,11 +224,11 @@ export function AssetForm({ asset, onSubmit, onCancel, onDelete, isLoading, defa
       });
       return;
     }
-    if (data.type === 'Real Estate') {
+    if (data.type === 'Property') {
       const addressVal = (data.address ?? '').trim();
       onSubmit({
         name: addressVal || 'Property',
-        type: 'Real Estate',
+        type: 'Property',
         value: Math.round((data.value ?? 0) * 100) / 100,
         dateAdded: data.dateAdded ?? today,
         notes: data.notes,
@@ -247,11 +247,11 @@ export function AssetForm({ asset, onSubmit, onCancel, onDelete, isLoading, defa
       });
       return;
     }
-    if (data.type === 'Superannuation') {
+    if (data.type === 'Super') {
       const nameVal = (data.name ?? '').trim();
       onSubmit({
-        name: nameVal || superOrRetirementLabel,
-        type: 'Superannuation',
+        name: nameVal || superDisplayLabel,
+        type: 'Super',
         value: Math.round((data.value ?? 0) * 100) / 100,
         dateAdded: data.dateAdded ?? today,
         notes: data.notes,
@@ -269,22 +269,22 @@ export function AssetForm({ asset, onSubmit, onCancel, onDelete, isLoading, defa
     });
   };
 
-  const showVehicleSection = selectedType === 'Vehicles';
-  const showRealEstateSection = selectedType === 'Real Estate';
-  const showOtherInvestmentsSection = selectedType === 'Other Investments';
+  const showVehicleSection = selectedType === 'Vehicle';
+  const showPropertySection = selectedType === 'Property';
+  const showOtherAssetSection = selectedType === 'Other asset';
   const showCashSection = selectedType === 'Cash';
-  const showSuperannuationSection = selectedType === 'Superannuation';
-  const showStockSection = selectedType === 'Stock';
-  const showRSUSection = selectedType === 'RSU';
+  const showSuperSection = selectedType === 'Super';
+  const showSharesSection = selectedType === 'Shares';
+  const showRSUsSection = selectedType === 'RSUs';
   const showCryptoSection = selectedType === 'Crypto';
 
   const stockQty = watch('quantity');
   const stockCurrentPrice = watch('todaysPrice');
   const stockPurchasePrice = watch('purchasePrice');
-  const stockValue = showStockSection && typeof stockQty === 'number' && typeof stockCurrentPrice === 'number' && stockQty > 0 && stockCurrentPrice >= 0
+  const stockValue = showSharesSection && typeof stockQty === 'number' && typeof stockCurrentPrice === 'number' && stockQty > 0 && stockCurrentPrice >= 0
     ? Math.round(stockQty * stockCurrentPrice * 100) / 100
     : 0;
-  const stockCostBasis = showStockSection && typeof stockQty === 'number' && typeof stockPurchasePrice === 'number' && stockQty > 0 && stockPurchasePrice >= 0
+  const stockCostBasis = showSharesSection && typeof stockQty === 'number' && typeof stockPurchasePrice === 'number' && stockQty > 0 && stockPurchasePrice >= 0
     ? stockQty * stockPurchasePrice
     : null;
   const stockUnrealisedPL = stockCostBasis != null && typeof stockValue === 'number'
@@ -294,10 +294,10 @@ export function AssetForm({ asset, onSubmit, onCancel, onDelete, isLoading, defa
   const rsuQty = watch('quantity');
   const rsuPrice = watch('todaysPrice');
   const rsuGrantPrice = watch('grantPrice');
-  const rsuValue = showRSUSection && typeof rsuQty === 'number' && typeof rsuPrice === 'number' && rsuQty > 0 && rsuPrice >= 0
+  const rsuValue = showRSUsSection && typeof rsuQty === 'number' && typeof rsuPrice === 'number' && rsuQty > 0 && rsuPrice >= 0
     ? Math.round(rsuQty * rsuPrice * 100) / 100
     : 0;
-  const rsuGrantValue = showRSUSection && typeof rsuQty === 'number' && typeof rsuGrantPrice === 'number' && rsuQty > 0 && rsuGrantPrice >= 0
+  const rsuGrantValue = showRSUsSection && typeof rsuQty === 'number' && typeof rsuGrantPrice === 'number' && rsuQty > 0 && rsuGrantPrice >= 0
     ? rsuQty * rsuGrantPrice
     : null;
   const rsuUnrealisedPL = rsuGrantValue != null && typeof rsuValue === 'number'
@@ -340,14 +340,14 @@ export function AssetForm({ asset, onSubmit, onCancel, onDelete, isLoading, defa
           value={selectedType}
           onValueChange={(value) => setValue('type', value as AssetFormData['type'])}
           options={[
-            { value: 'Real Estate', label: 'Real Estate' },
-            { value: 'Other Investments', label: 'Other Investments' },
-            { value: 'Vehicles', label: 'Vehicles' },
+            { value: 'Property', label: 'Property' },
+            { value: 'Other asset', label: 'Other asset' },
+            { value: 'Vehicle', label: 'Vehicle' },
             { value: 'Crypto', label: 'Crypto' },
             { value: 'Cash', label: 'Cash' },
-            { value: 'Superannuation', label: superOrRetirementLabel },
-            { value: 'Stock', label: 'Stock' },
-            { value: 'RSU', label: 'RSU' },
+            { value: 'Super', label: superDisplayLabel },
+            { value: 'Shares', label: 'Shares' },
+            { value: 'RSUs', label: 'RSUs' },
           ]}
           placeholder="Select asset type"
           error={errors.type?.message}
@@ -357,7 +357,7 @@ export function AssetForm({ asset, onSubmit, onCancel, onDelete, isLoading, defa
       {showVehicleSection && (
         <>
           <div className="space-y-2">
-            <Label htmlFor="vehicle-name">Name <span className="text-destructive">*</span></Label>
+            <Label htmlFor="vehicle-name">What's this asset called? <span className="text-destructive">*</span></Label>
             <Input id="vehicle-name" aria-invalid={!!errors.name} className={errors.name ? 'border-destructive' : ''} {...register('name')} placeholder="e.g. Toyota Camry" />
             {errors.name && <p className="text-body text-destructive" role="alert">{errors.name.message}</p>}
           </div>
@@ -373,7 +373,7 @@ export function AssetForm({ asset, onSubmit, onCancel, onDelete, isLoading, defa
         </>
       )}
 
-      {showRealEstateSection && (
+      {showPropertySection && (
         <>
           <div className="space-y-2">
             <Label htmlFor="property-address">Address <span className="text-destructive">*</span></Label>
@@ -398,6 +398,7 @@ export function AssetForm({ asset, onSubmit, onCancel, onDelete, isLoading, defa
           <div className="space-y-2">
             <Label htmlFor="property-value">Current value ($) <span className="text-destructive">*</span></Label>
             <Input id="property-value" type="number" step="0.01" min={0} placeholder="0.00" aria-invalid={!!errors.value} className={errors.value ? 'border-destructive' : ''} {...register('value', { valueAsNumber: true })} />
+            <p className="text-caption text-muted-foreground">Enter your best estimate. You can update this any time — property values change.</p>
             {errors.value && <p className="text-body text-destructive" role="alert">{errors.value.message}</p>}
           </div>
           <div className="space-y-2">
@@ -411,10 +412,10 @@ export function AssetForm({ asset, onSubmit, onCancel, onDelete, isLoading, defa
         </>
       )}
 
-      {showOtherInvestmentsSection && (
+      {showOtherAssetSection && (
         <>
           <div className="space-y-2">
-            <Label htmlFor="otherinv-name">Name <span className="text-destructive">*</span></Label>
+            <Label htmlFor="otherinv-name">What's this asset called? <span className="text-destructive">*</span></Label>
             <Input id="otherinv-name" aria-invalid={!!errors.name} className={errors.name ? 'border-destructive' : ''} {...register('name')} placeholder="Investment name" />
             {errors.name && <p className="text-body text-destructive" role="alert">{errors.name.message}</p>}
           </div>
@@ -444,11 +445,11 @@ export function AssetForm({ asset, onSubmit, onCancel, onDelete, isLoading, defa
         </>
       )}
 
-      {showSuperannuationSection && (
+      {showSuperSection && (
         <>
           <div className="space-y-2">
             <Label htmlFor="super-name">Fund name <span className="text-destructive">*</span></Label>
-            <Input id="super-name" aria-invalid={!!errors.name} className={errors.name ? 'border-destructive' : ''} {...register('name')} placeholder={`${superOrRetirementLabel} fund name`} />
+            <Input id="super-name" aria-invalid={!!errors.name} className={errors.name ? 'border-destructive' : ''} {...register('name')} placeholder={`${superDisplayLabel} fund name`} />
             {errors.name && <p className="text-body text-destructive" role="alert">{errors.name.message}</p>}
           </div>
           <div className="space-y-2">
@@ -469,6 +470,11 @@ export function AssetForm({ asset, onSubmit, onCancel, onDelete, isLoading, defa
                 />
               )}
             />
+            <p className="text-caption text-muted-foreground">
+              {locale === 'en-AU'
+                ? 'Check your latest super statement for the most accurate balance.'
+                : 'Check your latest retirement account statement for the most accurate balance.'}
+            </p>
             {errors.value && <p className="text-body text-destructive" role="alert">{errors.value.message}</p>}
           </div>
           <div className="space-y-2">
@@ -478,7 +484,7 @@ export function AssetForm({ asset, onSubmit, onCancel, onDelete, isLoading, defa
         </>
       )}
 
-      {showStockSection && (
+      {showSharesSection && (
         <>
           <div className="space-y-2">
             <Label htmlFor="stock-ticker">
@@ -491,6 +497,7 @@ export function AssetForm({ asset, onSubmit, onCancel, onDelete, isLoading, defa
               {...register('ticker')}
               className={errors.ticker ? 'border-destructive' : ''}
             />
+            <p className="text-caption text-muted-foreground">Optional. Used to fetch live pricing where available.</p>
             {errors.ticker && (
               <p className="text-body text-destructive" role="alert">{errors.ticker.message}</p>
             )}
@@ -603,7 +610,7 @@ export function AssetForm({ asset, onSubmit, onCancel, onDelete, isLoading, defa
         </>
       )}
 
-      {showRSUSection && (
+      {showRSUsSection && (
         <>
           <div className="space-y-2">
             <Label htmlFor="rsu-ticker">
@@ -616,6 +623,7 @@ export function AssetForm({ asset, onSubmit, onCancel, onDelete, isLoading, defa
               {...register('ticker')}
               className={errors.ticker ? 'border-destructive' : ''}
             />
+            <p className="text-caption text-muted-foreground">Optional. Used to fetch live pricing where available.</p>
             {errors.ticker && (
               <p className="text-body text-destructive" role="alert">{errors.ticker.message}</p>
             )}
@@ -723,6 +731,7 @@ export function AssetForm({ asset, onSubmit, onCancel, onDelete, isLoading, defa
               {formatNumber(rsuValue, 'en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </div>
             <p className="text-caption text-muted-foreground">Quantity × Current price</p>
+            <p className="text-caption text-muted-foreground">Enter the current market value of vested shares, after tax.</p>
           </div>
           <div className="space-y-2">
             <Label>Unrealised profit/loss</Label>
@@ -854,7 +863,9 @@ export function AssetForm({ asset, onSubmit, onCancel, onDelete, isLoading, defa
                   {...register('value', { valueAsNumber: true })}
                 />
                 <p className="text-caption text-muted-foreground">
-                  {isPriceLoading ? 'Loading price…' : 'No price data for this coin; enter current value'}
+                  {isPriceLoading
+                    ? 'Loading price…'
+                    : 'Enter quantity — Supafolio will calculate the value automatically for supported coins. For unsupported coins, enter the current value manually.'}
                 </p>
                 {errors.value && (
                   <p className="text-body text-destructive" role="alert">{errors.value.message}</p>

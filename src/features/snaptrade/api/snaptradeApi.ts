@@ -17,7 +17,7 @@ async function snaptradePost<T>(
   body?: object
 ): Promise<T> {
   const token = await getToken();
-  if (!token) throw new Error('Authentication required');
+  if (!token) throw new Error('Your session has expired. Sign in to continue.');
 
   const resp = await fetch(`${getSupabaseUrl()}/functions/v1/${path}`, {
     method: 'POST',
@@ -43,7 +43,7 @@ async function snaptradeGet<T>(
   getToken: () => Promise<string | null>
 ): Promise<T> {
   const token = await getToken();
-  if (!token) throw new Error('Authentication required');
+  if (!token) throw new Error('Your session has expired. Sign in to continue.');
 
   const resp = await fetch(`${getSupabaseUrl()}/functions/v1/${path}`, {
     method: 'GET',

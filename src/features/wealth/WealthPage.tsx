@@ -1,4 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
+import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
 import { useAssets, useCreateAsset, useUpdateAsset, useDeleteAsset } from '@/features/assets/hooks';
 import { useLiabilities, useCreateLiability, useUpdateLiability, useDeleteLiability } from '@/features/liabilities/hooks';
@@ -16,14 +18,52 @@ import { DeleteAssetDialog } from '@/features/assets/components/DeleteAssetDialo
 import { CreateLiabilityModal } from '@/features/liabilities/components/CreateLiabilityModal';
 import { EditLiabilityModal } from '@/features/liabilities/components/EditLiabilityModal';
 import { DeleteLiabilityDialog } from '@/features/liabilities/components/DeleteLiabilityDialog';
+import { useDisconnectBrokerageSync } from '@/features/snaptrade/hooks/useDisconnectBrokerageSync';
 import type { Asset } from '@/types/domain';
 import type { Liability } from '@/types/domain';
+
+const ASSET_TYPES_FROM_QUERY: readonly Asset['type'][] = [
+  'Property',
+  'Other asset',
+  'Vehicle',
+  'Crypto',
+  'Cash',
+  'Super',
+  'Shares',
+  'RSUs',
+];
+
+function normalizeAssetTypeFromQueryParam(type: string | null): Asset['type'] | undefined {
+  if (!type) return undefined;
+  let t = type;
+  if (t === 'Investments' || t === 'Other') t = 'Other Investments';
+  const legacy: Record<string, Asset['type']> = {
+    'Other Investments': 'Other asset',
+    'Real Estate': 'Property',
+    Vehicles: 'Vehicle',
+    Superannuation: 'Super',
+    Stock: 'Shares',
+    RSU: 'RSUs',
+  };
+  const mapped = legacy[t] ?? (t as Asset['type']);
+  return ASSET_TYPES_FROM_QUERY.includes(mapped) ? mapped : undefined;
+}
 
 /**
  * Wealth page component
  * Unified view for assets and liabilities
  */
 export function WealthPage() {
+  const { t } = useTranslation(['pages', 'navigation']);
+  const disconnectBrokerageMutation = useDisconnectBrokerageSync();
+
+  useEffect(() => {
+    document.title = t('holdingsDocumentTitle', { ns: 'pages' });
+    return () => {
+      document.title = 'Supafolio';
+    };
+  }, [t]);
+
   // Always use portfolio view (list mode)
   const viewMode: 'list' | 'cards' = 'list';
 
@@ -55,18 +95,12 @@ export function WealthPage() {
   // Handle query params for auto-opening create modal
   useEffect(() => {
     const shouldCreate = searchParams.get('create');
-    const type = searchParams.get('type') as Asset['type'] | null;
-    
+    const type = searchParams.get('type');
+
     if (shouldCreate === 'asset') {
       setCreateAssetModalOpen(true);
-      // Accept legacy types (Investments, Other) and map to Other Investments for schema compat
-      const typeStr = type as string;
-      const normalizedType =
-        typeStr === 'Investments' || typeStr === 'Other' ? 'Other Investments' : type;
-      if (
-        normalizedType &&
-        ['Real Estate', 'Other Investments', 'Vehicles', 'Crypto', 'Cash', 'Superannuation', 'Stock', 'RSU'].includes(normalizedType)
-      ) {
+      const normalizedType = normalizeAssetTypeFromQueryParam(type);
+      if (normalizedType) {
         setDefaultAssetType(normalizedType);
       }
       setSearchParams({});
@@ -200,7 +234,12 @@ export function WealthPage() {
     <div className="space-y-12">
       {/* Wealth Header */}
       <div className="flex items-center justify-between">
-        <h1 className="text-h1-sm sm:text-h1-md lg:text-h1-lg font-bold tracking-tight">Wealth</h1>
+        <div>
+          <h1 className="text-h1-sm sm:text-h1-md lg:text-h1-lg font-bold tracking-tight">
+            {t('wealth', { ns: 'navigation' })}
+          </h1>
+          <p className="text-sm text-muted-foreground mt-1">{t('holdingsSubtitle', { ns: 'pages' })}</p>
+        </div>
       </div>
 
       {/* Wealth Breakdown */}
@@ -297,6 +336,17 @@ export function WealthPage() {
             setEditAssetModalOpen(false);
             setDeleteAssetDialogOpen(true);
           }}
+          onDisconnectBrokerageSync={async (assetId) => {
+            try {
+              await disconnectBrokerageMutation.mutateAsync(assetId);
+              toast.success(t('snaptrade.disconnectSuccessToast', { ns: 'pages' }));
+              setSelectedAsset(null);
+            } catch (err) {
+              toast.error(t('snaptrade.disconnectErrorToast', { ns: 'pages' }));
+              throw err;
+            }
+          }}
+          isDisconnectingBrokerage={disconnectBrokerageMutation.isPending}
           isLoading={updateAssetMutation.isPending}
         />
       )}

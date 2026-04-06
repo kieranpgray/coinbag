@@ -118,7 +118,7 @@ export function AcceptInvitePage() {
             </CardHeader>
             <CardContent>
               <Button onClick={() => navigate('/app/dashboard')}>
-                Go to dashboard
+                Go to overview
               </Button>
             </CardContent>
           </>
@@ -133,7 +133,7 @@ export function AcceptInvitePage() {
             <CardContent className="flex gap-2">
               {isAlreadyMemberError(rawError) && (
                 <Button onClick={() => navigate('/app/dashboard')}>
-                  Go to dashboard
+                  Go to overview
                 </Button>
               )}
               <Button variant="outline" onClick={() => navigate('/')}>

@@ -409,7 +409,7 @@ export class SupabaseExpensesRepository implements ExpensesRepository {
     // Authentication errors
     if (code === 'PGRST301' || message.includes('JWT')) {
       return {
-        error: 'Authentication required. Please sign in again',
+        error: 'Your session has expired. Sign in to continue.',
         code: 'AUTH_ERROR',
       };
     }
@@ -417,14 +417,14 @@ export class SupabaseExpensesRepository implements ExpensesRepository {
     // Network/connection errors
     if (message.includes('fetch') || message.includes('network')) {
       return {
-        error: 'Network error. Please check your connection and try again',
+        error: 'No connection. Check your internet and try again.',
         code: 'NETWORK_ERROR',
       };
     }
 
     // Default: return original message with hint if available
     return {
-      error: hint || message || 'An error occurred while processing your request',
+      error: hint || message || "That didn't work. Try again — and if it keeps happening, contact support.",
       code: code || 'UNKNOWN',
     };
   }

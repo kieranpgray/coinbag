@@ -31,8 +31,8 @@ export function CreateLiabilityModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
-          <DialogTitle>Add New Liability</DialogTitle>
-          <DialogDescription>Create a new liability to track in your portfolio.</DialogDescription>
+          <DialogTitle>Add a liability</DialogTitle>
+          <DialogDescription>Track a new liability in your Holdings.</DialogDescription>
         </DialogHeader>
         <LiabilityForm
           onSubmit={handleSubmit}

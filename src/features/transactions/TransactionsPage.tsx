@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 
 /**
- * TransactionsPage - Redirects to Accounts page
+ * TransactionsPage - Redirects to Activity (accounts) page
  * Transactions are now accessed via /accounts/:accountId
  * This component handles the redirect for backward compatibility
  */
@@ -19,7 +19,7 @@ export function TransactionsPage() {
     <div className="space-y-6">
       <Card>
         <CardContent className="py-12 text-center">
-          <p className="text-muted-foreground">Redirecting to Accounts...</p>
+          <p className="text-muted-foreground">Redirecting to Activity...</p>
         </CardContent>
       </Card>
     </div>

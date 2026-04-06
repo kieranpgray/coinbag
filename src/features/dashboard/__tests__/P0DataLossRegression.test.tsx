@@ -126,7 +126,7 @@ describe('P0 Data Loss Regression Tests', () => {
     const baselineAsset: Asset = {
       id: 'asset-baseline-1',
       name: 'Baseline House',
-      type: 'Real Estate',
+      type: 'Property',
       value: 500000,
       change1D: 0,
       change1W: 0,
@@ -442,7 +442,7 @@ describe('P0 Data Loss Regression Tests', () => {
       const { result: createAssetResult } = renderHook(() => useCreateAsset(), { wrapper });
       createAssetResult.current.mutate({
         name: 'New Car',
-        type: 'Vehicles',
+        type: 'Vehicle',
         value: 30000,
         change1D: 0,
         change1W: 0,

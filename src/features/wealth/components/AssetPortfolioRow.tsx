@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { formatCurrency } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
 import type { Asset } from '@/types/domain';
@@ -15,7 +16,16 @@ interface AssetPortfolioRowProps {
  * an inline "Reconnect" prompt when the connection is broken.
  */
 export function AssetPortfolioRow({ asset, onClick, isConnectionBroken, onReconnect }: AssetPortfolioRowProps) {
+  const { t } = useTranslation('pages');
   const isConnected = asset.dataSource === 'snaptrade';
+
+  const syncBrokenLabel = (() => {
+    const name = asset.institution?.trim();
+    if (name) {
+      return t('snaptrade.syncErrorWithName', { brokerage: name });
+    }
+    return t('snaptrade.syncErrorGeneric');
+  })();
 
   const freshnessLabel = (() => {
     if (!isConnected) return null;
@@ -44,7 +54,7 @@ export function AssetPortfolioRow({ asset, onClick, isConnectionBroken, onReconn
       sublineParts.push({ text: asset.institution });
     }
     if (isConnectionBroken) {
-      sublineParts.push({ text: 'Connection broken', className: 'text-destructive' });
+      sublineParts.push({ text: syncBrokenLabel, className: 'text-destructive' });
     } else if (freshnessLabel) {
       sublineParts.push({
         text: freshnessLabel,
@@ -93,7 +103,7 @@ export function AssetPortfolioRow({ asset, onClick, isConnectionBroken, onReconn
                   className="text-primary underline underline-offset-2 hover:no-underline text-body-sm"
                   aria-label={`Reconnect ${asset.name}`}
                 >
-                  Reconnect ↗
+                  {t('snaptrade.reconnectCta')}
                 </button>
               </>
             )}

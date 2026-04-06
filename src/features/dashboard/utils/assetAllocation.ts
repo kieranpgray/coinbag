@@ -14,14 +14,14 @@ import type { AssetBreakdown } from '@/types/domain';
  * Color mapping for asset types — CSS variables from index.css (--chart-1…6, legacy + DS v2).
  */
 const ASSET_TYPE_COLORS: Record<AssetBreakdown['category'], string> = {
-  'Real Estate': 'var(--chart-4)',
-  'Other Investments': 'var(--chart-2)',
-  'Vehicles': 'var(--chart-5)',
+  Property: 'var(--chart-4)',
+  'Other asset': 'var(--chart-2)',
+  Vehicle: 'var(--chart-5)',
   Crypto: 'var(--chart-1)',
   Cash: 'var(--chart-3)',
-  Superannuation: 'var(--chart-6)',
-  Stock: 'var(--chart-1)',
-  RSU: 'var(--chart-2)',
+  Super: 'var(--chart-6)',
+  Shares: 'var(--chart-1)',
+  RSUs: 'var(--chart-2)',
 };
 
 /**
@@ -29,14 +29,14 @@ const ASSET_TYPE_COLORS: Record<AssetBreakdown['category'], string> = {
  * Uses Lucide React icons
  */
 const ASSET_TYPE_ICONS: Record<AssetBreakdown['category'], LucideIcon> = {
-  'Real Estate': Home,
-  'Other Investments': TrendingUp,
-  'Vehicles': Car,
-  'Crypto': Coins,
-  'Cash': Wallet,
-  'Superannuation': Building2,
-  'Stock': TrendingUp,
-  'RSU': Award,
+  Property: Home,
+  'Other asset': TrendingUp,
+  Vehicle: Car,
+  Crypto: Coins,
+  Cash: Wallet,
+  Super: Building2,
+  Shares: TrendingUp,
+  RSUs: Award,
 };
 
 /**
@@ -62,18 +62,18 @@ export interface ListData {
 
 /**
  * Get color for an asset type
- * Falls back to 'Other Investments' color if type is not found
+ * Falls back to 'Other asset' color if type is not found
  */
 export function getAssetTypeColor(type: AssetBreakdown['category']): string {
-  return ASSET_TYPE_COLORS[type] ?? ASSET_TYPE_COLORS['Other Investments'];
+  return ASSET_TYPE_COLORS[type] ?? ASSET_TYPE_COLORS['Other asset'];
 }
 
 /**
  * Get icon component for an asset type
- * Falls back to 'Other Investments' icon if type is not found
+ * Falls back to 'Other asset' icon if type is not found
  */
 export function getAssetTypeIcon(type: AssetBreakdown['category']): LucideIcon {
-  return ASSET_TYPE_ICONS[type] ?? ASSET_TYPE_ICONS['Other Investments'];
+  return ASSET_TYPE_ICONS[type] ?? ASSET_TYPE_ICONS['Other asset'];
 }
 
 /**

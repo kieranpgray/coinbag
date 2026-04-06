@@ -1,6 +1,8 @@
 /* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useUserPreferences, useUpdateUserPreferences } from '@/hooks/useUserPreferences';
+import { isMarketingLightLockedPath } from '@/lib/constants/routes';
 
 /**
  * Detects the user's system preference for dark mode
@@ -21,7 +23,8 @@ function getSystemDarkModePreference(): boolean {
  * Theme context type providing dark mode and privacy mode controls
  */
 interface ThemeContextType {
-  darkMode: boolean; // Computed effective dark mode (based on themePreference and system)
+  /** Effective UI dark mode: false on marketing/legal public routes; else preference + system */
+  darkMode: boolean;
   themePreference: 'system' | 'light' | 'dark'; // User's stored preference
   toggleDarkMode: () => void; // Cycles through: system → light → dark → system
   privacyMode: boolean;
@@ -37,6 +40,7 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
  * @param children - Child components to wrap
  */
 export function ThemeProvider({ children }: { children: ReactNode }) {
+  const { pathname } = useLocation();
   const { data: prefs } = useUserPreferences();
   const updatePrefs = useUpdateUserPreferences();
 
@@ -74,10 +78,10 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     return () => mediaQuery.removeEventListener('change', handleChange);
   }, [themePreference]);
 
-  // Compute effective darkMode from themePreference and system preference
-  const effectiveDarkMode = themePreference === 'system' 
-    ? systemPrefersDark 
-    : themePreference === 'dark';
+  const preferenceDarkMode =
+    themePreference === 'system' ? systemPrefersDark : themePreference === 'dark';
+
+  const effectiveDarkMode = isMarketingLightLockedPath(pathname) ? false : preferenceDarkMode;
 
   // Apply effective dark mode to document
   useEffect(() => {

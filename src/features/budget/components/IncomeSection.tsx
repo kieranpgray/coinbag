@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Plus } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { formatCurrency } from '@/lib/utils';
@@ -32,6 +33,7 @@ export function IncomeSection({
   parentFrequency,
   onFrequencyChange,
 }: IncomeSectionProps) {
+  const { t } = useTranslation('pages');
   const [localFrequency, setLocalFrequency] = useState<Frequency | undefined>(parentFrequency);
   const hasManualOverride = useRef(false);
 
@@ -102,12 +104,12 @@ export function IncomeSection({
       {/* Income sources: list only (inline edit in IncomeList) */}
       {incomeSources.length === 0 ? (
         <div className="rounded-lg border border-border bg-muted/20 py-10 px-4 text-center">
-          <p className="text-muted-foreground text-body-sm mb-4">
-            Add income so we can show your remaining budget.
+          <p className="text-muted-foreground text-body-sm mb-4 text-balance max-w-md mx-auto">
+            {t('emptyStates.budgetNoIncome.body')}
           </p>
-          <Button onClick={onCreate} size="sm" variant="outline">
+          <Button onClick={onCreate} size="sm" variant="outline" aria-label={t('emptyStates.budgetNoIncome.cta')}>
             <Plus className="h-4 w-4 mr-2" />
-            Add income
+            {t('emptyStates.budgetNoIncome.cta')}
           </Button>
         </div>
       ) : (

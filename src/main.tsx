@@ -1,6 +1,8 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { ClerkProvider } from '@clerk/clerk-react';
+import posthog from 'posthog-js';
+import { PostHogProvider } from '@posthog/react';
 import App from './App.tsx';
 import './index.css';
 import { validateEnvironment } from './lib/env';
@@ -50,11 +52,31 @@ if (!rootElement) {
 if (import.meta.env.VITE_DEBUG_LOGGING === 'true') {
   logger.debug('APP:INIT', 'Rendering React app...');
 }
+
+const posthogToken = import.meta.env.VITE_PUBLIC_POSTHOG_TOKEN;
+const posthogHost =
+  import.meta.env.VITE_PUBLIC_POSTHOG_HOST ?? 'https://us.i.posthog.com';
+
+if (posthogToken) {
+  posthog.init(posthogToken, {
+    api_host: posthogHost,
+    defaults: '2026-01-30',
+  });
+}
+
+const appShell = (
+  <ClerkProvider publishableKey={PUBLISHABLE_KEY} afterSignOutUrl="/">
+    <App />
+  </ClerkProvider>
+);
+
 ReactDOM.createRoot(rootElement).render(
   <React.StrictMode>
-    <ClerkProvider publishableKey={PUBLISHABLE_KEY} afterSignOutUrl="/">
-      <App />
-    </ClerkProvider>
+    {posthogToken ? (
+      <PostHogProvider client={posthog}>{appShell}</PostHogProvider>
+    ) : (
+      appShell
+    )}
   </React.StrictMode>
 );
 

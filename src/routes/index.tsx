@@ -25,6 +25,9 @@ const BudgetPage = lazy(() => import('@/features/budget/BudgetPage').then(m => (
 const NotFound = lazy(() => import('@/components/shared/NotFound').then(m => ({ default: m.NotFound })));
 const AccountPage = lazy(() => import('@/pages/account/AccountPage').then(m => ({ default: m.AccountPage })));
 const DebugPage = lazy(() => import('@/pages/debug/DebugPage').then(m => ({ default: m.DebugPage })));
+const DesignSystemPage = lazy(() =>
+  import('@/pages/design-system/DesignSystemPage').then(m => ({ default: m.DesignSystemPage })),
+);
 function AssetsRedirect() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -90,6 +93,14 @@ export function Routes() {
       <Route path="/security" element={<SecurityPage />} />
       <Route path="/privacy" element={<PrivacyPage />} />
       <Route path="/terms" element={<TermsPage />} />
+      <Route
+        path={ROUTES.designSystem}
+        element={
+          <Suspense fallback={<LandingRouteLoading />}>
+            <DesignSystemPage />
+          </Suspense>
+        }
+      />
 
       <Route path="/app" element={<Layout />}>
         <Route index element={<DashboardPage />} />

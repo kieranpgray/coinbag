@@ -22,17 +22,17 @@ export interface Category {
 export interface Asset {
   id: string;
   name: string;
-  type: 'Real Estate' | 'Other Investments' | 'Vehicles' | 'Crypto' | 'Cash' | 'Superannuation' | 'Stock' | 'RSU';
+  type: 'Property' | 'Other asset' | 'Vehicle' | 'Crypto' | 'Cash' | 'Super' | 'Shares' | 'RSUs';
   value: number;
   change1D?: number;
   change1W?: number;
   dateAdded: string;
   institution?: string;
   notes?: string;
-  // Real Estate
+  // Property
   address?: string;
   propertyType?: string;
-  // Stock/RSU-specific (optional; used when type is Stock or RSU)
+  // Shares/RSUs-specific (optional; used when type is Shares or RSUs)
   ticker?: string;
   exchange?: string;
   quantity?: number;
@@ -58,7 +58,7 @@ export interface Asset {
 export interface Liability {
   id: string;
   name: string;
-  type: 'Loans' | 'Credit Cards' | 'Other';
+  type: 'Home loan' | 'Personal loan' | 'Car loan' | 'Credit card' | 'HECS / HELP debt' | 'Other liability';
   balance: number;
   interestRate?: number;
   monthlyPayment?: number;
@@ -359,7 +359,7 @@ export interface DashboardDataSources {
   subscriptionsCount: number; // Alias for expensesCount (backward compatibility)
   transactionsCount: number;
   incomeCount: number;
-  holdingsCount: number; // Count of Investments, Crypto, Stock, or RSU assets
+  holdingsCount: number; // Count of Other asset, Crypto, Shares, or RSUs assets
 }
 
 /**

@@ -1,10 +1,25 @@
 {
-  "saved": "Saved successfully",
+  "saved": "Settings saved.",
   "created": "Created successfully",
   "updated": "Updated successfully",
   "deleted": "Deleted successfully",
   "error": "An error occurred",
   "loading": "Loading...",
-  "saving": "Saving..."
+  "saving": "Saving...",
+  "assetAdded": "{{name}} added to Holdings.",
+  "assetUpdated": "{{name}} updated.",
+  "assetRemoved": "{{name}} removed.",
+  "liabilityAdded": "{{name}} added to Holdings.",
+  "liabilityUpdated": "{{name}} updated.",
+  "liabilityRemoved": "{{name}} removed.",
+  "incomeAdded": "Income source added.",
+  "incomeRemoved": "Income source removed.",
+  "expenseAdded": "Expense added.",
+  "expenseRemoved": "Expense removed.",
+  "inviteSent": "Invite sent to {{email}}.",
+  "importSuccess": "{{count}} transaction added.",
+  "importSuccess_other": "{{count}} transactions added.",
+  "saveFailed": "Couldn't save your changes. Try again.",
+  "inviteFailed": "Couldn't send invite. Try again.",
+  "importFailed": "We couldn't read that file. Try a PDF or CSV export from your bank."
 }
-

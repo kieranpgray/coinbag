@@ -29,14 +29,14 @@ interface AssetCategoryGroupProps {
  * Icon mapping for asset categories
  */
 const ASSET_CATEGORY_ICONS: Record<string, LucideIcon> = {
-  'Real Estate': Home,
-  'Other Investments': TrendingUp,
-  'Vehicles': Car,
-  'Crypto': Coins,
-  'Cash': Wallet,
-  'Superannuation': Building2,
-  'Stock': TrendingUp,
-  'RSU': TrendingUp,
+  Property: Home,
+  'Other asset': TrendingUp,
+  Vehicle: Car,
+  Crypto: Coins,
+  Cash: Wallet,
+  Super: Building2,
+  Shares: TrendingUp,
+  RSUs: TrendingUp,
 };
 
 /**

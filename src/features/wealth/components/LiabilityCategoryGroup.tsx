@@ -3,6 +3,9 @@ import { LiabilityPortfolioRow } from './LiabilityPortfolioRow';
 import {
   CreditCard,
   Home,
+  Car,
+  User,
+  GraduationCap,
   FileText,
   type LucideIcon,
 } from 'lucide-react';
@@ -19,9 +22,12 @@ interface LiabilityCategoryGroupProps {
  * Icon mapping for liability categories
  */
 const LIABILITY_CATEGORY_ICONS: Record<string, LucideIcon> = {
-  'Credit Cards': CreditCard,
-  'Loans': Home,
-  'Other': FileText,
+  'Home loan': Home,
+  'Personal loan': User,
+  'Car loan': Car,
+  'Credit card': CreditCard,
+  'HECS / HELP debt': GraduationCap,
+  'Other liability': FileText,
 };
 
 /**

@@ -9,6 +9,8 @@ import { DebugOverlay } from './components/shared/DebugOverlay';
 import { EnvironmentBanner } from './components/shared/EnvironmentBanner';
 import { DebugPanel } from './components/shared/DebugPanel';
 import { ErrorBoundary } from './components/shared/ErrorBoundary';
+import { PostHogIdentify } from './components/analytics/PostHogIdentify';
+import { Toaster } from './components/ui/sonner';
 import { useKonamiCode } from './hooks/useKonamiCode';
 import { wrapQueryClientForLogging } from './lib/queryClientLogger';
 import { logger } from './lib/logger';
@@ -45,11 +47,14 @@ function App() {
     }
   }, [konamiActivated]);
 
+  const posthogEnabled = Boolean(import.meta.env.VITE_PUBLIC_POSTHOG_TOKEN);
+
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
           <RouteLoadingBannerProvider>
+            {posthogEnabled ? <PostHogIdentify /> : null}
             <RouteChangeLogger />
             <LocaleProvider>
               <ThemeProvider>
@@ -59,6 +64,7 @@ function App() {
                 </ErrorBoundary>
                 <DebugOverlay />
                 <DebugPanel open={debugPanelOpen} onOpenChange={setDebugPanelOpen} />
+                <Toaster position="bottom-right" richColors />
               </ThemeProvider>
             </LocaleProvider>
           </RouteLoadingBannerProvider>

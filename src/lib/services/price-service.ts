@@ -19,15 +19,20 @@ import type {
 } from '@/types/prices';
 
 const ASSET_TYPE_TO_CLASS: Record<string, AssetClass> = {
-  Stock: 'stock',
+  Shares: 'stock',
+  RSUs: 'stock',
+  Stock: 'stock', // legacy DB / cache
   RSU: 'stock',
   Crypto: 'crypto',
+  Super: 'super',
   Superannuation: 'super',
+  'Other asset': 'stock',
   'Other Investments': 'stock',
-  Investments: 'stock', // legacy; DB migrated to Other Investments
+  Investments: 'stock',
+  Other: 'stock',
 };
 
-/** Map asset type (e.g. Stock, RSU, Superannuation) to price cache asset_class */
+/** Map asset type (e.g. Shares, RSUs, Super) to price cache asset_class */
 export function mapAssetTypeToPriceAssetClass(assetType: string): AssetClass | null {
   const mapped = ASSET_TYPE_TO_CLASS[assetType];
   return mapped ?? null;
@@ -219,12 +224,12 @@ export async function triggerManualRefresh(
 ): Promise<{ success: boolean; error?: string }> {
   const token = await getToken();
   if (!token) {
-    return { success: false, error: 'Authentication required' };
+    return { success: false, error: 'Your session has expired. Sign in to continue.' };
   }
 
   const userId = await getUserIdFromToken(getToken);
   if (!userId) {
-    return { success: false, error: 'Authentication required' };
+    return { success: false, error: 'Your session has expired. Sign in to continue.' };
   }
 
   const availability = await getManualRefreshAvailability(getToken, userId);

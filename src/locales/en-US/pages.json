@@ -1,0 +1,124 @@
+{
+  "overviewSubtitle": "Your wealth, at a glance",
+  "overviewDocumentTitle": "Overview · Supafolio",
+  "holdingsSubtitle": "What you own and what you owe",
+  "holdingsDocumentTitle": "Holdings · Supafolio",
+  "activitySubtitle": "Your transaction history",
+  "activityDocumentTitle": "Activity · Supafolio",
+  "recurringSubtitle": "Your regular money in and out",
+  "recurringDocumentTitle": "Recurring · Supafolio",
+  "allocateSubtitle": "Your pay day plan",
+  "allocateSubtitleActive": "Here's your plan for {{date}}.",
+  "allocateSubtitleUpcoming": "Your next plan is ready.",
+  "allocateSubtitleEditing": "Adjusting your plan",
+  "allocateDocumentTitle": "Allocate · Supafolio",
+  "allocate": {
+    "editContextNote": "Changes here update this plan only. To make permanent changes, go to",
+    "editContextNoteLinkText": "Recurring",
+    "saveCta": "Update plan",
+    "sections": {
+      "committed": "Committed",
+      "surplus": "Surplus",
+      "requiredRepayments": "Required repayments",
+      "paydayPlan": "Pay day plan"
+    },
+    "tooltips": {
+      "committed": "Expenses set up in Recurring that fall within this pay cycle.",
+      "surplus": "What's left after your committed expenses are covered.",
+      "paydayPlan": "Built from your income frequency and next payment date."
+    },
+    "shortfall": {
+      "label": "Shortfall",
+      "message": "Your committed expenses exceed your income this cycle. Review your amounts in Recurring.",
+      "cta": "Go to Recurring →"
+    },
+    "upcoming": {
+      "heading": "Your next plan",
+      "arrivalLabel": "{{incomeName}} arrives {{day}} · {{date}}",
+      "previewLabel": "Here's what's lined up",
+      "helper": "Amounts based on your current Recurring setup."
+    },
+    "surplusDestination": {
+      "unsetPrompt": "Where should this go?",
+      "setHelper": "Your surplus will be allocated here in your plan. Change this any time."
+    }
+  },
+  "whatYouOwn": "What you own",
+  "whatYouOwe": "What you owe",
+  "budgetBreakdownTile": {
+    "title": "This pay cycle",
+    "incomeArriving": "Income arriving",
+    "committedExpenses": "Committed expenses",
+    "surplus": "Surplus",
+    "setUpIncomeHint": "Set up income to get started",
+    "openAllocate": "Open Allocate →",
+    "emptyDescription": "Add income and expenses to see your pay cycle breakdown."
+  },
+  "netWorth": {
+    "holdingSteady": "Holding steady this month",
+    "upThisMonth": "+{{amount}} this month",
+    "downThisMonth": "−{{amount}} this month",
+    "privacyAmount": "••••"
+  },
+  "emptyStates": {
+    "netWorthNoHoldings": {
+      "headline": "Your net worth starts here.",
+      "body": "Add your assets and liabilities — property, shares, super, loans — and Supafolio will track how your wealth grows over time.",
+      "cta": "Add my first asset →",
+      "ctaAriaLabel": "Add my first asset"
+    },
+    "holdingsNoAssets": {
+      "headline": "Everything you own and owe, in one place.",
+      "body": "Add your assets — property, shares, RSUs, super, crypto — and your liabilities — home loans, car loans, credit cards. Supafolio tracks the full picture.",
+      "cta": "Add my first asset →",
+      "ctaAriaLabel": "Add my first asset"
+    },
+    "holdingsNoLiabilities": {
+      "body": "Add your loans and liabilities to see your true net worth.",
+      "cta": "Add a liability →",
+      "ctaAriaLabel": "Add a liability"
+    },
+    "holdingsAssetTabEmpty": "Add a {{category}} holding so it appears in this group.",
+    "holdingsLiabilityTabEmpty": "Add a {{category}} liability so it appears in this group.",
+    "budgetNoIncome": {
+      "body": "Add an income source so Supafolio can calculate your surplus.",
+      "cta": "Add income"
+    },
+    "budgetNoExpenses": {
+      "body": "Add your regular commitments to complete your plan.",
+      "cta": "Add an expense"
+    },
+    "budgetNoExpensesNeedIncome": {
+      "body": "Add an income source so Supafolio can calculate your surplus.",
+      "cta": "Add income"
+    },
+    "allocateNoIncome": {
+      "headline": "Your plan starts with your income.",
+      "body": "Tell Supafolio when money arrives and Allocate will show you exactly where it needs to go.",
+      "cta": "Set up my income →",
+      "ctaAriaLabel": "Set up my income"
+    },
+    "allocateNoExpenses": {
+      "headline": "Almost there.",
+      "body": "Add your regular commitments and Supafolio will show you your surplus — and where to put it.",
+      "cta": "Add my expenses →",
+      "ctaAriaLabel": "Add my expenses"
+    },
+    "allocateNoSuggestionsFallback": {
+      "body": "When income lands in one account and bills come from another, Supafolio will show the transfers that keep you covered."
+    }
+  },
+  "snaptrade": {
+    "trustCredentialsNote": "Your login credentials are never stored in Supafolio.",
+    "syncErrorWithName": "Couldn't sync {{brokerage}}. Your connection may have expired — reconnect to fix this.",
+    "syncErrorGeneric": "Couldn't sync your brokerage. Your connection may have expired — reconnect to fix this.",
+    "reconnectCta": "Reconnect →",
+    "disconnectCta": "Disconnect brokerage sync",
+    "disconnectTitle": "Disconnect {{brokerage}}?",
+    "disconnectTitleFallback": "Disconnect brokerage?",
+    "disconnectBody": "This will remove automatic sync for this account. Your existing balance data will be kept.",
+    "disconnectConfirm": "Disconnect",
+    "disconnectSuccessToast": "Automatic brokerage sync is off for this holding.",
+    "disconnectErrorToast": "Could not disconnect brokerage sync. Try again."
+  }
+}

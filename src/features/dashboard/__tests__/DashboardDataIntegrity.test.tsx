@@ -188,7 +188,7 @@ describe('Dashboard Data Integrity', () => {
       const initialAsset: Asset = {
         id: 'asset-1',
         name: 'House',
-        type: 'Real Estate',
+        type: 'Property',
         value: 500000,
         change1D: 0,
         change1W: 0,
@@ -251,7 +251,7 @@ describe('Dashboard Data Integrity', () => {
       const initialAsset: Asset = {
         id: 'asset-1',
         name: 'House',
-        type: 'Real Estate',
+        type: 'Property',
         value: 500000,
         change1D: 0,
         change1W: 0,
@@ -317,7 +317,7 @@ describe('Dashboard Data Integrity', () => {
       const initialAsset: Asset = {
         id: 'asset-1',
         name: 'House',
-        type: 'Real Estate',
+        type: 'Property',
         value: 500000,
         change1D: 0,
         change1W: 0,
@@ -382,7 +382,7 @@ describe('Dashboard Data Integrity', () => {
       const initialAsset: Asset = {
         id: 'asset-1',
         name: 'House',
-        type: 'Real Estate',
+        type: 'Property',
         value: 500000,
         change1D: 0,
         change1W: 0,
@@ -484,7 +484,7 @@ describe('Dashboard Data Integrity', () => {
       const initialAsset: Asset = {
         id: 'asset-1',
         name: 'House',
-        type: 'Real Estate',
+        type: 'Property',
         value: 500000,
         change1D: 0,
         change1W: 0,

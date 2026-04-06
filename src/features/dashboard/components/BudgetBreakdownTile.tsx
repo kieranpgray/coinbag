@@ -1,4 +1,5 @@
 import { memo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
@@ -6,6 +7,7 @@ import { Link } from 'react-router-dom';
 import { PrivacyWrapper } from '@/components/shared/PrivacyWrapper';
 import { StatusIndicator } from '@/components/shared/StatusIndicator';
 import { cn } from '@/lib/utils';
+import { ROUTES } from '@/lib/constants/routes';
 
 interface BudgetBreakdownTileProps {
   totalIncome: number; // monthly equivalent
@@ -13,14 +15,15 @@ interface BudgetBreakdownTileProps {
   totalSavings: number; // monthly equivalent (for display only, already included in totalExpenses)
   totalRepayments: number; // monthly equivalent (for display only, already included in totalExpenses)
   remaining: number; // monthly equivalent
+  /** When false, show pay-cycle setup hint under the tile title */
+  hasPayCycle?: boolean;
   isLoading?: boolean;
   isEmpty?: boolean;
 }
 
 /**
- * In and Out tile component for dashboard
- * Displays Income, Outgoing (all expenses), and Remaining with status indicators
- * Always shows monthly values (no frequency selector)
+ * Pay cycle tile for dashboard (monthly equivalents).
+ * Shows income, committed expenses, and surplus with status indicators.
  */
 export const BudgetBreakdownTile = memo(function BudgetBreakdownTile({
   totalIncome,
@@ -28,9 +31,12 @@ export const BudgetBreakdownTile = memo(function BudgetBreakdownTile({
   totalSavings: _totalSavings,
   totalRepayments: _totalRepayments,
   remaining,
+  hasPayCycle = true,
   isLoading,
   isEmpty,
 }: BudgetBreakdownTileProps) {
+  const { t } = useTranslation('pages');
+  const showPayCycleFallback = hasPayCycle === false;
   const totalOutgoing = totalExpenses;
 
   if (isLoading) {
@@ -53,9 +59,11 @@ export const BudgetBreakdownTile = memo(function BudgetBreakdownTile({
       <Card className="border border-border">
         <CardContent className="p-0">
           <div className="p-4">
-            <h2 className="text-h2-sm sm:text-h2-md lg:text-h2-lg font-semibold text-foreground mb-4">In and Out</h2>
+            <h2 className="text-h2-sm sm:text-h2-md lg:text-h2-lg font-semibold text-foreground mb-4">
+              {t('budgetBreakdownTile.title')}
+            </h2>
             <p className="text-body text-muted-foreground mb-4">
-              Add income and expenses to see your in and out breakdown.
+              {t('budgetBreakdownTile.emptyDescription')}
             </p>
             <div className="flex gap-2">
               <Button asChild size="sm">
@@ -76,15 +84,18 @@ export const BudgetBreakdownTile = memo(function BudgetBreakdownTile({
       <CardContent className="p-0">
         <div className="p-4">
           <h2 className="text-h2-sm sm:text-h2-md lg:text-h2-lg font-semibold text-foreground">
-            In and Out
+            {t('budgetBreakdownTile.title')}
           </h2>
+          {showPayCycleFallback ? (
+            <p className="text-sm text-muted-foreground mt-1">{t('budgetBreakdownTile.setUpIncomeHint')}</p>
+          ) : null}
         </div>
 
         <div className="px-4 pb-4 space-y-3">
           <div className="rounded-[var(--rl)] border border-border bg-card px-6 py-5 metric-tile">
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0">
-                <div className="metric-label">Income</div>
+                <div className="metric-label">{t('budgetBreakdownTile.incomeArriving')}</div>
                 <div className="metric-value">
                   <PrivacyWrapper value={totalIncome} />
                 </div>
@@ -96,7 +107,7 @@ export const BudgetBreakdownTile = memo(function BudgetBreakdownTile({
           <div className="rounded-[var(--rl)] border border-border bg-card px-6 py-5 metric-tile">
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0">
-                <div className="metric-label">Outgoing</div>
+                <div className="metric-label">{t('budgetBreakdownTile.committedExpenses')}</div>
                 <div className="metric-value">
                   -<PrivacyWrapper value={totalOutgoing} />
                 </div>
@@ -108,7 +119,7 @@ export const BudgetBreakdownTile = memo(function BudgetBreakdownTile({
           <div className="rounded-[var(--rl)] border border-border bg-card px-6 py-5 metric-tile">
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0">
-                <div className="metric-label">Remaining</div>
+                <div className="metric-label">{t('budgetBreakdownTile.surplus')}</div>
                 <div className={cn('metric-value', remaining >= 0 ? 'positive' : 'negative')}>
                   <PrivacyWrapper value={remaining} />
                 </div>
@@ -119,6 +130,12 @@ export const BudgetBreakdownTile = memo(function BudgetBreakdownTile({
                 className="shrink-0 mt-1"
               />
             </div>
+          </div>
+
+          <div className="pt-1">
+            <Button variant="link" className="h-auto p-0 text-muted-foreground" asChild>
+              <Link to={ROUTES.app.transfers}>{t('budgetBreakdownTile.openAllocate')}</Link>
+            </Button>
           </div>
         </div>
       </CardContent>

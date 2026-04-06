@@ -141,7 +141,7 @@ describe('P0 Persistence Verification', () => {
       const { result: createAssetResult } = renderHook(() => useCreateAsset(), { wrapper });
       createAssetResult.current.mutate({
         name: 'House',
-        type: 'Real Estate',
+        type: 'Property',
         value: 500000,
         change1D: 0,
         change1W: 0,
@@ -171,7 +171,7 @@ describe('P0 Persistence Verification', () => {
       const baselineAsset: Asset = {
         id: 'asset-1',
         name: 'House',
-        type: 'Real Estate',
+        type: 'Property',
         value: 500000,
         change1D: 0,
         change1W: 0,
@@ -222,7 +222,7 @@ describe('P0 Persistence Verification', () => {
       const baselineAsset: Asset = {
         id: 'asset-1',
         name: 'House',
-        type: 'Real Estate',
+        type: 'Property',
         value: 500000,
         change1D: 0,
         change1W: 0,
@@ -322,7 +322,7 @@ describe('P0 Persistence Verification', () => {
       const baselineAsset: Asset = {
         id: 'asset-1',
         name: 'House',
-        type: 'Real Estate',
+        type: 'Property',
         value: 500000,
         change1D: 0,
         change1W: 0,
@@ -385,7 +385,7 @@ describe('P0 Persistence Verification', () => {
       const baselineAsset: Asset = {
         id: 'asset-1',
         name: 'House',
-        type: 'Real Estate',
+        type: 'Property',
         value: 500000,
         change1D: 0,
         change1W: 0,
@@ -490,7 +490,7 @@ describe('P0 Persistence Verification', () => {
       const baselineAsset: Asset = {
         id: 'asset-1',
         name: 'House',
-        type: 'Real Estate',
+        type: 'Property',
         value: 500000,
         change1D: 0,
         change1W: 0,
@@ -525,7 +525,7 @@ describe('P0 Persistence Verification', () => {
       const baselineAsset: Asset = {
         id: 'asset-1',
         name: 'House',
-        type: 'Real Estate',
+        type: 'Property',
         value: 500000,
         change1D: 0,
         change1W: 0,
@@ -565,7 +565,7 @@ describe('P0 Persistence Verification', () => {
       const baselineAsset: Asset = {
         id: 'asset-1',
         name: 'House',
-        type: 'Real Estate',
+        type: 'Property',
         value: 500000,
         change1D: 0,
         change1W: 0,

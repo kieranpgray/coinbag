@@ -1,7 +1,8 @@
 {
-  "generic": "An error occurred",
-  "networkError": "Network error. Please check your connection.",
-  "authError": "Authentication required. Please sign in again.",
+  "generic": "That didn't work. Try again — and if it keeps happening, contact support.",
+  "networkError": "No connection. Check your internet and try again.",
+  "authError": "Your session has expired. Sign in to continue.",
+  "saveFailed": "Couldn't save your changes. Try again.",
   "permissionDenied": "You do not have permission to perform this action.",
   "validationError": "Please check your input and try again.",
   "notFound": "Resource not found",
@@ -20,4 +21,3 @@
   "fileAlreadyInQueue": "{{fileName}} is already in the queue",
   "fileError": "{{fileName}}: {{error}}"
 }
-

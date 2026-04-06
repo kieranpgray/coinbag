@@ -6,6 +6,8 @@
 export const ROUTES = {
   // Root routes
   root: '/',
+  /** Public design system doc (no app chrome); not linked from in-app navigation */
+  designSystem: '/designsystem',
   pricing: '/pricing',
   signIn: '/sign-in',
   signUp: '/sign-up',
@@ -48,11 +50,11 @@ export const ROUTES = {
  * Centralized here to keep navigation consistent
  */
 export const NAVIGATION_ITEMS = [
-  { name: 'Dashboard', path: ROUTES.app.dashboard },
-  { name: 'Accounts', path: ROUTES.app.accounts },
-  { name: 'Wealth', path: ROUTES.app.wealth },
-  { name: 'Budget', path: ROUTES.app.budget },
-  { name: 'Transfers', path: ROUTES.app.transfers },
+  { name: 'Overview', path: ROUTES.app.dashboard },
+  { name: 'Activity', path: ROUTES.app.accounts },
+  { name: 'Holdings', path: ROUTES.app.wealth },
+  { name: 'Recurring', path: ROUTES.app.budget },
+  { name: 'Allocate', path: ROUTES.app.transfers },
   { name: 'Settings', path: ROUTES.app.settings },
 ] as const;
 
@@ -72,3 +74,16 @@ export const toAppRoute = (path: string): string => {
   }
   return `/app${path}`;
 };
+
+/** Public marketing + legal paths: always light document theme (ignore system + saved theme). Keep in sync with `src/routes/index.tsx`. */
+const MARKETING_LIGHT_LOCKED_PATHS = new Set<string>([
+  ROUTES.root,
+  ROUTES.pricing,
+  '/security',
+  '/privacy',
+  '/terms',
+]);
+
+export function isMarketingLightLockedPath(pathname: string): boolean {
+  return MARKETING_LIGHT_LOCKED_PATHS.has(pathname);
+}

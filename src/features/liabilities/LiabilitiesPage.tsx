@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
+import { toast } from 'sonner';
 import {
   useLiabilities,
   useCreateLiability,
@@ -158,10 +159,12 @@ export function LiabilitiesPage() {
         if (import.meta.env.VITE_DEBUG_LOGGING === 'true') {
           logger.debug('LIABILITY:CREATE', 'Success - closing modal');
         }
+        toast.success(`${data.name} added to Holdings.`);
         setCreateModalOpen(false);
       },
       onError: (error) => {
         logger.error('LIABILITY:CREATE', 'Failed to create liability', { error });
+        toast.error("Couldn't save your changes. Try again.");
       },
     });
   };
@@ -173,12 +176,17 @@ export function LiabilitiesPage() {
 
   const handleUpdate = (data: Partial<Liability>) => {
     if (!selectedLiability) return;
+    const name = selectedLiability.name;
     updateMutation.mutate(
       { id: selectedLiability.id, data },
       {
         onSuccess: () => {
+          toast.success(`${name} updated.`);
           setEditModalOpen(false);
           setSelectedLiability(null);
+        },
+        onError: () => {
+          toast.error("Couldn't save your changes. Try again.");
         },
       }
     );
@@ -191,19 +199,27 @@ export function LiabilitiesPage() {
 
   const handleConfirmDelete = () => {
     if (!selectedLiability) return;
+    const name = selectedLiability.name;
     deleteMutation.mutate(selectedLiability.id, {
       onSuccess: () => {
+        toast.success(`${name} removed.`);
         setDeleteDialogOpen(false);
         setSelectedLiability(null);
+      },
+      onError: () => {
+        toast.error("Couldn't save your changes. Try again.");
       },
     });
   };
 
   const liabilityCategories: Array<{ value: string; label: string }> = [
     { value: 'all', label: 'All' },
-    { value: 'Loans', label: 'Loans' },
-    { value: 'Credit Cards', label: 'Credit Cards' },
-    { value: 'Other', label: 'Other' },
+    { value: 'Home loan', label: 'Home loan' },
+    { value: 'Personal loan', label: 'Personal loan' },
+    { value: 'Car loan', label: 'Car loan' },
+    { value: 'Credit card', label: 'Credit card' },
+    { value: 'HECS / HELP debt', label: 'HECS / HELP debt' },
+    { value: 'Other liability', label: 'Other liability' },
   ];
 
   if (isLoading) {
@@ -238,7 +254,7 @@ export function LiabilitiesPage() {
           <Button onClick={() => {
             logger.info(
               'NAV:LIABILITIES_BUTTON_CLICK',
-              'Add New Liability button clicked',
+              'Add a liability button clicked',
               {
                 createModalOpenBefore: createModalOpen,
               },
@@ -247,7 +263,7 @@ export function LiabilitiesPage() {
             setCreateModalOpen(true);
           }} className="w-full sm:w-auto">
             <Plus className="h-4 w-4 mr-2" />
-            Add New Liability
+            Add a liability
           </Button>
           <ViewModeToggle viewMode={viewMode} onViewModeChange={setViewMode} />
         </div>
@@ -281,9 +297,13 @@ export function LiabilitiesPage() {
                         <p className="text-muted-foreground">
                           No liabilities found. Add your first liability to track debts and payments.
                         </p>
-                        <Button onClick={() => setCreateModalOpen(true)} size="sm">
+                        <Button
+                          onClick={() => setCreateModalOpen(true)}
+                          size="sm"
+                          aria-label="Add a liability instead"
+                        >
                           <Plus className="h-4 w-4 mr-2" />
-                          Add Your First Liability
+                          Add a liability instead →
                         </Button>
                       </div>
                     </CardContent>

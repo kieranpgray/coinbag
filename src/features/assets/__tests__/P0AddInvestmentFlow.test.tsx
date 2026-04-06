@@ -93,7 +93,7 @@ describe('P0: Add Investment Flow Never Deletes Assets', () => {
     const existingAsset: Asset = {
       id: 'asset-1',
       name: 'My House',
-      type: 'Real Estate',
+      type: 'Property',
       value: 500000,
       change1D: 0,
       change1W: 0,
@@ -146,7 +146,7 @@ describe('P0: Add Investment Flow Never Deletes Assets', () => {
     const existingAsset: Asset = {
       id: 'asset-1',
       name: 'My House',
-      type: 'Real Estate',
+      type: 'Property',
       value: 500000,
       change1D: 0,
       change1W: 0,
@@ -193,7 +193,7 @@ describe('P0: Add Investment Flow Never Deletes Assets', () => {
     const existingAsset: Asset = {
       id: 'asset-1',
       name: 'My House',
-      type: 'Real Estate',
+      type: 'Property',
       value: 500000,
       change1D: 0,
       change1W: 0,

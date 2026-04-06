@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useEffect } from 'react';
 import { useDashboard } from '@/features/dashboard/hooks';
 import { useQuery } from '@tanstack/react-query';
 import { marketApi } from '@/lib/api';
@@ -18,6 +18,7 @@ import { Button } from '@/components/ui/button';
 import { RefreshCw, AlertTriangle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { usePayCycle } from '@/features/transfers/hooks';
 import { useIncomes } from '@/features/income/hooks';
 import { useCategories } from '@/features/categories/hooks';
 import { calculateMonthlyIncome } from '@/features/budget/utils/calculations';
@@ -25,7 +26,9 @@ import { calculateMonthlyEquivalent } from '@/features/expenses/utils';
 import { findUncategorisedCategoryId } from '@/data/categories/ensureDefaults';
 import { filterByExpenseType } from '@/features/budget/utils/filtering';
 import { ManualRefreshButton } from '@/components/shared/ManualRefreshButton';
+import { PrivacyModeToggle } from '@/components/shared/PrivacyModeToggle';
 import type { AssetBreakdown, LiabilityBreakdown } from '@/types/domain';
+import { ROUTES } from '@/lib/constants/routes';
 
 function calculateAssetBreakdown(assets: { type: string; value: number }[]): AssetBreakdown[] {
   const total = assets.reduce((sum, asset) => sum + asset.value, 0);
@@ -80,7 +83,8 @@ function calculateLiabilityBreakdown(
 }
 
 export function DashboardPage() {
-  const { t } = useTranslation(['dashboard', 'common']);
+  const { t } = useTranslation(['dashboard', 'common', 'pages', 'navigation']);
+  const { payCycle, isLoading: payCycleLoading } = usePayCycle();
   const { data: dashboardData, isLoading: dashboardLoading, error: dashboardError, refetch: refetchDashboard } = useDashboard();
   const { data: marketData, isLoading: marketLoading, error: marketError, refetch: refetchMarket } = useQuery({
     queryKey: ['market'],
@@ -181,11 +185,18 @@ export function DashboardPage() {
     return hasIncome || hasExpenses;
   }, [hasIncome, hasExpenses]);
 
+  useEffect(() => {
+    document.title = t('overviewDocumentTitle', { ns: 'pages' });
+    return () => {
+      document.title = 'Supafolio';
+    };
+  }, [t]);
+
   const priceBackedAssets = useMemo(
     () =>
       assets.filter((a) => {
         if (!a.ticker?.trim()) return false;
-        return ['Stock', 'RSU', 'Crypto', 'Other Investments', 'Superannuation'].includes(a.type);
+        return ['Shares', 'RSUs', 'Crypto', 'Other asset', 'Super'].includes(a.type);
       }),
     [assets]
   );
@@ -211,7 +222,9 @@ export function DashboardPage() {
   if (hasError) {
     return (
       <div className="space-y-6">
-        <h2 className="text-h1-sm sm:text-h1-md lg:text-h1-lg font-bold">Dashboard</h2>
+        <h2 className="text-h1-sm sm:text-h1-md lg:text-h1-lg font-bold">
+          {t('dashboard', { ns: 'navigation' })}
+        </h2>
         <Alert>
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>Unable to load dashboard</AlertTitle>
@@ -271,10 +284,20 @@ export function DashboardPage() {
     <div className="space-y-6">
         {/* Header section with greeting */}
         <header className="flex flex-wrap items-center justify-between gap-2">
-          <h1 className="text-h1-sm sm:text-h1-md lg:text-h1-lg font-bold">Dashboard</h1>
-          {priceBackedAssets.length > 0 && (
-            <ManualRefreshButton assets={priceBackedAssets} showLabel={false} size="icon" />
-          )}
+          <div>
+            <h1 className="text-h1-sm sm:text-h1-md lg:text-h1-lg font-bold">
+              {t('dashboard', { ns: 'navigation' })}
+            </h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              {t('overviewSubtitle', { ns: 'pages' })}
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <PrivacyModeToggle />
+            {priceBackedAssets.length > 0 && (
+              <ManualRefreshButton assets={priceBackedAssets} showLabel={false} size="icon" />
+            )}
+          </div>
         </header>
 
         {/* Setup Progress - pinned sidebar overlay */}
@@ -318,6 +341,7 @@ export function DashboardPage() {
           totalSavings={totalMonthlySavings}
           totalRepayments={totalMonthlyRepayments}
           remaining={remaining}
+          hasPayCycle={payCycleLoading ? true : Boolean(payCycle)}
           isLoading={isLoading}
           isEmpty={!hasBudgetData}
         />
@@ -353,7 +377,7 @@ export function DashboardPage() {
                     Add investments to see news related to your holdings.
                   </p>
                   <Button asChild size="sm">
-                    <Link to="/app/wealth?create=asset&type=Other Investments">Add investment</Link>
+                    <Link to={ROUTES.wealth.createAsset('Other asset')}>Add investment</Link>
                   </Button>
                 </>
               ) : (

@@ -86,7 +86,9 @@ export function UploadFileList({ files, onRemoveFile, disabled = false, compact 
                   <div className="flex flex-col gap-1.5 w-full">
                     <div className="flex items-center gap-1.5">
                       <Loader2 className="h-3 w-3 animate-spin text-blue-600" />
-                      <span className="text-caption text-blue-600 font-medium">Analyzing statement...</span>
+                      <span className="text-caption text-blue-600 font-medium">
+                        Processing your statement...
+                      </span>
                       {fileWithStatus.progress !== undefined && (
                         <span className="text-caption text-muted-foreground ml-auto">
                           {fileWithStatus.progress}%
@@ -104,11 +106,6 @@ export function UploadFileList({ files, onRemoveFile, disabled = false, compact 
                     {fileWithStatus.transactionCount !== undefined && fileWithStatus.transactionCount > 0 && (
                       <span className="text-caption text-muted-foreground">
                         {fileWithStatus.transactionCount} transaction{fileWithStatus.transactionCount !== 1 ? 's' : ''} found so far
-                      </span>
-                    )}
-                    {fileWithStatus.processingStatus && (
-                      <span className="text-caption text-muted-foreground capitalize">
-                        {fileWithStatus.processingStatus === 'processing' ? 'Extracting transactions...' : fileWithStatus.processingStatus}
                       </span>
                     )}
                   </div>

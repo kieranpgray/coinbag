@@ -27,8 +27,8 @@ export function CreateAssetModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
-          <DialogTitle>Add New Asset</DialogTitle>
-          <DialogDescription>Create a new asset to track in your portfolio.</DialogDescription>
+          <DialogTitle>Add an asset</DialogTitle>
+          <DialogDescription>Track a new asset in your Holdings.</DialogDescription>
         </DialogHeader>
         <AssetForm 
           onSubmit={onSubmit} 

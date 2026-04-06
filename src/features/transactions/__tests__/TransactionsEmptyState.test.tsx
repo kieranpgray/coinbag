@@ -12,14 +12,10 @@ describe('TransactionsPage Empty State', () => {
     );
   };
 
-  it('shows empty state with CTA to accounts', () => {
+  it('shows redirect message while navigating to activity', () => {
     renderTransactions();
 
-    expect(screen.getByText('No transactions yet')).toBeInTheDocument();
-    expect(
-      screen.getByText(/Transactions will appear once you connect accounts/)
-    ).toBeInTheDocument();
-    expect(screen.getByText('Go to Accounts')).toBeInTheDocument();
+    expect(screen.getByText('Redirecting to Activity...')).toBeInTheDocument();
   });
 });
 

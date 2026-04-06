@@ -128,7 +128,7 @@ describe('P0 Data Loss Reproduction', () => {
     const baselineAsset: Asset = {
       id: 'asset-baseline-1',
       name: 'Baseline House',
-      type: 'Real Estate',
+      type: 'Property',
       value: 500000,
       change1D: 0,
       change1W: 0,

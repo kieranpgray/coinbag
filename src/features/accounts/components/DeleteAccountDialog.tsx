@@ -1,12 +1,4 @@
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
+import { ConfirmDestructiveDialog } from '@/components/shared/ConfirmDestructiveDialog';
 import type { Account } from '@/types/domain';
 
 interface DeleteAccountDialogProps {
@@ -27,29 +19,14 @@ export function DeleteAccountDialog({
   if (!account) return null;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Delete Account</DialogTitle>
-          <DialogDescription>
-            Are you sure you want to delete <strong>{account.accountName}</strong>? This action cannot be
-            undone.
-          </DialogDescription>
-        </DialogHeader>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>
-            Cancel
-          </Button>
-          <Button variant="destructive" onClick={onConfirm} disabled={isLoading}>
-            {isLoading ? 'Deleting...' : 'Delete'}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+    <ConfirmDestructiveDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title="Remove this account?"
+      body={`This will remove ${account.accountName} and all associated data. This can't be undone.`}
+      confirmLabel="Remove account"
+      onConfirm={onConfirm}
+      isLoading={isLoading}
+    />
   );
 }
-
-
-
-
-

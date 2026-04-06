@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import { NetWorthCard } from '../NetWorthCard';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { LocaleProvider } from '@/contexts/LocaleContext';
@@ -34,11 +35,13 @@ const queryClient = new QueryClient({
 
 function Wrapper({ children }: { children: React.ReactNode }) {
   return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider>
-        <LocaleProvider>{children}</LocaleProvider>
-      </ThemeProvider>
-    </QueryClientProvider>
+    <MemoryRouter initialEntries={['/app/dashboard']}>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider>
+          <LocaleProvider>{children}</LocaleProvider>
+        </ThemeProvider>
+      </QueryClientProvider>
+    </MemoryRouter>
   );
 }
 

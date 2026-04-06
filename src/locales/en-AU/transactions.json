@@ -4,6 +4,12 @@
   "unableToLoadDescription": "We couldn't load transactions for this account. Please try again.",
   "noTransactionsYet": "No transactions yet",
   "noTransactionsDescription": "Transactions will appear here once they are imported or added for this account.",
+  "emptyState": {
+    "headline": "No transactions yet.",
+    "body": "Upload a bank statement to see your transaction history.",
+    "cta": "Upload a statement",
+    "ctaAriaLabel": "Upload a statement"
+  },
   "tableHeaders": {
     "date": "Date",
     "description": "Description",

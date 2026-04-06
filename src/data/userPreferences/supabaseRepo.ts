@@ -457,7 +457,7 @@ export class SupabaseUserPreferencesRepository implements UserPreferencesReposit
         getCorrelationId() || undefined
       );
       
-      return { error: 'Authentication required. Please sign in again', code: 'AUTH_ERROR' };
+      return { error: 'Your session has expired. Sign in to continue.', code: 'AUTH_ERROR' };
     }
 
     return { error: error.hint || error.message || 'Supabase error', code: error.code || 'UNKNOWN' };

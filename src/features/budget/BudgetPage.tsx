@@ -1,4 +1,6 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
+import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
 import { useIncomes, useCreateIncome, useUpdateIncome, useDeleteIncome } from '@/features/income/hooks';
 import { useExpenses } from '@/features/expenses/hooks';
@@ -42,6 +44,7 @@ import { format } from 'date-fns';
 import { CreateExpenseModal } from '@/features/expenses/components/CreateExpenseModal';
 import { EditExpenseModal } from '@/features/expenses/components/EditExpenseModal';
 import { DeleteExpenseDialog } from '@/features/expenses/components/DeleteExpenseDialog';
+import { ConfirmDestructiveDialog } from '@/components/shared/ConfirmDestructiveDialog';
 import { findCategoryIdByExpenseType } from './utils/categoryMapping';
 import type { ExpenseType } from './utils/expenseTypeMapping';
 import { getExpenseType } from './utils/expenseTypeMapping';
@@ -68,6 +71,15 @@ type IncomeFormData = z.infer<typeof incomeSchema>;
  * Unified view for income and expenses
  */
 export function BudgetPage() {
+  const { t } = useTranslation(['pages', 'navigation']);
+
+  useEffect(() => {
+    document.title = t('recurringDocumentTitle', { ns: 'pages' });
+    return () => {
+      document.title = 'Supafolio';
+    };
+  }, [t]);
+
   // Data hooks
   const { data: incomes = [], isLoading: incomesLoading, error: incomesError, refetch: refetchIncomes } = useIncomes();
   const { data: expenses = [], isLoading: expensesLoading, error: expensesError, refetch: refetchExpenses } = useExpenses();
@@ -226,6 +238,7 @@ export function BudgetPage() {
 
     createIncomeMutation.mutate(payload, {
       onSuccess: () => {
+        toast.success('Income source added.');
         setCreateIncomeModalOpen(false);
         setCreateIncomeError(null);
         resetIncome();
@@ -288,7 +301,11 @@ export function BudgetPage() {
     if (!deletingIncome) return;
     deleteIncomeMutation.mutate(deletingIncome.id, {
       onSuccess: () => {
+        toast.success('Income source removed.');
         setDeletingIncome(null);
+      },
+      onError: () => {
+        toast.error("Couldn't save your changes. Try again.");
       },
     });
   };
@@ -396,7 +413,12 @@ export function BudgetPage() {
     <div className="space-y-12">
       {/* Budget Header: title + Plan transfers link */}
       <div className="flex items-center justify-between">
-        <h1 className="text-h1-sm sm:text-h1-md lg:text-h1-lg font-bold tracking-tight">Budget</h1>
+        <div>
+          <h1 className="text-h1-sm sm:text-h1-md lg:text-h1-lg font-bold tracking-tight">
+            {t('budget', { ns: 'navigation' })}
+          </h1>
+          <p className="text-sm text-muted-foreground mt-1">{t('recurringSubtitle', { ns: 'pages' })}</p>
+        </div>
         <Button variant="ghost" size="sm" asChild className="text-muted-foreground hover:text-foreground">
           <Link to={ROUTES.app.transfers}>
             Plan transfers
@@ -415,7 +437,9 @@ export function BudgetPage() {
       )}
 
       <div className="rounded-lg border border-border bg-muted/30 px-4 py-3 flex items-center justify-between">
-        <span className="text-body-sm text-muted-foreground">Remaining</span>
+        <span className="text-body-sm text-muted-foreground">
+          {t('budgetBreakdownTile.surplus', { ns: 'pages' })}
+        </span>
         <span className={`text-body-lg font-semibold ${remaining >= 0 ? 'text-success' : 'text-error'}`}>
           {remaining >= 0 ? '' : '-'}{formatCurrency(Math.abs(remaining))}
         </span>
@@ -501,6 +525,8 @@ export function BudgetPage() {
           categoryMap={categoryMap}
           accountMap={accountMap}
           uncategorisedId={uncategorisedId}
+          hasIncome={incomes.length > 0}
+          onAddIncome={() => setCreateIncomeModalOpen(true)}
           onCreate={handleCreateExpense}
           onEdit={handleEditExpense}
           onDelete={handleDeleteExpense}
@@ -833,24 +859,15 @@ export function BudgetPage() {
 
       {/* Income Delete Dialog */}
       {deletingIncome && (
-        <Dialog open={!!deletingIncome} onOpenChange={(open) => !open && setDeletingIncome(null)}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Delete Income Source</DialogTitle>
-              <DialogDescription>
-                Are you sure you want to delete "{deletingIncome.name}"? This action cannot be undone.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="flex justify-end space-x-2 pt-4">
-              <Button variant="outline" onClick={() => setDeletingIncome(null)}>
-                Cancel
-              </Button>
-              <Button variant="destructive" onClick={handleConfirmDeleteIncome} disabled={deleteIncomeMutation.isPending}>
-                {deleteIncomeMutation.isPending ? 'Deleting...' : 'Delete'}
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+        <ConfirmDestructiveDialog
+          open={!!deletingIncome}
+          onOpenChange={(open) => !open && setDeletingIncome(null)}
+          title="Remove this income source?"
+          body={`This will remove ${deletingIncome.name} from your Recurring and Allocate plan.`}
+          confirmLabel="Remove income"
+          onConfirm={handleConfirmDeleteIncome}
+          isLoading={deleteIncomeMutation.isPending}
+        />
       )}
 
       {/* Expense Modals */}

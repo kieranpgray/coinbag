@@ -1,8 +1,11 @@
 import type { LucideIcon } from 'lucide-react';
 import {
-  FileText,
+  Home,
+  User,
+  Car,
   CreditCard,
-  Package,
+  GraduationCap,
+  FileText,
 } from 'lucide-react';
 import type { LiabilityBreakdown } from '@/types/domain';
 
@@ -11,9 +14,12 @@ import type { LiabilityBreakdown } from '@/types/domain';
  * Uses red theme hex values that work in both light and dark modes
  */
 const LIABILITY_TYPE_COLORS: Record<LiabilityBreakdown['category'], string> = {
-  Loans: 'var(--danger-tone-strong)',
-  'Credit Cards': 'var(--danger-tone-mid)',
-  Other: 'var(--danger-tone-light)',
+  'Home loan': 'var(--danger-tone-strong)',
+  'Personal loan': 'var(--danger-tone-strong)',
+  'Car loan': 'var(--danger-tone-mid)',
+  'Credit card': 'var(--danger-tone-mid)',
+  'HECS / HELP debt': 'var(--danger-tone-light)',
+  'Other liability': 'var(--danger-tone-light)',
 };
 
 /**
@@ -21,9 +27,12 @@ const LIABILITY_TYPE_COLORS: Record<LiabilityBreakdown['category'], string> = {
  * Uses Lucide React icons
  */
 const LIABILITY_TYPE_ICONS: Record<LiabilityBreakdown['category'], LucideIcon> = {
-  'Loans': FileText,
-  'Credit Cards': CreditCard,
-  'Other': Package,
+  'Home loan': Home,
+  'Personal loan': User,
+  'Car loan': Car,
+  'Credit card': CreditCard,
+  'HECS / HELP debt': GraduationCap,
+  'Other liability': FileText,
 };
 
 /**
@@ -52,15 +61,15 @@ export interface ListData {
  * Falls back to 'Other' color if type is not found
  */
 export function getLiabilityTypeColor(type: LiabilityBreakdown['category']): string {
-  return LIABILITY_TYPE_COLORS[type] ?? LIABILITY_TYPE_COLORS['Other'];
+  return LIABILITY_TYPE_COLORS[type] ?? LIABILITY_TYPE_COLORS['Other liability'];
 }
 
 /**
  * Get icon component for a liability type
- * Falls back to 'Other' icon if type is not found
+ * Falls back to 'Other liability' icon if type is not found
  */
 export function getLiabilityTypeIcon(type: LiabilityBreakdown['category']): LucideIcon {
-  return LIABILITY_TYPE_ICONS[type] ?? LIABILITY_TYPE_ICONS['Other'];
+  return LIABILITY_TYPE_ICONS[type] ?? LIABILITY_TYPE_ICONS['Other liability'];
 }
 
 /**
@@ -125,12 +134,10 @@ export function transformBreakdownForChart(breakdown: LiabilityBreakdown[]): Cha
 export function transformBreakdownForList(breakdown: LiabilityBreakdown[]): ListData[] {
   const normalized = normalizePercentages(breakdown);
 
-  // Sort by descending balance, but ensure "Other" appears last
+  // Sort by descending balance, but ensure "Other liability" appears last
   const sorted = [...normalized].sort((a, b) => {
-    // If one is "Other", it goes last
-    if (a.category === 'Other' && b.category !== 'Other') return 1;
-    if (b.category === 'Other' && a.category !== 'Other') return -1;
-    // Otherwise sort by balance descending
+    if (a.category === 'Other liability' && b.category !== 'Other liability') return 1;
+    if (b.category === 'Other liability' && a.category !== 'Other liability') return -1;
     return b.balance - a.balance;
   });
 

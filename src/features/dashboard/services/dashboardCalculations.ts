@@ -173,10 +173,10 @@ export const DashboardCalculations = {
       const totalLiabilities = liabilities.reduce((sum, liability) => sum + liability.balance, 0);
       const netWorth = totalAssets - totalLiabilities;
 
-      const holdingsAssets = assets.filter((a) => a.type === 'Other Investments' || a.type === 'Crypto' || a.type === 'Stock' || a.type === 'RSU');
+      const holdingsAssets = assets.filter((a) => a.type === 'Other asset' || a.type === 'Crypto' || a.type === 'Shares' || a.type === 'RSUs');
       const investments = holdingsAssets.reduce((sum, asset) => sum + asset.value, 0);
 
-      const superannuationAssets = assets.filter((a) => a.type === 'Superannuation');
+      const superannuationAssets = assets.filter((a) => a.type === 'Super');
       const superannuation = superannuationAssets.reduce((sum, asset) => sum + asset.value, 0);
 
       // Calculate total cash from both accounts and cash assets

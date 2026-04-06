@@ -35,8 +35,35 @@ const institutionSchema = z.preprocess(
     })
 );
 
-// Liability type enum
-const liabilityTypeSchema = z.enum(['Loans', 'Credit Cards', 'Other'], {
+// Stored values after Wave 3.2 migration (must match Postgres CHECK on liabilities.type)
+export const LIABILITY_TYPE_VALUES = [
+  'Home loan',
+  'Personal loan',
+  'Car loan',
+  'Credit card',
+  'HECS / HELP debt',
+  'Other liability',
+] as const;
+
+export type LiabilityTypeValue = (typeof LIABILITY_TYPE_VALUES)[number];
+
+/** Map pre-migration DB labels and unknown values so list/get stays resilient if migrations lag. */
+export function normalizeLiabilityTypeFromDb(raw: unknown): LiabilityTypeValue {
+  const s = raw === null || raw === undefined ? '' : String(raw).trim();
+  const legacy: Record<string, LiabilityTypeValue> = {
+    Loans: 'Home loan',
+    'Credit Cards': 'Credit card',
+    Other: 'Other liability',
+  };
+  if (legacy[s]) return legacy[s];
+  if ((LIABILITY_TYPE_VALUES as readonly string[]).includes(s)) {
+    return s as LiabilityTypeValue;
+  }
+  return 'Other liability';
+}
+
+// Liability type enum (API + forms)
+const liabilityTypeSchema = z.enum(LIABILITY_TYPE_VALUES, {
   errorMap: () => ({ message: 'Invalid liability type' }),
 });
 
@@ -173,7 +200,7 @@ export const liabilityEntitySchema = z.object({
   id: z.string().uuid('Invalid liability ID format'),
   userId: z.string().min(1, 'User ID is required'),
   name: liabilityNameSchema,
-  type: liabilityTypeSchema,
+  type: z.preprocess((val) => normalizeLiabilityTypeFromDb(val), liabilityTypeSchema),
   balance: balanceSchema,
   interestRate: nullableNumberSchema,
   monthlyPayment: nullableNumberSchema,

@@ -39,10 +39,8 @@ export function EditExpenseModal({ expense, open, onOpenChange, onCloseAfterSave
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Edit Expense</DialogTitle>
-          <DialogDescription>
-            Update the details of your expense.
-          </DialogDescription>
+          <DialogTitle>Edit expense</DialogTitle>
+          <DialogDescription>Update the details for this expense.</DialogDescription>
         </DialogHeader>
         <ExpenseForm
           defaultValues={expense}

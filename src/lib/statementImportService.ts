@@ -60,7 +60,7 @@ export async function processStatementImport(
     onProgress?.({
       stage: 'extracting',
       progress: 10,
-      message: 'Extracting text from statement...',
+      message: 'Processing your statement...',
     });
 
     let text: string;
@@ -94,7 +94,7 @@ export async function processStatementImport(
     onProgress?.({
       stage: 'parsing',
       progress: 40,
-      message: 'Parsing transactions...',
+      message: 'Processing your statement...',
     });
 
     const parseResult = parseStatementText(text);
@@ -121,7 +121,7 @@ export async function processStatementImport(
     onProgress?.({
       stage: 'validating',
       progress: 60,
-      message: 'Validating transactions...',
+      message: 'Processing your statement...',
     });
 
     let transactions = convertToTransactionCreate(

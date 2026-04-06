@@ -502,7 +502,7 @@ export class ImportService {
 
         // For Crypto/Stock lots: derive name from ticker (and optionally purchase_date) when name is empty
         let derivedName: string | undefined;
-        if ((typeVal === 'Crypto' || typeVal === 'Stock') && !nameVal && tickerVal) {
+        if ((typeVal === 'Crypto' || typeVal === 'Shares') && !nameVal && tickerVal) {
           derivedName = purchaseDateVal ? `${tickerVal} (${purchaseDateVal})` : tickerVal;
         }
 

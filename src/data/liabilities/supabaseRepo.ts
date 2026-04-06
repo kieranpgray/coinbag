@@ -8,6 +8,7 @@ import {
   liabilityEntitySchema,
   liabilityBalanceHistoryListSchema,
   LIABILITY_ERROR_CODES,
+  normalizeLiabilityTypeFromDb,
 } from '@/contracts/liabilities';
 import type { Liability, LiabilityBalanceHistory } from '@/types/domain';
 import { logger, getCorrelationId } from '@/lib/logger';
@@ -52,22 +53,40 @@ export class SupabaseLiabilitiesRepository implements LiabilitiesRepository {
     );
   }
 
+  /** PostgREST may return numeric columns as strings; coerce so Zod validation matches assets behaviour. */
+  private parseDbOptionalNumber(val: unknown): number | undefined {
+    if (val === null || val === undefined) return undefined;
+    if (typeof val === 'number') return Number.isFinite(val) ? val : undefined;
+    if (typeof val === 'string' && val.trim() !== '') {
+      const n = Number(val);
+      return Number.isFinite(n) ? n : undefined;
+    }
+    return undefined;
+  }
+
   /**
    * Maps database row (snake_case) to entity schema (camelCase)
    * Converts snake_case database columns to camelCase for entity schema validation
    */
   private mapDbRowToEntity(row: Record<string, unknown>): z.infer<typeof liabilityEntitySchema> {
+    const balance = this.parseDbOptionalNumber(row.balance);
     return {
       id: row.id as string,
       name: row.name as string,
-      type: row.type as 'Loans' | 'Credit Cards' | 'Other',
-      balance: row.balance as number,
-      interestRate: row.interest_rate === null ? undefined : (row.interest_rate as number | undefined),
-      monthlyPayment: row.monthly_payment === null ? undefined : (row.monthly_payment as number | undefined),
+      type: normalizeLiabilityTypeFromDb(row.type),
+      balance: balance ?? Number.NaN,
+      interestRate: row.interest_rate === null ? undefined : this.parseDbOptionalNumber(row.interest_rate),
+      monthlyPayment: row.monthly_payment === null ? undefined : this.parseDbOptionalNumber(row.monthly_payment),
       dueDate: (row.due_date ? String(row.due_date).split('T')[0] : undefined) as string | undefined,
       institution: row.institution === null ? undefined : (row.institution as string | undefined),
-      repaymentAmount: row.repayment_amount === null ? undefined : (row.repayment_amount as number | undefined),
-      repaymentFrequency: (row.repayment_frequency === null ? undefined : row.repayment_frequency) as 'weekly' | 'fortnightly' | 'monthly' | 'yearly' | undefined,
+      repaymentAmount: row.repayment_amount === null ? undefined : this.parseDbOptionalNumber(row.repayment_amount),
+      repaymentFrequency: (row.repayment_frequency === null ? undefined : row.repayment_frequency) as
+        | 'weekly'
+        | 'fortnightly'
+        | 'monthly'
+        | 'quarterly'
+        | 'yearly'
+        | undefined,
       userId: row.user_id as string,
       createdAt: row.created_at as string,
       updatedAt: row.updated_at as string,

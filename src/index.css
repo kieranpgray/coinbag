@@ -369,7 +369,7 @@
     color: var(--color-nav-active-text);
   }
 
-  /* Dashboard — DS v2 metric + chart frames (design-system-v2.html) */
+  /* Dashboard — DS v2 metric + chart frames (see public/design-system-v2.html) */
   .metric-tile {
     background: hsl(var(--card));
     border: 1px solid var(--paper-3);

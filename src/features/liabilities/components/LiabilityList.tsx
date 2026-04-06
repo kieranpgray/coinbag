@@ -45,9 +45,10 @@ export function LiabilityList({ liabilities, onEdit, onDelete, onCreate }: Liabi
                   <Button
                     onClick={onCreate}
                     size="sm"
+                    aria-label="Add a liability instead"
                   >
                     <Plus className="h-4 w-4 mr-2" />
-                    Add Your First Liability
+                    Add a liability instead →
                   </Button>
                 </div>
               </TableCell>

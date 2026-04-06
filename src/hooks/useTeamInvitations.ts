@@ -34,7 +34,7 @@ export function useTeamInvitations() {
       email: string;
       role: WorkspaceRole;
     }) => {
-      if (!isLoaded || !isSignedIn) throw new Error('Authentication required');
+      if (!isLoaded || !isSignedIn) throw new Error('Your session has expired. Sign in to continue.');
       if (!activeWorkspaceId) throw new Error('No workspace selected');
       const result = await createWorkspaceInvite(
         getToken!,
@@ -56,7 +56,7 @@ export function useTeamInvitations() {
 
   const revokeInvitation = useMutation({
     mutationFn: async (invitationId: string) => {
-      if (!isLoaded || !isSignedIn) throw new Error('Authentication required');
+      if (!isLoaded || !isSignedIn) throw new Error('Your session has expired. Sign in to continue.');
       const { error } = await repo.revokeInvitation(invitationId, getToken!);
       if (error) throw new Error(error.error);
     },

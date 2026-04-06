@@ -269,9 +269,9 @@ export class ImportValidation {
             if (err.path[0] === 'type' && typeof errInput === 'string') {
               const normalized = normalizeAssetType(errInput);
               if (normalized) {
-                message = `Invalid asset type "${errInput}". Did you mean "${normalized}"? Valid values: Real Estate, Investments, Vehicles, Crypto, Cash, Superannuation, Stock, RSU, Other`;
+                message = `Invalid asset type "${errInput}". Did you mean "${normalized}"? Valid values: Property, Other asset, Vehicle, Crypto, Cash, Super, Shares, RSUs`;
               } else {
-                message = `${err.message}. Valid values: Real Estate, Investments, Vehicles, Crypto, Cash, Superannuation, Stock, RSU, Other`;
+                message = `${err.message}. Valid values: Property, Other asset, Vehicle, Crypto, Cash, Super, Shares, RSUs`;
               }
             }
             return {
@@ -607,7 +607,7 @@ export class ImportValidation {
   ): Asset | undefined {
     const typeVal = asset.type;
 
-    if (typeVal === 'Crypto' || typeVal === 'Stock') {
+    if (typeVal === 'Crypto' || typeVal === 'Shares') {
       const tickerVal = (asset.ticker ?? '').toString().trim();
       const purchaseDateVal = (asset.purchaseDate ?? '').toString().trim();
       const quantityVal = asset.quantity;

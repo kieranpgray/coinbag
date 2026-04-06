@@ -1,10 +1,11 @@
 import { memo, useState, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Link } from 'react-router-dom';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { subDays, startOfYear } from 'date-fns';
+import { parseISO, subDays, startOfYear } from 'date-fns';
 import { 
   useNetWorthHistory, 
   DEFAULT_NET_WORTH_TIME_PERIOD,
@@ -16,6 +17,28 @@ import {
 import { NetWorthChart } from './NetWorthChart';
 import { NetWorthSummary } from './NetWorthSummary';
 import { getCorrelationId, logger } from '@/lib/logger';
+import { useLocale } from '@/contexts/LocaleContext';
+import { useTheme } from '@/contexts/ThemeContext';
+import { formatCurrency } from '@/lib/utils';
+import { ROUTES } from '@/lib/constants/routes';
+
+function findHistoryPointClosestToDaysAgo(
+  points: NetWorthPoint[],
+  daysAgo: number
+): NetWorthPoint | null {
+  if (points.length < 2) return null;
+  const targetMs = subDays(new Date(), daysAgo).getTime();
+  let best = points[0]!;
+  let bestDiff = Infinity;
+  for (const p of points) {
+    const d = Math.abs(parseISO(p.date).getTime() - targetMs);
+    if (d < bestDiff) {
+      bestDiff = d;
+      best = p;
+    }
+  }
+  return best;
+}
 interface NetWorthCardProps {
   netWorth: number;
   totalAssets: number;
@@ -63,11 +86,40 @@ export const NetWorthCard = memo(function NetWorthCard({
   isLoading,
   isEmpty,
 }: NetWorthCardProps) {
+  const { t } = useTranslation('pages');
+  const { locale } = useLocale();
+  const { privacyMode } = useTheme();
+
   // Time period state (default: 90 days)
   const [timePeriod, setTimePeriod] = useState<NetWorthTimePeriod>(DEFAULT_NET_WORTH_TIME_PERIOD);
   
   // Generate historical data for chart
   const { data: historyData, isLoading: historyLoading } = useNetWorthHistory(netWorth, isLoading);
+
+  const netWorthMonthNote = useMemo(() => {
+    if (historyLoading) {
+      return t('netWorth.holdingSteady');
+    }
+    if (!historyData || historyData.length < 2) {
+      return t('netWorth.holdingSteady');
+    }
+    const closest = findHistoryPointClosestToDaysAgo(historyData, 30);
+    if (!closest) {
+      return t('netWorth.holdingSteady');
+    }
+    const delta = netWorth - closest.value;
+    if (Math.round(delta * 100) === 0) {
+      return t('netWorth.holdingSteady');
+    }
+    const priv = t('netWorth.privacyAmount');
+    if (privacyMode) {
+      return delta > 0 ? `+${priv} this month` : `−${priv} this month`;
+    }
+    if (delta > 0) {
+      return t('netWorth.upThisMonth', { amount: formatCurrency(delta, locale) });
+    }
+    return t('netWorth.downThisMonth', { amount: formatCurrency(Math.abs(delta), locale) });
+  }, [historyData, historyLoading, netWorth, locale, privacyMode, t]);
   
   // Filter data based on selected time period
   const filteredHistoryData = useMemo(() => {
@@ -144,18 +196,16 @@ export const NetWorthCard = memo(function NetWorthCard({
       <Card className="border border-border">
         <CardContent className="p-0">
           <div className="p-4">
-            <h2 className="text-h2-sm sm:text-h2-md lg:text-h2-lg font-semibold text-foreground mb-4">Net Worth</h2>
-            <p className="text-body text-muted-foreground mb-4">
-              Add assets or liabilities to calculate your net worth.
+            <h2 className="text-h2-sm sm:text-h2-md lg:text-h2-lg font-semibold text-foreground mb-2">Net Worth</h2>
+            <p className="text-body font-medium text-foreground mb-2">
+              {t('emptyStates.netWorthNoHoldings.headline')}
             </p>
-            <div className="flex gap-2">
-              <Button asChild size="sm">
-                <Link to="/wealth?create=asset">Add asset</Link>
-              </Button>
-              <Button asChild size="sm" variant="outline">
-                <Link to="/wealth?create=liability">Add liability</Link>
-              </Button>
-            </div>
+            <p className="text-body text-muted-foreground mb-4">
+              {t('emptyStates.netWorthNoHoldings.body')}
+            </p>
+            <Button asChild size="sm" aria-label={t('emptyStates.netWorthNoHoldings.ctaAriaLabel')}>
+              <Link to={ROUTES.wealth.createAsset()}>{t('emptyStates.netWorthNoHoldings.cta')}</Link>
+            </Button>
           </div>
         </CardContent>
       </Card>
@@ -202,6 +252,7 @@ export const NetWorthCard = memo(function NetWorthCard({
               totalAssets={totalAssets}
               totalLiabilities={totalLiabilities}
               isLoading={isLoading}
+              netWorthFootnote={netWorthMonthNote}
             />
           </div>
         </div>

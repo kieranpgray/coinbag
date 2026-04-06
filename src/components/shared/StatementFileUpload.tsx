@@ -37,7 +37,8 @@ export function StatementFileUpload({
     if (!validMimeTypes.includes(file.type)) {
       return {
         valid: false,
-        error: 'Invalid file type. Please upload a PDF or image (JPEG/PNG)',
+        error:
+          "That format isn't supported. Download a PDF statement from your bank instead.",
       };
     }
 
@@ -51,7 +52,8 @@ export function StatementFileUpload({
     if (!hasValidExtension) {
       return {
         valid: false,
-        error: `Invalid file type. Please upload ${accept}`,
+        error:
+          "That format isn't supported. Download a PDF statement from your bank instead.",
       };
     }
 

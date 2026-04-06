@@ -1,9 +1,38 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeAll } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
+
+beforeAll(() => {
+  global.ResizeObserver = class ResizeObserver {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  } as unknown as typeof ResizeObserver;
+});
 import { DashboardPage } from '../DashboardPage';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter } from 'react-router-dom';
 import { ThemeProvider } from '@/contexts/ThemeContext';
+import { LocaleProvider } from '@/contexts/LocaleContext';
+
+vi.mock('@/features/transfers/hooks', () => ({
+  usePayCycle: () => ({
+    payCycle: null,
+    isLoading: false,
+    updatePayCycle: vi.fn(),
+    isUpdating: false,
+    error: null,
+  }),
+}));
+
+vi.mock('@/features/categories/hooks', () => ({
+  useCategories: () => ({
+    data: [
+      { id: 'Entertainment', name: 'Entertainment', userId: 'u', createdAt: '', updatedAt: '' },
+      { id: 'Utilities', name: 'Utilities', userId: 'u', createdAt: '', updatedAt: '' },
+    ],
+    isLoading: false,
+  }),
+}));
 
 // Mock APIs
 vi.mock('@/lib/api', () => ({
@@ -23,8 +52,32 @@ vi.mock('@/lib/api', () => ({
       totalDebtsChange1W: 0,
       estimatedTaxOnGains: 5000,
       adjustedNetWorth: 995000,
-      assets: [],
-      liabilities: [],
+      dataSources: {
+        accountsCount: 0,
+        assetsCount: 1,
+        liabilitiesCount: 1,
+        expensesCount: 1,
+        transactionsCount: 0,
+        incomeCount: 1,
+        holdingsCount: 0,
+      },
+      assets: [
+        {
+          id: 'asset-1',
+          name: 'Cash',
+          type: 'Cash',
+          value: 100000,
+          dateAdded: '2024-01-01',
+        },
+      ],
+      liabilities: [
+        {
+          id: 'liability-1',
+          name: 'Loan',
+          type: 'Home loan',
+          balance: 50000,
+        },
+      ],
       expenseBreakdown: [
         { category: 'Entertainment', amount: 49.98, percentage: 67 },
         { category: 'Utilities', amount: 24.99, percentage: 33 },
@@ -66,7 +119,9 @@ function Wrapper({ children }: { children: React.ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
-        <ThemeProvider>{children}</ThemeProvider>
+        <LocaleProvider>
+          <ThemeProvider>{children}</ThemeProvider>
+        </LocaleProvider>
       </BrowserRouter>
     </QueryClientProvider>
   );
@@ -77,7 +132,7 @@ describe('DashboardPage', () => {
     render(<DashboardPage />, { wrapper: Wrapper });
     
     await waitFor(() => {
-      expect(screen.getByText('Dashboard')).toBeInTheDocument();
+      expect(screen.getByText('Overview')).toBeInTheDocument();
     });
   });
 
@@ -86,7 +141,7 @@ describe('DashboardPage', () => {
     
     // Component should render - loading state may be very brief with mocked API
     await waitFor(() => {
-      expect(screen.getByText('Dashboard')).toBeInTheDocument();
+      expect(screen.getByText('Overview')).toBeInTheDocument();
     });
   });
 
@@ -94,7 +149,7 @@ describe('DashboardPage', () => {
     render(<DashboardPage />, { wrapper: Wrapper });
 
     await waitFor(() => {
-      expect(screen.getByText('Net Worth')).toBeInTheDocument();
+      expect(screen.getAllByText('Net Worth').length).toBeGreaterThan(0);
     }, { timeout: 3000 });
   });
 

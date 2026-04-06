@@ -113,7 +113,7 @@ describe('Dashboard Error Handling', () => {
     const { result: createAssetResult } = renderHook(() => useCreateAsset(), { wrapper });
     createAssetResult.current.mutate({
       name: 'House',
-      type: 'Real Estate',
+      type: 'Property',
       value: 500000,
       change1D: 0,
       change1W: 0,

@@ -261,7 +261,7 @@ export class SupabaseWorkspaceRepository implements WorkspaceRepository {
       const invitedBy = await getUserIdFromToken(getToken);
       if (!invitedBy) {
         return {
-          error: { error: 'Authentication required', code: 'AUTH_EXPIRED' },
+          error: { error: 'Your session has expired. Sign in to continue.', code: 'AUTH_EXPIRED' },
         };
       }
 

@@ -25,6 +25,7 @@ import enUSImport from '../locales/en-US/import.json';
 import enUSAccounts from '../locales/en-US/accounts.json';
 import enUSTransactions from '../locales/en-US/transactions.json';
 import enUSAria from '../locales/en-US/aria.json';
+import enUSPages from '../locales/en-US/pages.json';
 
 import enAUCommon from '../locales/en-AU/common.json';
 import enAUForms from '../locales/en-AU/forms.json';
@@ -38,6 +39,7 @@ import enAUImport from '../locales/en-AU/import.json';
 import enAUAccounts from '../locales/en-AU/accounts.json';
 import enAUTransactions from '../locales/en-AU/transactions.json';
 import enAUAria from '../locales/en-AU/aria.json';
+import enAUPages from '../locales/en-AU/pages.json';
 
 const resources = {
   'en-US': {
@@ -53,6 +55,7 @@ const resources = {
     accounts: enUSAccounts,
     transactions: enUSTransactions,
     aria: enUSAria,
+    pages: enUSPages,
   },
   'en-AU': {
     common: enAUCommon,
@@ -67,6 +70,7 @@ const resources = {
     accounts: enAUAccounts,
     transactions: enAUTransactions,
     aria: enAUAria,
+    pages: enAUPages,
   },
 };
 
@@ -137,7 +141,7 @@ i18n
     },
 
     // Namespace options
-    ns: ['common', 'forms', 'dashboard', 'settings', 'navigation', 'errors', 'validation', 'notifications', 'import', 'accounts', 'transactions', 'aria'],
+    ns: ['common', 'forms', 'dashboard', 'settings', 'navigation', 'errors', 'validation', 'notifications', 'import', 'accounts', 'transactions', 'aria', 'pages'],
 
     // Separator options (explicit for clarity and reliability)
     nsSeparator: ':', // Namespace separator (e.g., 'settings:locale.label')

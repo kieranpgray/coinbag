@@ -27,7 +27,7 @@
 .landing-v2 main section[id] {
   scroll-margin-top: 64px;
 }
-.landing-v2 nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; padding: 0 40px; height: 64px; background: rgba(250,249,247,0.92); backdrop-filter: blur(12px); border-bottom: 1px solid var(--paper-3); }
+.landing-v2 nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; padding: 0 40px; height: 64px; background: color-mix(in srgb, var(--paper) 92%, transparent); backdrop-filter: blur(12px); border-bottom: 1px solid var(--paper-3); }
 .landing-v2 .nav-logo { font-family: var(--serif); font-size: 22px; color: var(--ink); text-decoration: none; letter-spacing: -0.02em; }
 .landing-v2 .nav-links { display: flex; align-items: center; gap: 32px; list-style: none; }
 .landing-v2 .nav-links a { font-size: 14px; font-weight: 400; color: var(--ink-2); text-decoration: none; transition: color 0.2s; }
@@ -70,7 +70,7 @@
   right: 0;
   bottom: 0;
   z-index: 99;
-  background: rgba(250,249,247,0.98);
+  background: color-mix(in srgb, var(--paper) 98%, transparent);
   backdrop-filter: blur(16px);
   padding: 32px 24px;
   flex-direction: column;

@@ -214,7 +214,7 @@ serve(async (req: Request) => {
       .insert({
         user_id: userId,
         name: account.name,
-        type: 'Other Investments',
+        type: 'Other asset',
         value: balanceAmount ?? 0,
         date_added: today,
         institution: institutionName,

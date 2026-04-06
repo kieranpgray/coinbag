@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { formatCurrency } from '@/lib/utils';
@@ -27,6 +28,8 @@ export function BudgetBreakdown({
   frequency,
   onFrequencyChange,
 }: BudgetBreakdownProps) {
+  const { t } = useTranslation('pages');
+
   // Convert all values from monthly to selected frequency
   const incomeDisplay = convertToFrequency(totalIncome, 'monthly', frequency);
   const expensesDisplay = convertToFrequency(totalExpenses, 'monthly', frequency);
@@ -116,7 +119,7 @@ export function BudgetBreakdown({
           {/* Remaining Row */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="text-body-sm text-muted-foreground">Remaining</span>
+              <span className="text-body-sm text-muted-foreground">{t('budgetBreakdownTile.surplus')}</span>
             </div>
             <div className="flex items-center gap-2">
               <span className="text-body-lg font-bold text-foreground">

@@ -1,13 +1,15 @@
 {
-  "dashboard": "Dashboard",
-  "accounts": "Accounts",
+  "dashboard": "Overview",
+  "wealth": "Holdings",
+  "transfers": "Allocate",
+  "accounts": "Activity",
   "assets": "Assets",
   "liabilities": "Liabilities",
   "income": "Income",
   "subscriptions": "Subscriptions",
   "transactions": "Transactions",
   "goals": "Goals",
-  "budget": "Budget",
+  "budget": "Recurring",
   "settings": "Settings",
   "import": "Import"
 }

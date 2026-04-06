@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -17,7 +18,14 @@ interface LiabilityPortfolioSectionProps {
 /**
  * Liability categories in display order
  */
-const LIABILITY_CATEGORIES: Array<Liability['type']> = ['Credit Cards', 'Loans', 'Other'];
+const LIABILITY_CATEGORIES: Array<Liability['type']> = [
+  'Home loan',
+  'Personal loan',
+  'Car loan',
+  'Credit card',
+  'HECS / HELP debt',
+  'Other liability',
+];
 
 /**
  * Portfolio section component for liabilities
@@ -30,6 +38,8 @@ export function LiabilityPortfolioSection({
   onEdit,
   onDelete,
 }: LiabilityPortfolioSectionProps) {
+  const { t } = useTranslation('pages');
+
   // Group liabilities by category
   const liabilitiesByCategory = useMemo(() => {
     const grouped: Record<string, Liability[]> = {};
@@ -48,13 +58,13 @@ export function LiabilityPortfolioSection({
   }, [liabilitiesByCategory]);
 
   return (
-    <section className="space-y-6" aria-label="Liabilities section">
+    <section className="space-y-6" aria-label={`${t('whatYouOwe')} section`}>
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <div className="flex items-center gap-3 mb-2">
             <h2 className="text-foreground text-h2-sm sm:text-h2-md lg:text-h2-lg font-semibold">
-              Liabilities
+              {t('whatYouOwe')}
             </h2>
           </div>
           <div className="mt-2 inline-block rounded-[var(--rl)] border border-border bg-card px-6 py-5 metric-tile">
@@ -67,10 +77,10 @@ export function LiabilityPortfolioSection({
             size="sm"
             className="bg-primary hover:bg-primary/90 text-primary-foreground"
             onClick={onCreate}
-            aria-label="Add liability"
+            aria-label="Add a liability"
           >
             <Plus className="h-4 w-4 mr-1" />
-            Add Liability
+            Add a liability
           </Button>
         </div>
       </div>
@@ -80,12 +90,12 @@ export function LiabilityPortfolioSection({
         <Card>
           <CardContent className="py-12 text-center">
             <div className="space-y-4">
-              <p className="text-muted-foreground">
-                No liabilities found. Add your first liability to track debts and payments.
+              <p className="text-muted-foreground text-balance max-w-lg mx-auto">
+                {t('emptyStates.holdingsNoLiabilities.body')}
               </p>
-              <Button onClick={onCreate} size="sm">
+              <Button onClick={onCreate} size="sm" aria-label={t('emptyStates.holdingsNoLiabilities.ctaAriaLabel')}>
                 <Plus className="h-4 w-4 mr-2" />
-                Add Your First Liability
+                {t('emptyStates.holdingsNoLiabilities.cta')}
               </Button>
             </div>
           </CardContent>

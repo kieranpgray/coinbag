@@ -1,6 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { usePayCycle } from './hooks';
 import { useExpenses } from '@/features/expenses/hooks';
+import { useIncomes } from '@/features/income/hooks';
 import { useAccounts } from '@/features/accounts/hooks';
 import { useUserPreferences } from '@/hooks/useUserPreferences';
 import { calculateUnallocatedTotal } from './utils/transferCalculations';
@@ -15,13 +17,28 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
 import { format } from 'date-fns';
 
+/** Returns an ISO-format date string (YYYY-MM-DD) for today's date */
+function todayISO(): string {
+  return format(new Date(), 'yyyy-MM-dd');
+}
+
 /**
  * Main Transfers page component
  * Displays pay cycle info, cash flow summaries, and transfer suggestions
  */
 export default function TransfersPage() {
+  const { t } = useTranslation(['pages', 'navigation']);
+
+  useEffect(() => {
+    document.title = t('allocateDocumentTitle', { ns: 'pages' });
+    return () => {
+      document.title = 'Supafolio';
+    };
+  }, [t]);
+
   const { payCycle, isLoading: payCycleLoading } = usePayCycle();
   const { data: expenses = [], isLoading: expensesLoading } = useExpenses();
+  const { data: incomes = [], isLoading: incomesLoading } = useIncomes();
   const { data: accounts = [], isLoading: accountsLoading } = useAccounts();
   const { data: preferences } = useUserPreferences();
   const [editPayCycleOpen, setEditPayCycleOpen] = useState(false);
@@ -44,21 +61,46 @@ export default function TransfersPage() {
 
   const hasInvalidAccounts = payCycle && (!primaryAccountExists || !savingsAccountExists);
 
+  // Determine if next pay date is in the future (between-cycles / upcoming state)
+  const isUpcoming = payCycle ? payCycle.nextPayDate > todayISO() : false;
+
+  // Dynamic subtitle: editing → upcoming → active → fallback
+  const pageSubtitle = editPayCycleOpen
+    ? t('allocateSubtitleEditing', { ns: 'pages' })
+    : !payCycle
+    ? t('allocateSubtitle', { ns: 'pages' })
+    : isUpcoming
+    ? t('allocateSubtitleUpcoming', { ns: 'pages' })
+    : t('allocateSubtitleActive', {
+        ns: 'pages',
+        date: format(new Date(payCycle.nextPayDate), 'EEEE d MMM'),
+      });
+
   // Show setup if no pay cycle configured (align layout with Budget page)
   if (!payCycle && !payCycleLoading) {
     return (
       <div className="space-y-12">
-        <h1 className="text-h1-sm sm:text-h1-md lg:text-h1-lg font-bold tracking-tight">Transfers</h1>
+        <div>
+          <h1 className="text-h1-sm sm:text-h1-md lg:text-h1-lg font-bold tracking-tight">
+            {t('transfers', { ns: 'navigation' })}
+          </h1>
+          <p className="text-sm text-muted-foreground mt-1">{pageSubtitle}</p>
+        </div>
         <PayCycleSetup />
       </div>
     );
   }
 
   // Show loading state
-  if (payCycleLoading || expensesLoading || accountsLoading) {
+  if (payCycleLoading || expensesLoading || accountsLoading || incomesLoading) {
     return (
       <div className="space-y-12">
-        <h1 className="text-h1-sm sm:text-h1-md lg:text-h1-lg font-bold tracking-tight">Transfers</h1>
+        <div>
+          <h1 className="text-h1-sm sm:text-h1-md lg:text-h1-lg font-bold tracking-tight">
+            {t('transfers', { ns: 'navigation' })}
+          </h1>
+          <p className="text-sm text-muted-foreground mt-1">{pageSubtitle}</p>
+        </div>
         <div className="space-y-6">
           <Skeleton className="h-32 w-full" />
           <Skeleton className="h-64 w-full" />
@@ -79,11 +121,16 @@ export default function TransfersPage() {
 
   return (
     <div className="space-y-12">
-      {/* Header: title + secondary Edit pay cycle (align with Budget page tokens) */}
+      {/* Header: title + secondary Edit plan (align with Budget page tokens) */}
       <div className="flex items-center justify-between">
-        <h1 className="text-h1-sm sm:text-h1-md lg:text-h1-lg font-bold tracking-tight">Transfers</h1>
+        <div>
+          <h1 className="text-h1-sm sm:text-h1-md lg:text-h1-lg font-bold tracking-tight">
+            {t('transfers', { ns: 'navigation' })}
+          </h1>
+          <p className="text-sm text-muted-foreground mt-1">{pageSubtitle}</p>
+        </div>
         <Button variant="ghost" size="sm" onClick={() => setEditPayCycleOpen(true)}>
-          Edit pay cycle
+          Edit plan
         </Button>
       </div>
 
@@ -124,6 +171,10 @@ export default function TransfersPage() {
           viewMode={viewMode}
           onViewModeChange={setViewMode}
           nextPayDateFormatted={nextPayDateFormatted}
+          hasIncome={incomes.length > 0}
+          hasExpenses={expenses.length > 0}
+          isUpcoming={isUpcoming}
+          primaryAccountName={primaryAccountName}
         />
       )}
 

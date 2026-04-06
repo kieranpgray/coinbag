@@ -37,8 +37,8 @@ const institutionSchema = z.preprocess(
     })
 );
 
-// Asset type enum (Investments renamed to Other Investments; Other removed)
-const assetTypeSchema = z.enum(['Real Estate', 'Other Investments', 'Vehicles', 'Crypto', 'Cash', 'Superannuation', 'Stock', 'RSU'], {
+// Asset type enum (stored values match Postgres CHECK on assets.type)
+const assetTypeSchema = z.enum(['Property', 'Other asset', 'Vehicle', 'Crypto', 'Cash', 'Super', 'Shares', 'RSUs'], {
   errorMap: () => ({ message: 'Invalid asset type' }),
 });
 
@@ -79,7 +79,7 @@ const grantPriceSchema = z.number()
   .finite('Grant price must be finite')
   .optional();
 
-// Address (Real Estate), max 200 chars
+// Address (Property), max 200 chars
 const addressSchema = z.string()
   .max(VALIDATION_LIMITS.address.max, `Address must be at most ${VALIDATION_LIMITS.address.max} characters`)
   .trim()
@@ -87,7 +87,7 @@ const addressSchema = z.string()
   .or(z.literal(''))
   .transform((val) => (val === '' ? undefined : val));
 
-// Property type (Real Estate), max 100 chars
+// Property type (Property asset), max 100 chars
 const propertyTypeSchema = z.string()
   .max(VALIDATION_LIMITS.propertyType.max, `Property type must be at most ${VALIDATION_LIMITS.propertyType.max} characters`)
   .trim()
@@ -215,16 +215,16 @@ const assetCreateBaseSchema = z.object({
 
 export const assetCreateSchema = assetCreateBaseSchema.superRefine((data, ctx) => {
   const nameVal = data.name === undefined || data.name === '' ? undefined : data.name?.trim();
-  if (data.type === 'Stock' || data.type === 'RSU') {
-    // Stock/RSU: ticker and quantity required; name optional (can be derived from ticker)
+  if (data.type === 'Shares' || data.type === 'RSUs') {
+    // Shares/RSUs: ticker and quantity required; name optional (can be derived from ticker)
     const tickerVal = data.ticker === undefined || data.ticker === '' ? undefined : data.ticker?.trim();
     if (!tickerVal || tickerVal.length === 0) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Ticker is required for Stock and RSU', path: ['ticker'] });
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Ticker is required for Shares and RSUs', path: ['ticker'] });
     }
     if (data.quantity === undefined || data.quantity === null || data.quantity <= 0) {
       ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Quantity is required and must be positive', path: ['quantity'] });
     }
-    // RSU: vesting date optional per spec
+    // RSUs: vesting date optional per spec
   } else if (data.type === 'Crypto') {
     // Crypto: ticker (coin symbol), quantity, and value required; name optional
     const tickerVal = data.ticker === undefined || data.ticker === '' ? undefined : data.ticker?.trim();
@@ -272,25 +272,25 @@ export const assetUpdateSchema = z.object({
   address: addressSchema,
   propertyType: propertyTypeSchema,
 }).superRefine((data, ctx) => {
-  // On update, only apply Stock/RSU rules when type is explicitly provided as Stock or RSU
-  if (data.type === 'Stock') {
+  // On update, only apply Shares/RSUs rules when type is explicitly provided as Shares or RSUs
+  if (data.type === 'Shares') {
     const tickerVal = data.ticker === undefined || data.ticker === '' ? undefined : data.ticker?.trim();
     if (!tickerVal || tickerVal.length === 0) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Ticker is required for Stock', path: ['ticker'] });
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Ticker is required for Shares', path: ['ticker'] });
     }
     if (data.quantity !== undefined && (data.quantity === null || data.quantity <= 0)) {
       ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Quantity must be positive', path: ['quantity'] });
     }
   }
-  if (data.type === 'RSU') {
+  if (data.type === 'RSUs') {
     const tickerVal = data.ticker === undefined || data.ticker === '' ? undefined : data.ticker?.trim();
     if (!tickerVal || tickerVal.length === 0) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Ticker is required for RSU', path: ['ticker'] });
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Ticker is required for RSUs', path: ['ticker'] });
     }
     if (data.quantity !== undefined && (data.quantity === null || data.quantity <= 0)) {
       ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Quantity must be positive', path: ['quantity'] });
     }
-    // RSU vesting date optional per spec
+    // RSUs vesting date optional per spec
   }
   if (data.type === 'Crypto') {
     const tickerVal = data.ticker === undefined || data.ticker === '' ? undefined : data.ticker?.trim();
@@ -302,7 +302,7 @@ export const assetUpdateSchema = z.object({
     }
   }
   // For other types on update, name if provided must be non-empty
-  if (data.name !== undefined && data.name !== '' && data.type !== 'Stock' && data.type !== 'RSU' && data.type !== 'Crypto') {
+  if (data.name !== undefined && data.name !== '' && data.type !== 'Shares' && data.type !== 'RSUs' && data.type !== 'Crypto') {
     const trimmed = data.name.trim();
     if (trimmed.length === 0) {
       ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Asset name can't be empty.", path: ['name'] });
@@ -331,7 +331,7 @@ const datetimeSchema = z.string()
     'Invalid datetime format'
   );
 
-// API response schemas (entity includes optional Stock/RSU columns from DB)
+// API response schemas (entity includes optional Shares/RSUs columns from DB)
 export const assetEntitySchema = z.object({
   id: z.string().uuid('Invalid asset ID format'),
   userId: z.string().min(1, 'User ID is required'),
@@ -345,7 +345,7 @@ export const assetEntitySchema = z.object({
   notes: nullableStringSchema,
   createdAt: datetimeSchema,
   updatedAt: datetimeSchema,
-  // Stock/RSU optional (nullable from DB)
+  // Shares/RSUs optional (nullable from DB)
   ticker: nullableStringSchema,
   exchange: nullableStringSchema,
   quantity: z.number().finite().nullable().optional().transform((v) => v ?? undefined),

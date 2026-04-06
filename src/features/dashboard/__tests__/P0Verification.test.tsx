@@ -149,7 +149,7 @@ describe('P0 Dashboard Verification', () => {
       const { result: createAssetResult } = renderHook(() => useCreateAsset(), { wrapper });
       createAssetResult.current.mutate({
         name: 'House',
-        type: 'Real Estate',
+        type: 'Property',
         value: 500000,
         change1D: 0,
         change1W: 0,
@@ -233,7 +233,7 @@ describe('P0 Dashboard Verification', () => {
       const { result: createAssetResult } = renderHook(() => useCreateAsset(), { wrapper });
       createAssetResult.current.mutate({
         name: 'House',
-        type: 'Real Estate',
+        type: 'Property',
         value: 500000,
         change1D: 0,
         change1W: 0,
@@ -259,7 +259,7 @@ describe('P0 Dashboard Verification', () => {
       const initialAsset: Asset = {
         id: 'asset-1',
         name: 'House',
-        type: 'Real Estate',
+        type: 'Property',
         value: 500000,
         change1D: 0,
         change1W: 0,
@@ -280,7 +280,7 @@ describe('P0 Dashboard Verification', () => {
       const { result: createLiabilityResult } = renderHook(() => useCreateLiability(), { wrapper });
       createLiabilityResult.current.mutate({
         name: 'Mortgage',
-        type: 'Loans',
+        type: 'Home loan',
         balance: 300000,
         interestRate: 4.5,
         monthlyPayment: 2000,
@@ -407,7 +407,7 @@ describe('P0 Dashboard Verification', () => {
       const initialAsset: Asset = {
         id: 'asset-1',
         name: 'House',
-        type: 'Real Estate',
+        type: 'Property',
         value: 500000,
         change1D: 0,
         change1W: 0,

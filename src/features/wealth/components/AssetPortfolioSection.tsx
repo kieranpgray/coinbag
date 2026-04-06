@@ -1,4 +1,5 @@
 import { useMemo, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Plus, ChevronDown, Loader2, AlertCircle, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -31,20 +32,20 @@ interface AssetPortfolioSectionProps {
  * Asset categories in display order
  */
 const ASSET_CATEGORIES: Array<Asset['type']> = [
-  'Real Estate',
-  'Other Investments',
-  'Vehicles',
+  'Property',
+  'Other asset',
+  'Vehicle',
   'Crypto',
   'Cash',
-  'Superannuation',
-  'Stock',
-  'RSU',
+  'Super',
+  'Shares',
+  'RSUs',
 ];
 
 /**
  * Portfolio section component for assets.
- * When snaptrade_integration flag is on, "Add Asset" becomes a split button
- * that exposes "Connect a broker account" as the primary path.
+ * When snaptrade_integration flag is on, "Add an asset" becomes a split button
+ * that exposes "Connect a brokerage" as the primary path.
  */
 export function AssetPortfolioSection({
   totalAssets,
@@ -53,6 +54,7 @@ export function AssetPortfolioSection({
   onEdit,
   onDelete,
 }: AssetPortfolioSectionProps) {
+  const { t } = useTranslation('pages');
   const snaptradeEnabled = isFeatureEnabled('snaptrade_integration');
 
   const {
@@ -86,7 +88,9 @@ export function AssetPortfolioSection({
   const accountToBrokerageAuthId = useMemo<Map<string, string>>(() => new Map(), []);
 
   const handleReconnect = (brokerageAuthId: string) => {
-    startConnect(brokerageAuthId);
+    const name =
+      connections.find((c) => c.brokerage_auth_id === brokerageAuthId)?.brokerage_name ?? null;
+    startConnect(brokerageAuthId, name);
   };
 
   // Prevent double-click
@@ -119,16 +123,17 @@ export function AssetPortfolioSection({
   }, [assetsByCategory]);
 
   const isLoadingUrl = portalState.status === 'loading_url';
-  const hasUrlError = portalState.status === 'url_error';
+  const hasPortalError =
+    portalState.status === 'url_error' || portalState.status === 'accounts_error';
 
   return (
-    <section className="space-y-6" aria-label="Assets section">
+    <section className="space-y-6" aria-label={`${t('whatYouOwn')} section`}>
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <div className="flex items-center gap-3 mb-2">
             <h2 className="text-foreground text-h2-sm sm:text-h2-md lg:text-h2-lg font-semibold">
-              Assets
+              {t('whatYouOwn')}
             </h2>
           </div>
           <div className="mt-2 inline-block rounded-[var(--rl)] border border-border bg-card px-6 py-5 metric-tile">
@@ -146,14 +151,14 @@ export function AssetPortfolioSection({
                 className="rounded-r-none border-r-0"
                 onClick={handleConnectClick}
                 disabled={isLoadingUrl}
-                aria-label="Connect a broker account"
+                aria-label="Connect a brokerage"
               >
                 {isLoadingUrl ? (
                   <Loader2 className="h-4 w-4 mr-1 animate-spin" />
                 ) : (
                   <Plus className="h-4 w-4 mr-1" />
                 )}
-                Add Asset
+                Add an asset
               </Button>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -168,7 +173,7 @@ export function AssetPortfolioSection({
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-52">
                   <DropdownMenuItem onClick={handleConnectClick} disabled={isLoadingUrl}>
-                    Connect a broker account
+                    Connect a brokerage
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={onCreate}>
                     Enter manually
@@ -181,15 +186,21 @@ export function AssetPortfolioSection({
               size="sm"
               className="bg-primary hover:bg-primary/90 text-primary-foreground"
               onClick={onCreate}
-              aria-label="Add asset"
+              aria-label="Add an asset"
             >
               <Plus className="h-4 w-4 mr-1" />
-              Add Asset
+              Add an asset
             </Button>
           )}
 
+          {snaptradeEnabled && (
+            <p className="text-body-sm text-muted-foreground max-w-xs sm:text-right">
+              {t('snaptrade.trustCredentialsNote')}
+            </p>
+          )}
+
           {/* Inline error below button */}
-          {hasUrlError && portalState.errorMessage && (
+          {hasPortalError && portalState.errorMessage && (
             <div className="flex items-center gap-1.5 text-destructive">
               <AlertCircle className="h-3.5 w-3.5 shrink-0" />
               <span className="text-body-sm">{portalState.errorMessage}</span>
@@ -238,21 +249,30 @@ export function AssetPortfolioSection({
         <Card>
           <CardContent className="py-12 text-center">
             <div className="space-y-4">
-              <p className="text-muted-foreground">
-                No assets found. Start building your portfolio.
+              <h3 className="text-h3 font-semibold text-foreground">
+                {t('emptyStates.holdingsNoAssets.headline')}
+              </h3>
+              <p className="text-muted-foreground text-balance max-w-lg mx-auto">
+                {t('emptyStates.holdingsNoAssets.body')}
               </p>
               <Button
                 onClick={snaptradeEnabled ? handleConnectClick : onCreate}
                 size="sm"
                 disabled={isLoadingUrl}
+                aria-label={t('emptyStates.holdingsNoAssets.ctaAriaLabel')}
               >
                 {isLoadingUrl ? (
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                 ) : (
                   <Plus className="h-4 w-4 mr-2" />
                 )}
-                Add Your First Asset
+                {t('emptyStates.holdingsNoAssets.cta')}
               </Button>
+              {snaptradeEnabled && (
+                <p className="text-body-sm text-muted-foreground max-w-md mx-auto">
+                  {t('snaptrade.trustCredentialsNote')}
+                </p>
+              )}
             </div>
           </CardContent>
         </Card>

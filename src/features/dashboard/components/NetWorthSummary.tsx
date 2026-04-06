@@ -1,4 +1,5 @@
 import { memo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PrivacyWrapper } from '@/components/shared/PrivacyWrapper';
 import { StatusIndicator } from '@/components/shared/StatusIndicator';
@@ -9,6 +10,8 @@ interface NetWorthSummaryProps {
   totalAssets: number;
   totalLiabilities: number;
   isLoading?: boolean;
+  /** Month-over-month note under Net Worth (derived in NetWorthCard) */
+  netWorthFootnote?: string | null;
 }
 
 /**
@@ -20,7 +23,10 @@ export const NetWorthSummary = memo(function NetWorthSummary({
   totalAssets,
   totalLiabilities,
   isLoading,
+  netWorthFootnote,
 }: NetWorthSummaryProps) {
+  const { t } = useTranslation('pages');
+
   if (isLoading) {
     return (
       <div className="space-y-4">
@@ -45,7 +51,7 @@ export const NetWorthSummary = memo(function NetWorthSummary({
       <div className="rounded-[var(--rl)] border border-border bg-card px-6 py-5 metric-tile">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
-            <div className="metric-label">Assets</div>
+            <div className="metric-label">{t('whatYouOwn')}</div>
             <div className="metric-value">
               <PrivacyWrapper value={totalAssets} />
             </div>
@@ -57,7 +63,7 @@ export const NetWorthSummary = memo(function NetWorthSummary({
       <div className="rounded-[var(--rl)] border border-border bg-card px-6 py-5 metric-tile">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
-            <div className="metric-label">Liabilities</div>
+            <div className="metric-label">{t('whatYouOwe')}</div>
             <div className="metric-value">
               -<PrivacyWrapper value={totalLiabilities} />
             </div>
@@ -73,6 +79,9 @@ export const NetWorthSummary = memo(function NetWorthSummary({
             <div className={cn('metric-value', netWorth >= 0 ? 'positive' : 'negative')}>
               <PrivacyWrapper value={netWorth} />
             </div>
+            {netWorthFootnote ? (
+              <p className="text-sm text-muted-foreground mt-1">{netWorthFootnote}</p>
+            ) : null}
           </div>
           <StatusIndicator
             status={netWorth >= 0 ? 'positive' : 'negative'}

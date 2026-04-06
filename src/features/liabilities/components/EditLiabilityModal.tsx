@@ -39,8 +39,8 @@ export function EditLiabilityModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
-          <DialogTitle>Edit Liability</DialogTitle>
-          <DialogDescription>Update liability information.</DialogDescription>
+          <DialogTitle>Edit liability</DialogTitle>
+          <DialogDescription>Update the details for this liability.</DialogDescription>
         </DialogHeader>
         <LiabilityForm
           liability={liability}

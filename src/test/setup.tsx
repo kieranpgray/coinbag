@@ -1,4 +1,5 @@
 import '@testing-library/jest-dom';
+import '@/lib/i18n';
 import { afterEach, vi } from 'vitest';
 import { cleanup } from '@testing-library/react';
 import type { ReactNode } from 'react';

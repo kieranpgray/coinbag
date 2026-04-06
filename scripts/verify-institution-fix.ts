@@ -78,7 +78,7 @@ const assetTests = [
     name: 'Asset with empty institution',
     data: {
       name: 'Test Asset',
-      type: 'Real Estate',
+      type: 'Property',
       value: 100000,
       dateAdded: new Date().toISOString().split('T')[0],
       institution: ''

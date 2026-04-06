@@ -116,15 +116,9 @@ export function ReviewScreen({
         <CardContent className="pt-6">
           <div className="text-center py-12">
             <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-            <h3 className="text-h3 font-semibold mb-2">{t('noTransactionsFound', { ns: 'import' })}</h3>
-            <p className="text-body text-muted-foreground mb-4">
-              {t('noTransactionsDescription', { ns: 'import' })}
+            <p className="text-body text-muted-foreground mb-6 max-w-md mx-auto">
+              {t('noTransactionsEmptyState', { ns: 'import' })}
             </p>
-            <ul className="text-body text-muted-foreground text-left max-w-md mx-auto space-y-1 mb-6">
-              <li>• {t('checkStatementFormat', { ns: 'import' })}</li>
-              <li>• {t('checkFileReadable', { ns: 'import' })}</li>
-              <li>• {t('checkTransactionData', { ns: 'import' })}</li>
-            </ul>
             {errors.length > 0 && (
               <Alert className="max-w-md mx-auto mb-4">
                 <AlertCircle className="h-4 w-4" />
@@ -149,10 +143,11 @@ export function ReviewScreen({
       {/* Summary Card */}
       <Card>
         <CardHeader>
-          <CardTitle>Review Transactions</CardTitle>
+          <CardTitle>{t('reviewCardTitle', { ns: 'import' })}</CardTitle>
           <CardDescription>
-            Review and edit transactions before importing. Uncheck any transactions you don't want to import.
+            {t('reviewCardDescription', { ns: 'import' })}
           </CardDescription>
+          {/* TODO: wire duplicateCount when available — Wave 2.5 */}
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -300,12 +295,12 @@ export function ReviewScreen({
           {isLoading ? (
             <>
               <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              Importing...
+              {t('addingTransactions', { ns: 'import' })}
             </>
           ) : (
             <>
               <Check className="h-4 w-4 mr-2" />
-              Import {summary.total} Transaction{summary.total !== 1 ? 's' : ''}
+              {t('addTransactions', { count: summary.total, ns: 'import' })}
             </>
           )}
         </Button>

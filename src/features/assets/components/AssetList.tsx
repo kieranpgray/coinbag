@@ -45,9 +45,10 @@ export function AssetList({ assets, onEdit, onDelete, onAddAsset }: AssetListPro
                   <Button
                     onClick={onAddAsset}
                     size="sm"
+                    aria-label="Add my first asset"
                   >
                     <Plus className="h-4 w-4 mr-2" />
-                    Add Your First Asset
+                    Add my first asset →
                   </Button>
                 </div>
               </TableCell>

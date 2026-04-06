@@ -114,7 +114,7 @@ describe('P0: Dashboard Add Investment Flow', () => {
     const assetA: Asset = {
       id: 'asset-a',
       name: 'My House',
-      type: 'Real Estate',
+      type: 'Property',
       value: 500000,
       change1D: 0,
       change1W: 0,
@@ -124,7 +124,7 @@ describe('P0: Dashboard Add Investment Flow', () => {
     const assetB: Asset = {
       id: 'asset-b',
       name: 'My Car',
-      type: 'Vehicles',
+      type: 'Vehicle',
       value: 30000,
       change1D: 0,
       change1W: 0,
@@ -145,7 +145,7 @@ describe('P0: Dashboard Add Investment Flow', () => {
 
     // Step 4: Verify modal is open (from query params)
     await waitFor(() => {
-      expect(screen.getByText('Add New Asset')).toBeInTheDocument();
+      expect(screen.getByText('Add an asset')).toBeInTheDocument();
     });
 
     // Step 5: Create investment via form (simulate form submission)
@@ -162,7 +162,7 @@ describe('P0: Dashboard Add Investment Flow', () => {
     // Step 6: Create investment (simulate via repository directly to test the path)
     const investmentC = {
       name: 'My Investment',
-      type: 'Other Investments' as Asset['type'],
+      type: 'Other asset' as Asset['type'],
       value: 100000,
       dateAdded: new Date().toISOString(),
     };
@@ -205,7 +205,7 @@ describe('P0: Dashboard Add Investment Flow', () => {
     const assetA: Asset = {
       id: 'asset-a',
       name: 'My House',
-      type: 'Real Estate',
+      type: 'Property',
       value: 500000,
       change1D: 0,
       change1W: 0,
@@ -220,7 +220,7 @@ describe('P0: Dashboard Add Investment Flow', () => {
 
     // Wait for modal to open
     await waitFor(() => {
-      expect(screen.getByText('Add New Asset')).toBeInTheDocument();
+      expect(screen.getByText('Add an asset')).toBeInTheDocument();
     });
 
     // Verify query params were cleared (effect ran)
@@ -231,7 +231,7 @@ describe('P0: Dashboard Add Investment Flow', () => {
     const assetsRepo = repo.createAssetsRepository();
     await assetsRepo.create({
       name: 'New Asset',
-      type: 'Other Investments',
+      type: 'Other asset',
       value: 100000,
       dateAdded: new Date().toISOString(),
     }, () => Promise.resolve('token'));
@@ -245,7 +245,7 @@ describe('P0: Dashboard Add Investment Flow', () => {
     // Verify modal state is stable (not reset)
     // If effect ran again, modal might close/reopen
     // This test verifies the fix prevents unnecessary re-execution
-    expect(screen.queryByText('Add New Asset')).toBeInTheDocument();
+    expect(screen.queryByText('Add an asset')).toBeInTheDocument();
   });
 });
 

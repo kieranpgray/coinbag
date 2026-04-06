@@ -40,7 +40,7 @@ export function useManualPriceRefresh() {
 
   return useMutation({
     mutationFn: async (requests: PriceFetchRequest[]) => {
-      if (!getToken || !userId) throw new Error('Authentication required');
+      if (!getToken || !userId) throw new Error('Your session has expired. Sign in to continue.');
       return triggerManualRefresh(getToken, requests);
     },
     onSuccess: () => {

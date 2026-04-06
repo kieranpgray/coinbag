@@ -15,7 +15,7 @@ describe('AssetForm', () => {
   const mockAsset: Asset = {
     id: '1',
     name: 'Test Asset',
-    type: 'Other Investments',
+    type: 'Other asset',
     value: 100000,
     change1D: 1,
     change1W: 2,

@@ -46,7 +46,7 @@ export function AccountsPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { locale } = useLocale();
-  const { t } = useTranslation(['accounts', 'common', 'aria']);
+  const { t } = useTranslation(['accounts', 'common', 'aria', 'pages']);
   const { data: accounts = [], isLoading, error, refetch: refetchAccounts } = useAccounts();
   const { data: selectedAccountData, isLoading: isLoadingAccount, refetch: refetchAccount } = useAccount(accountId || '');
   
@@ -209,6 +209,16 @@ export function AccountsPage() {
     navigate(ROUTES.app.accounts);
   };
 
+  useEffect(() => {
+    if (accountId) {
+      return;
+    }
+    document.title = t('activityDocumentTitle', { ns: 'pages' });
+    return () => {
+      document.title = 'Supafolio';
+    };
+  }, [accountId, t]);
+
   // Cleanup subscriptions on unmount
   useEffect(() => {
     return () => {
@@ -287,7 +297,9 @@ export function AccountsPage() {
         ];
 
         if (!validMimeTypes.includes(file.type)) {
-          errors.push(`${file.name}: Invalid file type. Please upload a PDF or image (JPEG/PNG)`);
+          errors.push(
+            `${file.name}: That format isn't supported. Download a PDF statement from your bank instead.`
+          );
           return;
         }
 
@@ -912,7 +924,10 @@ export function AccountsPage() {
       {accounts.length === 0 ? (
         <div className="space-y-6">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <h1 className="text-h1-sm sm:text-h1-md lg:text-h1-lg font-bold">Accounts</h1>
+            <div>
+              <h1 className="text-h1-sm sm:text-h1-md lg:text-h1-lg font-bold">{t('title', { ns: 'accounts' })}</h1>
+              <p className="text-sm text-muted-foreground mt-1">{t('activitySubtitle', { ns: 'pages' })}</p>
+            </div>
           </div>
           <Card>
             <CardContent className="py-12 text-center">
@@ -946,7 +961,8 @@ export function AccountsPage() {
         <div className="space-y-6">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div className="space-y-1">
-              <h1 className="text-h1-sm sm:text-h1-md lg:text-h1-lg font-bold">Accounts</h1>
+              <h1 className="text-h1-sm sm:text-h1-md lg:text-h1-lg font-bold">{t('title', { ns: 'accounts' })}</h1>
+              <p className="text-sm text-muted-foreground mt-1">{t('activitySubtitle', { ns: 'pages' })}</p>
             </div>
             <div className="flex flex-col gap-4 sm:items-end">
               <Button onClick={() => setCreateModalOpen(true)} className="w-full sm:w-auto">

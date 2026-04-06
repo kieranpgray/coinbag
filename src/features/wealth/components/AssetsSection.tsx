@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -30,18 +31,19 @@ export function AssetsSection({
   onDelete,
   viewMode = 'cards',
 }: AssetsSectionProps) {
+  const { t } = useTranslation('pages');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
 
   const assetCategories: Array<{ value: string; label: string }> = [
     { value: 'all', label: 'All' },
-    { value: 'Real Estate', label: 'Real Estate' },
-    { value: 'Other Investments', label: 'Other Investments' },
-    { value: 'Vehicles', label: 'Vehicles' },
+    { value: 'Property', label: 'Property' },
+    { value: 'Other asset', label: 'Other asset' },
+    { value: 'Vehicle', label: 'Vehicle' },
     { value: 'Crypto', label: 'Crypto' },
     { value: 'Cash', label: 'Cash' },
-    { value: 'Superannuation', label: 'Superannuation' },
-    { value: 'Stock', label: 'Stock' },
-    { value: 'RSU', label: 'RSU' },
+    { value: 'Super', label: 'Super' },
+    { value: 'Shares', label: 'Shares' },
+    { value: 'RSUs', label: 'RSUs' },
   ];
 
   const getAssetsForCategory = (category: string) => {
@@ -66,12 +68,12 @@ export function AssetsSection({
 
   // Cards view: render existing tabbed card interface
   return (
-    <section className="space-y-6" aria-label="Assets section">
+    <section className="space-y-6" aria-label={`${t('whatYouOwn')} section`}>
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <div className="flex items-center gap-3 mb-2">
-            <h2 className="text-foreground text-h2-sm sm:text-h2-md lg:text-h2-lg font-semibold">Assets</h2>
+            <h2 className="text-foreground text-h2-sm sm:text-h2-md lg:text-h2-lg font-semibold">{t('whatYouOwn')}</h2>
           </div>
           <div className="flex items-baseline gap-2">
             <span className="text-lg font-bold">
@@ -84,10 +86,10 @@ export function AssetsSection({
             size="sm"
             className="bg-primary hover:bg-primary/90 text-primary-foreground"
             onClick={onCreate}
-            aria-label="Add asset"
+            aria-label="Add an asset"
           >
             <Plus className="h-4 w-4 mr-1" />
-            Add Asset
+            Add an asset
           </Button>
         </div>
       </div>
@@ -108,13 +110,38 @@ export function AssetsSection({
               <Card>
                 <CardContent className="py-12 text-center">
                   <div className="space-y-4">
-                    <p className="text-muted-foreground">
-                      No assets found. Start building your portfolio.
-                    </p>
-                    <Button onClick={onCreate} size="sm">
-                      <Plus className="h-4 w-4 mr-2" />
-                      Add Your First Asset
-                    </Button>
+                    {category.value === 'all' || assets.length === 0 ? (
+                      <>
+                        <h3 className="text-h3 font-semibold text-foreground">
+                          {t('emptyStates.holdingsNoAssets.headline')}
+                        </h3>
+                        <p className="text-muted-foreground text-balance max-w-lg mx-auto">
+                          {t('emptyStates.holdingsNoAssets.body')}
+                        </p>
+                        <Button
+                          onClick={onCreate}
+                          size="sm"
+                          aria-label={t('emptyStates.holdingsNoAssets.ctaAriaLabel')}
+                        >
+                          <Plus className="h-4 w-4 mr-2" />
+                          {t('emptyStates.holdingsNoAssets.cta')}
+                        </Button>
+                      </>
+                    ) : (
+                      <>
+                        <p className="text-muted-foreground text-balance max-w-lg mx-auto">
+                          {t('emptyStates.holdingsAssetTabEmpty', { category: category.label })}
+                        </p>
+                        <Button
+                          onClick={onCreate}
+                          size="sm"
+                          aria-label={t('emptyStates.holdingsNoAssets.ctaAriaLabel')}
+                        >
+                          <Plus className="h-4 w-4 mr-2" />
+                          {t('emptyStates.holdingsNoAssets.cta')}
+                        </Button>
+                      </>
+                    )}
                   </div>
                 </CardContent>
               </Card>

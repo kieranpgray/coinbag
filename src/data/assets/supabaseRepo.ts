@@ -12,6 +12,34 @@ import { logger, getCorrelationId } from '@/lib/logger';
 import { decodeJwtPayload } from '@/lib/jwtDiagnostics';
 import { z } from 'zod';
 
+const ALLOWED_ASSET_TYPES: Asset['type'][] = [
+  'Property',
+  'Other asset',
+  'Vehicle',
+  'Crypto',
+  'Cash',
+  'Super',
+  'Shares',
+  'RSUs',
+];
+
+/** Map legacy or pre-migration DB type strings to current Asset.type */
+function normalizeDbAssetType(raw: string): Asset['type'] {
+  let t = raw.trim();
+  if (t === 'Investments' || t === 'Other') {
+    t = 'Other Investments';
+  }
+  const legacy: Record<string, Asset['type']> = {
+    'Other Investments': 'Other asset',
+    'Real Estate': 'Property',
+    Vehicles: 'Vehicle',
+    Superannuation: 'Super',
+    Stock: 'Shares',
+    RSU: 'RSUs',
+  };
+  return legacy[t] ?? (t as Asset['type']);
+}
+
 /**
  * Supabase implementation of AssetsRepository
  * 
@@ -113,14 +141,12 @@ export class SupabaseAssetsRepository implements AssetsRepository {
       const s = String(val);
       return s.includes('T') ? s.split('T')[0] : s;
     };
-    // Normalize legacy types: Investments/Other → Other Investments (migration 20260216120002 may not have run)
     const rawType = row.type as string;
-    const type =
-      rawType === 'Investments' || rawType === 'Other' ? 'Other Investments' : rawType;
+    const type = normalizeDbAssetType(rawType);
     return {
       id: row.id as string,
       name: row.name as string,
-      type: type as 'Real Estate' | 'Other Investments' | 'Vehicles' | 'Crypto' | 'Cash' | 'Superannuation' | 'Stock' | 'RSU',
+      type,
       value: row.value as number,
       change1D: row.change_1d === null ? undefined : (row.change_1d as number | undefined),
       change1W: row.change_1w === null ? undefined : (row.change_1w as number | undefined),
@@ -532,9 +558,9 @@ export class SupabaseAssetsRepository implements AssetsRepository {
       // Map camelCase to snake_case for database
       // Validate and normalize asset type to ensure it matches database constraint
       const typeValue = String(validation.data.type).trim();
-      const allowedTypes = ['Real Estate', 'Other Investments', 'Vehicles', 'Crypto', 'Cash', 'Superannuation', 'Stock', 'RSU'];
+      const allowedTypes = ALLOWED_ASSET_TYPES;
 
-      if (!allowedTypes.includes(typeValue)) {
+      if (!allowedTypes.includes(typeValue as Asset['type'])) {
         logger.error('DB:ASSET_INSERT', 'Invalid asset type provided', {
           providedType: typeValue,
           allowedTypes,
@@ -547,22 +573,22 @@ export class SupabaseAssetsRepository implements AssetsRepository {
         };
       }
 
-      // Stock/RSU/Crypto: derive name from ticker when name is missing or empty
+      // Shares/RSUs/Crypto: derive name from ticker when name is missing or empty
       let nameForDb = validation.data.name?.trim() || '';
-      if ((typeValue === 'Stock' || typeValue === 'RSU' || typeValue === 'Crypto') && !nameForDb) {
+      if ((typeValue === 'Shares' || typeValue === 'RSUs' || typeValue === 'Crypto') && !nameForDb) {
         const tickerVal = validation.data.ticker?.trim() ?? '';
         const purchaseDate = validation.data.purchaseDate?.trim();
-        if (typeValue === 'Stock') {
+        if (typeValue === 'Shares') {
           nameForDb = tickerVal || 'Unknown';
-        } else if (typeValue === 'RSU') {
-          nameForDb = tickerVal ? `${tickerVal} (RSU)` : 'RSU';
+        } else if (typeValue === 'RSUs') {
+          nameForDb = tickerVal ? `${tickerVal} (RSUs)` : 'RSUs';
         } else {
           // Crypto: use ticker or "TICKER (YYYY-MM-DD)" for lot-style display
           nameForDb = purchaseDate ? `${tickerVal || 'Crypto'} (${purchaseDate})` : (tickerVal || 'Crypto');
         }
       }
-      // Non-Stock/RSU/Crypto: name is required by contract; already validated
-      if (typeValue !== 'Stock' && typeValue !== 'RSU' && typeValue !== 'Crypto' && !nameForDb) {
+      // Non-Shares/RSUs/Crypto: name is required by contract; already validated
+      if (typeValue !== 'Shares' && typeValue !== 'RSUs' && typeValue !== 'Crypto' && !nameForDb) {
         return {
           error: {
             error: "Asset name can't be empty.",
@@ -572,12 +598,12 @@ export class SupabaseAssetsRepository implements AssetsRepository {
       }
 
       // Type-specific required fields (contract validates; double-check for repo clarity)
-      if (typeValue === 'Stock' || typeValue === 'RSU' || typeValue === 'Crypto') {
+      if (typeValue === 'Shares' || typeValue === 'RSUs' || typeValue === 'Crypto') {
         const tickerVal = validation.data.ticker?.trim();
         if (!tickerVal) {
           return {
             error: {
-              error: typeValue === 'Crypto' ? 'Coin symbol is required for Crypto.' : 'Ticker is required for Stock and RSU.',
+              error: typeValue === 'Crypto' ? 'Coin symbol is required for Crypto.' : 'Ticker is required for Shares and RSUs.',
               code: 'VALIDATION_ERROR',
             },
           };
@@ -611,7 +637,7 @@ export class SupabaseAssetsRepository implements AssetsRepository {
       if (validation.data.notes !== undefined) {
         dbInput.notes = validation.data.notes === '' ? null : validation.data.notes;
       }
-      // Stock/RSU columns
+      // Shares/RSUs columns
       if (validation.data.ticker !== undefined && validation.data.ticker !== '') {
         dbInput.ticker = validation.data.ticker.trim();
       }
@@ -791,19 +817,19 @@ export class SupabaseAssetsRepository implements AssetsRepository {
       const supabase = await createAuthenticatedSupabaseClient(getToken);
 
       // Map camelCase to snake_case for database
-      const allowedTypes = ['Real Estate', 'Other Investments', 'Vehicles', 'Crypto', 'Cash', 'Superannuation', 'Stock', 'RSU'];
+      const allowedTypes = ALLOWED_ASSET_TYPES;
       const dbInput: Record<string, unknown> = {};
 
       if (validation.data.name !== undefined) {
         let nameForDb = validation.data.name?.trim() ?? '';
         const typeValue = validation.data.type !== undefined ? String(validation.data.type).trim() : undefined;
-        if ((typeValue === 'Stock' || typeValue === 'RSU' || typeValue === 'Crypto') && !nameForDb) {
+        if ((typeValue === 'Shares' || typeValue === 'RSUs' || typeValue === 'Crypto') && !nameForDb) {
           const tickerVal = validation.data.ticker?.trim() ?? '';
           const purchaseDate = validation.data.purchaseDate?.trim();
-          if (typeValue === 'Stock') {
+          if (typeValue === 'Shares') {
             nameForDb = tickerVal || 'Unknown';
-          } else if (typeValue === 'RSU') {
-            nameForDb = tickerVal ? `${tickerVal} (RSU)` : 'RSU';
+          } else if (typeValue === 'RSUs') {
+            nameForDb = tickerVal ? `${tickerVal} (RSUs)` : 'RSUs';
           } else {
             nameForDb = purchaseDate ? `${tickerVal || 'Crypto'} (${purchaseDate})` : (tickerVal || 'Crypto');
           }
@@ -812,7 +838,7 @@ export class SupabaseAssetsRepository implements AssetsRepository {
       }
       if (validation.data.type !== undefined) {
         const typeValue = String(validation.data.type).trim();
-        if (!allowedTypes.includes(typeValue)) {
+        if (!allowedTypes.includes(typeValue as Asset['type'])) {
           logger.error('DB:ASSET_UPDATE', 'Invalid asset type provided', {
             assetId: id,
             providedType: typeValue,

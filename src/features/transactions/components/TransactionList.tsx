@@ -235,17 +235,18 @@ export function TransactionList({
                 <ArrowLeftRight className="h-8 w-8 text-muted-foreground" />
               </div>
               <h3 className="text-h3 font-semibold text-foreground mb-3">
-                No transactions yet
+                {t('emptyState.headline', { ns: 'transactions' })}
               </h3>
               <p className="text-body text-muted-foreground max-w-md mx-auto mb-8 leading-relaxed">
-                Get started by uploading your bank statements. We'll automatically extract and categorize your transactions to give you a complete view of your account activity.
+                {t('emptyState.body', { ns: 'transactions' })}
               </p>
               <Button 
                 className="flex items-center gap-2 rounded-lg"
                 onClick={onUploadClick}
+                aria-label={t('emptyState.ctaAriaLabel', { ns: 'transactions' })}
               >
-                <Upload className="h-4 w-4" />
-                Upload Statement
+                <Upload className="h-4 w-4" aria-hidden />
+                {t('emptyState.cta', { ns: 'transactions' })}
               </Button>
             </div>
           ) : (
