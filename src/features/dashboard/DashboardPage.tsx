@@ -1,4 +1,5 @@
 import { useMemo, useEffect } from 'react';
+import { AnimatePresence, motion } from 'motion/react';
 import { useDashboard } from '@/features/dashboard/hooks';
 import { useQuery } from '@tanstack/react-query';
 import { marketApi } from '@/lib/api';
@@ -88,7 +89,8 @@ export function DashboardPage() {
     queryFn: () => marketApi.getSummary(),
   });
   const { data: incomes = [] } = useIncomes();
-  const { data: categories = [] } = useCategories();
+  const { data: categoriesData } = useCategories();
+  const categories = useMemo(() => categoriesData ?? [], [categoriesData]);
 
   const isLoading = dashboardLoading || marketLoading;
   const hasError = dashboardError || marketError;
@@ -202,19 +204,6 @@ export function DashboardPage() {
     if (marketError) refetchMarket();
   };
 
-  if (isLoading && !dashboardData) {
-    return (
-      <div className="space-y-6">
-        <Skeleton className="h-10 w-48" />
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <Skeleton key={i} className="h-32" />
-          ))}
-        </div>
-      </div>
-    );
-  }
-
   if (hasError) {
     return (
       <div className="space-y-6">
@@ -242,7 +231,7 @@ export function DashboardPage() {
     );
   }
 
-  if (!dashboardData) {
+  if (!dashboardData && !isLoading) {
     return (
       <div className="space-y-6">
         <h2 className="text-h1-sm sm:text-h1-md lg:text-h1-lg font-medium">{t('title', { ns: 'dashboard' })}</h2>
@@ -271,95 +260,150 @@ export function DashboardPage() {
   
   const isDashboardEmpty = !hasAnyDataSource; // State A condition
 
-  // Show dashboard-level empty state when all data is empty (State A)
-  if (isDashboardEmpty) {
-    return <CardBasedFlow />;
-  }
-
   return (
-    <div className="space-y-6">
-        {/* Header section with greeting */}
-        <header className="flex flex-wrap items-center justify-between gap-2">
-          <div>
-            <h1 className="page-title">
-              {t('dashboard', { ns: 'navigation' })}
-            </h1>
-            <p className="text-sm text-muted-foreground mt-1">
-              {t('overviewSubtitle', { ns: 'pages' })}
-            </p>
+    <AnimatePresence mode="wait">
+      {isLoading && !dashboardData ? (
+        <motion.div
+          key="skeleton"
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
+        >
+          <div className="space-y-4">
+            {/* Page title */}
+            <Skeleton className="h-10 w-48" />
+
+            {/* NetWorthCard with chart — fixed height prevents layout jump */}
+            <Skeleton className="h-[420px] w-full" />
+
+            {/* Paired summary tiles (Assets/Liabilities) */}
+            <div className="grid grid-cols-2 gap-4">
+              <Skeleton className="h-28" />
+              <Skeleton className="h-28" />
+            </div>
+
+            {/* BudgetBreakdownTile */}
+            <Skeleton className="h-36 w-full" />
+
+            {/* IncomeSection / ExpensesSection */}
+            <div className="grid grid-cols-2 gap-4">
+              <Skeleton className="h-44" />
+              <Skeleton className="h-44" />
+            </div>
+
+            {/* MarketSummary */}
+            <Skeleton className="h-24 w-full" />
           </div>
-          <div className="flex items-center gap-2">
-            <PrivacyModeToggle />
-            {priceBackedAssets.length > 0 && (
-              <ManualRefreshButton assets={priceBackedAssets} showLabel={false} size="icon" />
-            )}
+        </motion.div>
+      ) : dashboardData && isDashboardEmpty ? (
+        <motion.div
+          key="dashboard-empty"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.3 }}
+        >
+          <CardBasedFlow />
+        </motion.div>
+      ) : dashboardData ? (
+        <motion.div
+          key="content"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.3 }}
+        >
+          <div className="flex flex-col">
+            {/* Header section with greeting */}
+            <header className="mb-6 flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <h1 className="page-title">
+                  {t('dashboard', { ns: 'navigation' })}
+                </h1>
+                <p className="text-sm text-muted-foreground mt-1">
+                  {t('overviewSubtitle', { ns: 'pages' })}
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <PrivacyModeToggle />
+                {priceBackedAssets.length > 0 && (
+                  <ManualRefreshButton assets={priceBackedAssets} showLabel={false} size="icon" />
+                )}
+              </div>
+            </header>
+
+            {/* Setup Progress - inline onboarding strip */}
+            <div className="mb-8">
+              <SetupProgress
+                progress={dashboardData.setupProgress}
+                checklist={dashboardData.setupChecklist}
+                isLoading={isLoading}
+              />
+            </div>
+
+            {/* Net Worth - Full width hero tile */}
+            <div className="mb-8">
+              <NetWorthCard
+                netWorth={dashboardData.netWorth}
+                totalAssets={totalAssets}
+                totalLiabilities={totalLiabilities}
+                change1D={dashboardData.netWorthChange1D}
+                change1W={dashboardData.netWorthChange1W}
+                isLoading={isLoading}
+                isEmpty={!hasAssets && !hasLiabilities}
+              />
+            </div>
+
+            {/* Asset/Liability breakdowns - responsive two-column grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <AssetsBreakdown
+                breakdown={assetBreakdown}
+                totalValue={totalAssets}
+                isLoading={isLoading}
+                isEmpty={!hasAssets}
+              />
+              <LiabilitiesBreakdown
+                breakdown={liabilityBreakdown}
+                totalBalance={totalLiabilities}
+                isLoading={isLoading}
+                isEmpty={!hasLiabilities}
+              />
+            </div>
+
+            <div className="mb-3" aria-hidden />
+
+            {/* Budget Breakdown - Standalone full width */}
+            <BudgetBreakdownTile
+              totalIncome={totalMonthlyIncome}
+              totalExpenses={totalMonthlyExpenses}
+              totalSavings={totalMonthlySavings}
+              totalRepayments={totalMonthlyRepayments}
+              remaining={remaining}
+              hasPayCycle={payCycleLoading ? true : Boolean(payCycle)}
+              isLoading={isLoading}
+              isEmpty={!hasBudgetData}
+            />
+
+            <div className="mb-10" aria-hidden />
+
+            {/* Expense/Income breakdowns - responsive two-column grid */}
+            <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-3">
+              <ExpenseBreakdown
+                breakdown={dashboardData.expenseBreakdown}
+                totalAmount={(dashboardData.expenseBreakdown ?? []).reduce((sum, item) => sum + item.amount, 0)}
+                isLoading={isLoading}
+                isEmpty={!hasExpenses}
+              />
+              <IncomeBreakdown
+                breakdown={dashboardData.incomeBreakdown}
+                totalAmount={(dashboardData.incomeBreakdown ?? []).reduce((sum, item) => sum + item.amount, 0)}
+                isLoading={isLoading}
+                isEmpty={!hasIncome}
+              />
+            </div>
+
+            {/* Market summary */}
+            <MarketSummary data={marketData} isLoading={marketLoading} isUnavailable={!marketData} />
           </div>
-        </header>
-
-        {/* Setup Progress - inline onboarding strip */}
-        <SetupProgress
-          progress={dashboardData.setupProgress}
-          checklist={dashboardData.setupChecklist}
-          isLoading={isLoading}
-        />
-
-        {/* Net Worth - Full width hero tile */}
-        <NetWorthCard
-          netWorth={dashboardData.netWorth}
-          totalAssets={totalAssets}
-          totalLiabilities={totalLiabilities}
-          change1D={dashboardData.netWorthChange1D}
-          change1W={dashboardData.netWorthChange1W}
-          isLoading={isLoading}
-          isEmpty={!hasAssets && !hasLiabilities}
-        />
-
-        {/* Asset/Liability breakdowns - responsive two-column grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <AssetsBreakdown
-            breakdown={assetBreakdown}
-            totalValue={totalAssets}
-            isLoading={isLoading}
-            isEmpty={!hasAssets}
-          />
-          <LiabilitiesBreakdown
-            breakdown={liabilityBreakdown}
-            totalBalance={totalLiabilities}
-            isLoading={isLoading}
-            isEmpty={!hasLiabilities}
-          />
-        </div>
-
-        {/* Budget Breakdown - Standalone full width */}
-        <BudgetBreakdownTile
-          totalIncome={totalMonthlyIncome}
-          totalExpenses={totalMonthlyExpenses}
-          totalSavings={totalMonthlySavings}
-          totalRepayments={totalMonthlyRepayments}
-          remaining={remaining}
-          hasPayCycle={payCycleLoading ? true : Boolean(payCycle)}
-          isLoading={isLoading}
-          isEmpty={!hasBudgetData}
-        />
-
-        {/* Expense/Income breakdowns - responsive two-column grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <ExpenseBreakdown
-            breakdown={dashboardData.expenseBreakdown}
-            totalAmount={(dashboardData.expenseBreakdown ?? []).reduce((sum, item) => sum + item.amount, 0)}
-            isLoading={isLoading}
-            isEmpty={!hasExpenses}
-          />
-          <IncomeBreakdown
-            breakdown={dashboardData.incomeBreakdown}
-            totalAmount={(dashboardData.incomeBreakdown ?? []).reduce((sum, item) => sum + item.amount, 0)}
-            isLoading={isLoading}
-            isEmpty={!hasIncome}
-          />
-        </div>
-
-        {/* Market summary */}
-        <MarketSummary data={marketData} isLoading={marketLoading} isUnavailable={!marketData} />
-    </div>
+        </motion.div>
+      ) : null}
+    </AnimatePresence>
   );
 }
