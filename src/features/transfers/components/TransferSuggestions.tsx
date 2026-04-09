@@ -1,3 +1,4 @@
+import { EmptyState } from '@/components/ui/empty-state';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useTransferSuggestions } from '../hooks';
 import { useCashFlowByAccount } from '../hooks/useCashFlowByAccount';
@@ -181,9 +182,10 @@ export function TransferSuggestions({
               </Button>
             </>
           ) : (
-            <p className="text-body text-muted-foreground text-balance max-w-prose">
-              {t('emptyStates.allocateNoSuggestionsFallback.body')}
-            </p>
+            <EmptyState
+              title="Nothing to allocate"
+              body="You're all set — transfers for this pay cycle are in order."
+            />
           )}
         </div>
       </section>

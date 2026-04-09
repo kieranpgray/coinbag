@@ -3,6 +3,10 @@ import { AccountCashFlowRow } from './AccountCashFlowRow';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ChevronRight } from 'lucide-react';
+import { EmptyState } from '@/components/ui/empty-state';
+import { Button } from '@/components/ui/button';
+import { Link } from 'react-router-dom';
+import { ROUTES } from '@/lib/constants/routes';
 
 interface CashFlowSummaryProps {
   viewMode: 'weekly' | 'fortnightly' | 'monthly';
@@ -48,10 +52,15 @@ export function CashFlowSummary({ viewMode }: CashFlowSummaryProps) {
           </Alert>
         )}
         {!isLoading && !error && !hasAccounts && (
-          <p className="text-body text-muted-foreground py-2">
-            Add income and expenses with account assignments to see cash flow and transfer
-            suggestions.
-          </p>
+          <EmptyState
+            title="No accounts connected"
+            body="Link a bank account to see where your money is going."
+            action={
+              <Button asChild size="sm">
+                <Link to={ROUTES.app.accounts}>Connect account</Link>
+              </Button>
+            }
+          />
         )}
         {!isLoading && !error && hasAccounts && (
           <ul className="space-y-0 list-none p-0 m-0">

@@ -344,6 +344,39 @@
 }
 
 @layer utilities {
+  /* Empty state — DS v2 (PRO-13) */
+  .empty-state {
+    text-align: center;
+    padding: 48px 24px;
+  }
+
+  .empty-state-icon {
+    width: 48px;
+    height: 48px;
+    background: var(--paper-2);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
+  }
+
+  .empty-state-title {
+    font-family: var(--serif);
+    font-size: 20px;
+    color: var(--ink);
+    margin-bottom: 8px;
+  }
+
+  .empty-state-body {
+    font-size: 14px;
+    color: var(--ink-3);
+    line-height: 1.65;
+    font-weight: 300;
+    max-width: 280px;
+    margin: 0 auto 20px;
+  }
+
   /* Hide scrollbar but keep functionality */
   .scrollbar-hide {
     -ms-overflow-style: none;

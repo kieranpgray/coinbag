@@ -8,6 +8,7 @@ import { PrivacyWrapper } from '@/components/shared/PrivacyWrapper';
 import { StatusIndicator } from '@/components/shared/StatusIndicator';
 import { ROUTES } from '@/lib/constants/routes';
 import { SurplusCard } from '@/components/ui/surplus-card';
+import { EmptyState } from '@/components/ui/empty-state';
 
 interface BudgetBreakdownTileProps {
   totalIncome: number; // monthly equivalent
@@ -58,22 +59,25 @@ export const BudgetBreakdownTile = memo(function BudgetBreakdownTile({
     return (
       <Card className="border border-border">
         <CardContent className="p-0">
-          <div className="p-4">
-            <h2 className="text-h2-sm sm:text-h2-md lg:text-h2-lg font-medium text-foreground mb-4">
-              {t('budgetBreakdownTile.title')}
-            </h2>
-            <p className="text-body text-muted-foreground mb-4">
-              {t('budgetBreakdownTile.emptyDescription')}
-            </p>
-            <div className="flex gap-2">
+          <EmptyState
+            title="No income tracked"
+            body="Add your salary or other income to see your cashflow."
+            action={
               <Button asChild size="sm">
-                <Link to="/budget?create=income">Add income</Link>
+                <Link to={ROUTES.app.budget + '?create=income'}>Add income</Link>
               </Button>
+            }
+          />
+          <div className="border-t border-border" />
+          <EmptyState
+            title="No recurring expenses"
+            body="Add bills, subscriptions and regular payments."
+            action={
               <Button asChild size="sm" variant="outline">
-                <Link to="/budget?create=expense">Add expense</Link>
+                <Link to={ROUTES.app.budget + '?create=expense'}>Add expense</Link>
               </Button>
-            </div>
-          </div>
+            }
+          />
         </CardContent>
       </Card>
     );
