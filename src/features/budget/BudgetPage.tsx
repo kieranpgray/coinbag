@@ -50,8 +50,8 @@ import { findCategoryIdByExpenseType } from './utils/categoryMapping';
 import type { ExpenseType } from './utils/expenseTypeMapping';
 import { getExpenseType } from './utils/expenseTypeMapping';
 import { findUncategorisedCategoryId } from '@/data/categories/ensureDefaults';
-import { formatCurrency } from '@/lib/utils';
 import { logger } from '@/lib/logger';
+import { SurplusCard } from '@/components/ui/surplus-card';
 
 const incomeSchema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -449,14 +449,7 @@ export function BudgetPage() {
         </Alert>
       )}
 
-      <div className="rounded-lg border border-border bg-muted/30 px-4 py-3 flex items-center justify-between">
-        <span className="text-body-sm text-muted-foreground">
-          {t('budgetBreakdownTile.surplus', { ns: 'pages' })}
-        </span>
-        <span className={`text-body-lg font-medium ${remaining >= 0 ? 'text-success' : 'text-error'}`}>
-          {remaining >= 0 ? '' : '-'}{formatCurrency(Math.abs(remaining))}
-        </span>
-      </div>
+      <SurplusCard amount={remaining} />
 
       {/* In and Out */}
       <BudgetBreakdown

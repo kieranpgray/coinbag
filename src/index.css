@@ -526,4 +526,92 @@
     color: var(--ink-4);
     font-size: 13px;
   }
+
+  /* Income card — DS v2 (PRO-10) */
+  .income-card {
+    background: var(--color-primary);
+    border-radius: var(--rl);
+    padding: 16px;
+    color: #fff;
+  }
+
+  .income-label {
+    font-size: 12px;
+    opacity: 0.7;
+    margin-bottom: 4px;
+  }
+
+  .income-amount {
+    font-family: var(--serif);
+    font-size: 30px;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .income-source {
+    font-size: 12px;
+    opacity: 0.65;
+  }
+
+  /* Surplus card — DS v2 (PRO-11) */
+  .surplus-card {
+    background: var(--accent-light);
+    border: 1px solid rgba(26, 92, 58, 0.15);
+    border-radius: var(--rl);
+    padding: 12px 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .surplus-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--color-primary);
+  }
+
+  .surplus-sub {
+    font-size: 11px;
+    color: var(--color-primary);
+    opacity: 0.65;
+    margin-top: 2px;
+  }
+
+  .surplus-amount {
+    font-family: var(--serif);
+    font-size: 22px;
+    color: var(--color-primary);
+  }
+
+  /* Shortfall variant */
+  .surplus-card.shortfall {
+    background: var(--danger-light);
+    border-color: rgba(192, 57, 43, 0.2);
+  }
+
+  .surplus-card.shortfall .surplus-label,
+  .surplus-card.shortfall .surplus-amount {
+    color: var(--danger);
+  }
+
+  /* Dark mode overrides */
+  .dark .surplus-card {
+    background: rgba(26, 92, 58, 0.2);
+    border-color: rgba(26, 92, 58, 0.4);
+  }
+
+  .dark .surplus-card .surplus-label,
+  .dark .surplus-card .surplus-amount {
+    color: #5cb882;
+  }
+
+  .dark .surplus-card.shortfall {
+    background: rgba(192, 57, 43, 0.15);
+    border-color: rgba(192, 57, 43, 0.3);
+  }
+
+  .dark .surplus-card.shortfall .surplus-label,
+  .dark .surplus-card.shortfall .surplus-amount {
+    color: #e87e74;
+  }
 }

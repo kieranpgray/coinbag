@@ -6,8 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { PrivacyWrapper } from '@/components/shared/PrivacyWrapper';
 import { StatusIndicator } from '@/components/shared/StatusIndicator';
-import { cn } from '@/lib/utils';
 import { ROUTES } from '@/lib/constants/routes';
+import { SurplusCard } from '@/components/ui/surplus-card';
 
 interface BudgetBreakdownTileProps {
   totalIncome: number; // monthly equivalent
@@ -92,15 +92,10 @@ export const BudgetBreakdownTile = memo(function BudgetBreakdownTile({
         </div>
 
         <div className="px-4 pb-4 space-y-3">
-          <div className="metric-tile">
-            <div className="flex items-start justify-between gap-2">
-              <div className="min-w-0">
-                <div className="metric-label">{t('budgetBreakdownTile.incomeArriving')}</div>
-                <div className="num-balance">
-                  <PrivacyWrapper value={totalIncome} />
-                </div>
-              </div>
-              <StatusIndicator status="positive" label="Positive status" className="shrink-0 mt-1" />
+          <div className="income-card">
+            <div className="income-label">{t('budgetBreakdownTile.incomeArriving')}</div>
+            <div className="income-amount">
+              <PrivacyWrapper value={totalIncome} />
             </div>
           </div>
 
@@ -116,21 +111,7 @@ export const BudgetBreakdownTile = memo(function BudgetBreakdownTile({
             </div>
           </div>
 
-          <div className="metric-tile">
-            <div className="flex items-start justify-between gap-2">
-              <div className="min-w-0">
-                <div className="metric-label">{t('budgetBreakdownTile.surplus')}</div>
-                <div className={cn('num-balance', remaining >= 0 ? 'positive' : 'negative')}>
-                  <PrivacyWrapper value={remaining} />
-                </div>
-              </div>
-              <StatusIndicator
-                status={remaining >= 0 ? 'positive' : 'negative'}
-                label={remaining >= 0 ? 'Positive status' : 'Negative status'}
-                className="shrink-0 mt-1"
-              />
-            </div>
-          </div>
+          <SurplusCard amount={remaining} />
 
           <div className="pt-1">
             <Button variant="link" className="h-auto p-0 text-muted-foreground" asChild>

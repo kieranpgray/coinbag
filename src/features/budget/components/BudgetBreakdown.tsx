@@ -1,7 +1,7 @@
-import { useTranslation } from 'react-i18next';
 import { Card, CardContent } from '@/components/ui/card';
 import { formatCurrency } from '@/lib/utils';
 import { convertToFrequency, type Frequency } from '../utils/frequencyConversion';
+import { SurplusCard } from '@/components/ui/surplus-card';
 
 interface BudgetBreakdownProps {
   totalIncome: number; // monthly equivalent
@@ -25,8 +25,6 @@ export function BudgetBreakdown({
   remaining,
   frequency,
 }: BudgetBreakdownProps) {
-  const { t } = useTranslation('pages');
-
   // Convert all values from monthly to selected frequency
   const incomeDisplay = convertToFrequency(totalIncome, 'monthly', frequency);
   const expensesDisplay = convertToFrequency(totalExpenses, 'monthly', frequency);
@@ -98,26 +96,7 @@ export function BudgetBreakdown({
             </div>
           </div>
 
-          {/* Separator */}
-          <div className="border-t border-border my-2" />
-
-          {/* Remaining Row */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="text-body-sm text-muted-foreground">{t('budgetBreakdownTile.surplus')}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-body-lg font-medium text-foreground">
-                {formatCurrency(remainingDisplay)}
-              </span>
-              <div
-                className={`h-2 w-2 rounded-full ${
-                  remaining >= 0 ? 'bg-success' : 'bg-error'
-                }`}
-                aria-label={remaining >= 0 ? 'Positive status' : 'Negative status'}
-              />
-            </div>
-          </div>
+          <SurplusCard amount={remainingDisplay} />
         </div>
       </CardContent>
     </Card>
