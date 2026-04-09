@@ -10,6 +10,7 @@ import { Info } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { ROUTES } from '@/lib/constants/routes';
+import { PrivacyWrapper } from '@/components/shared/PrivacyWrapper';
 import { format } from 'date-fns';
 import {
   Tooltip,
@@ -245,6 +246,19 @@ export function TransferSuggestions({
           </Select>
         </div>
 
+        {/* Income context card — DS v2 PRO-10 */}
+        {totalMonthlyIncome > 0 && nextPayDateFormatted && (
+          <div className="income-card mb-4">
+            <div className="income-label">{t('budgetBreakdownTile.incomeArriving')}</div>
+            <div className="income-amount">
+              <PrivacyWrapper value={totalMonthlyIncome} />
+            </div>
+            {nextPayDateFormatted && (
+              <div className="income-source">{nextPayDateFormatted}</div>
+            )}
+          </div>
+        )}
+
         {/* Upcoming preview label + helper */}
         {isUpcoming && (
           <div className="mb-2">
@@ -257,7 +271,7 @@ export function TransferSuggestions({
           </div>
         )}
 
-        <ul className="space-y-0 list-none p-0 m-0">
+        <ul className="space-y-2 list-none p-0 m-0">
           {repaymentRows.length > 0 && (
             <>
               <SectionLabel label={t('allocate.sections.requiredRepayments')} />
@@ -293,20 +307,11 @@ export function TransferSuggestions({
           {/* Shortfall state: committed expenses exceed income */}
           {hasShortfall ? (
             <>
-              <SectionLabel
-                label={t('allocate.shortfall.label')}
-                className="text-destructive"
-              />
-              <li className="py-3">
-                <p className="text-body text-muted-foreground mb-2">
-                  {t('allocate.shortfall.message')}
-                </p>
-                <Link
-                  to={ROUTES.app.budget}
-                  className="text-body text-destructive font-medium hover:underline underline-offset-2"
-                >
-                  {t('allocate.shortfall.cta')}
-                </Link>
+              <li className="list-none pt-2">
+                <div className="alert alert-danger" role="alert">
+                  Your expenses exceed your income this pay cycle. Review your recurring expenses to
+                  balance your plan.
+                </div>
               </li>
             </>
           ) : (
