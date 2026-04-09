@@ -155,6 +155,8 @@
     --danger-light: #fdecea;
     --warning: #b58a10;
     --warning-light: #fff8e6;
+    --success: #1a5c3a;
+    --success-light: var(--accent-light);
     --info: #1a527a;
     --info-light: #e8f3f9;
     --focus-ring: rgba(26, 92, 58, 0.22);
@@ -199,6 +201,15 @@
     --danger-tone-strong: #9b2c22;
     --danger-tone-mid: #c0392b;
     --danger-tone-light: #d65548;
+
+    /* === TOKEN SYSTEM COEXISTENCE RULE ===
+     * DS pattern classes use raw CSS vars as colors: var(--color-primary), var(--paper), var(--ink), etc.
+     * Tailwind/shadcn utilities use HSL tuples: hsl(var(--accent)), hsl(var(--primary)), etc.
+     * NEVER use var(--accent) in DS pattern classes — it resolves to "42 20% 94%" (not a valid color).
+     * Use var(--color-primary) for forest green in all new DS utility classes.
+     * Use var(--accent-light) for the green-tinted background (#e8f2ec).
+     * This coexistence is intentional — do not merge the two systems.
+     * ======================================= */
 
     /* Tailwind / shadcn HSL tokens */
     --background: 40 33% 97%;
