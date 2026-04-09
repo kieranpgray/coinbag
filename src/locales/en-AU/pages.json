@@ -29,7 +29,7 @@
     },
     "shortfall": {
       "label": "Shortfall",
-      "message": "Your committed expenses exceed your income this cycle. Review your amounts in Recurring.",
+      "message": "Your expenses exceed your income this pay cycle. Review your recurring expenses to balance your plan.",
       "cta": "Go to Recurring →"
     },
     "upcoming": {

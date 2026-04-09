@@ -309,8 +309,7 @@ export function TransferSuggestions({
             <>
               <li className="list-none pt-2">
                 <div className="alert alert-danger" role="alert">
-                  Your expenses exceed your income this pay cycle. Review your recurring expenses to
-                  balance your plan.
+                  {t('allocate.shortfall.message')}
                 </div>
               </li>
             </>
