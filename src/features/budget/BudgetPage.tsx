@@ -11,7 +11,6 @@ import { useAccounts } from '@/features/accounts/hooks';
 import { AccountSelect } from '@/components/shared/AccountSelect';
 import { useAccountLinking } from '@/hooks/useAccountLinking';
 import { Link } from 'react-router-dom';
-import { ArrowRight } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { RefreshCw, AlertTriangle, AlertCircle } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -421,7 +420,7 @@ export function BudgetPage() {
           transition={{ duration: 0.3 }}
         >
     <div className="space-y-12">
-      {/* Budget Header: title + frequency control + Plan transfers link */}
+      {/* Budget Header: title + frequency control */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="page-title">
@@ -442,12 +441,6 @@ export function BudgetPage() {
               ))}
             </SelectContent>
           </Select>
-          <Button variant="ghost" size="sm" asChild className="text-muted-foreground hover:text-foreground">
-            <Link to={ROUTES.app.transfers}>
-              Plan transfers
-              <ArrowRight className="h-4 w-4 ml-1" />
-            </Link>
-          </Button>
         </div>
       </div>
 
@@ -542,6 +535,19 @@ export function BudgetPage() {
             frequency={frequency}
           />
         )}
+      </div>
+
+      {/* Plan transfers CTA — contextual surplus + action */}
+      <div className="mt-6">
+        <SurplusCard
+          amount={remaining}
+          label="Remaining this pay cycle"
+        />
+        <Button variant="outline" asChild className="w-full mt-3">
+          <Link to={ROUTES.app.transfers}>
+            {remaining >= 0 ? 'Plan transfers →' : 'Review your plan →'}
+          </Link>
+        </Button>
       </div>
 
       {/* Income Create Modal */}

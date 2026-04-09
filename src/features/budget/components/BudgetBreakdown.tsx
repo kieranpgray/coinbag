@@ -44,58 +44,43 @@ export function BudgetBreakdown({
 
         {/* Content */}
         <div className="px-4 pb-4 space-y-3">
-          {/* Income Row */}
+          {/* Income Row (primary) */}
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="text-body-sm text-muted-foreground">Income</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-body-lg font-medium text-foreground">
-                {formatCurrency(incomeDisplay)}
-              </span>
-              <div className="h-2 w-2 rounded-full bg-success" aria-label="Positive status" />
-            </div>
+            <span className="text-body-sm text-muted-foreground">Income</span>
+            <span className="num-body tabular-nums text-foreground">
+              {formatCurrency(incomeDisplay)}
+            </span>
           </div>
 
-          {/* Expenses Row */}
+          {/* Total Expenses Row (primary) */}
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="text-body-sm text-muted-foreground">Expenses</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-body-lg font-medium text-foreground">
-                -{formatCurrency(expensesDisplay)}
-              </span>
-              <div className="h-2 w-2 rounded-full bg-error" aria-label="Expense status" />
-            </div>
+            <span className="text-body-sm text-muted-foreground">Total Expenses</span>
+            <span className="num-body tabular-nums text-foreground">
+              -{formatCurrency(expensesDisplay)}
+            </span>
           </div>
 
-          {/* Savings Row */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="text-body-sm text-muted-foreground">Savings</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-body-lg font-medium text-foreground">
+          {/* Savings sub-row */}
+          {savingsDisplay > 0 && (
+            <div className="flex items-center justify-between pl-6 border-l-2 border-[var(--paper-3)] ml-2">
+              <span className="text-body-sm text-[var(--ink-3)]">incl. Savings</span>
+              <span className="num-body tabular-nums text-[var(--ink-3)]">
                 -{formatCurrency(savingsDisplay)}
               </span>
-              <div className="h-2 w-2 rounded-full bg-error" aria-label="Savings status" />
             </div>
-          </div>
+          )}
 
-          {/* Repayments Row */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="text-body-sm text-muted-foreground">Repayments</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-body-lg font-medium text-foreground">
+          {/* Repayments sub-row */}
+          {repaymentsDisplay > 0 && (
+            <div className="flex items-center justify-between pl-6 border-l-2 border-[var(--paper-3)] ml-2">
+              <span className="text-body-sm text-[var(--ink-3)]">incl. Repayments</span>
+              <span className="num-body tabular-nums text-[var(--ink-3)]">
                 -{formatCurrency(repaymentsDisplay)}
               </span>
-              <div className="h-2 w-2 rounded-full bg-error" aria-label="Repayment status" />
             </div>
-          </div>
+          )}
 
+          {/* SurplusCard replaces separator + remaining row */}
           <SurplusCard amount={remainingDisplay} />
         </div>
       </CardContent>
