@@ -48,11 +48,11 @@ export const NetWorthSummary = memo(function NetWorthSummary({
 
   return (
     <div className="space-y-3">
-      <div className="rounded-[var(--rl)] border border-border bg-card px-6 py-5 metric-tile">
+      <div className="metric-tile">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
             <div className="metric-label">{t('whatYouOwn')}</div>
-            <div className="metric-value">
+            <div className="num-balance">
               <PrivacyWrapper value={totalAssets} />
             </div>
           </div>
@@ -60,11 +60,11 @@ export const NetWorthSummary = memo(function NetWorthSummary({
         </div>
       </div>
 
-      <div className="rounded-[var(--rl)] border border-border bg-card px-6 py-5 metric-tile">
+      <div className="metric-tile">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
             <div className="metric-label">{t('whatYouOwe')}</div>
-            <div className="metric-value">
+            <div className="num-balance">
               -<PrivacyWrapper value={totalLiabilities} />
             </div>
           </div>
@@ -72,11 +72,11 @@ export const NetWorthSummary = memo(function NetWorthSummary({
         </div>
       </div>
 
-      <div className="rounded-[var(--rl)] border border-border bg-card px-6 py-5 metric-tile">
+      <div className="metric-tile">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
             <div className="metric-label">Net Worth</div>
-            <div className={cn('metric-value', netWorth >= 0 ? 'positive' : 'negative')}>
+            <div className={cn('num-display', netWorth >= 0 ? 'positive' : 'negative')}>
               <PrivacyWrapper value={netWorth} />
             </div>
             {netWorthFootnote ? (

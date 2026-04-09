@@ -7,7 +7,6 @@ import { Label } from '@/components/ui/label';
 import { DatePicker } from '@/components/ui/date-picker';
 import { AccountSelect } from '@/components/shared/AccountSelect';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { usePayCycle } from '../hooks';
 import { useAccounts } from '@/features/accounts/hooks';
@@ -75,164 +74,161 @@ export function PayCycleSetup({ onSuccess }: PayCycleSetupProps = {}) {
 
   if (accountsLoading) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Set Up Your Pay Cycle</CardTitle>
-          <CardDescription>Loading accounts...</CardDescription>
-        </CardHeader>
-      </Card>
+      <div className="space-y-1 py-2">
+        <p className="text-base font-medium">Set Up Your Pay Cycle</p>
+        <p className="text-sm text-muted-foreground">Loading accounts...</p>
+      </div>
     );
   }
 
   if (accounts.length === 0) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Set Up Your Pay Cycle</CardTitle>
-          <CardDescription>You need at least one account to set up pay cycle</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Alert>
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>
-              Please create an account first before setting up your pay cycle.
-            </AlertDescription>
-          </Alert>
-        </CardContent>
-      </Card>
+      <div className="space-y-4">
+        <div className="space-y-1">
+          <p className="text-base font-medium">Set Up Your Pay Cycle</p>
+          <p className="text-sm text-muted-foreground">
+            You need at least one account to set up pay cycle
+          </p>
+        </div>
+        <Alert>
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            Please create an account first before setting up your pay cycle.
+          </AlertDescription>
+        </Alert>
+      </div>
     );
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Set Up Your Pay Cycle</CardTitle>
-        <CardDescription>
+    <div className="space-y-6">
+      <div className="space-y-1">
+        <p className="text-base font-medium">Set Up Your Pay Cycle</p>
+        <p className="text-sm text-muted-foreground">
           This helps calculate when to move money between accounts
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-          {error && (
-            <Alert className="border-destructive bg-destructive/10">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>
-                {error instanceof Error ? error.message : 'Failed to save pay cycle configuration'}
-              </AlertDescription>
-            </Alert>
+        </p>
+      </div>
+
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+        {error && (
+          <Alert className="border-destructive bg-destructive/10">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              {error instanceof Error ? error.message : 'Failed to save pay cycle configuration'}
+            </AlertDescription>
+          </Alert>
+        )}
+
+        <div className="space-y-2">
+          <Label htmlFor="frequency">How often do you get paid?</Label>
+          <Controller
+            name="frequency"
+            control={control}
+            render={({ field }) => (
+              <Select value={field.value} onValueChange={field.onChange}>
+                <SelectTrigger id="frequency">
+                  <SelectValue placeholder="Select frequency" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="weekly">Weekly</SelectItem>
+                  <SelectItem value="fortnightly">Fortnightly</SelectItem>
+                  <SelectItem value="monthly">Monthly</SelectItem>
+                </SelectContent>
+              </Select>
+            )}
+          />
+          {errors.frequency && (
+            <p className="text-body text-destructive">{errors.frequency.message}</p>
           )}
+        </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="frequency">How often do you get paid?</Label>
-            <Controller
-              name="frequency"
-              control={control}
-              render={({ field }) => (
-                <Select value={field.value} onValueChange={field.onChange}>
-                  <SelectTrigger id="frequency">
-                    <SelectValue placeholder="Select frequency" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="weekly">Weekly</SelectItem>
-                    <SelectItem value="fortnightly">Fortnightly</SelectItem>
-                    <SelectItem value="monthly">Monthly</SelectItem>
-                  </SelectContent>
-                </Select>
-              )}
-            />
-            {errors.frequency && (
-              <p className="text-body text-destructive">{errors.frequency.message}</p>
+        <div className="space-y-2">
+          <Label htmlFor="nextPayDate">When is your next payday?</Label>
+          <Controller
+            name="nextPayDate"
+            control={control}
+            render={({ field }) => (
+              <DatePicker
+                id="nextPayDate"
+                value={field.value}
+                onChange={(e) => field.onChange(e.target.value)}
+                shouldShowCalendarButton
+                minDate={format(new Date(), 'yyyy-MM-dd')}
+              />
             )}
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="nextPayDate">When is your next payday?</Label>
-            <Controller
-              name="nextPayDate"
-              control={control}
-              render={({ field }) => (
-                <DatePicker
-                  id="nextPayDate"
-                  value={field.value}
-                  onChange={(e) => field.onChange(e.target.value)}
-                  shouldShowCalendarButton
-                  minDate={format(new Date(), 'yyyy-MM-dd')}
-                />
-              )}
-            />
-            {errors.nextPayDate && (
-              <p className="text-body text-destructive">{errors.nextPayDate.message}</p>
-            )}
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="primaryIncomeAccountId">
-              Which account receives your main income? <span className="text-destructive">*</span>
-            </Label>
-            <Controller
-              name="primaryIncomeAccountId"
-              control={control}
-              render={({ field }) => (
-                <AccountSelect
-                  id="primaryIncomeAccountId"
-                  value={field.value}
-                  onChange={field.onChange}
-                  placeholder="Select primary income account"
-                  error={errors.primaryIncomeAccountId?.message}
-                />
-              )}
-            />
-            {errors.primaryIncomeAccountId && (
-              <p className="text-body text-destructive">{errors.primaryIncomeAccountId.message}</p>
-            )}
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="savingsAccountId">
-              Which account should receive surplus funds? (Optional)
-            </Label>
-            <Controller
-              name="savingsAccountId"
-              control={control}
-              render={({ field }) => (
-                <AccountSelect
-                  id="savingsAccountId"
-                  value={field.value}
-                  onChange={field.onChange}
-                  placeholder="Select savings account (optional)"
-                  error={errors.savingsAccountId?.message}
-                />
-              )}
-            />
-            {errors.savingsAccountId && (
-              <p className="text-body text-destructive">{errors.savingsAccountId.message}</p>
-            )}
-            <p className="text-caption text-muted-foreground">
-              Any money left over after covering expenses will be suggested for transfer here.
-            </p>
-          </div>
-
-          {payCycle && (
-            <p className="text-caption text-muted-foreground">
-              {t('allocate.editContextNote')}{' '}
-              <Link
-                to={ROUTES.app.budget}
-                className="underline underline-offset-2 hover:text-foreground transition-colors"
-              >
-                {t('allocate.editContextNoteLinkText')}
-              </Link>
-              .
-            </p>
+          />
+          {errors.nextPayDate && (
+            <p className="text-body text-destructive">{errors.nextPayDate.message}</p>
           )}
+        </div>
 
-          <div className="flex justify-end gap-2">
-            <Button type="submit" disabled={isUpdating}>
-              {isUpdating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {payCycle ? t('allocate.saveCta') : 'Save Pay Cycle'}
-            </Button>
-          </div>
-        </form>
-      </CardContent>
-    </Card>
+        <div className="space-y-2">
+          <Label htmlFor="primaryIncomeAccountId">
+            Which account receives your main income? <span className="text-destructive">*</span>
+          </Label>
+          <Controller
+            name="primaryIncomeAccountId"
+            control={control}
+            render={({ field }) => (
+              <AccountSelect
+                id="primaryIncomeAccountId"
+                value={field.value}
+                onChange={field.onChange}
+                placeholder="Select primary income account"
+                error={errors.primaryIncomeAccountId?.message}
+              />
+            )}
+          />
+          {errors.primaryIncomeAccountId && (
+            <p className="text-body text-destructive">{errors.primaryIncomeAccountId.message}</p>
+          )}
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="savingsAccountId">
+            Which account should receive surplus funds? (Optional)
+          </Label>
+          <Controller
+            name="savingsAccountId"
+            control={control}
+            render={({ field }) => (
+              <AccountSelect
+                id="savingsAccountId"
+                value={field.value}
+                onChange={field.onChange}
+                placeholder="Select savings account (optional)"
+                error={errors.savingsAccountId?.message}
+              />
+            )}
+          />
+          {errors.savingsAccountId && (
+            <p className="text-body text-destructive">{errors.savingsAccountId.message}</p>
+          )}
+          <p className="text-caption text-muted-foreground">
+            Any money left over after covering expenses will be suggested for transfer here.
+          </p>
+        </div>
+
+        {payCycle && (
+          <p className="text-caption text-muted-foreground">
+            {t('allocate.editContextNote')}{' '}
+            <Link
+              to={ROUTES.app.budget}
+              className="underline underline-offset-2 hover:text-foreground transition-colors"
+            >
+              {t('allocate.editContextNoteLinkText')}
+            </Link>
+            .
+          </p>
+        )}
+
+        <div className="flex justify-end gap-2">
+          <Button type="submit" disabled={isUpdating}>
+            {isUpdating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {payCycle ? t('allocate.saveCta') : 'Save Pay Cycle'}
+          </Button>
+        </div>
+      </form>
+    </div>
   );
 }

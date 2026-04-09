@@ -55,7 +55,7 @@ export function LiabilityCategoryGroup({
         <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
           <CategoryIcon className="h-5 w-5 text-primary dark:text-iconAccent" aria-hidden="true" />
         </div>
-        <h3 className="text-h3 font-semibold text-foreground">{categoryName}</h3>
+        <h3 className="text-h3 font-medium text-foreground">{categoryName}</h3>
       </div>
 
       {/* Liability rows */}
@@ -66,7 +66,7 @@ export function LiabilityCategoryGroup({
 
         {/* Category total row */}
         <div className="flex items-center justify-end py-3 px-4 border-t-2 border-border bg-muted/50">
-          <span className="text-body-lg font-bold text-foreground tabular-nums">
+          <span className="text-body-lg font-medium text-foreground tabular-nums">
             {formatCurrency(categoryTotal)}
           </span>
         </div>

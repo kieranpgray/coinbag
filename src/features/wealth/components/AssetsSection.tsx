@@ -57,7 +57,6 @@ export function AssetsSection({
   if (viewMode === 'list') {
     return (
       <AssetPortfolioSection
-        totalAssets={totalAssets}
         assets={assets}
         onCreate={onCreate}
         onEdit={onEdit}
@@ -73,10 +72,10 @@ export function AssetsSection({
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <div className="flex items-center gap-3 mb-2">
-            <h2 className="text-foreground text-h2-sm sm:text-h2-md lg:text-h2-lg font-semibold">{t('whatYouOwn')}</h2>
+            <h2 className="text-foreground text-h2-sm sm:text-h2-md lg:text-h2-lg font-medium">{t('whatYouOwn')}</h2>
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-lg font-bold">
+            <span className="text-lg font-medium">
               {formatCurrency(totalAssets)}
             </span>
           </div>
@@ -112,7 +111,7 @@ export function AssetsSection({
                   <div className="space-y-4">
                     {category.value === 'all' || assets.length === 0 ? (
                       <>
-                        <h3 className="text-h3 font-semibold text-foreground">
+                        <h3 className="text-h3 font-medium text-foreground">
                           {t('emptyStates.holdingsNoAssets.headline')}
                         </h3>
                         <p className="text-muted-foreground text-balance max-w-lg mx-auto">

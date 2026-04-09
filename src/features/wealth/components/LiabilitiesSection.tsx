@@ -71,10 +71,10 @@ export function LiabilitiesSection({
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <div className="flex items-center gap-3 mb-2">
-            <h2 className="text-foreground text-h2-sm sm:text-h2-md lg:text-h2-lg font-semibold">{t('whatYouOwe')}</h2>
+            <h2 className="text-foreground text-h2-sm sm:text-h2-md lg:text-h2-lg font-medium">{t('whatYouOwe')}</h2>
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-lg font-bold">
+            <span className="text-lg font-medium">
               {formatCurrency(totalLiabilities)}
             </span>
           </div>

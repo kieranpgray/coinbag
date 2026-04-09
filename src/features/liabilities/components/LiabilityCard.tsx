@@ -36,7 +36,7 @@ export function LiabilityCard({ liability, onEdit, onDelete }: LiabilityCardProp
               onClick={() => onDelete(liability)}
               aria-label="Delete liability"
             >
-              <Trash2 className="h-4 w-4 text-red-500" />
+              <Trash2 className="h-4 w-4 text-error" />
             </Button>
           </div>
         </div>

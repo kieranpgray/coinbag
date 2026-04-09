@@ -93,7 +93,7 @@ export function CardBasedFlow() {
         </div>
 
         {/* Main Heading */}
-        <h2 className="text-h2-sm sm:text-h2-md lg:text-h2-lg font-semibold mb-3">Let's get your finances organized</h2>
+        <h2 className="text-h2-sm sm:text-h2-md lg:text-h2-lg font-medium mb-3">Let's get your finances organized</h2>
 
         {/* Subheading */}
         <p className="text-muted-foreground max-w-md mx-auto">

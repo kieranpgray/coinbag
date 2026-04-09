@@ -101,7 +101,7 @@ export const SummaryCard = memo(function SummaryCard({
         <CardTitle>{title}</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="text-balance font-bold mb-2">
+        <div className="text-balance font-medium mb-2">
           <PrivacyWrapper value={value} />
         </div>
         <div className="flex gap-4 text-caption">

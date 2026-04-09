@@ -43,7 +43,7 @@ function SectionLabel({
 }) {
   if (!tooltip) {
     return (
-      <li className={`pt-4 pb-2 text-caption font-semibold uppercase tracking-wide text-muted-foreground ${className ?? ''}`}>
+      <li className={`pt-4 pb-2 text-caption font-medium uppercase tracking-wide text-muted-foreground ${className ?? ''}`}>
         {label}
       </li>
     );
@@ -54,7 +54,7 @@ function SectionLabel({
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
-            <span className="inline-flex items-center gap-1 cursor-default text-caption font-semibold uppercase tracking-wide text-muted-foreground">
+            <span className="inline-flex items-center gap-1 cursor-default text-caption font-medium uppercase tracking-wide text-muted-foreground">
               {label}
               <Info className="h-3 w-3 shrink-0" aria-hidden />
             </span>
@@ -136,7 +136,7 @@ export function TransferSuggestions({
         aria-label="Suggested transfers"
       >
         <div className="p-4 sm:p-6">
-          <h2 className="text-h2-sm sm:text-h2-md font-semibold mb-2">{heroHeadline}</h2>
+          <h2 className="text-h2-sm sm:text-h2-md font-medium mb-2">{heroHeadline}</h2>
           <Alert className="border-destructive bg-destructive/10">
             <AlertDescription>
               Failed to load transfer suggestions. Please try again.
@@ -154,10 +154,10 @@ export function TransferSuggestions({
         aria-label="Suggested transfers"
       >
         <div className="p-4 sm:p-6">
-          <h2 className="text-h2-sm sm:text-h2-md font-semibold mb-2">{heroHeadline}</h2>
+          <h2 className="text-h2-sm sm:text-h2-md font-medium mb-2">{heroHeadline}</h2>
           {!hasIncome ? (
             <>
-              <h3 className="text-h3 font-semibold text-foreground mb-2">
+              <h3 className="text-h3 font-medium text-foreground mb-2">
                 {t('emptyStates.allocateNoIncome.headline')}
               </h3>
               <p className="text-body text-muted-foreground mb-4 text-balance max-w-prose">
@@ -169,7 +169,7 @@ export function TransferSuggestions({
             </>
           ) : !hasExpenses ? (
             <>
-              <h3 className="text-h3 font-semibold text-foreground mb-2">
+              <h3 className="text-h3 font-medium text-foreground mb-2">
                 {t('emptyStates.allocateNoExpenses.headline')}
               </h3>
               <p className="text-body text-muted-foreground mb-4 text-balance max-w-prose">
@@ -201,7 +201,7 @@ export function TransferSuggestions({
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <span className="inline-flex items-center gap-1 cursor-default text-caption font-semibold uppercase tracking-wide text-muted-foreground mb-1">
+                  <span className="inline-flex items-center gap-1 cursor-default text-caption font-medium uppercase tracking-wide text-muted-foreground mb-1">
                     {t('allocate.sections.paydayPlan')}
                     <Info className="h-3 w-3 shrink-0" aria-hidden />
                   </span>
@@ -215,7 +215,7 @@ export function TransferSuggestions({
             {/* Upcoming state: replace hero headline with upcoming header */}
             {isUpcoming ? (
               <div>
-                <h2 className="text-h2-sm sm:text-h2-md font-semibold">
+                <h2 className="text-h2-sm sm:text-h2-md font-medium">
                   {t('allocate.upcoming.heading')}
                 </h2>
                 {primaryAccountName && upcomingDay && upcomingDate && (
@@ -229,7 +229,7 @@ export function TransferSuggestions({
                 )}
               </div>
             ) : (
-              <h2 className="text-h2-sm sm:text-h2-md font-semibold">{heroHeadline}</h2>
+              <h2 className="text-h2-sm sm:text-h2-md font-medium">{heroHeadline}</h2>
             )}
           </div>
 

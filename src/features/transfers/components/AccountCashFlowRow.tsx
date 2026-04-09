@@ -45,7 +45,7 @@ export function AccountCashFlowRow({ accountFlow, viewMode }: AccountCashFlowRow
               <div className="flex justify-between sm:block col-span-2 sm:col-span-4">
                 <span className="text-muted-foreground">Net flow</span>
                 <span
-                  className={`font-semibold sm:ml-2 ${
+                  className={`font-medium sm:ml-2 ${
                     netFlow >= 0 ? 'text-success' : 'text-error'
                   }`}
                 >

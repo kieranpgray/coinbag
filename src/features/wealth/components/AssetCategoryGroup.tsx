@@ -1,15 +1,5 @@
 import { formatCurrency } from '@/lib/utils';
 import { AssetPortfolioRow } from './AssetPortfolioRow';
-import {
-  Home,
-  TrendingUp,
-  Car,
-  Coins,
-  Wallet,
-  Building2,
-  Package,
-  type LucideIcon,
-} from 'lucide-react';
 import type { Asset } from '@/types/domain';
 
 interface AssetCategoryGroupProps {
@@ -24,20 +14,6 @@ interface AssetCategoryGroupProps {
   /** Map from snaptrade_account_id (string uuid) to brokerage_auth_id */
   accountToBrokerageAuthId?: Map<string, string>;
 }
-
-/**
- * Icon mapping for asset categories
- */
-const ASSET_CATEGORY_ICONS: Record<string, LucideIcon> = {
-  Property: Home,
-  'Other asset': TrendingUp,
-  Vehicle: Car,
-  Crypto: Coins,
-  Cash: Wallet,
-  Super: Building2,
-  Shares: TrendingUp,
-  RSUs: TrendingUp,
-};
 
 /**
  * Category group component for assets
@@ -58,16 +34,11 @@ export function AssetCategoryGroup({
     return null; // Don't render empty categories
   }
 
-  const CategoryIcon = ASSET_CATEGORY_ICONS[categoryName] || Package;
-
   return (
     <div className="mb-6 last:mb-0">
-      {/* Section header with icon */}
-      <div className="flex items-center gap-2 mb-2">
-        <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
-          <CategoryIcon className="h-5 w-5 text-primary dark:text-iconAccent" aria-hidden="true" />
-        </div>
-        <h3 className="text-h3 font-semibold text-foreground">{categoryName}</h3>
+      {/* Section header */}
+      <div className="flex items-center justify-between mb-2 border-l-2 border-[var(--accent-light)] pl-3">
+        <h3 className="text-h3 font-medium text-foreground">{categoryName}</h3>
       </div>
 
       {/* Asset rows */}
@@ -91,7 +62,7 @@ export function AssetCategoryGroup({
 
         {/* Category total row */}
         <div className="flex items-center justify-end py-3 px-4 border-t-2 border-border bg-muted/50">
-          <span className="text-body-lg font-bold text-foreground tabular-nums">
+          <span className="text-body-lg font-medium text-foreground tabular-nums">
             {formatCurrency(categoryTotal)}
           </span>
         </div>

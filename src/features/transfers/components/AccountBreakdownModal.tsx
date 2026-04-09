@@ -59,7 +59,7 @@ export function AccountBreakdownModal({ open, onOpenChange, accountFlow, viewMod
                   className="flex items-center justify-between border-b pb-2 last:border-0"
                 >
                   <span className="text-body font-medium">{breakdown.categoryName}</span>
-                  <span className="text-body font-semibold">
+                  <span className="text-body font-medium">
                     {formatAmountByFrequency(breakdown.monthlyAmount, viewMode)}
                   </span>
                 </div>
@@ -68,8 +68,8 @@ export function AccountBreakdownModal({ open, onOpenChange, accountFlow, viewMod
           </div>
           {accountFlow.expenseBreakdown.length > 0 && (
             <div className="flex items-center justify-between border-t pt-2">
-              <span className="font-semibold">Total</span>
-              <span className="text-lg font-bold">
+              <span className="font-medium">Total</span>
+              <span className="text-lg font-medium">
                 {formatAmountByFrequency(total, viewMode)}
               </span>
             </div>

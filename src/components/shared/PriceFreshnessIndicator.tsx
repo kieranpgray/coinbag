@@ -83,7 +83,7 @@ export function PriceFreshnessIndicator({
           <TooltipTrigger asChild>
             <span
               className={cn(
-                'inline-flex items-center gap-1 text-caption text-amber-600 dark:text-amber-500',
+                'inline-flex items-center gap-1 text-caption text-[var(--warning)]',
                 className
               )}
               aria-label="Price may be outdated"

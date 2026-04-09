@@ -63,7 +63,7 @@ export function LiabilityPortfolioSection({
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <div className="flex items-center gap-3 mb-2">
-            <h2 className="text-foreground text-h2-sm sm:text-h2-md lg:text-h2-lg font-semibold">
+            <h2 className="text-foreground text-h2-sm sm:text-h2-md lg:text-h2-lg font-medium">
               {t('whatYouOwe')}
             </h2>
           </div>

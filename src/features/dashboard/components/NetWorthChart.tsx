@@ -40,7 +40,7 @@ function CustomTooltip({ active, payload, label }: any) {
       <p className="text-body-sm text-muted-foreground mb-1">
         {formatDate(date, locale, 'medium')}
       </p>
-      <p className="text-body-lg font-bold text-foreground">
+      <p className="text-body-lg font-medium text-foreground">
         {privacyMode ? '••••' : formatCurrency(value, locale)}
       </p>
     </div>

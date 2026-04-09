@@ -235,7 +235,7 @@ export function WealthPage() {
       {/* Wealth Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-h1-sm sm:text-h1-md lg:text-h1-lg font-bold tracking-tight">
+          <h1 className="page-title">
             {t('wealth', { ns: 'navigation' })}
           </h1>
           <p className="text-sm text-muted-foreground mt-1">{t('holdingsSubtitle', { ns: 'pages' })}</p>
@@ -247,6 +247,7 @@ export function WealthPage() {
         totalAssets={totalAssets}
         totalLiabilities={totalLiabilities}
         netWorth={netWorth}
+        assetsUnavailable={hasAssetsError}
       />
 
       {/* Assets Section */}

@@ -65,7 +65,7 @@ export const AllocationDonutTooltip = memo(function AllocationDonutTooltip({
 
   return (
     <div className="bg-card border border-border rounded-lg shadow-lg p-3">
-      <p className="text-body font-semibold text-foreground mb-1">{data.name}</p>
+      <p className="text-body font-medium text-foreground mb-1">{data.name}</p>
       <p className="text-body text-muted-foreground">
         <PrivacyWrapper value={data.value} />
       </p>
@@ -75,9 +75,9 @@ export const AllocationDonutTooltip = memo(function AllocationDonutTooltip({
 });
 
 const totalClass: Record<DonutRadiusTier, string> = {
-  sm: 'text-xs font-bold leading-tight',
-  md: 'text-sm font-bold leading-tight',
-  lg: 'text-base font-bold leading-tight',
+  sm: 'text-xs font-medium leading-tight',
+  md: 'text-sm font-medium leading-tight',
+  lg: 'text-base font-medium leading-tight',
 };
 
 function formatTotalForTier(
@@ -128,7 +128,7 @@ export const AllocationDonutCenterLabel = memo(function AllocationDonutCenterLab
       dominantBaseline="middle"
       className="fill-foreground"
     >
-      <tspan x={cx} dy="0.35em" className={cn('font-bold', totalClass[tier])}>
+      <tspan x={cx} dy="0.35em" className={cn('font-medium', totalClass[tier])}>
         {displayValue}
       </tspan>
     </text>

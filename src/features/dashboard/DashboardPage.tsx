@@ -11,12 +11,10 @@ import { LiabilitiesBreakdown } from '@/features/dashboard/components/Liabilitie
 import { ExpenseBreakdown } from '@/features/dashboard/components/ExpenseBreakdown';
 import { IncomeBreakdown } from '@/features/dashboard/components/IncomeBreakdown';
 import { CardBasedFlow } from '@/features/dashboard/components/CardBasedFlow';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { RefreshCw, AlertTriangle } from 'lucide-react';
-import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { usePayCycle } from '@/features/transfers/hooks';
 import { useIncomes } from '@/features/income/hooks';
@@ -28,7 +26,6 @@ import { filterByExpenseType } from '@/features/budget/utils/filtering';
 import { ManualRefreshButton } from '@/components/shared/ManualRefreshButton';
 import { PrivacyModeToggle } from '@/components/shared/PrivacyModeToggle';
 import type { AssetBreakdown, LiabilityBreakdown } from '@/types/domain';
-import { ROUTES } from '@/lib/constants/routes';
 
 function calculateAssetBreakdown(assets: { type: string; value: number }[]): AssetBreakdown[] {
   const total = assets.reduce((sum, asset) => sum + asset.value, 0);
@@ -135,7 +132,6 @@ export function DashboardPage() {
   // Memoize empty state flags to prevent recalculation
   const hasAssets = useMemo(() => dataSources.assetsCount > 0, [dataSources.assetsCount]);
   const hasLiabilities = useMemo(() => dataSources.liabilitiesCount > 0, [dataSources.liabilitiesCount]);
-  const hasHoldings = useMemo(() => dataSources.holdingsCount > 0, [dataSources.holdingsCount]);
   const hasExpenses = useMemo(() => dataSources.expensesCount > 0, [dataSources.expensesCount]);
   const hasIncome = useMemo(() => dataSources.incomeCount > 0, [dataSources.incomeCount]);
 
@@ -222,7 +218,7 @@ export function DashboardPage() {
   if (hasError) {
     return (
       <div className="space-y-6">
-        <h2 className="text-h1-sm sm:text-h1-md lg:text-h1-lg font-bold">
+        <h2 className="text-h1-sm sm:text-h1-md lg:text-h1-lg font-medium">
           {t('dashboard', { ns: 'navigation' })}
         </h2>
         <Alert>
@@ -249,7 +245,7 @@ export function DashboardPage() {
   if (!dashboardData) {
     return (
       <div className="space-y-6">
-        <h2 className="text-h1-sm sm:text-h1-md lg:text-h1-lg font-bold">{t('title', { ns: 'dashboard' })}</h2>
+        <h2 className="text-h1-sm sm:text-h1-md lg:text-h1-lg font-medium">{t('title', { ns: 'dashboard' })}</h2>
         <Alert>
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>{t('noDataAvailable', { ns: 'dashboard' })}</AlertTitle>
@@ -285,7 +281,7 @@ export function DashboardPage() {
         {/* Header section with greeting */}
         <header className="flex flex-wrap items-center justify-between gap-2">
           <div>
-            <h1 className="text-h1-sm sm:text-h1-md lg:text-h1-lg font-bold">
+            <h1 className="page-title">
               {t('dashboard', { ns: 'navigation' })}
             </h1>
             <p className="text-sm text-muted-foreground mt-1">
@@ -300,7 +296,7 @@ export function DashboardPage() {
           </div>
         </header>
 
-        {/* Setup Progress - pinned sidebar overlay */}
+        {/* Setup Progress - inline onboarding strip */}
         <SetupProgress
           progress={dashboardData.setupProgress}
           checklist={dashboardData.setupChecklist}
@@ -362,47 +358,8 @@ export function DashboardPage() {
           />
         </div>
 
-        {/* Market summary and Latest News - 50/50 split on desktop */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <MarketSummary data={marketData} isLoading={marketLoading} isUnavailable={!marketData} />
-          
-          <Card>
-            <CardHeader>
-              <CardTitle>Latest News</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {!hasHoldings ? (
-                <>
-                  <p className="text-body text-muted-foreground mb-4">
-                    Add investments to see news related to your holdings.
-                  </p>
-                  <Button asChild size="sm">
-                    <Link to={ROUTES.wealth.createAsset('Other asset')}>Add investment</Link>
-                  </Button>
-                </>
-              ) : (
-                <p className="text-body text-muted-foreground">
-                  No news available for your holdings.
-                </p>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Recent Transactions - full width below Market Summary and Latest News */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Recent Transactions</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-body text-muted-foreground mb-4">
-              See your transactions after you connect an account.
-            </p>
-            <Button asChild size="sm">
-              <Link to="/app/accounts">Add account</Link>
-            </Button>
-          </CardContent>
-        </Card>
+        {/* Market summary */}
+        <MarketSummary data={marketData} isLoading={marketLoading} isUnavailable={!marketData} />
     </div>
   );
 }

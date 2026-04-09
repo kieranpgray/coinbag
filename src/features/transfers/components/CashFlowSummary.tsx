@@ -26,9 +26,9 @@ export function CashFlowSummary({ viewMode }: CashFlowSummaryProps) {
       open={false}
       aria-label="Account cash flow by account"
     >
-      <summary className="flex cursor-pointer list-none items-center gap-2 p-4 font-semibold text-body focus-visible:outline focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-lg [&::-webkit-details-marker]:hidden">
+      <summary className="flex cursor-pointer list-none items-center gap-2 p-4 font-medium text-body focus-visible:outline focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-lg [&::-webkit-details-marker]:hidden">
         <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-90" aria-hidden />
-        <h2 className="text-body font-semibold leading-none">Account cash flow</h2>
+        <h2 className="text-body font-medium leading-none">Account cash flow</h2>
       </summary>
       <div className="px-4 pb-4 pt-0">
         {isLoading && (

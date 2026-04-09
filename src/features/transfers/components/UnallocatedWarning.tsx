@@ -24,10 +24,10 @@ export function UnallocatedWarning({ amount, viewMode }: UnallocatedWarningProps
   };
 
   return (
-    <Alert className="border-yellow-500 bg-yellow-50 dark:bg-yellow-950">
-      <AlertTriangle className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
-      <AlertTitle className="text-yellow-800 dark:text-yellow-200">Unallocated Expenses</AlertTitle>
-      <AlertDescription className="text-yellow-700 dark:text-yellow-300">
+    <Alert className="border-[var(--warning)] bg-[var(--warning-light)]">
+      <AlertTriangle className="h-4 w-4 text-[var(--warning)]" />
+      <AlertTitle className="text-[var(--warning)]">Unallocated Expenses</AlertTitle>
+      <AlertDescription className="text-[var(--warning)]">
         <p className="mb-2">
           You have {formatAmountByFrequency(amount, viewMode)} in recurring expenses not assigned to an account.
           Assign accounts to see accurate transfer needs.
@@ -36,7 +36,7 @@ export function UnallocatedWarning({ amount, viewMode }: UnallocatedWarningProps
           variant="outline"
           size="sm"
           onClick={handleAssignAccounts}
-          className="mt-2 border-yellow-600 text-yellow-800 hover:bg-yellow-100 dark:border-yellow-400 dark:text-yellow-200 dark:hover:bg-yellow-900"
+          className="mt-2 border-[var(--warning)] text-[var(--warning)] hover:bg-[var(--warning-light)]"
         >
           Assign Accounts
         </Button>

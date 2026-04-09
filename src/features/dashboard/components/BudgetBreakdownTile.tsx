@@ -59,7 +59,7 @@ export const BudgetBreakdownTile = memo(function BudgetBreakdownTile({
       <Card className="border border-border">
         <CardContent className="p-0">
           <div className="p-4">
-            <h2 className="text-h2-sm sm:text-h2-md lg:text-h2-lg font-semibold text-foreground mb-4">
+            <h2 className="text-h2-sm sm:text-h2-md lg:text-h2-lg font-medium text-foreground mb-4">
               {t('budgetBreakdownTile.title')}
             </h2>
             <p className="text-body text-muted-foreground mb-4">
@@ -83,7 +83,7 @@ export const BudgetBreakdownTile = memo(function BudgetBreakdownTile({
     <Card className="border border-border">
       <CardContent className="p-0">
         <div className="p-4">
-          <h2 className="text-h2-sm sm:text-h2-md lg:text-h2-lg font-semibold text-foreground">
+          <h2 className="text-h2-sm sm:text-h2-md lg:text-h2-lg font-medium text-foreground">
             {t('budgetBreakdownTile.title')}
           </h2>
           {showPayCycleFallback ? (
@@ -92,11 +92,11 @@ export const BudgetBreakdownTile = memo(function BudgetBreakdownTile({
         </div>
 
         <div className="px-4 pb-4 space-y-3">
-          <div className="rounded-[var(--rl)] border border-border bg-card px-6 py-5 metric-tile">
+          <div className="metric-tile">
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0">
                 <div className="metric-label">{t('budgetBreakdownTile.incomeArriving')}</div>
-                <div className="metric-value">
+                <div className="num-balance">
                   <PrivacyWrapper value={totalIncome} />
                 </div>
               </div>
@@ -104,11 +104,11 @@ export const BudgetBreakdownTile = memo(function BudgetBreakdownTile({
             </div>
           </div>
 
-          <div className="rounded-[var(--rl)] border border-border bg-card px-6 py-5 metric-tile">
+          <div className="metric-tile">
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0">
                 <div className="metric-label">{t('budgetBreakdownTile.committedExpenses')}</div>
-                <div className="metric-value">
+                <div className="num-balance">
                   -<PrivacyWrapper value={totalOutgoing} />
                 </div>
               </div>
@@ -116,11 +116,11 @@ export const BudgetBreakdownTile = memo(function BudgetBreakdownTile({
             </div>
           </div>
 
-          <div className="rounded-[var(--rl)] border border-border bg-card px-6 py-5 metric-tile">
+          <div className="metric-tile">
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0">
                 <div className="metric-label">{t('budgetBreakdownTile.surplus')}</div>
-                <div className={cn('metric-value', remaining >= 0 ? 'positive' : 'negative')}>
+                <div className={cn('num-balance', remaining >= 0 ? 'positive' : 'negative')}>
                   <PrivacyWrapper value={remaining} />
                 </div>
               </div>

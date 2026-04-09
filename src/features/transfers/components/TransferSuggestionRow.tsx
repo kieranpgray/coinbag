@@ -57,7 +57,7 @@ export function TransferSuggestionRow({ suggestion, viewMode, onEditExpense }: T
         )}
       </div>
       <div className="shrink-0 text-right">
-        <div className="text-lg font-bold tabular-nums">{formattedAmount}</div>
+        <div className="text-lg font-medium tabular-nums">{formattedAmount}</div>
         {viewMode !== 'monthly' && (
           <div className="text-caption text-muted-foreground">
             {formatAmountByFrequency(suggestion.amountMonthly, 'monthly')} per month

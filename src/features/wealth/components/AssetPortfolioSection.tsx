@@ -9,7 +9,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { formatCurrency } from '@/lib/utils';
 import { isFeatureEnabled } from '@/lib/featureFlags';
 import { AssetCategoryGroup } from './AssetCategoryGroup';
 import { AccountSelectionModal } from '@/features/snaptrade/components/AccountSelectionModal';
@@ -21,7 +20,6 @@ import type { Asset } from '@/types/domain';
 import { SnapTradeReact } from 'snaptrade-react';
 
 interface AssetPortfolioSectionProps {
-  totalAssets: number;
   assets: Asset[];
   onCreate: () => void;
   onEdit: (asset: Asset) => void;
@@ -48,7 +46,6 @@ const ASSET_CATEGORIES: Array<Asset['type']> = [
  * that exposes "Connect a brokerage" as the primary path.
  */
 export function AssetPortfolioSection({
-  totalAssets,
   assets,
   onCreate,
   onEdit,
@@ -132,13 +129,9 @@ export function AssetPortfolioSection({
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <div className="flex items-center gap-3 mb-2">
-            <h2 className="text-foreground text-h2-sm sm:text-h2-md lg:text-h2-lg font-semibold">
+            <h2 className="text-foreground text-h2-sm sm:text-h2-md lg:text-h2-lg font-medium">
               {t('whatYouOwn')}
             </h2>
-          </div>
-          <div className="mt-2 inline-block rounded-[var(--rl)] border border-border bg-card px-6 py-5 metric-tile">
-            <div className="metric-label">Total assets</div>
-            <div className="metric-value tabular-nums">{formatCurrency(totalAssets)}</div>
           </div>
         </div>
 
@@ -244,12 +237,12 @@ export function AssetPortfolioSection({
         isLoadingAccounts={portalState.status === 'loading_accounts'}
       />
 
-      {/* Category groups in responsive grid */}
+      {/* Category groups */}
       {categoriesWithAssets.length === 0 ? (
         <Card>
           <CardContent className="py-12 text-center">
             <div className="space-y-4">
-              <h3 className="text-h3 font-semibold text-foreground">
+              <h3 className="text-h3 font-medium text-foreground">
                 {t('emptyStates.holdingsNoAssets.headline')}
               </h3>
               <p className="text-muted-foreground text-balance max-w-lg mx-auto">
@@ -277,7 +270,7 @@ export function AssetPortfolioSection({
           </CardContent>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+        <div className="flex flex-col gap-6">
           {categoriesWithAssets.map((category) => (
             <AssetCategoryGroup
               key={category}

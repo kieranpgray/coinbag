@@ -95,7 +95,7 @@ export function Sidebar() {
   };
 
   const showLabels = isDesktop || (isTablet && expanded);
-  const sidebarWidth = isDesktop || (isTablet && expanded) ? 'w-48' : 'w-14';
+  const sidebarWidth = isDesktop || (isTablet && expanded) ? 'w-[220px]' : 'w-14';
 
   const brandTrigger = (
     <DropdownMenuTrigger asChild>
@@ -117,7 +117,7 @@ export function Sidebar() {
           </>
         ) : (
           <>
-            <span className="text-xl font-bold text-foreground">S</span>
+            <span className="text-xl font-medium text-foreground">S</span>
             <ChevronDown className="h-3 w-3 text-muted-foreground shrink-0" />
           </>
         )}

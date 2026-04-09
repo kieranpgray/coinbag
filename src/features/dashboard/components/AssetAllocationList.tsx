@@ -44,13 +44,13 @@ function AllocationRow({ item }: { item: ListData }) {
             </span>
           </div>
 
-          <span className="min-w-[80px] flex-shrink-0 text-right text-body font-semibold text-foreground">
+          <span className="min-w-[80px] flex-shrink-0 text-right text-body font-medium text-foreground">
             <PrivacyWrapper value={item.value} />
           </span>
         </div>
       </TooltipTrigger>
       <TooltipContent side="top" className="max-w-xs">
-        <p className="font-semibold text-foreground">{item.category}</p>
+        <p className="font-medium text-foreground">{item.category}</p>
         <p className="text-sm text-muted-foreground">{formatPercentage(item.percentage)}</p>
         <p className="text-sm text-foreground">
           <PrivacyWrapper value={item.value} />

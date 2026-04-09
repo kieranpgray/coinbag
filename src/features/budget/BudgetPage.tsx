@@ -24,7 +24,8 @@ import { ROUTES } from '@/lib/constants/routes';
 import { calculateMonthlyIncome } from './utils/calculations';
 import { filterByExpenseType } from './utils/filtering';
 import { calculateMonthlyEquivalent } from '@/features/expenses/utils';
-import { type Frequency } from './utils/frequencyConversion';
+import { type Frequency, FREQUENCY_OPTIONS } from './utils/frequencyConversion';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { Income } from '@/types/domain';
 import type { Expense } from '@/types/domain';
 import {
@@ -107,10 +108,8 @@ export function BudgetPage() {
   const [repaymentEnforcementExpenseId, setRepaymentEnforcementExpenseId] = useState<string | null>(null);
   const [repaymentNotice, setRepaymentNotice] = useState<string | null>(null);
   
-  // Frequency state
-  const [breakdownFrequency, setBreakdownFrequency] = useState<Frequency>('monthly');
-  const [incomeFrequency, setIncomeFrequency] = useState<Frequency | undefined>(undefined);
-  const [expensesFrequency, setExpensesFrequency] = useState<Frequency | undefined>(undefined);
+  // Single page-level frequency state — shared across all budget sections
+  const [frequency, setFrequency] = useState<Frequency>('monthly');
 
   // Handle query params for auto-opening create modal
   useEffect(() => {
@@ -411,20 +410,34 @@ export function BudgetPage() {
 
   return (
     <div className="space-y-12">
-      {/* Budget Header: title + Plan transfers link */}
+      {/* Budget Header: title + frequency control + Plan transfers link */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-h1-sm sm:text-h1-md lg:text-h1-lg font-bold tracking-tight">
+          <h1 className="page-title">
             {t('budget', { ns: 'navigation' })}
           </h1>
           <p className="text-sm text-muted-foreground mt-1">{t('recurringSubtitle', { ns: 'pages' })}</p>
         </div>
-        <Button variant="ghost" size="sm" asChild className="text-muted-foreground hover:text-foreground">
-          <Link to={ROUTES.app.transfers}>
-            Plan transfers
-            <ArrowRight className="h-4 w-4 ml-1" />
-          </Link>
-        </Button>
+        <div className="flex items-center gap-3">
+          <Select value={frequency} onValueChange={(value) => setFrequency(value as Frequency)}>
+            <SelectTrigger className="w-[140px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {FREQUENCY_OPTIONS.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Button variant="ghost" size="sm" asChild className="text-muted-foreground hover:text-foreground">
+            <Link to={ROUTES.app.transfers}>
+              Plan transfers
+              <ArrowRight className="h-4 w-4 ml-1" />
+            </Link>
+          </Button>
+        </div>
       </div>
 
       {/* Optional Remaining strip — reduces busyness, not hero */}
@@ -440,7 +453,7 @@ export function BudgetPage() {
         <span className="text-body-sm text-muted-foreground">
           {t('budgetBreakdownTile.surplus', { ns: 'pages' })}
         </span>
-        <span className={`text-body-lg font-semibold ${remaining >= 0 ? 'text-success' : 'text-error'}`}>
+        <span className={`text-body-lg font-medium ${remaining >= 0 ? 'text-success' : 'text-error'}`}>
           {remaining >= 0 ? '' : '-'}{formatCurrency(Math.abs(remaining))}
         </span>
       </div>
@@ -452,17 +465,7 @@ export function BudgetPage() {
         totalSavings={totalMonthlySavings}
         totalRepayments={totalMonthlyRepayments}
         remaining={remaining}
-        frequency={breakdownFrequency}
-        onFrequencyChange={(frequency) => {
-          setBreakdownFrequency(frequency);
-          // Reset child frequencies if they match the old breakdown frequency (to allow sync)
-          if (incomeFrequency === breakdownFrequency || incomeFrequency === undefined) {
-            setIncomeFrequency(undefined);
-          }
-          if (expensesFrequency === breakdownFrequency || expensesFrequency === undefined) {
-            setExpensesFrequency(undefined);
-          }
-        }}
+        frequency={frequency}
       />
 
       {/* Income Section */}
@@ -492,8 +495,7 @@ export function BudgetPage() {
           onCreate={() => setCreateIncomeModalOpen(true)}
           onEdit={handleEditIncome}
           onDelete={handleDeleteIncome}
-          parentFrequency={breakdownFrequency}
-          onFrequencyChange={setIncomeFrequency}
+          frequency={frequency}
         />
       )}
 
@@ -531,8 +533,7 @@ export function BudgetPage() {
           onEdit={handleEditExpense}
           onDelete={handleDeleteExpense}
           onCategoryChanged={handleExpenseCategoryChanged}
-          parentFrequency={breakdownFrequency}
-          onFrequencyChange={setExpensesFrequency}
+          frequency={frequency}
         />
       )}
 

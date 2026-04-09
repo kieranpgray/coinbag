@@ -1,8 +1,7 @@
-import { useState, useMemo, useEffect, useRef } from 'react';
+import { useState, useMemo } from 'react';
 import { Plus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { formatCurrency } from '@/lib/utils';
 import type { Expense } from '@/types/domain';
@@ -10,7 +9,7 @@ import { ExpenseList } from './ExpenseList';
 import { calculateMonthlyEquivalent } from '@/features/expenses/utils';
 import { filterByExpenseType } from '../utils/filtering';
 import { getExpenseTypeLabel, getExpenseTypeLabelPlural, getExpenseTypeLabelSingular, getExpenseTypesFromExpenses, type ExpenseType } from '../utils/expenseTypeMapping';
-import { convertToFrequency, getFrequencyLabelForDisplay, type Frequency, FREQUENCY_OPTIONS } from '../utils/frequencyConversion';
+import { convertToFrequency, getFrequencyLabelForDisplay, type Frequency } from '../utils/frequencyConversion';
 
 interface ExpensesSectionProps {
   expenses: Expense[];
@@ -29,13 +28,13 @@ interface ExpensesSectionProps {
     previousCategoryId: string,
     isRepaymentCategory: boolean
   ) => void;
-  parentFrequency?: Frequency;
-  onFrequencyChange?: (frequency: Frequency) => void;
+  frequency: Frequency;
 }
 
 /**
  * Expenses section component
  * List only (ExpenseList + tabs). No card view; inline editing retained.
+ * Frequency is controlled at page level — no local selector.
  */
 export function ExpensesSection({
   expenses,
@@ -48,23 +47,10 @@ export function ExpensesSection({
   onEdit,
   onDelete,
   onCategoryChanged,
-  parentFrequency,
-  onFrequencyChange,
+  frequency,
 }: ExpensesSectionProps) {
   const { t } = useTranslation('pages');
   const [activeTab, setActiveTab] = useState<ExpenseType | 'all'>('all');
-  const [localFrequency, setLocalFrequency] = useState<Frequency | undefined>(parentFrequency);
-  const hasManualOverride = useRef(false);
-
-  useEffect(() => {
-    if (parentFrequency !== undefined) {
-      if (!hasManualOverride.current) {
-        setLocalFrequency(parentFrequency);
-      } else if (localFrequency === parentFrequency) {
-        hasManualOverride.current = false;
-      }
-    }
-  }, [parentFrequency, localFrequency]);
 
   const totalMonthlyExpenses = useMemo(() => {
     return expenses.reduce((sum, expense) => {
@@ -72,14 +58,7 @@ export function ExpensesSection({
     }, 0);
   }, [expenses]);
 
-  const displayFrequency = localFrequency || parentFrequency || 'monthly';
-  const displayExpenses = convertToFrequency(totalMonthlyExpenses, 'monthly', displayFrequency);
-
-  const handleFrequencyChange = (frequency: Frequency) => {
-    setLocalFrequency(frequency);
-    hasManualOverride.current = true;
-    onFrequencyChange?.(frequency);
-  };
+  const displayExpenses = convertToFrequency(totalMonthlyExpenses, 'monthly', frequency);
 
   const availableExpenseTypes = useMemo(() => {
     const types = getExpenseTypesFromExpenses(expenses, categoryMap, uncategorisedId);
@@ -98,29 +77,17 @@ export function ExpensesSection({
       {/* Header: no icon. Add Expense = primary CTA */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-foreground text-h2-sm sm:text-h2-md lg:text-h2-lg font-semibold mb-1">Expenses</h2>
+          <h2 className="text-foreground text-h2-sm sm:text-h2-md lg:text-h2-lg font-medium mb-1">Expenses</h2>
           <div className="flex flex-col sm:flex-row sm:items-baseline gap-2">
-            <span className="text-balance font-bold text-foreground">
+            <span className="text-balance font-medium text-foreground">
               {formatCurrency(displayExpenses)}
             </span>
             <span className="text-muted-foreground text-body-sm">
-              per {getFrequencyLabelForDisplay(displayFrequency)}
+              per {getFrequencyLabelForDisplay(frequency)}
             </span>
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-3">
-          <Select value={displayFrequency} onValueChange={(value) => handleFrequencyChange(value as Frequency)}>
-            <SelectTrigger className="w-[140px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {FREQUENCY_OPTIONS.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
           <Button
             size="sm"
             className="bg-primary hover:bg-primary/90 text-primary-foreground whitespace-nowrap"
@@ -176,7 +143,7 @@ export function ExpensesSection({
               onDelete={onDelete}
               onCreate={() => onCreate()}
               onCategoryChanged={onCategoryChanged}
-              displayFrequency={displayFrequency}
+              displayFrequency={frequency}
             />
           )}
         </TabsContent>
@@ -193,7 +160,7 @@ export function ExpensesSection({
                 onDelete={onDelete}
                 onCreate={() => onCreate(category)}
                 onCategoryChanged={onCategoryChanged}
-                displayFrequency={displayFrequency}
+                displayFrequency={frequency}
               />
             ) : (
               <div className="rounded-lg border border-border bg-muted/20 py-10 px-4 text-center">
@@ -212,4 +179,3 @@ export function ExpensesSection({
     </section>
   );
 }
-

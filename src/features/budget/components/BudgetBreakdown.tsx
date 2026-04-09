@@ -1,8 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { formatCurrency } from '@/lib/utils';
-import { convertToFrequency, type Frequency, FREQUENCY_OPTIONS } from '../utils/frequencyConversion';
+import { convertToFrequency, type Frequency } from '../utils/frequencyConversion';
 
 interface BudgetBreakdownProps {
   totalIncome: number; // monthly equivalent
@@ -11,13 +10,12 @@ interface BudgetBreakdownProps {
   totalRepayments: number; // monthly equivalent (for display only, already included in totalExpenses)
   remaining: number; // monthly equivalent
   frequency: Frequency;
-  onFrequencyChange: (frequency: Frequency) => void;
 }
 
 /**
  * In and Out component
- * Displays Income, Expenses, Savings, Repayments, and Remaining with status indicators
- * Always open with frequency selector
+ * Displays Income, Expenses, Savings, Repayments, and Remaining with status indicators.
+ * Frequency is controlled at page level — no local selector.
  */
 export function BudgetBreakdown({
   totalIncome,
@@ -26,7 +24,6 @@ export function BudgetBreakdown({
   totalRepayments,
   remaining,
   frequency,
-  onFrequencyChange,
 }: BudgetBreakdownProps) {
   const { t } = useTranslation('pages');
 
@@ -41,22 +38,10 @@ export function BudgetBreakdown({
     <Card className="border border-border">
       <CardContent className="p-0">
         {/* Header */}
-        <div className="flex items-center justify-between p-4">
-          <h2 className="text-h2-sm sm:text-h2-md lg:text-h2-lg font-semibold text-foreground">
+        <div className="flex items-center p-4">
+          <h2 className="text-h2-sm sm:text-h2-md lg:text-h2-lg font-medium text-foreground">
             In and Out
           </h2>
-          <Select value={frequency} onValueChange={(value) => onFrequencyChange(value as Frequency)}>
-            <SelectTrigger className="w-[140px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {FREQUENCY_OPTIONS.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
         </div>
 
         {/* Content */}
@@ -67,7 +52,7 @@ export function BudgetBreakdown({
               <span className="text-body-sm text-muted-foreground">Income</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-body-lg font-bold text-foreground">
+              <span className="text-body-lg font-medium text-foreground">
                 {formatCurrency(incomeDisplay)}
               </span>
               <div className="h-2 w-2 rounded-full bg-success" aria-label="Positive status" />
@@ -80,7 +65,7 @@ export function BudgetBreakdown({
               <span className="text-body-sm text-muted-foreground">Expenses</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-body-lg font-bold text-foreground">
+              <span className="text-body-lg font-medium text-foreground">
                 -{formatCurrency(expensesDisplay)}
               </span>
               <div className="h-2 w-2 rounded-full bg-error" aria-label="Expense status" />
@@ -93,7 +78,7 @@ export function BudgetBreakdown({
               <span className="text-body-sm text-muted-foreground">Savings</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-body-lg font-bold text-foreground">
+              <span className="text-body-lg font-medium text-foreground">
                 -{formatCurrency(savingsDisplay)}
               </span>
               <div className="h-2 w-2 rounded-full bg-error" aria-label="Savings status" />
@@ -106,7 +91,7 @@ export function BudgetBreakdown({
               <span className="text-body-sm text-muted-foreground">Repayments</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-body-lg font-bold text-foreground">
+              <span className="text-body-lg font-medium text-foreground">
                 -{formatCurrency(repaymentsDisplay)}
               </span>
               <div className="h-2 w-2 rounded-full bg-error" aria-label="Repayment status" />
@@ -122,7 +107,7 @@ export function BudgetBreakdown({
               <span className="text-body-sm text-muted-foreground">{t('budgetBreakdownTile.surplus')}</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-body-lg font-bold text-foreground">
+              <span className="text-body-lg font-medium text-foreground">
                 {formatCurrency(remainingDisplay)}
               </span>
               <div

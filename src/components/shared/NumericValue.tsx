@@ -4,7 +4,8 @@ import { cn } from '@/lib/utils';
 interface NumericValueProps {
   value: number | string;
   size?: 'primary' | 'secondary' | 'tertiary';
-  emphasis?: 'bold' | 'semibold' | 'normal';
+  /** DS-9: DM Sans is loaded at 300/400/500 only. 'medium' = 500, 'normal' = 400. */
+  emphasis?: 'medium' | 'normal';
   responsive?: boolean;
   className?: string;
   children?: ReactNode; // For PrivacyWrapper compatibility
@@ -25,7 +26,7 @@ interface NumericValueProps {
 export function NumericValue({
   value,
   size = 'secondary',
-  emphasis = 'bold',
+  emphasis = 'medium',
   responsive = false,
   className,
   children,
@@ -41,8 +42,7 @@ export function NumericValue({
   };
 
   const emphasisClasses = {
-    bold: 'font-bold',
-    semibold: 'font-semibold',
+    medium: 'font-medium',
     normal: 'font-normal',
   };
 

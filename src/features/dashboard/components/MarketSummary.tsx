@@ -50,7 +50,7 @@ export function MarketSummary({ data, isLoading, isUnavailable }: MarketSummaryP
         <CardTitle>Market Summary</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="mb-4 rounded-[var(--rl)] border border-border bg-card px-6 py-5 metric-tile">
+        <div className="mb-4 metric-tile">
           <div className="metric-label">S&amp;P 500</div>
           <div className="flex flex-wrap gap-4 text-sm">
             <div className={cn('metric-delta', data.sp500.change1D >= 0 ? 'up' : 'down')}>

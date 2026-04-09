@@ -14,7 +14,8 @@
     color-scheme: light;
 
     /* Layout Dimensions */
-    --sidebar-width: 12rem; /* 192px */
+    --sidebar-width: 13.75rem; /* 220px — DS v2: --shell-sidebar-w */
+    --shell-sidebar-w: 220px;
     --header-height: 3.5rem; /* 56px */
 
     /* Spacing Scale */
@@ -370,8 +371,9 @@
   }
 
   /* Dashboard — DS v2 metric + chart frames (see public/design-system-v2.html) */
+  /* Inner surface token: paper-2 keeps tiles visually distinct from the outer Card without double-border */
   .metric-tile {
-    background: hsl(var(--card));
+    background: var(--paper-2);
     border: 1px solid var(--paper-3);
     border-radius: var(--rl);
     padding: 20px 24px;
@@ -400,6 +402,50 @@
   }
 
   .metric-value.negative {
+    color: var(--danger);
+  }
+
+  /* Numeric display tiers — DS v2 */
+  .num-display {
+    font-family: var(--serif);
+    font-size: 32px;
+    font-weight: 400;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .num-balance {
+    font-family: var(--serif);
+    font-size: 24px;
+    font-weight: 400;
+    line-height: 1.25;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .num-body {
+    font-family: var(--font-family-sans, 'DM Sans', sans-serif);
+    font-size: 15px;
+    font-weight: 500;
+    line-height: 1.4;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* DS v2 — authenticated page title */
+  .page-title {
+    font-family: var(--serif);
+    font-size: 28px;
+    letter-spacing: -0.02em;
+    font-weight: 400;
+    line-height: 1.25;
+    color: var(--ink);
+  }
+
+  .num-display.positive, .num-balance.positive, .num-body.positive {
+    color: var(--accent, var(--color-primary));
+  }
+
+  .num-display.negative, .num-balance.negative, .num-body.negative {
     color: var(--danger);
   }
 

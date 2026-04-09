@@ -81,7 +81,7 @@ export default function TransfersPage() {
     return (
       <div className="space-y-12">
         <div>
-          <h1 className="text-h1-sm sm:text-h1-md lg:text-h1-lg font-bold tracking-tight">
+          <h1 className="page-title">
             {t('transfers', { ns: 'navigation' })}
           </h1>
           <p className="text-sm text-muted-foreground mt-1">{pageSubtitle}</p>
@@ -96,7 +96,7 @@ export default function TransfersPage() {
     return (
       <div className="space-y-12">
         <div>
-          <h1 className="text-h1-sm sm:text-h1-md lg:text-h1-lg font-bold tracking-tight">
+          <h1 className="page-title">
             {t('transfers', { ns: 'navigation' })}
           </h1>
           <p className="text-sm text-muted-foreground mt-1">{pageSubtitle}</p>
@@ -124,7 +124,7 @@ export default function TransfersPage() {
       {/* Header: title + secondary Edit plan (align with Budget page tokens) */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-h1-sm sm:text-h1-md lg:text-h1-lg font-bold tracking-tight">
+          <h1 className="page-title">
             {t('transfers', { ns: 'navigation' })}
           </h1>
           <p className="text-sm text-muted-foreground mt-1">{pageSubtitle}</p>
