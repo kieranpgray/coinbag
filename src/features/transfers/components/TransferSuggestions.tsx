@@ -232,7 +232,16 @@ export function TransferSuggestions({
                 )}
               </div>
             ) : (
-              <h2 className="text-h2-sm sm:text-h2-md font-medium">{heroHeadline}</h2>
+              <div>
+                <h2 className="text-h2-sm sm:text-h2-md font-medium">{heroHeadline}</h2>
+                {nextPayDateFormatted && (
+                  <p className="text-body-sm text-[var(--ink-3)] mt-1">
+                    {nextPayDateFormatted}
+                    {viewMode && ` · ${viewMode.charAt(0).toUpperCase() + viewMode.slice(1)}`}
+                    {primaryAccountName && ` · ${primaryAccountName}`}
+                  </p>
+                )}
+              </div>
             )}
           </div>
 

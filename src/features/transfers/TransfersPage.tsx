@@ -40,11 +40,22 @@ export default function TransfersPage() {
   const { data: expenses = [], isLoading: expensesLoading } = useExpenses();
   const { data: incomes = [], isLoading: incomesLoading } = useIncomes();
   const { data: accounts = [], isLoading: accountsLoading } = useAccounts();
-  const { data: preferences } = useUserPreferences();
+  const {
+    data: preferences,
+    isPlaceholderData: prefsPlaceholder,
+  } = useUserPreferences();
   const [editPayCycleOpen, setEditPayCycleOpen] = useState(false);
   const [viewMode, setViewMode] = useState<'weekly' | 'fortnightly' | 'monthly'>(
     (preferences?.transferViewMode as 'weekly' | 'fortnightly' | 'monthly') || 'monthly'
   );
+
+  useEffect(() => {
+    if (prefsPlaceholder) return;
+    const mode = preferences?.transferViewMode;
+    if (mode === 'weekly' || mode === 'fortnightly' || mode === 'monthly') {
+      setViewMode(mode);
+    }
+  }, [prefsPlaceholder, preferences?.transferViewMode]);
 
   const unallocatedTotal = calculateUnallocatedTotal(expenses);
   const hasUnallocated = unallocatedTotal > 0;
@@ -133,21 +144,6 @@ export default function TransfersPage() {
           Edit plan
         </Button>
       </div>
-
-      {/* Pay cycle context bar */}
-      {payCycle && (
-        <div className="rounded-lg border border-border bg-muted/30 px-4 py-3">
-          <p className="text-body-sm text-foreground">
-            <strong>Next pay:</strong> {nextPayDateFormatted} ·{' '}
-            {payCycle.frequency === 'weekly'
-              ? 'Weekly'
-              : payCycle.frequency === 'fortnightly'
-              ? 'Fortnightly'
-              : 'Monthly'}{' '}
-            → {primaryAccountName}
-          </p>
-        </div>
-      )}
 
       {/* Account validation error */}
       {hasInvalidAccounts && (
