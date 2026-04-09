@@ -715,4 +715,55 @@
   .dark .alloc-amount {
     color: var(--on-dark-primary);
   }
+
+  /* Mobile tab bar — DS v2 (PRO-15) */
+  .tab-bar {
+    display: flex;
+    background: var(--paper);
+    border-top: 1px solid var(--paper-3);
+    height: 56px;
+    align-items: stretch;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 90;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .tab-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    color: var(--ink-3);
+    transition: color 0.15s;
+    min-height: 44px;
+    cursor: pointer;
+    text-decoration: none;
+    background: none;
+    border: none;
+    padding: 0;
+  }
+
+  .tab-item.active {
+    color: var(--color-primary);
+  }
+
+  .tab-label {
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+  }
+
+  .dark .tab-bar {
+    background: var(--on-dark-hover);
+    border-top-color: var(--on-dark-border);
+  }
+
+  .dark .tab-item.active {
+    color: #5cb882;
+  }
 }
