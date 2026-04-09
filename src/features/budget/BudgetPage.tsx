@@ -449,7 +449,7 @@ export function BudgetPage() {
         </Alert>
       )}
 
-      <SurplusCard amount={remaining} />
+      <SurplusCard amount={remaining} label="Remaining per month" />
 
       {/* In and Out */}
       <BudgetBreakdown

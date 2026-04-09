@@ -4,7 +4,6 @@ interface SurplusCardProps {
   amount: number;           // computed surplus value; negative = shortfall
   label?: string;           // default: "Remaining this pay cycle"
   sublabel?: string;        // optional: "per fortnight" etc.
-  currency?: string;        // default: 'AUD'
   className?: string;
 }
 
