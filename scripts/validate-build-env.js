@@ -20,6 +20,9 @@ const isVercelProduction = isVercel && vercelEnv === 'production';
 const isNodeProduction = process.env.NODE_ENV === 'production';
 const isProduction = isNodeProduction || isVercelProduction || hasProductionMode;
 const strictProductionGate = isVercelProduction;
+/** Require real Supabase (not mock) for shipped prod — but not Vercel Preview (NODE_ENV is still production there). */
+const shouldRequireSupabaseDataSource =
+  strictProductionGate || (isNodeProduction && !isVercel);
 
 const dataSource = process.env.VITE_DATA_SOURCE;
 const supabaseUrl = process.env.VITE_SUPABASE_URL;
@@ -51,7 +54,7 @@ function validateSupabaseUrl(url) {
 
 logValidationContext();
 
-if (isProduction && dataSource !== 'supabase') {
+if (shouldRequireSupabaseDataSource && dataSource !== 'supabase') {
   fail([
     '❌ BUILD FAILED: VITE_DATA_SOURCE must be "supabase" in production',
     `   Current value: "${dataSource || 'undefined (defaults to mock)'}"`,
@@ -92,7 +95,7 @@ if (strictProductionGate) {
   }
 }
 
-if (isProduction && dataSource === 'supabase') {
+if (shouldRequireSupabaseDataSource && dataSource === 'supabase') {
   console.log('✅ Build validation passed: VITE_DATA_SOURCE=supabase');
 }
 

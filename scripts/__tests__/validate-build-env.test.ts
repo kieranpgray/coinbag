@@ -82,6 +82,32 @@ describe('validate-build-env', () => {
     expect(result.output).toContain('strictProductionGate=false');
   });
 
+  it('allows Vercel preview with NODE_ENV=production when VITE_DATA_SOURCE is unset (pnpm lifecycle)', () => {
+    const result = runValidator({
+      VERCEL: '1',
+      VERCEL_ENV: 'preview',
+      NODE_ENV: 'production',
+      VITE_DATA_SOURCE: '',
+      VITE_SUPABASE_URL: '',
+      VITE_SUPABASE_ANON_KEY: '',
+      VITE_CLERK_PUBLISHABLE_KEY: 'pk_test_preview',
+    });
+
+    expect(result.status).toBe(0);
+    expect(result.output).toContain('strictProductionGate=false');
+  });
+
+  it('fails non-Vercel production build when VITE_DATA_SOURCE is not supabase', () => {
+    const result = runValidator({
+      NODE_ENV: 'production',
+      VERCEL: '0',
+      VITE_DATA_SOURCE: '',
+    });
+
+    expect(result.status).toBe(1);
+    expect(result.output).toContain('VITE_DATA_SOURCE must be "supabase" in production');
+  });
+
   it('report-only mode does not block on failures', () => {
     const result = runValidator(
       {
