@@ -18,10 +18,10 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Card, CardContent } from '@/components/ui/card';
-import { formatCurrency, formatDate } from '@/lib/utils';
+import { cn, formatCurrency, formatDate } from '@/lib/utils';
 import { useLocale } from '@/contexts/LocaleContext';
 import { useTranslation } from 'react-i18next';
-import { Plus, RefreshCw, AlertTriangle, Trash2, Pencil, ChevronLeft, Upload } from 'lucide-react';
+import { Plus, RefreshCw, AlertTriangle, Trash2, Pencil, ChevronLeft, Upload, LayoutGrid } from 'lucide-react';
 import { DeleteAccountDialog } from '@/features/accounts/components/DeleteAccountDialog';
 import { CreateAccountModal } from '@/features/accounts/components/CreateAccountModal';
 import { AccountForm } from '@/features/accounts/components/AccountForm';
@@ -41,6 +41,7 @@ import type { AccountCreate } from '@/contracts/accounts';
 import type { FileWithStatus } from '@/components/shared/MultiStatementFileUpload';
 import type { StatementImportEntity } from '@/contracts/statementImports';
 import { useEffect } from 'react';
+import { ACCOUNT_TYPE_OPTIONS } from '@/features/wealth/utils/accountClassification';
 export function AccountsPage() {
   const { accountId } = useParams<{ accountId?: string }>();
   const navigate = useNavigate();
@@ -66,7 +67,8 @@ export function AccountsPage() {
   const deleteMutation = useDeleteAccount();
   const createMutation = useCreateAccount();
   const updateMutation = useUpdateAccount();
-  const [viewMode, setViewMode] = useViewMode('cards');
+  /** List default; separate key so global Income/Assets list↔cards pref does not override Activity */
+  const [viewMode, setViewMode] = useViewMode('list', 'supafolio-accounts-view-preference');
   const [searchQuery, setSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -144,11 +146,19 @@ export function AccountsPage() {
 
   const accountTypes = [
     { value: 'all', label: t('accountTypes.all', { ns: 'accounts' }) },
-    { value: 'Bank Account', label: t('accountTypes.bankAccount', { ns: 'accounts' }) },
-    { value: 'Savings', label: t('accountTypes.savings', { ns: 'accounts' }) },
-    { value: 'Credit Card', label: t('accountTypes.creditCard', { ns: 'accounts' }) },
-    { value: 'Loan', label: t('accountTypes.loan', { ns: 'accounts' }) },
-    { value: 'Other', label: t('accountTypes.other', { ns: 'accounts' }) },
+    ...ACCOUNT_TYPE_OPTIONS.map((type) => ({
+      value: type,
+      label:
+        type === 'Bank Account'
+          ? t('accountTypes.bankAccount', { ns: 'accounts' })
+          : type === 'Savings'
+            ? t('accountTypes.savings', { ns: 'accounts' })
+            : type === 'Credit Card'
+              ? t('accountTypes.creditCard', { ns: 'accounts' })
+              : type === 'Loan'
+                ? t('accountTypes.loan', { ns: 'accounts' })
+                : t('accountTypes.other', { ns: 'accounts' }),
+    })),
   ];
 
   const handleEdit = (account: Account) => {
@@ -821,7 +831,7 @@ export function AccountsPage() {
           <div className="flex justify-between items-start gap-8">
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-6">
-                <h1 className="text-h1-sm sm:text-h1-md lg:text-h1-lg font-semibold text-foreground leading-tight">
+                <h1 className="page-title">
                   {selectedAccountData.accountName}
                 </h1>
                 <span className="px-3 py-1 bg-card border border-border rounded-full text-body-sm text-muted-foreground font-medium">
@@ -882,7 +892,7 @@ export function AccountsPage() {
     return (
       <div className="space-y-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <h1 className="text-h1-sm sm:text-h1-md lg:text-h1-lg font-bold">{t('title', { ns: 'accounts' })}</h1>
+          <h1 className="page-title">{t('title', { ns: 'accounts' })}</h1>
           <Button disabled className="w-full sm:w-auto">
             <Plus className="h-4 w-4 mr-2" />
             {t('addNewAccountButton', { ns: 'accounts' })}
@@ -925,8 +935,8 @@ export function AccountsPage() {
         <div className="space-y-6">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h1 className="text-h1-sm sm:text-h1-md lg:text-h1-lg font-bold">{t('title', { ns: 'accounts' })}</h1>
-              <p className="text-sm text-muted-foreground mt-1">{t('activitySubtitle', { ns: 'pages' })}</p>
+              <h1 className="page-title">{t('title', { ns: 'accounts' })}</h1>
+              <p className="page-subtitle">{t('activitySubtitle', { ns: 'pages' })}</p>
             </div>
           </div>
           <Card>
@@ -946,7 +956,7 @@ export function AccountsPage() {
                   />
                 </svg>
               </div>
-              <h3 className="text-h3 font-medium text-foreground mb-2">No accounts yet</h3>
+              <h3 className="display-sm mb-2">No accounts yet</h3>
               <p className="text-muted-foreground mb-6 max-w-sm mx-auto">
                 Add an account to track balances and unlock transaction history.
               </p>
@@ -961,8 +971,8 @@ export function AccountsPage() {
         <div className="space-y-6">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div className="space-y-1">
-              <h1 className="text-h1-sm sm:text-h1-md lg:text-h1-lg font-bold">{t('title', { ns: 'accounts' })}</h1>
-              <p className="text-sm text-muted-foreground mt-1">{t('activitySubtitle', { ns: 'pages' })}</p>
+              <h1 className="page-title">{t('title', { ns: 'accounts' })}</h1>
+              <p className="page-subtitle">{t('activitySubtitle', { ns: 'pages' })}</p>
             </div>
             <div className="flex flex-col gap-4 sm:items-end">
               <Button onClick={() => setCreateModalOpen(true)} className="w-full sm:w-auto">
@@ -997,67 +1007,74 @@ export function AccountsPage() {
 
       {/* Accounts View */}
       {viewMode === 'list' ? (
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
+        <Table variant="ds" className="min-w-[720px] table-fixed">
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-[14%]">{t('tableHeaders.institution', { ns: 'accounts' })}</TableHead>
+              <TableHead className="w-[18%]">{t('tableHeaders.accountName', { ns: 'accounts' })}</TableHead>
+              <TableHead className="w-[16%]">{t('tableHeaders.accountType', { ns: 'accounts' })}</TableHead>
+              <TableHead className="w-[14%] text-right">{t('tableHeaders.balance', { ns: 'accounts' })}</TableHead>
+              <TableHead className="w-[18%]">{t('tableHeaders.lastUpdated', { ns: 'accounts' })}</TableHead>
+              <TableHead className="w-[20%] text-right">{t('tableHeaders.actions', { ns: 'accounts' })}</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {filteredAccounts.length === 0 ? (
               <TableRow>
-                <TableHead>{t('tableHeaders.institution', { ns: 'accounts' })}</TableHead>
-                <TableHead>{t('tableHeaders.accountName', { ns: 'accounts' })}</TableHead>
-                <TableHead>{t('tableHeaders.accountType', { ns: 'accounts' })}</TableHead>
-                <TableHead className="text-right tabular-nums">{t('tableHeaders.balance', { ns: 'accounts' })}</TableHead>
-                <TableHead>{t('tableHeaders.lastUpdated', { ns: 'accounts' })}</TableHead>
-                <TableHead className="text-right">{t('tableHeaders.actions', { ns: 'accounts' })}</TableHead>
+                <TableCell colSpan={6} className="p-0">
+                  <div className="empty-state-table">
+                    <div className="empty-state-icon">
+                      <LayoutGrid className="h-5 w-5 text-[var(--ink-3)]" strokeWidth={1.5} aria-hidden />
+                    </div>
+                    <div className="empty-state-title">{t('noAccountsFound', { ns: 'accounts' })}</div>
+                  </div>
+                </TableCell>
               </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredAccounts.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
-                    {t('noAccountsFound', { ns: 'accounts' })}
+            ) : (
+              filteredAccounts.map((account) => (
+                <TableRow
+                  key={account.id}
+                  className="cursor-pointer"
+                  onClick={() => handleAccountClick(account)}
+                >
+                  <TableCell className="font-medium">{account.institution || '-'}</TableCell>
+                  <TableCell>{account.accountName}</TableCell>
+                  <TableCell>{account.accountType}</TableCell>
+                  <TableCell
+                    className={cn(
+                      'num font-medium',
+                      account.balance > 0 && 'positive',
+                      account.balance < 0 && 'negative',
+                    )}
+                  >
+                    {formatCurrency(account.balance, locale)}
+                  </TableCell>
+                  <TableCell>{formatDate(account.lastUpdated, locale)}</TableCell>
+                  <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
+                    <div className="table-row-actions">
+                      <button
+                        type="button"
+                        className="table-action-btn"
+                        onClick={() => handleEdit(account)}
+                        aria-label={t('editAccount', { ns: 'aria' })}
+                      >
+                        <Pencil className="h-3 w-3" strokeWidth={2} aria-hidden />
+                      </button>
+                      <button
+                        type="button"
+                        className="table-action-btn danger"
+                        onClick={() => handleDelete(account)}
+                        aria-label={t('deleteAccount', { ns: 'aria' })}
+                      >
+                        <Trash2 className="h-3 w-3" strokeWidth={2} aria-hidden />
+                      </button>
+                    </div>
                   </TableCell>
                 </TableRow>
-              ) : (
-                filteredAccounts.map((account) => (
-                  <TableRow
-                    key={account.id}
-                    className="cursor-pointer hover:bg-muted/50"
-                    onClick={() => handleAccountClick(account)}
-                  >
-                    <TableCell className="font-medium">{account.institution || '-'}</TableCell>
-                    <TableCell>{account.accountName}</TableCell>
-                    <TableCell>{account.accountType}</TableCell>
-                    <TableCell className="text-right tabular-nums font-medium">
-                      {formatCurrency(account.balance, locale)}
-                    </TableCell>
-                    <TableCell>{formatDate(account.lastUpdated, locale)}</TableCell>
-                    <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
-                      <div className="flex items-center justify-end gap-1">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-8 w-8 p-0"
-                          onClick={() => handleEdit(account)}
-                          aria-label={t('editAccount', { ns: 'aria' })}
-                        >
-                          <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-8 w-8 p-0"
-                          onClick={() => handleDelete(account)}
-                          aria-label={t('deleteAccount', { ns: 'aria' })}
-                        >
-                          <Trash2 className="h-3.5 w-3.5 text-destructive" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </div>
+              ))
+            )}
+          </TableBody>
+        </Table>
       ) : (
         <>
           {filteredAccounts.length === 0 ? (

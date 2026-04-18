@@ -13,6 +13,8 @@ vi.mock('@clerk/clerk-react', () => ({
   useAuth: () => ({
     getToken: vi.fn().mockResolvedValue('mock-token'),
     userId: 'mock-user-id',
+    isLoaded: true,
+    isSignedIn: true,
   }),
   useUser: () => ({
     isLoaded: true,

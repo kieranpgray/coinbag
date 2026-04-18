@@ -2,7 +2,6 @@ import { useState, useEffect, Fragment } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard,
-  Wallet,
   TrendingUp,
   CreditCard,
   ArrowLeftRight,
@@ -38,7 +37,6 @@ const navigation = NAVIGATION_ITEMS.map(item => ({
   icon: (() => {
     switch (item.path) {
       case ROUTES.app.dashboard: return LayoutDashboard;
-      case ROUTES.app.accounts: return Wallet;
       case ROUTES.app.wealth: return TrendingUp;
       case ROUTES.app.budget: return CreditCard;
       case ROUTES.app.transfers: return ArrowLeftRight;
@@ -51,7 +49,7 @@ const navigation = NAVIGATION_ITEMS.map(item => ({
 export function Sidebar() {
   const location = useLocation();
   const { isTablet, isDesktop } = useSidebarBreakpoint();
-  const { prefetchWealth, prefetchBudget, prefetchAccounts } = usePrefetchRoute();
+  const { prefetchWealth, prefetchBudget } = usePrefetchRoute();
   const { openPalette } = useCommandPaletteContext();
 
   const isRail = isTablet;
@@ -87,8 +85,6 @@ export function Sidebar() {
         return prefetchWealth;
       case ROUTES.app.budget:
         return prefetchBudget;
-      case ROUTES.app.accounts:
-        return prefetchAccounts;
       default:
         return undefined;
     }

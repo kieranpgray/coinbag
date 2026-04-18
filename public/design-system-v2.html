@@ -102,6 +102,17 @@
   /* Informational — non-critical notices, not yet a semantic alert */
   --info:       #1a527a;
   --info-light: #e8f3f9;
+
+  /* Asset class colours — use for class pips, icon backgrounds, and per-class UI accents.
+     Distinct from --chart-1…6 (which are chart-only). Use --class-* whenever representing
+     an asset category in the product UI (rows, badges, section headers). */
+  --class-property:  #1a5c3a;  /* property — accent green */
+  --class-shares:    #2d6fa3;  /* shares / equities — blue */
+  --class-super:     #7b52a8;  /* superannuation — purple */
+  --class-cash:      #b5892a;  /* cash — gold */
+  --class-vehicle:   #4a7c6f;  /* vehicles — teal */
+  --class-other:     #7a776e;  /* other — ink-3 */
+  --class-liability: #c0392b;  /* liabilities — danger */
 }
 
 /* ─── GLOBAL INTERACTION RULES ───────────────────────────────────────────── */
@@ -168,6 +179,527 @@
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum";
 }
+
+/* ─── ALLOCATE SCREEN COMPONENTS ─────────────────────────────────────────────
+   All components unique to the Allocate / pay-day-plan screen.
+   Spec reference: allocate-v2.html + Allocate Screen Implementation Spec v1.0
+────────────────────────────────────────────────────────────────────────────── */
+
+/* ── Income card (full spec — overrides/extends the base .income-card above) ── */
+/* Base .income-card is defined above. Allocate uses these additional sub-elements: */
+.income-card-amount-lg {
+  /* Use instead of .income-amount when the 38px treatment is required (Allocate).
+     Base .income-amount is 30px — this variant is Allocate-specific. */
+  font-family: var(--serif); font-size: 38px;
+  letter-spacing: -0.02em; line-height: 1;
+  font-variant-numeric: tabular-nums; margin-bottom: 8px;
+}
+.income-card-source {
+  font-size: 13px; color: rgba(255,255,255,0.68);
+  display: flex; align-items: center; gap: 6px;
+}
+.income-card-source-dot {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: rgba(255,255,255,0.4); flex-shrink: 0;
+}
+/* Secondary income link — styled anchor within income card.
+   Navigates to the relevant income source in Recurring. */
+.income-card-secondary {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 12px; color: rgba(255,255,255,0.52);
+  margin-top: 6px; padding-left: 11px;
+  text-decoration: none; transition: color 0.15s; cursor: pointer;
+}
+.income-card-secondary:hover { color: rgba(255,255,255,0.8); }
+.income-card-secondary svg { flex-shrink: 0; opacity: 0.6; }
+
+/* ── Tooltip icon ─────────────────────────────────────────────────────────── */
+/* Circular "i" badge that renders a native title tooltip on hover.
+   Used in plan section headers (Committed, Surplus). */
+.tooltip-icon {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 14px; height: 14px; border-radius: 50%;
+  border: 1px solid var(--paper-3); color: var(--ink-4);
+  font-size: 9px; font-weight: 500; font-style: normal;
+  cursor: default; font-family: var(--sans);
+  transition: border-color 0.15s, color 0.15s;
+}
+.tooltip-icon:hover { border-color: var(--ink-3); color: var(--ink-3); }
+
+/* ── Cycle strip ──────────────────────────────────────────────────────────── */
+/* Three-slot temporal navigator rendered below the sticky page header.
+   Shows Previous / Pay day / Next pay dates with chevron navigation.
+   The current date slot is always centred. */
+.cycle-strip {
+  display: flex; align-items: center; justify-content: center;
+  padding: 0 32px;
+  background: var(--paper); border-bottom: 1px solid var(--paper-3);
+  height: 52px; position: relative;
+}
+.cycle-strip-nav { display: flex; align-items: center; gap: 16px; }
+/* Chevron navigation buttons */
+.cycle-strip-btn {
+  width: 28px; height: 28px; border-radius: 50%;
+  border: 1px solid var(--paper-3); background: #fff;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  color: var(--ink-3); transition: all 0.15s; flex-shrink: 0;
+}
+.cycle-strip-btn:hover { border-color: var(--ink-4); color: var(--ink); }
+.cycle-strip-btn:disabled { opacity: 0.35; cursor: not-allowed; pointer-events: none; }
+/* Date slot row */
+.cycle-dates { display: flex; align-items: center; }
+.cycle-date-item {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 1px; padding: 0 20px; cursor: pointer; transition: opacity 0.15s;
+}
+.cycle-date-item.prev, .cycle-date-item.next { opacity: 0.38; }
+.cycle-date-item.prev:hover, .cycle-date-item.next:hover { opacity: 0.62; }
+.cycle-date-divider { width: 1px; height: 28px; background: var(--paper-3); flex-shrink: 0; }
+.cycle-date-label {
+  font-size: 10px; font-weight: 500; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--ink-4);
+}
+.cycle-date-item.current .cycle-date-label { color: var(--accent); }
+.cycle-date-value { font-size: 13px; font-weight: 400; color: var(--ink-3); }
+.cycle-date-item.current .cycle-date-value { font-weight: 500; color: var(--ink); }
+
+/* ── Cycle strip badge ────────────────────────────────────────────────────── */
+/* State pill anchored to the right edge of the cycle strip.
+   Variants: .active (green) for live cycle, .muted for upcoming/past. */
+.cycle-strip-badge {
+  position: absolute; right: 32px;
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 11px; font-weight: 500; padding: 3px 10px; border-radius: 100px;
+}
+.cycle-strip-badge.active  { background: var(--accent-light); color: var(--accent); }
+.cycle-strip-badge.muted   { background: var(--paper-2); color: var(--ink-3); border: 1px solid var(--paper-3); }
+/* Badge status dot — pair with .cycle-strip-badge */
+.badge-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.badge-dot.green { background: var(--accent); }
+.badge-dot.grey  { background: var(--ink-4); }
+
+/* ── Plan stack ───────────────────────────────────────────────────────────── */
+/* Outer wrapper that visually welds the income card, committed section,
+   and surplus section into a single card unit with a shared shadow. */
+.plan-stack {
+  border-radius: var(--rl); overflow: hidden;
+  box-shadow: 0 2px 12px rgba(15,14,12,0.06), 0 1px 3px rgba(15,14,12,0.04);
+}
+/* Any direct child with border-radius should be reset — the stack provides it */
+.plan-stack > * { border-radius: 0 !important; }
+.plan-stack > *:last-child { border-radius: 0 0 var(--rl) var(--rl) !important; }
+
+/* ── Plan section ─────────────────────────────────────────────────────────── */
+/* Reusable section within the plan stack (used for Committed and Surplus). */
+.plan-section {
+  background: #fff; border: 1px solid var(--paper-3);
+  border-top: none; overflow: hidden;
+}
+.plan-section-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 18px 11px; border-bottom: 1px solid var(--paper-3);
+  background: var(--paper);
+}
+.plan-section-label {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 11px; font-weight: 500; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--ink-3);
+}
+/* Section header totals */
+.plan-section-total {
+  font-family: var(--serif); font-size: 16px;
+  letter-spacing: -0.01em; color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+.plan-section-total.surplus-total   { color: var(--accent); font-size: 19px; }
+.plan-section-total.shortfall-total { color: var(--danger); font-size: 19px; }
+
+/* ── Commitment row ───────────────────────────────────────────────────────── */
+/* A single category row within the Committed section.
+   Each row = one expense category (e.g. Housing, Utilities, Investments).
+   Not individual expense items — categories group multiple recurring items. */
+.commitment-row {
+  display: grid; grid-template-columns: 34px 1fr auto;
+  gap: 12px; padding: 13px 18px; align-items: center;
+  border-bottom: 1px solid var(--paper-3); transition: background 0.1s;
+}
+.commitment-row:last-child { border-bottom: none; }
+.commitment-row:hover { background: var(--paper); }
+.commitment-icon {
+  width: 34px; height: 34px; border-radius: 9px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px; flex-shrink: 0;
+}
+/* Category icon backgrounds by type */
+.commitment-icon-housing     { background: var(--danger-light); }
+.commitment-icon-savings     { background: var(--accent-light); }
+.commitment-icon-investments { background: #e8f0fe; }
+.commitment-icon-utilities   { background: var(--gold-light); }
+.commitment-icon-transport   { background: var(--paper-2); border: 1px solid var(--paper-3); }
+.commitment-info { min-width: 0; }
+.commitment-name {
+  font-size: 13px; font-weight: 500; color: var(--ink);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.commitment-meta { font-size: 11px; color: var(--ink-4); font-weight: 300; margin-top: 1px; }
+.commitment-amount {
+  font-size: 13px; font-weight: 500; color: var(--ink-2);
+  font-variant-numeric: tabular-nums; text-align: right; flex-shrink: 0;
+}
+.commitment-amount.muted { color: var(--ink-4); font-weight: 300; }
+
+/* ── Surplus section ──────────────────────────────────────────────────────── */
+/* Extends .plan-section for the Surplus section, which is the visual climax
+   of the plan stack. Has three sub-states: destination-set, no-destination,
+   and shortfall. The surplus total is rendered larger than committed total. */
+.surplus-section {
+  background: #fff; border: 1px solid var(--paper-3);
+  border-top: none; border-radius: 0 0 var(--rl) var(--rl) !important;
+  overflow: hidden;
+}
+
+/* Shortfall alert — shown only when committed > income */
+.shortfall-alert {
+  margin: 14px 18px 0; padding: 10px 13px;
+  background: var(--danger-light); border: 1px solid rgba(192,57,43,0.18);
+  border-radius: var(--rl); font-size: 13px; color: var(--danger);
+  line-height: 1.6; display: none;
+}
+.shortfall-alert a { color: var(--danger); font-weight: 500; text-decoration: none; }
+.shortfall-alert a:hover { text-decoration: underline; }
+
+/* Sub-state: Destination set */
+.surplus-destination-row { padding: 16px 18px 18px; }
+.surplus-dest-label { font-size: 13px; color: var(--ink-2); font-weight: 400; margin-bottom: 8px; }
+.surplus-dest-label strong { color: var(--ink); font-weight: 500; }
+.surplus-dest-amount-row {
+  display: flex; align-items: flex-end; justify-content: space-between; gap: 12px;
+}
+/* NOTE: .surplus-amount is also defined in the legacy block above (22px).
+   The Allocate version overrides to 28px for visual hierarchy. */
+.surplus-destination-row .surplus-amount {
+  font-family: var(--serif); font-size: 28px;
+  letter-spacing: -0.02em; color: var(--accent);
+  font-variant-numeric: tabular-nums; line-height: 1;
+}
+.surplus-destination-row .surplus-amount.shortfall { color: var(--danger); }
+.surplus-helper {
+  font-size: 11px; color: var(--ink-4); font-weight: 300;
+  text-align: right; padding-bottom: 2px; line-height: 1.5; max-width: 200px;
+}
+.surplus-change-link {
+  font-size: 12px; color: var(--accent); text-decoration: none;
+  display: inline-flex; align-items: center; gap: 4px; margin-top: 10px;
+  transition: opacity 0.15s;
+}
+.surplus-change-link:hover { opacity: 0.7; }
+
+/* Sub-state: No destination */
+.surplus-no-destination-wrap { padding: 16px 18px 18px; }
+.surplus-prompt {
+  background: var(--paper); border: 1px dashed var(--paper-3);
+  border-radius: var(--rl); padding: 14px 16px;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+}
+.surplus-prompt-question { font-size: 13px; color: var(--ink-3); font-weight: 300; }
+.surplus-prompt-amount {
+  font-family: var(--serif); font-size: 26px; color: var(--ink);
+  font-variant-numeric: tabular-nums; line-height: 1; margin-top: 4px;
+}
+.surplus-prompt-cta {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--accent-light); color: var(--accent);
+  border: 1px solid rgba(26,92,58,0.2); border-radius: 100px;
+  padding: 8px 14px; font-size: 13px; font-weight: 500;
+  cursor: pointer; font-family: var(--sans); transition: background 0.15s;
+  white-space: nowrap; flex-shrink: 0;
+}
+.surplus-prompt-cta:hover { background: #d4ead9; }
+
+/* ── Destination picker ───────────────────────────────────────────────────── */
+/* Inline panel that expands inside the surplus section.
+   Allows the user to select which account receives the surplus.
+   "Split between accounts" is deferred to v2 — picker shows single-account options only. */
+.dest-picker {
+  border-top: 1px solid var(--paper-3);
+  padding: 16px 18px 18px; display: none;
+}
+.dest-picker.open { display: block; }
+.dest-picker-label {
+  font-size: 12px; font-weight: 500; color: var(--ink-3);
+  text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 10px;
+}
+.dest-options { display: flex; flex-direction: column; gap: 6px; margin-bottom: 4px; }
+.dest-option {
+  display: flex; align-items: center; gap: 12px;
+  padding: 11px 14px; border: 1px solid var(--paper-3); border-radius: var(--rl);
+  cursor: pointer; background: var(--paper); transition: all 0.15s;
+}
+.dest-option:hover   { border-color: var(--accent); background: var(--accent-light); }
+.dest-option.selected { border-color: var(--accent); background: var(--accent-light); }
+.dest-option-icon {
+  width: 32px; height: 32px; border-radius: 8px;
+  background: #fff; border: 1px solid var(--paper-3);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; flex-shrink: 0;
+}
+.dest-option-name { font-size: 13px; font-weight: 500; color: var(--ink); }
+.dest-option-type { font-size: 11px; color: var(--ink-3); font-weight: 300; margin-top: 1px; }
+/* "Add an account" link row below options */
+.dest-add-link {
+  display: flex; align-items: center; gap: 8px;
+  padding: 9px 14px; font-size: 13px; color: var(--accent);
+  text-decoration: none; transition: opacity 0.15s; margin-bottom: 10px;
+}
+.dest-add-link:hover { opacity: 0.7; }
+.dest-confirm-note {
+  font-size: 12px; color: var(--ink-4); font-weight: 300;
+  line-height: 1.6; margin-bottom: 12px;
+}
+.dest-picker-actions { display: flex; gap: 8px; justify-content: flex-end; }
+
+/* ── Upcoming banner ──────────────────────────────────────────────────────── */
+/* Informational banner rendered above the plan stack for upcoming and past cycles.
+   When visible, plan-stack opacity is reduced to 0.72. */
+.upcoming-banner {
+  background: var(--paper); border: 1px solid var(--paper-3);
+  border-radius: var(--rl); padding: 16px 18px;
+  display: none; align-items: center; gap: 14px; margin-bottom: 16px;
+}
+.upcoming-banner.show { display: flex; }
+.upcoming-banner-icon {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: var(--paper-2); display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; color: var(--ink-3);
+}
+.upcoming-banner-title { font-size: 13px; font-weight: 500; color: var(--ink); }
+.upcoming-banner-sub { font-size: 12px; color: var(--ink-3); font-weight: 300; margin-top: 2px; }
+.upcoming-banner-sub-preview { font-size: 11px; color: var(--ink-4); font-weight: 300; margin-top: 3px; }
+
+/* ── Edit panel ───────────────────────────────────────────────────────────── */
+/* Inline form panel rendered above the plan stack when edit mode is active.
+   Scoped to per-cycle adjustments only (frequency, date, account, surplus destination).
+   Permanent changes are made in Recurring. */
+.edit-panel {
+  background: var(--accent-light); border: 1px solid rgba(26,92,58,0.18);
+  border-radius: var(--rl); padding: 20px; margin-bottom: 16px; display: none;
+}
+.edit-panel.open { display: block; }
+.edit-panel-title { font-size: 13px; font-weight: 500; color: var(--accent); margin-bottom: 16px; }
+.edit-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+.edit-field-label { display: block; font-size: 12px; font-weight: 500; color: var(--ink-2); margin-bottom: 5px; }
+.edit-field-input {
+  width: 100%; padding: 8px 12px; font-size: 13px; font-family: var(--sans);
+  color: var(--ink); background: #fff;
+  border: 1px solid rgba(26,92,58,0.2); border-radius: var(--rl);
+  outline: none; transition: border-color 0.15s, box-shadow 0.15s; appearance: none;
+}
+.edit-field-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--focus-ring); }
+/* Responsive: single column on mobile */
+@media (max-width: 768px) { .edit-fields { grid-template-columns: 1fr; } }
+
+/* ─── NET WORTH SCREEN COMPONENTS ───────────────────────────────────────────
+   Components unique to the Net Worth screen (net-worth.html).
+   These extend the base DS — tokens and base components above still apply.
+─────────────────────────────────────────────────────────────────────────────*/
+
+/* ── Dark sidebar (canonical product sidebar) ── */
+/* Overrides the light .shell-sidebar. Both product pages use this dark variant. */
+.sidebar {
+  width: var(--shell-sidebar-w); position: fixed; top: 0; left: 0; bottom: 0;
+  background: var(--ink); display: flex; flex-direction: column;
+  z-index: var(--z-sidebar); overflow-y: auto;
+}
+.sidebar-header { padding: 20px 16px 8px; }
+.sidebar-section-label {
+  font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.12em;
+  color: var(--on-dark-secondary); padding: 16px 16px 4px;
+}
+.sidebar-link {
+  display: flex; align-items: center; gap: 10px; padding: 9px 16px;
+  font-size: 13px; font-weight: 500; color: var(--on-dark-secondary);
+  text-decoration: none; border-radius: 0; transition: color 0.15s, background 0.15s;
+  border-left: 2px solid transparent;
+}
+.sidebar-link:hover { color: var(--on-dark-primary); background: var(--on-dark-hover); }
+.sidebar-link.active {
+  color: var(--on-dark-primary); border-left-color: var(--accent-2);
+  background: var(--on-dark-hover);
+}
+.sidebar-footer {
+  margin-top: auto; padding: 16px; border-top: 1px solid var(--on-dark-border);
+  display: flex; align-items: center; gap: 10px;
+}
+.sidebar-avatar-circle {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: var(--accent); display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 600; color: #fff; flex-shrink: 0;
+}
+.sidebar-avatar-name { font-size: 12px; color: rgba(255,255,255,0.5); }
+/* Mobile overlay — appears behind open sidebar on small screens */
+.sidebar-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(15,14,12,0.55); backdrop-filter: blur(2px); z-index: calc(var(--z-sidebar) - 1);
+}
+.sidebar-overlay.open { display: block; }
+
+/* ── Asset Row (.asset-row) ── */
+/* Core list row — 3-column grid: [icon] [info] [value]. Used for every asset and liability entry. */
+.asset-row {
+  display: grid; grid-template-columns: 36px 1fr auto; align-items: center;
+  gap: 0 10px; padding: 11px 16px; cursor: pointer;
+  border-bottom: 1px solid var(--paper-2); text-decoration: none; color: inherit;
+  transition: background 0.12s;
+}
+.asset-row:hover { background: var(--paper-2); }
+.asset-row:last-child { border-bottom: none; }
+/* Link variant — wrap in <a class="asset-row"> for drill-down navigation */
+a.asset-row { display: grid; }
+/* Icon column */
+.asset-icon {
+  width: 32px; height: 32px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px; flex-shrink: 0; background: var(--paper-2);
+}
+/* Info column */
+.asset-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.asset-name { font-size: 13px; font-weight: 500; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.asset-meta { font-size: 11px; font-weight: 300; color: var(--ink-3); display: flex; align-items: center; gap: 5px; }
+.asset-sub  { font-size: 11px; font-weight: 300; color: var(--ink-4); }
+/* Value column */
+.asset-value-col { text-align: right; }
+.asset-value {
+  font-size: 14px; font-weight: 500; color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+.asset-value.liability { color: var(--danger); }
+
+/* ── Asset Freshness Dot ── */
+/* Inline 5px status dot shown in .asset-meta. Green = live/fresh; gold = stale. */
+.asset-freshness-dot {
+  width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0;
+  background: var(--accent); animation: pulse 2.4s ease-in-out infinite;
+}
+.asset-freshness-dot.stale { background: var(--gold); animation: none; }
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+/* ── Badges: Auto and Manual ── */
+/* Used in .asset-meta to show data source. Icon + source label anatomy. */
+.badge-auto {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 7px 2px 5px; border-radius: 100px;
+  background: var(--accent-light); color: var(--accent);
+  font-size: 10px; font-weight: 500; letter-spacing: 0.02em;
+}
+/* Usage: auto = live-connected data source (bank feed, broker API, etc.) */
+.badge-manual {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 7px 2px 5px; border-radius: 100px;
+  background: var(--paper-2); color: var(--ink-3);
+  border: 1px solid var(--paper-3);
+  font-size: 10px; font-weight: 500; letter-spacing: 0.02em;
+}
+/* Usage: manual = user-entered value, no live connection */
+
+/* ── Asset Section Card ── */
+/* Expandable card container for each asset class. 6 asset + 2 liability instances. */
+.asset-section {
+  background: #fff; border: 1px solid var(--paper-3);
+  border-radius: var(--rl); overflow: hidden; margin-bottom: 10px;
+}
+.asset-section-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 16px; cursor: pointer;
+  transition: background 0.12s;
+}
+.asset-section-header:hover { background: var(--paper-2); }
+.asset-section-header-left { display: flex; align-items: center; gap: 10px; }
+.asset-section-header-right { display: flex; align-items: center; gap: 10px; }
+.asset-section-title { font-size: 14px; font-weight: 600; color: var(--ink); }
+.asset-section-total { font-size: 14px; font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; }
+/* Liability modifier — applies danger color to totals */
+.asset-section.liabilities .asset-section-total { color: var(--danger); }
+/* Collapse animation */
+.asset-section-body { overflow: hidden; transition: max-height 0.28s ease; }
+.asset-section.collapsed .asset-section-body { max-height: 0 !important; }
+/* Collapse chevron — rotates 90° when collapsed */
+.collapse-chevron { transition: transform 0.25s ease; color: var(--ink-3); }
+.asset-section.collapsed .collapse-chevron { transform: rotate(-90deg); }
+
+/* ── Class Color Pip ── */
+/* 10px circle in asset-section-header identifying the asset class */
+.class-pip { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+
+/* ── Add Asset Row ── */
+/* Dashed-border CTA row at the bottom of each asset section */
+.add-asset-row {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 16px; cursor: pointer; color: var(--ink-3);
+  border-top: 1px dashed var(--paper-3); font-size: 13px;
+  transition: color 0.12s, background 0.12s;
+  text-decoration: none;
+}
+.add-asset-row:hover { color: var(--accent); background: var(--paper-2); }
+.add-asset-icon {
+  width: 20px; height: 20px; border-radius: 5px; border: 1.5px dashed var(--paper-3);
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  font-size: 12px; color: var(--ink-4);
+}
+
+/* ── Hero Strip ── */
+/* Primary data panel at top of net-worth page. Contains net worth total, change pill,
+   asset/liability split, time range selector, and sparkline chart. */
+.hero-strip {
+  background: #fff; border: 1px solid var(--paper-3); border-radius: var(--rx);
+  overflow: hidden; margin-bottom: 12px; position: relative;
+}
+.hero-strip::before {
+  content: ''; position: absolute; top: -60px; right: -40px;
+  width: 200px; height: 200px; border-radius: 50%;
+  background: var(--accent-glow); pointer-events: none;
+}
+.hero-body { display: flex; gap: 0; padding: 22px 24px 14px; }
+.hero-main { flex: 1; }
+.hero-label {
+  font-size: 11px; font-weight: 500; text-transform: uppercase;
+  letter-spacing: 0.1em; color: var(--ink-3); margin-bottom: 6px;
+}
+.hero-value {
+  font-family: var(--serif); font-size: clamp(36px, 4vw, 52px);
+  color: var(--ink); line-height: 1; margin-bottom: 10px;
+}
+/* Change pill — sentiment-encoded; show exactly one state */
+.hero-change-pill {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 4px 10px; border-radius: 100px;
+  font-size: 12px; font-weight: 500;
+}
+.hero-change-pill.pos { background: var(--accent-light); color: var(--accent); }
+.hero-change-pill.neg { background: var(--danger-light); color: var(--danger); }
+/* Asset/liability split — right side of hero body */
+.hero-split { display: flex; flex-direction: column; justify-content: center; gap: 8px; padding-left: 24px; border-left: 1px solid var(--paper-3); }
+.hero-split-row { display: flex; align-items: baseline; gap: 8px; }
+.hero-split-label { font-size: 11px; color: var(--ink-3); min-width: 90px; }
+.hero-split-value { font-size: 14px; font-weight: 500; font-variant-numeric: tabular-nums; }
+.hero-split-value.neg { color: var(--danger); }
+.hero-divider { height: 1px; background: var(--paper-3); margin: 2px 0; }
+/* Sparkline chart wrapper */
+.hero-chart-wrap { padding: 0 0 4px; }
+
+/* ── Page Header (sticky frosted) ── */
+/* Sticky page-level header with backdrop blur. Used on both product pages. */
+.page-header {
+  position: sticky; top: 0; z-index: var(--z-sticky);
+  background: rgba(250,249,247,0.92); backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--paper-3);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 24px; height: 56px; gap: 12px;
+}
+.page-header-left { display: flex; flex-direction: column; justify-content: center; gap: 2px; }
+.page-header-actions { display: flex; align-items: center; gap: 8px; }
 
 /* ─── DS DOC CHROME ──────────────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -771,7 +1303,7 @@ code { font-family: 'Courier New', monospace; font-size: 12px; background: var(-
 
 /* Mobile tab bar */
 .tab-bar { display: flex; background: var(--paper); border-top: 1px solid var(--paper-3);
-           height: 56px; align-items: stretch; }
+           height: 64px; align-items: stretch; }
 .tab-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
             gap: 3px; cursor: pointer; color: var(--ink-3); transition: color 0.15s; padding-top: 2px; }
 .tab-item.active { color: var(--accent); }
@@ -1254,7 +1786,7 @@ code { font-family: 'Courier New', monospace; font-size: 12px; background: var(-
 
 <!-- MOBILE TOPBAR -->
 <div class="ds-topbar">
-  <a href="#" class="ds-topbar-logo">Supafolio DS</a>
+  <a href="#tokens" class="ds-topbar-logo">Supafolio DS</a>
   <button class="ds-menu-btn" id="menu-btn" aria-label="Open navigation">
     <span></span><span></span><span></span>
   </button>
@@ -1266,9 +1798,9 @@ code { font-family: 'Courier New', monospace; font-size: 12px; background: var(-
 <!-- SIDEBAR -->
 <nav class="ds-nav" id="ds-nav">
   <div class="ds-nav-header">
-    <a href="#" class="ds-nav-logo">
+    <a href="#tokens" class="ds-nav-logo">
       Supafolio
-      <span>Design System v2.0</span>
+      <span>Design System v2.1</span>
     </a>
     <div class="ds-nav-search">
       <svg class="ds-nav-search-icon" width="13" height="13" viewBox="0 0 13 13" fill="none">
@@ -1330,11 +1862,13 @@ code { font-family: 'Courier New', monospace; font-size: 12px; background: var(-
         <a href="#authenticated">Authenticated shell</a>
         <a href="#auth-patterns">Auth patterns</a>
         <a href="#viz-patterns">Data visualisation</a>
+        <a href="#allocate-components">Allocate components</a>
+        <a href="#net-worth-components">Net worth components</a>
       </div>
     </div>
   </div>
 
-  <div class="ds-nav-footer">v2.0 — full authenticated app coverage</div>
+  <div class="ds-nav-footer">v2.2 — Net worth components added</div>
 </nav>
 
 <!-- ─── MAIN ────────────────────────────────────────────────────── -->
@@ -1894,8 +2428,9 @@ input:checked ~ .toggle-thumb { transform: translateX(16px); }</pre>
       </div>
     </div>
 
-    <div class="ds-subsection">
-      <div class="ds-subsection-title">Income card (Allocate hero)</div>
+    <div class="ds-subsection" style="opacity:0.55;">
+      <div class="ds-subsection-title">⚠️ SUPERSEDED — Income card (old spec)</div>
+      <p class="ds-note" style="color:var(--danger);font-weight:500;">This entry is superseded. Use the <strong>Income Card</strong> spec in the <a href="#allocate-components">#allocate-components</a> section instead. Class names below (<code>.income-label</code>, <code>.income-amount</code>, <code>.income-source</code>) are not used in the current product pages and should not be implemented.</p>
       <div class="ds-preview" style="max-width: 320px;">
         <div class="income-card">
           <div class="income-label">Income arriving</div>
@@ -1903,14 +2438,15 @@ input:checked ~ .toggle-thumb { transform: translateX(16px); }</pre>
           <div class="income-source">Salary · CBA Everyday · Fortnightly</div>
         </div>
       </div>
-      <pre>.income-card   { background: var(--accent); border-radius: var(--rl); padding: 16px; color: #fff; }
+      <pre>/* SUPERSEDED — do not use these class names */
 .income-label  { font-size: 12px; opacity: 0.7; margin-bottom: 4px; }
 .income-amount { font-family: var(--serif); font-size: 30px; line-height: 1; margin-bottom: 4px; }
 .income-source { font-size: 12px; opacity: 0.65; }</pre>
     </div>
 
-    <div class="ds-subsection">
-      <div class="ds-subsection-title">Allocation row</div>
+    <div class="ds-subsection" style="opacity:0.55;">
+      <div class="ds-subsection-title">⚠️ DEPRECATED — Allocation row</div>
+      <p class="ds-note" style="color:var(--danger);font-weight:500;">This component is deprecated. The current product uses <strong><code>.commitment-row</code></strong> instead — see the <a href="#allocate-components">#allocate-components</a> section. Do not implement <code>.alloc-row</code> in new work.</p>
       <div class="ds-preview" style="max-width: 360px; display: flex; flex-direction: column; gap: 8px;">
         <div class="alloc-row">
           <div class="alloc-left">
@@ -1995,7 +2531,7 @@ input:checked ~ .toggle-thumb { transform: translateX(16px); }</pre>
       <div class="ds-preview tight" style="display: flex; flex-direction: column; gap: 14px; max-width: 420px;">
         <div class="step-indicator">
           <div class="step-num">1</div>
-          <div class="step-text">Email <strong>security@supafolio.com</strong> with a description of the issue and steps to reproduce.</div>
+          <div class="step-text">Email <strong><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="384b5d5b4d4a514c41784b4d48595e57545157165b5755">[email&#160;protected]</a></strong> with a description of the issue and steps to reproduce.</div>
         </div>
         <div class="step-indicator">
           <div class="step-num">2</div>
@@ -2675,7 +3211,7 @@ icon stroke/fill:         rgba(255,255,255,0.5)</pre>
       </div>
       <pre>/* Mobile tab bar — fixed to viewport bottom */
 .tab-bar  { display: flex; background: var(--paper); border-top: 1px solid var(--paper-3);
-             height: 56px; align-items: stretch;
+             height: 64px; align-items: stretch;
              position: fixed; bottom: 0; left: 0; right: 0; z-index: 90; }
 .tab-item { flex: 1; display: flex; flex-direction: column; align-items: center;
              justify-content: center; gap: 3px; color: var(--ink-3); }
@@ -3458,7 +3994,7 @@ icon stroke/fill:         rgba(255,255,255,0.5)</pre>
         </div>
         <div class="auth-card" style="max-width:340px;">
           <div class="auth-logo">Supafolio</div>
-          <div class="auth-success">Check your email. We sent a reset link to kieran@example.com</div>
+          <div class="auth-success">Check your email. We sent a reset link to <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="b1dad8d4c3d0dff1d4c9d0dcc1ddd49fd2dedc">[email&#160;protected]</a></div>
           <div class="auth-sub" style="margin-bottom:0;">Didn&rsquo;t get it? Check spam, or <a class="link">resend</a>.</div>
         </div>
       </div>
@@ -3471,7 +4007,7 @@ icon stroke/fill:         rgba(255,255,255,0.5)</pre>
         <div class="auth-card" style="max-width:380px;text-align:center;">
           <div class="empty-state-icon" style="margin:0 auto 16px;background:var(--accent-light);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
           <div class="auth-title" style="text-align:center;">Check your email.</div>
-          <div class="auth-sub" style="text-align:center;">We sent a verification link to <strong>kieran@example.com</strong>. Click the link to activate your account.</div>
+          <div class="auth-sub" style="text-align:center;">We sent a verification link to <strong><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="8de6e4e8ffece3cde8f5ece0fde1e8a3eee2e0">[email&#160;protected]</a></strong>. Click the link to activate your account.</div>
           <div style="font-size:13px;color:var(--ink-3);margin-top:8px;">Didn&rsquo;t get it? <a class="link">Resend email</a> &middot; <a class="link-muted">Use a different address</a></div>
         </div>
       </div>
@@ -3842,9 +4378,806 @@ Y-axis: domain=calculateNiceDomain(), ticks=calculateNiceTicks()
 
   </div>
 
+  <!-- ─── ALLOCATE COMPONENTS ────────────────────────────────────────── -->
+  <div class="ds-section" id="allocate-components">
+    <div class="ds-section-title">Allocate Components</div>
+    <p class="ds-note">Components unique to the Allocate / pay-day-plan screen. All use design tokens from the system root. Reference file: <strong>allocate-final.html</strong>. Spec: <strong>Allocate Screen Implementation Spec v1.0</strong>.</p>
+
+    <!-- Tooltip icon -->
+    <div class="ds-subsection">
+      <div class="ds-subsection-title">Tooltip icon</div>
+      <p class="ds-note">Circular "i" badge that renders a native <code>title</code> tooltip on hover. Used inline within plan section labels alongside section titles. Always pair with a <code>title</code> attribute containing the tooltip copy (max 80 chars).</p>
+      <div class="ds-preview">
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+          <div style="display:flex;align-items:center;gap:6px;">
+            <span style="font-size:11px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink-3);">Committed</span>
+            <span class="tooltip-icon" title="Expenses set up in Recurring that fall within this pay cycle.">i</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <span style="font-size:11px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink-3);">Surplus</span>
+            <span class="tooltip-icon" title="Income $5,833 minus committed $3,280. What's left is yours to direct.">i</span>
+          </div>
+        </div>
+      </div>
+      <pre>.tooltip-icon {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 14px; height: 14px; border-radius: 50%;
+  border: 1px solid var(--paper-3); color: var(--ink-4);
+  font-size: 9px; font-weight: 500; font-style: normal;
+  cursor: default; font-family: var(--sans);
+  transition: border-color 0.15s, color 0.15s;
+}
+.tooltip-icon:hover { border-color: var(--ink-3); color: var(--ink-3); }</pre>
+    </div>
+
+    <!-- Cycle strip -->
+    <div class="ds-subsection">
+      <div class="ds-subsection-title">Cycle strip</div>
+      <p class="ds-note">52px horizontal band below the page header. The current pay date is always centred. Previous and next dates are shown at reduced opacity with chevron navigation. A state badge is right-anchored. On mobile ≤768px, prev/next slots and the badge are hidden.</p>
+      <div class="ds-preview tight" style="padding:0;overflow:hidden;background:var(--paper);">
+        <div class="cycle-strip" style="position:relative;">
+          <div class="cycle-strip-nav">
+            <button class="cycle-strip-btn" disabled>
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M7.5 9.5L4.5 6L7.5 2.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+            <div class="cycle-dates">
+              <div class="cycle-date-item prev">
+                <div class="cycle-date-label">Previous</div>
+                <div class="cycle-date-value">11 Apr 2025</div>
+              </div>
+              <div class="cycle-date-divider"></div>
+              <div class="cycle-date-item current">
+                <div class="cycle-date-label">Pay day</div>
+                <div class="cycle-date-value">Fri 25 Apr 2025</div>
+              </div>
+              <div class="cycle-date-divider"></div>
+              <div class="cycle-date-item next">
+                <div class="cycle-date-label">Next</div>
+                <div class="cycle-date-value">9 May 2025</div>
+              </div>
+            </div>
+            <button class="cycle-strip-btn">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M4.5 2.5L7.5 6L4.5 9.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+          </div>
+          <span class="cycle-strip-badge active" style="position:absolute;right:28px;">
+            <span class="badge-dot green"></span>
+            Active
+          </span>
+        </div>
+      </div>
+      <div class="ds-preview tight" style="padding:0;overflow:hidden;background:var(--paper);margin-top:2px;">
+        <div class="cycle-strip" style="position:relative;">
+          <div class="cycle-strip-nav">
+            <button class="cycle-strip-btn">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M7.5 9.5L4.5 6L7.5 2.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+            <div class="cycle-dates">
+              <div class="cycle-date-item prev">
+                <div class="cycle-date-label">Previous</div>
+                <div class="cycle-date-value">25 Apr 2025</div>
+              </div>
+              <div class="cycle-date-divider"></div>
+              <div class="cycle-date-item current">
+                <div class="cycle-date-label">Pay day</div>
+                <div class="cycle-date-value">Fri 9 May 2025</div>
+              </div>
+              <div class="cycle-date-divider"></div>
+              <div class="cycle-date-item next">
+                <div class="cycle-date-label">Next</div>
+                <div class="cycle-date-value">23 May 2025</div>
+              </div>
+            </div>
+            <button class="cycle-strip-btn">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M4.5 2.5L7.5 6L4.5 9.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+          </div>
+          <span class="cycle-strip-badge muted" style="position:absolute;right:28px;">
+            <span class="badge-dot grey"></span>
+            Upcoming
+          </span>
+        </div>
+      </div>
+      <p class="ds-note" style="margin-top:10px;">Top row: active cycle. Bottom row: upcoming cycle. <code>.cycle-strip-badge</code> variants: <code>.active</code> (green) and <code>.muted</code> (grey, for upcoming and past states).</p>
+    </div>
+
+    <!-- Income card (Allocate variant) -->
+    <div class="ds-subsection">
+      <div class="ds-subsection-title">Income card — Allocate variant</div>
+      <p class="ds-note">The top element of the plan stack. Uses <code>38px</code> Instrument Serif for the amount (vs the base <code>.income-amount</code> at 30px). The secondary income element is an <code>&lt;a&gt;</code> that navigates to the source in Recurring — it is not plain text.</p>
+      <div class="ds-preview tight" style="padding:0;background:var(--accent);border-radius:var(--rl);">
+        <div class="income-card" style="border-radius:var(--rl);">
+          <div class="income-card-label" style="font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:0.1em;color:rgba(255,255,255,0.6);margin-bottom:6px;">Income arriving</div>
+          <div class="income-card-amount-lg">$5,833</div>
+          <div class="income-card-source">
+            <div class="income-card-source-dot"></div>
+            Salary · CBA Everyday · Fortnightly
+          </div>
+          <a href="#" class="income-card-secondary">
+            <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M1 5.5H10M6.5 2L10 5.5L6.5 9" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            + Rental income arriving Mon
+          </a>
+        </div>
+      </div>
+      <pre>.income-card-amount-lg {
+  font-family: var(--serif); font-size: 38px;
+  letter-spacing: -0.02em; line-height: 1;
+  font-variant-numeric: tabular-nums; margin-bottom: 8px;
+}
+.income-card-secondary {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 12px; color: rgba(255,255,255,0.52);
+  margin-top: 6px; padding-left: 11px;
+  text-decoration: none; transition: color 0.15s;
+}
+.income-card-secondary:hover { color: rgba(255,255,255,0.8); }</pre>
+    </div>
+
+    <!-- Plan stack + plan section -->
+    <div class="ds-subsection">
+      <div class="ds-subsection-title">Plan stack &amp; plan section</div>
+      <p class="ds-note"><code>.plan-stack</code> welds the income card, committed section, and surplus section into one unit with a shared border radius and shadow. <code>.plan-section</code> is a reusable bordered section within the stack. The section header contains a label (with optional tooltip icon) and a right-aligned total.</p>
+      <div class="ds-preview tight" style="padding:16px;">
+        <div class="plan-stack" style="max-width:500px;">
+          <div class="income-card">
+            <div style="font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:0.1em;color:rgba(255,255,255,0.6);margin-bottom:6px;">Income arriving</div>
+            <div style="font-family:var(--serif);font-size:38px;letter-spacing:-0.02em;line-height:1;font-variant-numeric:tabular-nums;margin-bottom:8px;">$5,833</div>
+            <div style="font-size:13px;color:rgba(255,255,255,0.68);display:flex;align-items:center;gap:6px;">
+              <div style="width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,0.4);flex-shrink:0;"></div>
+              Salary · CBA Everyday · Fortnightly
+            </div>
+          </div>
+          <div class="plan-section">
+            <div class="plan-section-header">
+              <div class="plan-section-label">
+                Committed
+                <span class="tooltip-icon" title="Expenses set up in Recurring that fall within this pay cycle.">i</span>
+              </div>
+              <div class="plan-section-total">−$3,280</div>
+            </div>
+            <div class="commitment-row">
+              <div class="commitment-icon commitment-icon-housing">🏠</div>
+              <div class="commitment-info">
+                <div class="commitment-name">Housing</div>
+                <div class="commitment-meta">Mortgage · 1 item</div>
+              </div>
+              <div class="commitment-amount">$2,100</div>
+            </div>
+            <div class="commitment-row">
+              <div class="commitment-icon commitment-icon-investments">📈</div>
+              <div class="commitment-info">
+                <div class="commitment-name">Investments</div>
+                <div class="commitment-meta">Stake US equities · 1 item</div>
+              </div>
+              <div class="commitment-amount">$680</div>
+            </div>
+            <div class="commitment-row">
+              <div class="commitment-icon commitment-icon-utilities">⚡</div>
+              <div class="commitment-info">
+                <div class="commitment-name">Utilities</div>
+                <div class="commitment-meta">3 items · none due this cycle</div>
+              </div>
+              <div class="commitment-amount muted">$0</div>
+            </div>
+          </div>
+          <div class="surplus-section">
+            <div class="plan-section-header">
+              <div class="plan-section-label">
+                Surplus
+                <span class="tooltip-icon" title="Income $5,833 minus committed $2,780. What's left is yours to direct.">i</span>
+              </div>
+              <div class="plan-section-total surplus-total">$3,053</div>
+            </div>
+            <div class="surplus-destination-row">
+              <div class="surplus-dest-label">Surplus → <strong>ING Savings</strong></div>
+              <div class="surplus-dest-amount-row">
+                <div class="surplus-amount">$3,053</div>
+                <div class="surplus-helper">Your surplus will be allocated here<br>in your plan. Change this any time.</div>
+              </div>
+              <a href="#" class="surplus-change-link" onclick="return false;">
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M1 6H11M7 2.5L11 6L7 9.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                Change destination
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+      <pre>.plan-stack {
+  border-radius: var(--rl); overflow: hidden;
+  box-shadow: 0 2px 12px rgba(15,14,12,0.06), 0 1px 3px rgba(15,14,12,0.04);
+}
+.plan-section { background: #fff; border: 1px solid var(--paper-3); border-top: none; }
+.plan-section-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 18px 11px; border-bottom: 1px solid var(--paper-3);
+  background: var(--paper);
+}
+.plan-section-total               { font-family: var(--serif); font-size: 16px; color: var(--ink); }
+.plan-section-total.surplus-total { color: var(--accent); font-size: 19px; }
+.plan-section-total.shortfall-total { color: var(--danger); font-size: 19px; }</pre>
+    </div>
+
+    <!-- Commitment row -->
+    <div class="ds-subsection">
+      <div class="ds-subsection-title">Commitment row</div>
+      <p class="ds-note">Each row represents an <strong>expense category</strong> (e.g. Housing, Utilities), not an individual item. The meta line shows a summary of items and, where relevant, a "none due this cycle" note. Category icon backgrounds are standardised by type.</p>
+      <div class="ds-preview tight" style="padding:0;background:#fff;border:1px solid var(--paper-3);border-radius:var(--rl);overflow:hidden;">
+        <div class="commitment-row">
+          <div class="commitment-icon commitment-icon-housing">🏠</div>
+          <div class="commitment-info"><div class="commitment-name">Housing</div><div class="commitment-meta">Mortgage · 1 item</div></div>
+          <div class="commitment-amount">$2,100</div>
+        </div>
+        <div class="commitment-row">
+          <div class="commitment-icon commitment-icon-savings">💰</div>
+          <div class="commitment-info"><div class="commitment-name">Savings</div><div class="commitment-meta">Emergency fund · 1 item</div></div>
+          <div class="commitment-amount">$500</div>
+        </div>
+        <div class="commitment-row">
+          <div class="commitment-icon commitment-icon-investments">📈</div>
+          <div class="commitment-info"><div class="commitment-name">Investments</div><div class="commitment-meta">Stake US equities · 1 item</div></div>
+          <div class="commitment-amount">$680</div>
+        </div>
+        <div class="commitment-row">
+          <div class="commitment-icon commitment-icon-utilities">⚡</div>
+          <div class="commitment-info"><div class="commitment-name">Utilities</div><div class="commitment-meta">3 items · none due this cycle</div></div>
+          <div class="commitment-amount muted">$0</div>
+        </div>
+      </div>
+      <pre>.commitment-row {
+  display: grid; grid-template-columns: 34px 1fr auto;
+  gap: 12px; padding: 13px 18px; align-items: center;
+  border-bottom: 1px solid var(--paper-3); transition: background 0.1s;
+}
+.commitment-row:last-child { border-bottom: none; }
+.commitment-row:hover { background: var(--paper); }
+/* Icon bg variants */
+.commitment-icon-housing     { background: var(--danger-light); }
+.commitment-icon-savings     { background: var(--accent-light); }
+.commitment-icon-investments { background: #e8f0fe; }
+.commitment-icon-utilities   { background: var(--gold-light); }
+.commitment-icon-transport   { background: var(--paper-2); border: 1px solid var(--paper-3); }</pre>
+    </div>
+
+    <!-- Surplus section states -->
+    <div class="ds-subsection">
+      <div class="ds-subsection-title">Surplus section — states</div>
+      <p class="ds-note">Three mutually exclusive sub-states within the surplus section. Show exactly one at a time based on data. The surplus total in the section header is <code>19px</code> (vs <code>16px</code> for committed) to give it visual hierarchy as the page's conclusion.</p>
+
+      <p class="ds-note"><strong>State 1: Destination set</strong> — default when a surplus destination account is configured.</p>
+      <div class="ds-preview tight" style="padding:0;background:#fff;border:1px solid var(--paper-3);border-radius:var(--rl);overflow:hidden;">
+        <div class="plan-section-header">
+          <div class="plan-section-label">Surplus <span class="tooltip-icon" title="Income $5,833 minus committed $3,280. What's left is yours to direct.">i</span></div>
+          <div class="plan-section-total surplus-total">$2,553</div>
+        </div>
+        <div class="surplus-destination-row">
+          <div class="surplus-dest-label">Surplus → <strong>ING Savings</strong></div>
+          <div class="surplus-dest-amount-row">
+            <div class="surplus-amount">$2,553</div>
+            <div class="surplus-helper">Your surplus will be allocated here<br>in your plan. Change this any time.</div>
+          </div>
+          <a href="#" class="surplus-change-link" onclick="return false;">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M1 6H11M7 2.5L11 6L7 9.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Change destination
+          </a>
+        </div>
+      </div>
+
+      <p class="ds-note" style="margin-top:16px;"><strong>State 2: No destination</strong> — shown when no surplus destination has been set.</p>
+      <div class="ds-preview tight" style="padding:0;background:#fff;border:1px solid var(--paper-3);border-radius:var(--rl);overflow:hidden;">
+        <div class="plan-section-header">
+          <div class="plan-section-label">Surplus <span class="tooltip-icon" title="Income $5,833 minus committed $3,280. What's left is yours to direct.">i</span></div>
+          <div class="plan-section-total surplus-total">$2,553</div>
+        </div>
+        <div class="surplus-no-destination-wrap">
+          <div class="surplus-prompt">
+            <div>
+              <div class="surplus-prompt-question">Where should this go?</div>
+              <div class="surplus-prompt-amount">$2,553</div>
+            </div>
+            <button class="surplus-prompt-cta">
+              Set destination
+              <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M1 5.5H10M6.5 2L10 5.5L6.5 9" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <p class="ds-note" style="margin-top:16px;"><strong>State 3: Shortfall</strong> — committed expenses exceed income. Destination states are hidden.</p>
+      <div class="ds-preview tight" style="padding:0;background:#fff;border:1px solid var(--paper-3);border-radius:var(--rl);overflow:hidden;">
+        <div class="plan-section-header">
+          <div class="plan-section-label">Shortfall <span class="tooltip-icon" title="Your committed expenses exceed your income this cycle.">i</span></div>
+          <div class="plan-section-total shortfall-total">−$840</div>
+        </div>
+        <div class="shortfall-alert" style="display:block;">
+          Your committed expenses exceed your income this cycle.
+          <a href="#">Review your amounts in Recurring →</a>
+        </div>
+        <div style="height:16px;"></div>
+      </div>
+    </div>
+
+    <!-- Destination picker -->
+    <div class="ds-subsection">
+      <div class="ds-subsection-title">Destination picker</div>
+      <p class="ds-note">Inline panel expanding inside the surplus section when "Change destination" or "Set destination" is tapped. Shows user's linked accounts as selectable options. "Split between accounts" is deferred to v2 — omit from v1 implementations.</p>
+      <div class="ds-preview tight" style="padding:0;background:#fff;border:1px solid var(--paper-3);border-radius:var(--rl);overflow:hidden;">
+        <div class="dest-picker open" style="border-top:none;">
+          <div class="dest-picker-label">Where should your surplus go?</div>
+          <div class="dest-options">
+            <div class="dest-option selected">
+              <div class="dest-option-icon">💳</div>
+              <div><div class="dest-option-name">ING Savings</div><div class="dest-option-type">Savings account</div></div>
+            </div>
+            <div class="dest-option">
+              <div class="dest-option-icon">🏠</div>
+              <div><div class="dest-option-name">CBA Offset</div><div class="dest-option-type">Mortgage offset</div></div>
+            </div>
+          </div>
+          <a href="#" class="dest-add-link" onclick="return false;">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 2V10M2 6H10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+            Add an account
+          </a>
+          <div class="dest-confirm-note">Your surplus will be allocated here in your plan. Change this any time.</div>
+          <div class="dest-picker-actions">
+            <button class="btn-ghost btn-sm">Cancel</button>
+            <button class="btn-primary btn-sm">Confirm</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Upcoming banner -->
+    <div class="ds-subsection">
+      <div class="ds-subsection-title">Upcoming banner</div>
+      <p class="ds-note">Rendered above the plan stack for upcoming and past cycles. When shown, set <code>plan-stack</code> opacity to <code>0.72</code> to visually de-emphasise the preview. Hidden on active cycles.</p>
+      <div class="ds-preview">
+        <div class="upcoming-banner show" style="margin-bottom:0;">
+          <div class="upcoming-banner-icon">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.3"/><path d="M8 5V8.5L10 10" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+          </div>
+          <div>
+            <div class="upcoming-banner-title">Salary arrives Friday · 9 May</div>
+            <div class="upcoming-banner-sub">Here's what's lined up</div>
+            <div class="upcoming-banner-sub-preview">Amounts based on your current Recurring setup.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Edit panel -->
+    <div class="ds-subsection">
+      <div class="ds-subsection-title">Edit panel</div>
+      <p class="ds-note">Inline form shown above the plan stack when "Edit plan" is tapped. Scoped to per-cycle adjustments only. Permanent changes are made in Recurring. Two-column grid on desktop, single column on mobile ≤768px.</p>
+      <div class="ds-preview">
+        <div class="edit-panel open" style="margin-bottom:0;">
+          <div class="edit-panel-title">Adjusting your plan</div>
+          <div class="edit-fields">
+            <div>
+              <label class="edit-field-label">How often does this arrive?</label>
+              <select class="edit-field-input"><option>Fortnightly</option></select>
+            </div>
+            <div>
+              <label class="edit-field-label">When's the next payment?</label>
+              <input type="date" class="edit-field-input" value="2025-04-25">
+            </div>
+            <div>
+              <label class="edit-field-label">Which account does it land in?</label>
+              <select class="edit-field-input"><option>CBA Everyday</option></select>
+            </div>
+            <div>
+              <label class="edit-field-label">Where should your surplus go?</label>
+              <select class="edit-field-input"><option>ING Savings</option></select>
+            </div>
+          </div>
+          <div class="edit-note">Changes here update this plan only. To make permanent changes, go to <a href="#" onclick="return false;" style="color:var(--accent);">Recurring</a>.</div>
+          <div class="edit-actions">
+            <button class="btn-ghost btn-sm">Cancel</button>
+            <button class="btn-primary btn-sm">Update plan</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Shortfall alert standalone -->
+    <div class="ds-subsection">
+      <div class="ds-subsection-title">Shortfall alert</div>
+      <p class="ds-note">Inline danger alert within the surplus section. Only visible when committed total exceeds income. Uses <code>var(--danger-light)</code> background — not the global <code>.alert-danger</code> component, which has different padding and icon conventions.</p>
+      <div class="ds-preview">
+        <div class="shortfall-alert" style="display:block;margin:0;">
+          Your committed expenses exceed your income this cycle.
+          <a href="#" onclick="return false;">Review your amounts in Recurring →</a>
+        </div>
+      </div>
+      <pre>.shortfall-alert {
+  padding: 10px 13px; margin: 14px 18px 0;
+  background: var(--danger-light); border: 1px solid rgba(192,57,43,0.18);
+  border-radius: var(--rl); font-size: 13px; color: var(--danger);
+  line-height: 1.6; display: none; /* shown via display:block when active */
+}
+.shortfall-alert a { color: var(--danger); font-weight: 500; text-decoration: none; }
+.shortfall-alert a:hover { text-decoration: underline; }</pre>
+    </div>
+
+  </div><!-- /allocate-components -->
+
+
+  <!-- ══════════════════════════════════════════════════════════════
+       NET WORTH SCREEN COMPONENTS
+  ══════════════════════════════════════════════════════════════ -->
+  <div class="ds-section" id="net-worth-components">
+    <div class="ds-section-title">Net worth components</div>
+    <p class="ds-note">Components unique to the Net Worth screen (<strong>net-worth.html</strong>). The dark sidebar and tab bar are shared with <strong>allocate-final.html</strong>. All use design tokens from <code>:root</code>.</p>
+
+    <!-- ── Dark Sidebar ── -->
+    <div class="ds-subsection">
+      <div class="ds-subsection-title">Dark sidebar (canonical product sidebar)</div>
+      <p class="ds-note">This is the canonical authenticated sidebar. It uses a <code>var(--ink)</code> background. The light <code>.shell-sidebar</code> in <em>#authenticated</em> is the DS-only shell frame — <strong>both product pages use this dark variant</strong>. Active link uses a left accent border.</p>
+      <div class="ds-preview" style="max-width:220px;height:360px;position:relative;overflow:hidden;border-radius:var(--rl);padding:0;">
+        <div class="sidebar" style="position:absolute;width:220px;height:360px;">
+          <div class="sidebar-header">
+            <div style="font-size:15px;font-weight:700;color:#fff;letter-spacing:-0.01em;">Supafolio</div>
+          </div>
+          <div class="sidebar-section-label">Wealth</div>
+          <a href="#" onclick="return false;" class="sidebar-link active">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M1.5 12L4.5 8L7.5 10L10 5.5L14.5 2.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+            Net worth
+          </a>
+          <a href="#" onclick="return false;" class="sidebar-link">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 10L5 7L8 9L13 4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+            Shares
+          </a>
+          <div class="sidebar-section-label">Cash flow</div>
+          <a href="#" onclick="return false;" class="sidebar-link">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 8H14M2 8L5.5 5M2 8L5.5 11" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+            Allocate
+          </a>
+          <div class="sidebar-footer">
+            <div class="sidebar-avatar-circle">KG</div>
+            <div class="sidebar-avatar-name">kieran@productised</div>
+          </div>
+        </div>
+      </div>
+      <pre>.sidebar { width: var(--shell-sidebar-w); position: fixed; top: 0; left: 0; bottom: 0;
+  background: var(--ink); display: flex; flex-direction: column;
+  z-index: var(--z-sidebar); overflow-y: auto; }
+.sidebar-header { padding: 20px 16px 8px; }
+.sidebar-section-label { font-size: 9px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.12em; color: var(--on-dark-secondary); padding: 16px 16px 4px; }
+.sidebar-link { display: flex; align-items: center; gap: 10px; padding: 9px 16px;
+  font-size: 13px; font-weight: 500; color: var(--on-dark-secondary);
+  text-decoration: none; border-left: 2px solid transparent;
+  transition: color 0.15s, background 0.15s; }
+.sidebar-link:hover { color: var(--on-dark-primary); background: var(--on-dark-hover); }
+.sidebar-link.active { color: var(--on-dark-primary); border-left-color: var(--accent-2);
+  background: var(--on-dark-hover); }
+.sidebar-footer { margin-top: auto; padding: 16px; border-top: 1px solid var(--on-dark-border);
+  display: flex; align-items: center; gap: 10px; }
+.sidebar-avatar-circle { width: 28px; height: 28px; border-radius: 50%; background: var(--accent);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 600; color: #fff; flex-shrink: 0; }
+.sidebar-avatar-name { font-size: 12px; color: rgba(255,255,255,0.5); }
+/* Mobile overlay */
+.sidebar-overlay { display: none; position: fixed; inset: 0;
+  background: rgba(15,14,12,0.55); backdrop-filter: blur(2px);
+  z-index: calc(var(--z-sidebar) - 1); }
+.sidebar-overlay.open { display: block; }</pre>
+    </div>
+
+    <!-- ── Page Header (sticky frosted) ── -->
+    <div class="ds-subsection">
+      <div class="ds-subsection-title">Page header (sticky frosted)</div>
+      <p class="ds-note">Sticky header with <code>backdrop-filter: blur</code>. Contains breadcrumb on the left and action buttons on the right. Used on both product pages. On allocate, a <code>.page-sub-edit</code> subtitle appears in edit mode (not shown here).</p>
+      <div class="ds-preview" style="padding:0;overflow:hidden;">
+        <div class="page-header" style="position:relative;top:auto;">
+          <div class="page-header-left">
+            <nav class="breadcrumb">
+              <a href="#" class="breadcrumb-item" onclick="return false;">Home</a>
+              <span class="breadcrumb-sep">/</span>
+              <span class="breadcrumb-item current">Net worth</span>
+            </nav>
+          </div>
+          <div class="page-header-actions">
+            <button class="btn-ghost" style="padding:7px 14px;font-size:13px;">Edit</button>
+            <button class="btn-primary" style="padding:8px 16px;font-size:13px;">+ Add asset</button>
+          </div>
+        </div>
+      </div>
+      <pre>.page-header {
+  position: sticky; top: 0; z-index: var(--z-sticky);
+  background: rgba(250,249,247,0.92); backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--paper-3);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 24px; height: 56px; gap: 12px; }
+.page-header-left { display: flex; flex-direction: column; justify-content: center; gap: 2px; }
+.page-header-actions { display: flex; align-items: center; gap: 8px; }</pre>
+    </div>
+
+    <!-- ── Hero Strip ── -->
+    <div class="ds-subsection">
+      <div class="ds-subsection-title">Hero strip</div>
+      <p class="ds-note">Primary data panel — net worth total, sentiment change pill, asset/liability split, time range selector, and sparkline. Eight sub-components in one parent. The <code>.hero-change-pill</code> must always carry either <code>.pos</code> or <code>.neg</code>.</p>
+      <div class="ds-preview" style="padding:0;overflow:hidden;">
+        <div class="hero-strip" style="margin:0;border-radius:0;">
+          <div class="hero-body">
+            <div class="hero-main">
+              <div class="hero-label">Net worth</div>
+              <div class="hero-value">$847,320</div>
+              <span class="hero-change-pill pos">↑ +$12,480 this year</span>
+            </div>
+            <div class="hero-split">
+              <div class="hero-split-row">
+                <span class="hero-split-label">Total assets</span>
+                <span class="hero-split-value">$1,194,200</span>
+              </div>
+              <div class="hero-divider"></div>
+              <div class="hero-split-row">
+                <span class="hero-split-label">Total liabilities</span>
+                <span class="hero-split-value neg">−$346,880</span>
+              </div>
+            </div>
+          </div>
+          <div style="padding: 0 24px 8px; display:flex; justify-content:flex-end;">
+            <div class="chart-time-tabs">
+              <button class="chart-time-tab" onclick="return false;">1M</button>
+              <button class="chart-time-tab" onclick="return false;">3M</button>
+              <button class="chart-time-tab active" onclick="return false;">1Y</button>
+              <button class="chart-time-tab" onclick="return false;">All</button>
+            </div>
+          </div>
+          <div class="hero-chart-wrap" style="background:var(--paper-2);height:48px;display:flex;align-items:center;justify-content:center;">
+            <span style="font-size:11px;color:var(--ink-4);">Sparkline SVG (inline, no .chart-container wrapper)</span>
+          </div>
+        </div>
+      </div>
+      <pre>/* Hero strip */
+.hero-strip { background: #fff; border: 1px solid var(--paper-3);
+  border-radius: var(--rx); overflow: hidden; margin-bottom: 12px; position: relative; }
+.hero-strip::before { content: ''; position: absolute; top: -60px; right: -40px;
+  width: 200px; height: 200px; border-radius: 50%;
+  background: var(--accent-glow); pointer-events: none; }
+.hero-body { display: flex; gap: 0; padding: 22px 24px 14px; }
+.hero-main { flex: 1; }
+.hero-label { font-size: 11px; font-weight: 500; text-transform: uppercase;
+  letter-spacing: 0.1em; color: var(--ink-3); margin-bottom: 6px; }
+.hero-value { font-family: var(--serif); font-size: clamp(36px, 4vw, 52px);
+  color: var(--ink); line-height: 1; margin-bottom: 10px; }
+/* Change pill — always .pos or .neg; never unstyled */
+.hero-change-pill { display: inline-flex; align-items: center; gap: 5px;
+  padding: 4px 10px; border-radius: 100px; font-size: 12px; font-weight: 500; }
+.hero-change-pill.pos { background: var(--accent-light); color: var(--accent); }
+.hero-change-pill.neg { background: var(--danger-light); color: var(--danger); }
+/* Asset / liability split */
+.hero-split { display: flex; flex-direction: column; justify-content: center;
+  gap: 8px; padding-left: 24px; border-left: 1px solid var(--paper-3); }
+.hero-split-row { display: flex; align-items: baseline; gap: 8px; }
+.hero-split-label { font-size: 11px; color: var(--ink-3); min-width: 90px; }
+.hero-split-value { font-size: 14px; font-weight: 500; font-variant-numeric: tabular-nums; }
+.hero-split-value.neg { color: var(--danger); }
+.hero-divider { height: 1px; background: var(--paper-3); margin: 2px 0; }
+.hero-chart-wrap { padding: 0 0 4px; }</pre>
+    </div>
+
+    <!-- ── Asset Section Card ── -->
+    <div class="ds-subsection">
+      <div class="ds-subsection-title">Asset section card + collapse</div>
+      <p class="ds-note">Expandable card container for each asset class. Used 6× for assets and 2× for liabilities. The <code>.liabilities</code> modifier applies danger color to totals. JS toggles <code>.collapsed</code> on the root element; body uses <code>max-height</code> animation.</p>
+      <div class="ds-preview" style="padding:12px;display:flex;flex-direction:column;gap:8px;">
+        <div class="asset-section">
+          <div class="asset-section-header" onclick="this.closest('.asset-section').classList.toggle('collapsed');const b=this.nextElementSibling;b.style.maxHeight=this.closest('.asset-section').classList.contains('collapsed')?'0':b.scrollHeight+'px'">
+            <div class="asset-section-header-left">
+              <div class="class-pip" style="background:var(--class-property);"></div>
+              <span class="asset-section-title">Property</span>
+            </div>
+            <div class="asset-section-header-right">
+              <span class="asset-section-total">$620,000</span>
+              <svg class="collapse-chevron" width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 5L7 9L11 5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+            </div>
+          </div>
+          <div class="asset-section-body" style="max-height:200px;">
+            <a class="asset-row" href="#" onclick="return false;">
+              <div class="asset-icon" style="background:var(--accent-light);">🏠</div>
+              <div class="asset-info">
+                <div class="asset-name">Family home</div>
+                <div class="asset-meta">
+                  <div class="asset-freshness-dot"></div>
+                  <span class="badge-auto">
+                    <svg width="8" height="8" viewBox="0 0 8 8" fill="none"><circle cx="4" cy="4" r="3" stroke="currentColor" stroke-width="1.2"/><path d="M4 2.5V4L5 5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+                    Domain
+                  </span>
+                </div>
+              </div>
+              <div class="asset-value-col">
+                <div class="asset-value">$620,000</div>
+              </div>
+            </a>
+            <a class="add-asset-row" href="#" onclick="return false;">
+              <div class="add-asset-icon">+</div>
+              Add property
+            </a>
+          </div>
+        </div>
+        <div class="asset-section liabilities">
+          <div class="asset-section-header">
+            <div class="asset-section-header-left">
+              <div class="class-pip" style="background:var(--class-liability);"></div>
+              <span class="asset-section-title">Mortgage</span>
+            </div>
+            <div class="asset-section-header-right">
+              <span class="asset-section-total">−$310,000</span>
+              <svg class="collapse-chevron" width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 5L7 9L11 5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+            </div>
+          </div>
+        </div>
+      </div>
+      <pre>/* Asset section card */
+.asset-section { background: #fff; border: 1px solid var(--paper-3);
+  border-radius: var(--rl); overflow: hidden; margin-bottom: 10px; }
+.asset-section-header { display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 16px; cursor: pointer; transition: background 0.12s; }
+.asset-section-header:hover { background: var(--paper-2); }
+.asset-section-header-left, .asset-section-header-right { display: flex; align-items: center; gap: 10px; }
+.asset-section-title { font-size: 14px; font-weight: 600; color: var(--ink); }
+.asset-section-total { font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums; }
+/* Liability modifier */
+.asset-section.liabilities .asset-section-total { color: var(--danger); }
+/* Collapse */
+.asset-section-body { overflow: hidden; transition: max-height 0.28s ease; }
+.asset-section.collapsed .asset-section-body { max-height: 0 !important; }
+.collapse-chevron { transition: transform 0.25s ease; color: var(--ink-3); }
+.asset-section.collapsed .collapse-chevron { transform: rotate(-90deg); }
+/* Class pip */
+.class-pip { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+/* JS pattern: toggleSection(id) — toggle .collapsed, animate max-height */</pre>
+    </div>
+
+    <!-- ── Asset Row ── -->
+    <div class="ds-subsection">
+      <div class="ds-subsection-title">Asset row</div>
+      <p class="ds-note">The core list item inside every asset section — 3-column grid: <code>[icon] [info] [value]</code>. Use <code>&lt;a class="asset-row"&gt;</code> for drill-down navigation. Last child has no bottom border. The <code>.liability</code> modifier on <code>.asset-value</code> applies danger color.</p>
+      <div class="ds-preview" style="padding:0;overflow:hidden;">
+        <a class="asset-row" href="#" onclick="return false;" style="border-bottom:1px solid var(--paper-2);">
+          <div class="asset-icon" style="background:var(--accent-light);">🏠</div>
+          <div class="asset-info">
+            <div class="asset-name">Family home</div>
+            <div class="asset-meta">
+              <div class="asset-freshness-dot"></div>
+              <span class="badge-auto">
+                <svg width="8" height="8" viewBox="0 0 8 8" fill="none"><circle cx="4" cy="4" r="3" stroke="currentColor" stroke-width="1.2"/></svg>
+                Domain
+              </span>
+            </div>
+            <div class="asset-sub">Purchased Jun 2019</div>
+          </div>
+          <div class="asset-value-col"><div class="asset-value">$620,000</div></div>
+        </a>
+        <div class="asset-row" style="border-bottom:1px solid var(--paper-2);">
+          <div class="asset-icon" style="background:var(--paper-2);">🚗</div>
+          <div class="asset-info">
+            <div class="asset-name">Toyota RAV4</div>
+            <div class="asset-meta">
+              <span class="badge-manual">
+                <svg width="8" height="8" viewBox="0 0 8 8" fill="none"><path d="M1 4H7M4 1L7 4L4 7" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+                Manual
+              </span>
+            </div>
+          </div>
+          <div class="asset-value-col"><div class="asset-value">$28,000</div></div>
+        </div>
+        <div class="asset-row">
+          <div class="asset-icon" style="background:var(--danger-light);">🏦</div>
+          <div class="asset-info">
+            <div class="asset-name">ANZ Home Loan</div>
+            <div class="asset-meta"><div class="asset-freshness-dot"></div> Live</div>
+          </div>
+          <div class="asset-value-col"><div class="asset-value liability">−$310,000</div></div>
+        </div>
+      </div>
+      <pre>/* Asset row — 3-col grid */
+.asset-row { display: grid; grid-template-columns: 36px 1fr auto; align-items: center;
+  gap: 0 10px; padding: 11px 16px; cursor: pointer;
+  border-bottom: 1px solid var(--paper-2); text-decoration: none; color: inherit;
+  transition: background 0.12s; }
+.asset-row:hover { background: var(--paper-2); }
+.asset-row:last-child { border-bottom: none; }
+a.asset-row { display: grid; } /* link variant for drill-down */
+.asset-icon { width: 32px; height: 32px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center; font-size: 15px; }
+.asset-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.asset-name { font-size: 13px; font-weight: 500; color: var(--ink);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.asset-meta { font-size: 11px; font-weight: 300; color: var(--ink-3);
+  display: flex; align-items: center; gap: 5px; }
+.asset-sub  { font-size: 11px; font-weight: 300; color: var(--ink-4); }
+.asset-value-col { text-align: right; }
+.asset-value { font-size: 14px; font-weight: 500; font-variant-numeric: tabular-nums; }
+.asset-value.liability { color: var(--danger); }</pre>
+    </div>
+
+    <!-- ── Badges: Auto + Manual ── -->
+    <div class="ds-subsection">
+      <div class="ds-subsection-title">Badges: Auto and Manual</div>
+      <p class="ds-note">Used in <code>.asset-meta</code> to communicate data source. <strong>Auto</strong> = live connection (bank feed, broker API, etc.) — accent green, always animating freshness dot nearby. <strong>Manual</strong> = user-entered, no live connection — neutral ink styling with border.</p>
+      <div class="ds-preview" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+        <span class="badge-auto">
+          <svg width="9" height="9" viewBox="0 0 9 9" fill="none"><circle cx="4.5" cy="4.5" r="3.5" stroke="currentColor" stroke-width="1.2"/><path d="M4.5 3V4.5L5.5 5.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+          CommSec
+        </span>
+        <span class="badge-auto">
+          <svg width="9" height="9" viewBox="0 0 9 9" fill="none"><circle cx="4.5" cy="4.5" r="3.5" stroke="currentColor" stroke-width="1.2"/></svg>
+          Domain
+        </span>
+        <span class="badge-manual">
+          <svg width="9" height="9" viewBox="0 0 9 9" fill="none"><path d="M1.5 4.5H7.5M5 2L7.5 4.5L5 7" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+          Manual
+        </span>
+        <span class="badge-manual">
+          <svg width="9" height="9" viewBox="0 0 9 9" fill="none"><path d="M1.5 4.5H7.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+          Estimated
+        </span>
+      </div>
+      <pre>/* Badge Auto — live-connected source */
+.badge-auto { display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 7px 2px 5px; border-radius: 100px;
+  background: var(--accent-light); color: var(--accent);
+  font-size: 10px; font-weight: 500; letter-spacing: 0.02em; }
+
+/* Badge Manual — user-entered, no live connection */
+.badge-manual { display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 7px 2px 5px; border-radius: 100px;
+  background: var(--paper-2); color: var(--ink-3);
+  border: 1px solid var(--paper-3);
+  font-size: 10px; font-weight: 500; letter-spacing: 0.02em; }</pre>
+    </div>
+
+    <!-- ── Asset Freshness Dot ── -->
+    <div class="ds-subsection">
+      <div class="ds-subsection-title">Asset freshness dot</div>
+      <p class="ds-note">Inline 5px status dot shown in <code>.asset-meta</code>. Green + pulsing = data is live and fresh. Gold + static = data is stale (last sync &gt; 24h or connection error). Never use both states simultaneously on the same row.</p>
+      <div class="ds-preview" style="display:flex;gap:20px;align-items:center;">
+        <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--ink-3);">
+          <div class="asset-freshness-dot"></div> Live · Updated moments ago
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--ink-3);">
+          <div class="asset-freshness-dot stale"></div> Stale · Last synced 3 days ago
+        </div>
+      </div>
+      <pre>/* Freshness dot — inline in .asset-meta */
+.asset-freshness-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0;
+  background: var(--accent); animation: pulse 2.4s ease-in-out infinite; }
+.asset-freshness-dot.stale { background: var(--gold); animation: none; }
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}</pre>
+    </div>
+
+    <!-- ── Add Asset Row ── -->
+    <div class="ds-subsection">
+      <div class="ds-subsection-title">Add asset row</div>
+      <p class="ds-note">Dashed-border CTA row at the bottom of each asset section. Visually subordinate to real asset rows — uses <code>var(--paper-3)</code> dashed border and muted text. On hover, shifts to accent color.</p>
+      <div class="ds-preview" style="padding:0;overflow:hidden;max-width:360px;">
+        <div style="border:1px solid var(--paper-3);border-radius:var(--rl);overflow:hidden;">
+          <a class="add-asset-row" href="#" onclick="return false;">
+            <div class="add-asset-icon">+</div>
+            Add property
+          </a>
+        </div>
+      </div>
+      <pre>.add-asset-row { display: flex; align-items: center; gap: 8px; padding: 10px 16px;
+  cursor: pointer; color: var(--ink-3); border-top: 1px dashed var(--paper-3);
+  font-size: 13px; transition: color 0.12s, background 0.12s; text-decoration: none; }
+.add-asset-row:hover { color: var(--accent); background: var(--paper-2); }
+.add-asset-icon { width: 20px; height: 20px; border-radius: 5px;
+  border: 1.5px dashed var(--paper-3); display: flex; align-items: center;
+  justify-content: center; flex-shrink: 0; font-size: 12px; color: var(--ink-4); }</pre>
+    </div>
+
+  </div><!-- /net-worth-components -->
+
 </main>
 
-<script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 // ── Group collapsing ──────────────────────────────────────────────
 function toggleGroup(id) {
   const group = document.getElementById(id);
@@ -3934,21 +5267,4 @@ searchInput.addEventListener('input', function() {
   }
 
   allGroups.forEach(group => {
-    const links = group.querySelectorAll('a');
-    let anyVisible = false;
-    links.forEach(a => {
-      const match = a.textContent.toLowerCase().includes(q);
-      a.style.display = match ? '' : 'none';
-      if (match) anyVisible = true;
-    });
-    group.style.display = anyVisible ? '' : 'none';
-    if (anyVisible) {
-      const linksEl = group.querySelector('.ds-nav-group-links');
-      linksEl.style.maxHeight = linksEl.scrollHeight + 'px';
-    }
-  });
-});
-</script>
-
-</body>
-</html>
+    const links = g

@@ -11,6 +11,7 @@
  * 4. Default to 'en-US'
  */
 
+import { useAuth } from '@clerk/clerk-react';
 import { createContext, useContext, useEffect, useState, ReactNode, useCallback } from 'react';
 import { useUserPreferences, useUpdateUserPreferences } from '@/hooks/useUserPreferences';
 import { detectLocaleFromIP } from '@/lib/ipDetection';
@@ -95,10 +96,16 @@ interface LocaleProviderProps {
 }
 
 export function LocaleProvider({ children }: LocaleProviderProps) {
-  const { data: prefs, isLoading: prefsLoading } = useUserPreferences();
+  const { userId } = useAuth();
+  const { data: prefs, isPreferencesReady } = useUserPreferences();
+  const prefsLoading = !isPreferencesReady;
   const updatePrefs = useUpdateUserPreferences();
   const [locale, setLocaleState] = useState<string>(DEFAULT_LOCALE);
   const [isInitialized, setIsInitialized] = useState(false);
+
+  useEffect(() => {
+    setIsInitialized(false);
+  }, [userId]);
 
   // Initialize locale on mount
   useEffect(() => {
@@ -156,6 +163,9 @@ export function LocaleProvider({ children }: LocaleProviderProps) {
       try {
         await updatePrefs.mutateAsync({ locale: newLocale });
       } catch (error) {
+        if (error instanceof Error && error.name === 'PreferencesNotReadyError') {
+          return;
+        }
         console.error('Failed to save locale preference:', error);
         // Continue anyway - locale is set in state
       }

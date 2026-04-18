@@ -67,7 +67,7 @@ export function AccountCard({ account, onEdit, onDelete, onClick }: AccountCardP
           </div>
           <div className="flex justify-between gap-4">
             <span className="metric-label">Balance</span>
-            <span className="text-right tabular-nums font-semibold text-foreground">
+            <span className="text-right tabular-nums font-medium text-foreground">
               {formatCurrency(account.balance, locale)}
             </span>
           </div>

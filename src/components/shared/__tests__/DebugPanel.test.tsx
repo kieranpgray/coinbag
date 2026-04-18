@@ -33,15 +33,9 @@ describe('DebugPanel', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    Object.defineProperty(import.meta, 'env', {
-      value: {
-        MODE: 'development',
-        VITE_DATA_SOURCE: 'supabase',
-        VITE_SUPABASE_URL: 'https://test-project.supabase.co',
-      },
-      writable: true,
-      configurable: true,
-    });
+    vi.stubEnv('MODE', 'development');
+    vi.stubEnv('VITE_DATA_SOURCE', 'supabase');
+    vi.stubEnv('VITE_SUPABASE_URL', 'https://test-project.supabase.co');
   });
 
   it('does not render for non-admin users', () => {
@@ -121,20 +115,14 @@ describe('DebugPanel', () => {
     render(<DebugPanel open={true} onOpenChange={mockSetOpen} />);
 
     await waitFor(() => {
-      expect(screen.getByText('user_123')).toBeInTheDocument();
+      expect(screen.getAllByText('user_123').length).toBeGreaterThanOrEqual(1);
     });
   });
 
   it('handles missing Supabase URL gracefully', async () => {
-    Object.defineProperty(import.meta, 'env', {
-      value: {
-        MODE: 'development',
-        VITE_DATA_SOURCE: 'supabase',
-        VITE_SUPABASE_URL: undefined,
-      },
-      writable: true,
-      configurable: true,
-    });
+    vi.stubEnv('MODE', 'development');
+    vi.stubEnv('VITE_DATA_SOURCE', 'supabase');
+    vi.stubEnv('VITE_SUPABASE_URL', '');
 
     vi.mocked(useUser).mockReturnValue({
       user: {

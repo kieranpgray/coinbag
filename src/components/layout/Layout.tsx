@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
+import { ROUTES } from '@/lib/constants/routes';
 import { SignedIn, SignedOut, RedirectToSignIn } from '@clerk/clerk-react';
 import { logger } from '@/lib/logger';
 import { WorkspaceProvider } from '@/contexts/WorkspaceContext';
@@ -14,6 +15,9 @@ import { MobileNav } from './MobileNav';
 function AppShell() {
   const { open, setOpen } = useCommandPaletteContext();
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const { pathname } = useLocation();
+  /** Allocate (/app/transfers) uses full-bleed shell; other routes keep the page container. */
+  const allocateFullBleed = pathname === ROUTES.app.transfers;
 
   return (
     <div className="h-screen overflow-hidden flex">
@@ -34,10 +38,13 @@ function AppShell() {
             className="bg-background focus:outline-none flex-1 pb-[calc(3.5rem+env(safe-area-inset-bottom))] md:pb-0"
             tabIndex={-1}
           >
-            {/* Global container wrapper for all pages */}
-            <div className="container pt-8">
+            {allocateFullBleed ? (
               <Outlet />
-            </div>
+            ) : (
+              <div className="container pt-8">
+                <Outlet />
+              </div>
+            )}
           </main>
           <Footer />
         </div>

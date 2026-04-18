@@ -26,6 +26,7 @@ vi.mock('@/hooks/useUserPreferences', () => ({
   useUserPreferences: () => ({
     data: mockPrefs,
     isLoading: false,
+    isPreferencesReady: true,
   }),
   useUpdateUserPreferences: () => ({
     mutate: vi.fn(),

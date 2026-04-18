@@ -11,7 +11,11 @@ vi.mock('../hooks');
 
 // Mock useLocale
 vi.mock('@/hooks/useUserPreferences', () => ({
-  useUserPreferences: () => ({ data: { locale: 'en-US' }, isLoading: false }),
+  useUserPreferences: () => ({
+    data: { locale: 'en-US' },
+    isLoading: false,
+    isPreferencesReady: true,
+  }),
   useUpdateUserPreferences: () => ({ mutateAsync: vi.fn() }),
 }));
 

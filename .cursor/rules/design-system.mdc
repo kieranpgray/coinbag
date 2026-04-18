@@ -1,0 +1,33 @@
+---
+description: >-
+  Design system — use /designsystem (ROUTES.designSystem) and public/design-system-v2.html
+  for UI, tokens, and layout. Reference when matching DS patterns or reviewing styling.
+globs: "**/*.{tsx,css}"
+alwaysApply: false
+---
+
+# Design system reference
+
+## Shorthand
+
+In prompts, **`/designsystem`** means: align with this project’s design system — the live doc and the HTML spec below. Use the same idea when the user says “design system”, “DS”, or “match the spec”.
+
+## Where to look
+
+| What | Where |
+|------|--------|
+| **Route (app)** | `/designsystem` — `ROUTES.designSystem` in `src/lib/constants/routes.ts` |
+| **Local preview** | `http://localhost:5173/designsystem` (Vite dev default port) |
+| **Canonical spec (source)** | `public/design-system-v2.html` (tokens, components, patterns, sections) |
+
+Prefer the **HTML file** for exact class names, tokens, and structure. Use the **live route** to verify behaviour, scrolling, and layout in the browser.
+
+## In Cursor
+
+- Attach this rule with **`@design-system`** (or `@.cursor/rules/design-system.mdc`) when working on UI so the model keeps DS context.
+- This rule applies when editing files matching `**/*.{tsx,css}`; for other files, still **@mention** this rule if styling or DS alignment matters.
+
+## When implementing or reviewing UI
+
+- Prefer existing DS tokens and patterns from `design-system-v2.html` over one-off colours/spacing.
+- If the spec and the app disagree, call it out; the HTML doc is the documented contract unless product says otherwise.

@@ -36,7 +36,7 @@ export function AccountMenuContent({ onClose }: AccountMenuContentProps) {
   const { user } = useUser();
   const { signOut } = useClerk();
   const navigate = useNavigate();
-  const { darkMode, toggleDarkMode, privacyMode, togglePrivacyMode } = useTheme();
+  const { darkMode, applyThemePreference, privacyMode, togglePrivacyMode } = useTheme();
   const workspaceCollaborationEnabled = useWorkspaceCollaborationEnabled();
   const { activeWorkspace, memberships, setActiveWorkspaceId, isLoading, error } = useWorkspace();
 
@@ -139,7 +139,15 @@ export function AccountMenuContent({ onClose }: AccountMenuContentProps) {
           )}
           {privacyMode ? 'Disable privacy mode' : 'Enable privacy mode'}
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => { toggleDarkMode(); onClose(); }} className="cursor-pointer">
+        <DropdownMenuItem
+          className="cursor-pointer"
+          onSelect={() => {
+            // Match label: switch to the opposite appearance in one step (avoids cycling
+            // system→light when the user meant "go dark" while on system + light OS).
+            applyThemePreference(darkMode ? 'light' : 'dark');
+            onClose();
+          }}
+        >
           {darkMode ? (
             <Sun className="h-4 w-4 shrink-0" />
           ) : (

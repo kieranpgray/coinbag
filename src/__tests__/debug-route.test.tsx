@@ -1,17 +1,18 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import type { ReactNode } from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
-import { ClerkProvider } from '@clerk/clerk-react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { DebugPage } from '@/pages/debug/DebugPage';
 import { useUser } from '@clerk/clerk-react';
 import * as adminCheck from '@/lib/adminCheck';
 
-// Mock Clerk hooks
+// Mock Clerk hooks (avoid real ClerkProvider — publishable key validation breaks tests)
 vi.mock('@clerk/clerk-react', async () => {
   const actual = await vi.importActual('@clerk/clerk-react');
   return {
     ...actual,
+    ClerkProvider: ({ children }: { children: ReactNode }) => children,
     useUser: vi.fn(),
     useAuth: vi.fn(() => ({
       getToken: vi.fn(),
@@ -42,11 +43,9 @@ function TestWrapper({ children }: { children: React.ReactNode }) {
   });
 
   return (
-    <ClerkProvider publishableKey="pk_test_mock">
-      <QueryClientProvider client={queryClient}>
-        <BrowserRouter>{children}</BrowserRouter>
-      </QueryClientProvider>
-    </ClerkProvider>
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>{children}</BrowserRouter>
+    </QueryClientProvider>
   );
 }
 

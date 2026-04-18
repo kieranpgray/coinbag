@@ -61,7 +61,7 @@ export function EnvironmentBanner() {
 
   return (
     <div
-      className={`${environmentInfo.bg} ${environmentInfo.text} ${environmentInfo.border} border-b px-4 py-1 text-center text-caption font-semibold z-50 relative`}
+      className={`${environmentInfo.bg} ${environmentInfo.text} ${environmentInfo.border} border-b px-4 py-1 text-center text-caption font-medium z-50 relative`}
       role="banner"
       aria-label={`Environment: ${environmentInfo.name}`}
     >

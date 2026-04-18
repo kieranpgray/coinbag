@@ -26,7 +26,10 @@ interface ThemeContextType {
   /** Effective UI dark mode: false on marketing/legal public routes; else preference + system */
   darkMode: boolean;
   themePreference: 'system' | 'light' | 'dark'; // User's stored preference
-  toggleDarkMode: () => void; // Cycles through: system → light → dark → system
+  /** Cycles through: system → light → dark → system (e.g. keyboard shortcuts) */
+  toggleDarkMode: () => void;
+  /** Sets stored preference and persists (use for menus: predictable one-step light/dark) */
+  applyThemePreference: (preference: 'system' | 'light' | 'dark') => void;
   privacyMode: boolean;
   togglePrivacyMode: () => void;
 }
@@ -94,13 +97,18 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   const toggleDarkMode = () => {
     // Cycle through: system → light → dark → system
-    const nextPreference: 'system' | 'light' | 'dark' = 
+    const nextPreference: 'system' | 'light' | 'dark' =
       themePreference === 'system' ? 'light' :
       themePreference === 'light' ? 'dark' :
       'system';
-    
+
     setThemePreference(nextPreference);
     updatePrefs.mutate({ themePreference: nextPreference });
+  };
+
+  const applyThemePreference = (preference: 'system' | 'light' | 'dark') => {
+    setThemePreference(preference);
+    updatePrefs.mutate({ themePreference: preference });
   };
 
   const togglePrivacyMode = () => {
@@ -110,12 +118,13 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <ThemeContext.Provider value={{ 
-      darkMode: effectiveDarkMode, 
+    <ThemeContext.Provider value={{
+      darkMode: effectiveDarkMode,
       themePreference,
-      toggleDarkMode, 
-      privacyMode, 
-      togglePrivacyMode 
+      toggleDarkMode,
+      applyThemePreference,
+      privacyMode,
+      togglePrivacyMode,
     }}>
       {children}
     </ThemeContext.Provider>
@@ -130,7 +139,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
  * 
  * @example
  * ```tsx
- * const { darkMode, toggleDarkMode, privacyMode, togglePrivacyMode } = useTheme();
+ * const { darkMode, applyThemePreference, privacyMode, togglePrivacyMode } = useTheme();
  * ```
  */
 export function useTheme() {

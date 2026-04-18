@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
-  Wallet,
   TrendingUp,
   CreditCard,
   ArrowLeftRight,
@@ -29,7 +28,6 @@ const navigation = NAVIGATION_ITEMS.map(item => ({
   icon: (() => {
     switch (item.path) {
       case ROUTES.app.dashboard: return LayoutDashboard;
-      case ROUTES.app.accounts: return Wallet;
       case ROUTES.app.wealth: return TrendingUp;
       case ROUTES.app.budget: return CreditCard;
       case ROUTES.app.transfers: return ArrowLeftRight;
@@ -47,7 +45,7 @@ interface MobileNavProps {
 export function MobileNav({ open, onOpenChange }: MobileNavProps) {
   const location = useLocation();
   const navigate = useNavigate();
-  const { prefetchWealth, prefetchBudget, prefetchAccounts } = usePrefetchRoute();
+  const { prefetchWealth, prefetchBudget } = usePrefetchRoute();
   const { openPalette } = useCommandPaletteContext();
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
 
@@ -55,7 +53,6 @@ export function MobileNav({ open, onOpenChange }: MobileNavProps) {
     switch (path) {
       case '/app/wealth': return prefetchWealth;
       case '/app/budget': return prefetchBudget;
-      case '/app/accounts': return prefetchAccounts;
       default: return undefined;
     }
   };

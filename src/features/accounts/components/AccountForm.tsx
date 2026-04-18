@@ -9,14 +9,7 @@ import { Label } from '@/components/ui/label';
 import { SearchableSelect } from '@/components/ui/searchable-select';
 import { formatCurrency } from '@/lib/utils';
 import type { Account } from '@/types/domain';
-
-const ACCOUNT_TYPES = [
-  'Bank Account',
-  'Savings',
-  'Credit Card',
-  'Loan',
-  'Other',
-] as const;
+import { ACCOUNT_TYPE_OPTIONS } from '@/features/wealth/utils/accountClassification';
 
 type AccountFormData = z.input<typeof accountCreateSchema>;
 
@@ -148,7 +141,7 @@ export function AccountForm({ account, onSubmit, onCancel, isLoading }: AccountF
           id="accountType"
           value={selectedType}
           onValueChange={(value) => setValue('accountType', value)}
-          options={ACCOUNT_TYPES.map((type) => ({
+          options={ACCOUNT_TYPE_OPTIONS.map((type) => ({
             value: type,
             label: type,
           }))}

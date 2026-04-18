@@ -80,12 +80,12 @@ export function DebugPanel({ open, onOpenChange }: DebugPanelProps) {
         <div className="space-y-4 mt-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="text-body font-semibold text-muted-foreground">Environment</label>
+              <div className="text-body font-medium text-muted-foreground">Environment</div>
               <p className="text-body font-mono mt-1">{environment}</p>
             </div>
 
             <div>
-              <label className="text-body font-semibold text-muted-foreground">Data Source</label>
+              <div className="text-body font-medium text-muted-foreground">Data Source</div>
               <p className="text-body font-mono mt-1">
                 {import.meta.env.VITE_DATA_SOURCE || 'mock'}
               </p>
@@ -93,24 +93,24 @@ export function DebugPanel({ open, onOpenChange }: DebugPanelProps) {
           </div>
 
           <div>
-            <label className="text-body font-semibold text-muted-foreground">API Base URL</label>
+            <div className="text-body font-medium text-muted-foreground">API Base URL</div>
             <p className="text-body font-mono mt-1 break-all">
               {supabaseUrl || 'Not configured'}
             </p>
           </div>
 
           <div>
-            <label className="text-body font-semibold text-muted-foreground">DB Project ID</label>
+            <div className="text-body font-medium text-muted-foreground">DB Project ID</div>
             <p className="text-body font-mono mt-1">{projectId}</p>
           </div>
 
           <div>
-            <label className="text-body font-semibold text-muted-foreground">Schema/Migration Version</label>
+            <div className="text-body font-medium text-muted-foreground">Schema/Migration Version</div>
             <p className="text-body font-mono mt-1">{formattedMigration}</p>
           </div>
 
           <div>
-            <label className="text-body font-semibold text-muted-foreground">Current User ID</label>
+            <div className="text-body font-medium text-muted-foreground">Current User ID</div>
             {isLoading ? (
               <p className="text-body text-muted-foreground mt-1">Loading...</p>
             ) : (
@@ -119,7 +119,7 @@ export function DebugPanel({ open, onOpenChange }: DebugPanelProps) {
           </div>
 
           <div className="pt-4 border-t">
-            <label className="text-body font-semibold text-muted-foreground">Clerk User Info</label>
+            <div className="text-body font-medium text-muted-foreground">Clerk User Info</div>
             <div className="mt-2 space-y-1 text-body">
               <p>
                 <span className="text-muted-foreground">ID:</span>{' '}

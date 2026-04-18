@@ -8,6 +8,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { ROUTES } from '@/lib/constants/routes';
 
 interface CommandItem {
   id: string;
@@ -23,7 +24,7 @@ const commands: CommandItem[] = [
   { id: 'accounts', label: 'Go to Activity', path: '/app/accounts', keywords: ['activity', 'accounts', 'bank', 'financial'] },
   { id: 'settings', label: 'Go to Settings', path: '/app/settings', keywords: ['settings', 'preferences', 'config'] },
   { id: 'team', label: 'Go to Shared Access', path: '/app/settings?tab=team', keywords: ['shared access', 'team', 'workspace', 'members', 'invite', 'collaboration'] },
-  { id: 'transfers', label: 'Go to Allocate', path: '/app/transfers', keywords: ['allocate', 'transfers', 'cash flow', 'move money', 'pay cycle'] },
+  { id: 'transfers', label: 'Go to Allocate', path: ROUTES.app.transfers, keywords: ['allocate', 'transfers', 'cash flow', 'move money', 'pay cycle'] },
   { id: 'budget', label: 'Go to Recurring', path: '/app/budget', keywords: ['recurring', 'budget', 'income', 'expenses', 'subscriptions', 'bills'] },
 ];
 
