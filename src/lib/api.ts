@@ -20,6 +20,7 @@ import { createLiabilitiesRepository } from '@/data/liabilities/repo';
 import { createAccountsRepository } from '@/data/accounts/repo';
 import { createExpensesRepository } from '@/data/expenses/repo';
 import { createIncomeRepository } from '@/data/income/repo';
+import { clearMockIncome } from '@/data/income/mockRepo';
 import { createNetWorthHistoryRepository } from '@/data/netWorthHistory/repo';
 import type { NetWorthPoint } from '@/features/dashboard/hooks/useNetWorthHistory';
 
@@ -76,6 +77,7 @@ export function clearMockDashboardData(): void {
   goals = [];
   expenses = [];
   incomes = [];
+  clearMockIncome();
 }
 
 /**
@@ -666,6 +668,7 @@ export const dashboardApi = {
       ...calculated,
       assets: assetsData,
       liabilities: liabilitiesData,
+      accounts: accountsData,
       expenses: expensesData,
       dataSources: {
         accountsCount: accountsData.length,

@@ -47,7 +47,7 @@ export function AssetCard({ asset, onEdit, onDelete }: AssetCardProps) {
         <div className="space-y-2">
           <div className="flex justify-between">
             <span className="text-body text-muted-foreground">Value</span>
-            <span className="font-semibold">{formatCurrency(asset.value)}</span>
+            <span className="font-medium">{formatCurrency(asset.value)}</span>
           </div>
           {asset.change1D !== undefined && (
             <div className="flex justify-between">

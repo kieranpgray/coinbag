@@ -177,7 +177,7 @@ export function AssetChangeLog({ assetId }: AssetChangeLogProps) {
       </div>
       {showTimeline && (
         <div className="border border-border rounded-lg p-3 bg-muted/30">
-          <h4 className="text-caption font-semibold mb-2">Value Over Time</h4>
+          <h4 className="text-caption font-medium mb-2">Value Over Time</h4>
           <AssetValueTimeline assetId={assetId} />
         </div>
       )}

@@ -166,7 +166,7 @@ export function LiabilityChangeLog({ liabilityId }: LiabilityChangeLogProps) {
       </div>
       {showTimeline && (
         <div className="border border-border rounded-lg p-3 bg-muted/30">
-          <h4 className="text-caption font-semibold mb-2">Balance Over Time</h4>
+          <h4 className="text-caption font-medium mb-2">Balance Over Time</h4>
           <LiabilityBalanceTimeline liabilityId={liabilityId} />
         </div>
       )}

@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { DashboardPage } from '../DashboardPage';
 import * as dashboardHooks from '../hooks';
@@ -7,6 +8,24 @@ import { useQuery } from '@tanstack/react-query';
 
 // Mock the hooks
 vi.mock('../hooks');
+
+vi.mock('@/features/income/hooks', () => ({
+  useIncomes: () => ({ data: [] }),
+}));
+
+vi.mock('@/features/categories/hooks', () => ({
+  useCategories: () => ({ data: [] }),
+}));
+
+vi.mock('@/features/transfers/hooks', () => ({
+  usePayCycle: () => ({
+    payCycle: null,
+    isLoading: false,
+    updatePayCycle: vi.fn(),
+    isUpdating: false,
+    error: null,
+  }),
+}));
 vi.mock('@tanstack/react-query', async () => {
   const actual = await vi.importActual('@tanstack/react-query');
   return {
@@ -29,13 +48,15 @@ describe('DashboardPage Empty States', () => {
 
   const renderDashboard = () => {
     return render(
-      <QueryClientProvider client={queryClient}>
-        <DashboardPage />
-      </QueryClientProvider>
+      <MemoryRouter>
+        <QueryClientProvider client={queryClient}>
+          <DashboardPage />
+        </QueryClientProvider>
+      </MemoryRouter>
     );
   };
 
-  it('shows dashboard-level empty state when all collections are empty', () => {
+  it('shows dashboard-level empty state when all collections are empty', async () => {
     // Mock useDashboard to return empty data with zero dataSources
     vi.mocked(dashboardHooks.useDashboard).mockReturnValue({
       data: {
@@ -91,12 +112,13 @@ describe('DashboardPage Empty States', () => {
     expect(
       screen.getByText(/Choose any action below to start tracking your wealth/)
     ).toBeInTheDocument();
-    
-    // Check for card titles (4 cards instead of 5 buttons)
-    expect(screen.getByText('Add an account')).toBeInTheDocument();
-    expect(screen.getByText('Add assets')).toBeInTheDocument();
-    expect(screen.getByText('Set a goal')).toBeInTheDocument();
-    expect(screen.getByText('Create budget')).toBeInTheDocument();
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /Add an account:/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Add assets:/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Set up Recurring:/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Open Allocate:/i })).toBeInTheDocument();
+    });
   });
 
   it('shows error state when dashboard query fails', () => {
@@ -135,8 +157,7 @@ describe('DashboardPage Empty States', () => {
 
     renderDashboard();
 
-    // Skeletons should be present (check for common skeleton animation class)
-    const skeletons = document.querySelectorAll('.animate-pulse');
+    const skeletons = document.querySelectorAll('.animate-skeleton-shimmer');
     expect(skeletons.length).toBeGreaterThan(0);
   });
 });

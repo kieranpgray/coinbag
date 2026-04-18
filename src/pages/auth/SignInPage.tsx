@@ -11,10 +11,10 @@ export function SignInPage() {
       <div className="flex-1 flex items-center justify-center px-4">
         <div className="w-full max-w-md">
           <div className="text-center mb-8">
-            <h1 className="font-serif text-h1-sm sm:text-h1-md lg:text-h1-lg font-bold tracking-tight">
+            <h1 className="page-title">
               Welcome to Supafolio
             </h1>
-            <p className="text-muted-foreground mt-2">Sign in to manage your finances</p>
+            <p className="page-subtitle">Sign in to manage your finances</p>
           </div>
           <SignIn
             path="/sign-in"

@@ -1,7 +1,6 @@
 import { Card, CardContent } from '@/components/ui/card';
-import { formatCurrency } from '@/lib/utils';
+import { cn, formatCurrency } from '@/lib/utils';
 import { convertToFrequency, type Frequency } from '../utils/frequencyConversion';
-import { SurplusCard } from '@/components/ui/surplus-card';
 
 interface BudgetBreakdownProps {
   totalIncome: number; // monthly equivalent
@@ -37,7 +36,7 @@ export function BudgetBreakdown({
       <CardContent className="p-0">
         {/* Header */}
         <div className="flex items-center p-4">
-          <h2 className="text-h2-sm sm:text-h2-md lg:text-h2-lg font-medium text-foreground">
+          <h2 className="display-sm">
             In and Out
           </h2>
         </div>
@@ -80,8 +79,17 @@ export function BudgetBreakdown({
             </div>
           )}
 
-          {/* SurplusCard replaces separator + remaining row */}
-          <SurplusCard amount={remainingDisplay} />
+          <div className="flex items-center justify-between pt-1 border-t border-border">
+            <span className="text-body-sm text-muted-foreground">Remaining</span>
+            <span
+              className={cn(
+                'num-body tabular-nums',
+                remainingDisplay < 0 ? 'text-destructive' : 'text-foreground',
+              )}
+            >
+              {formatCurrency(remainingDisplay)}
+            </span>
+          </div>
         </div>
       </CardContent>
     </Card>

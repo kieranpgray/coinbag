@@ -89,8 +89,7 @@ export function DashboardPage() {
     queryFn: () => marketApi.getSummary(),
   });
   const { data: incomes = [] } = useIncomes();
-  const { data: categoriesData } = useCategories();
-  const categories = useMemo(() => categoriesData ?? [], [categoriesData]);
+  const { data: categories = [] } = useCategories();
 
   const isLoading = dashboardLoading || marketLoading;
   const hasError = dashboardError || marketError;
@@ -207,9 +206,7 @@ export function DashboardPage() {
   if (hasError) {
     return (
       <div className="space-y-6">
-        <h2 className="text-h1-sm sm:text-h1-md lg:text-h1-lg font-medium">
-          {t('dashboard', { ns: 'navigation' })}
-        </h2>
+        <h1 className="page-title">{t('dashboard', { ns: 'navigation' })}</h1>
         <Alert>
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>Unable to load dashboard</AlertTitle>
@@ -234,7 +231,7 @@ export function DashboardPage() {
   if (!dashboardData && !isLoading) {
     return (
       <div className="space-y-6">
-        <h2 className="text-h1-sm sm:text-h1-md lg:text-h1-lg font-medium">{t('title', { ns: 'dashboard' })}</h2>
+        <h1 className="page-title">{t('title', { ns: 'dashboard' })}</h1>
         <Alert>
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>{t('noDataAvailable', { ns: 'dashboard' })}</AlertTitle>
@@ -317,9 +314,7 @@ export function DashboardPage() {
                 <h1 className="page-title">
                   {t('dashboard', { ns: 'navigation' })}
                 </h1>
-                <p className="text-sm text-muted-foreground mt-1">
-                  {t('overviewSubtitle', { ns: 'pages' })}
-                </p>
+                <p className="page-subtitle">{t('overviewSubtitle', { ns: 'pages' })}</p>
               </div>
               <div className="flex items-center gap-2">
                 <PrivacyModeToggle />
@@ -352,7 +347,7 @@ export function DashboardPage() {
             </div>
 
             {/* Asset/Liability breakdowns - responsive two-column grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="mb-3 grid grid-cols-1 md:grid-cols-2 gap-3">
               <AssetsBreakdown
                 breakdown={assetBreakdown}
                 totalValue={totalAssets}
@@ -367,21 +362,19 @@ export function DashboardPage() {
               />
             </div>
 
-            <div className="mb-3" aria-hidden />
-
             {/* Budget Breakdown - Standalone full width */}
-            <BudgetBreakdownTile
-              totalIncome={totalMonthlyIncome}
-              totalExpenses={totalMonthlyExpenses}
-              totalSavings={totalMonthlySavings}
-              totalRepayments={totalMonthlyRepayments}
-              remaining={remaining}
-              hasPayCycle={payCycleLoading ? true : Boolean(payCycle)}
-              isLoading={isLoading}
-              isEmpty={!hasBudgetData}
-            />
-
-            <div className="mb-10" aria-hidden />
+            <div className="mb-10">
+              <BudgetBreakdownTile
+                totalIncome={totalMonthlyIncome}
+                totalExpenses={totalMonthlyExpenses}
+                totalSavings={totalMonthlySavings}
+                totalRepayments={totalMonthlyRepayments}
+                remaining={remaining}
+                hasPayCycle={payCycleLoading ? true : Boolean(payCycle)}
+                isLoading={isLoading}
+                isEmpty={!hasBudgetData}
+              />
+            </div>
 
             {/* Expense/Income breakdowns - responsive two-column grid */}
             <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-3">

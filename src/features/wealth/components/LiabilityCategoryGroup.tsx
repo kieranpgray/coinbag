@@ -55,7 +55,7 @@ export function LiabilityCategoryGroup({
         <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
           <CategoryIcon className="h-5 w-5 text-primary dark:text-iconAccent" aria-hidden="true" />
         </div>
-        <h3 className="text-h3 font-medium text-foreground">{categoryName}</h3>
+        <h3 className="display-sm">{categoryName}</h3>
       </div>
 
       {/* Liability rows */}

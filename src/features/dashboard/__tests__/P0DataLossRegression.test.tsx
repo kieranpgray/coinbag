@@ -15,6 +15,8 @@ import { seedMockLiabilities, clearMockLiabilities } from '@/data/liabilities/mo
 import { seedMockAccounts, clearMockAccounts } from '@/data/accounts/mockRepo';
 import { seedMockSubscriptions, clearMockSubscriptions } from '@/data/subscriptions/mockRepo';
 import { incomeApi } from '@/lib/api';
+import { seedMockIncome, clearMockIncome } from '@/data/income/mockRepo';
+import { TEST_EXPENSE_CATEGORY_ID } from '@/test/testIds';
 
 // Mock environment to use mock repositories
 vi.mock('import.meta.env', () => ({
@@ -105,6 +107,7 @@ describe('P0 Data Loss Regression Tests', () => {
     clearMockLiabilities();
     clearMockAccounts();
     clearMockSubscriptions();
+    clearMockIncome();
     queryClient.clear();
     // Reset income API mock
     vi.mocked(incomeApi.getAll).mockResolvedValue([]);
@@ -116,6 +119,7 @@ describe('P0 Data Loss Regression Tests', () => {
     clearMockLiabilities();
     clearMockAccounts();
     clearMockSubscriptions();
+    clearMockIncome();
     queryClient.clear();
   });
 
@@ -162,7 +166,7 @@ describe('P0 Data Loss Regression Tests', () => {
       frequency: 'monthly',
       chargeDate: '2024-01-01',
       nextDueDate: '2024-02-01',
-      categoryId: 'cat-1',
+      categoryId: TEST_EXPENSE_CATEGORY_ID,
       created_at: '2024-01-01T00:00:00Z',
       updated_at: '2024-01-01T00:00:00Z',
     };
@@ -182,6 +186,7 @@ describe('P0 Data Loss Regression Tests', () => {
     seedMockLiabilities([baselineLiability]);
     seedMockAccounts([baselineAccount]);
     seedMockSubscriptions([baselineSubscription]);
+    seedMockIncome([baselineIncome]);
     vi.mocked(incomeApi.getAll).mockResolvedValue([baselineIncome]);
 
     return {
@@ -264,11 +269,11 @@ describe('P0 Data Loss Regression Tests', () => {
       const initialSubscriptionCount = initialDashboard.dataSources.subscriptionsCount;
       const initialIncomeCount = initialDashboard.dataSources.incomeCount;
 
-      // Create an investment (asset with type 'Investments')
+      // Create an investment-style asset (counts toward holdings)
       const { result: createAssetResult } = renderHook(() => useCreateAsset(), { wrapper });
       createAssetResult.current.mutate({
         name: 'Stock Portfolio',
-        type: 'Investments',
+        type: 'Other asset',
         value: 100000,
         change1D: 0.5,
         change1W: 2.0,
@@ -324,6 +329,7 @@ describe('P0 Data Loss Regression Tests', () => {
         frequency: 'monthly',
         chargeDate: '2024-01-15',
         nextDueDate: '2024-02-15',
+        categoryId: TEST_EXPENSE_CATEGORY_ID,
       });
 
       await waitFor(() => {

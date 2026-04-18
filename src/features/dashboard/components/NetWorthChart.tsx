@@ -1,4 +1,5 @@
-import { memo, useMemo, useState, useEffect } from 'react';
+import { memo, useMemo, useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   AreaChart,
   Area,
@@ -8,11 +9,14 @@ import {
   ResponsiveContainer,
   CartesianGrid,
 } from 'recharts';
-import { Skeleton } from '@/components/ui/skeleton';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useLocale } from '@/contexts/LocaleContext';
 import type { NetWorthPoint, NetWorthTimePeriod } from '../hooks/useNetWorthHistory';
+import {
+  buildNetWorthYAxis,
+  formatNetWorthYAxisTick,
+} from '../utils/netWorthAxis';
 
 interface NetWorthChartProps {
   data: NetWorthPoint[];
@@ -36,140 +40,15 @@ function CustomTooltip({ active, payload, label }: any) {
   const date = label as string;
 
   return (
-    <div className="bg-card border border-border rounded-lg shadow-lg p-3">
-      <p className="text-body-sm text-muted-foreground mb-1">
+    <div className="chart-tooltip-mock">
+      <p className="chart-tooltip-date">
         {formatDate(date, locale, 'medium')}
       </p>
-      <p className="text-body-lg font-medium text-foreground">
+      <p className="chart-tooltip-value">
         {privacyMode ? '••••' : formatCurrency(value, locale)}
       </p>
     </div>
   );
-}
-
-/**
- * Format Y-axis tick values for better readability
- */
-function formatYAxisTick(value: number): string {
-  if (Math.abs(value) >= 1000000) {
-    return `${(value / 1000000).toFixed(1)}M`;
-  }
-  if (Math.abs(value) >= 1000) {
-    return `${(value / 1000).toFixed(1)}K`;
-  }
-  return value.toString();
-}
-
-/**
- * Calculate "nice" domain values for Y-axis that round to clean intervals.
- * Ensures Y-axis uses round numbers (e.g., -15K, -12K, -9K instead of -14.2K, -12.7K, -9.9K).
- * 
- * @param min - Minimum value in the data
- * @param max - Maximum value in the data
- * @returns Tuple of [niceMin, niceMax] for Y-axis domain
- */
-function calculateNiceDomain(min: number, max: number): [number, number] {
-  const range = max - min;
-  
-  // Handle edge case: all values are the same
-  if (range === 0) {
-    const padding = Math.abs(max) * 0.1 || 1000;
-    return [min - padding, max + padding];
-  }
-  
-  const padding = range * 0.1; // 10% padding
-  const paddedMin = min - padding;
-  const paddedMax = max + padding;
-  
-  // Handle zero-crossing
-  const crossesZero = min < 0 && max > 0;
-  
-  let niceInterval: number;
-  
-  // Prefer $5k increments for mid-range values ($10k-$100k)
-  if (range >= 10000 && range < 100000) {
-    niceInterval = 5000;
-  } 
-  // Use $1k increments for small ranges ($1k-$10k)
-  else if (range >= 1000 && range < 10000) {
-    niceInterval = 1000;
-  } 
-  // For very small ranges (< $1k), use $100 increments
-  else if (range < 1000) {
-    niceInterval = 100;
-  }
-  // For large ranges (>= $100k), use magnitude-based with preference for $10k/$50k
-  else {
-    const magnitude = Math.pow(10, Math.floor(Math.log10(range)));
-    if (magnitude >= 100000) {
-      niceInterval = 50000; // $50k increments for very large ranges
-    } else {
-      niceInterval = 10000; // $10k increments for large ranges
-    }
-  }
-  
-  // Round to nice intervals
-  const niceMin = Math.floor(paddedMin / niceInterval) * niceInterval;
-  const niceMax = Math.ceil(paddedMax / niceInterval) * niceInterval;
-  
-  // Ensure zero is visible if data crosses zero
-  if (crossesZero) {
-    return [
-      Math.min(niceMin, -niceInterval),
-      Math.max(niceMax, niceInterval)
-    ];
-  }
-  
-  return [niceMin, niceMax];
-}
-
-/**
- * Calculate clean Y-axis tick values based on the domain
- * Returns evenly spaced ticks at nice round intervals
- */
-function calculateNiceTicks(domain: [number, number]): number[] {
-  const [min, max] = domain;
-  const range = max - min;
-  
-  if (range === 0) {
-    return [min];
-  }
-  
-  // Determine the best interval based on the range
-  let niceInterval: number;
-  
-  if (range >= 100000 && range < 500000) {
-    // For ranges like 400k-500k, use $50k increments
-    niceInterval = 50000;
-  } else if (range >= 500000) {
-    // For very large ranges, use $100k increments
-    niceInterval = 100000;
-  } else if (range >= 10000 && range < 100000) {
-    niceInterval = 5000; // $5k increments
-  } else if (range >= 1000 && range < 10000) {
-    niceInterval = 1000; // $1k increments
-  } else if (range < 1000) {
-    niceInterval = 100; // $100 increments
-  } else {
-    // Fallback: use $10k increments
-    niceInterval = 10000;
-  }
-  
-  // Generate ticks from min to max at the nice interval
-  const ticks: number[] = [];
-  const startTick = Math.ceil(min / niceInterval) * niceInterval;
-  const endTick = Math.floor(max / niceInterval) * niceInterval;
-  
-  for (let tick = startTick; tick <= endTick; tick += niceInterval) {
-    ticks.push(tick);
-  }
-  
-  // Ensure we have at least min and max if no ticks were generated
-  if (ticks.length === 0) {
-    ticks.push(min, max);
-  }
-  
-  return ticks;
 }
 
 /**
@@ -182,6 +61,7 @@ export const NetWorthChart = memo(function NetWorthChart({
   isLoading,
   isEmpty,
 }: NetWorthChartProps) {
+  const { t } = useTranslation('pages');
   const { locale } = useLocale();
   const [chartHeight, setChartHeight] = useState(300);
   
@@ -271,41 +151,83 @@ export const NetWorthChart = memo(function NetWorthChart({
     return () => window.removeEventListener('resize', updateHeight);
   }, []);
 
-  // Calculate Y-axis domain and ticks with nice round numbers (must be before early returns for Rules of Hooks)
-  const { domain: yDomain, ticks: yTicks } = useMemo(() => {
+  // Y-axis: range-driven nice steps + compact $k/$m labels (see public/design-system-v2.html)
+  const targetYTickCount = chartHeight >= 300 ? 5 : 4;
+  const {
+    domain: yDomain,
+    ticks: yTicks,
+    labelPrecision: yLabelPrecision,
+  } = useMemo(() => {
     if (!data || data.length === 0) {
-      return { domain: [0, 1000] as [number, number], ticks: [0, 1000] };
+      return {
+        domain: [0, 1000] as [number, number],
+        ticks: [0, 250, 500, 750, 1000],
+        labelPrecision: { kMax: 1, mMax: 1 },
+      };
     }
-    
+
     const chartData = data.length === 1 ? [data[0], data[0]] : data;
     const values = chartData.map((d) => d?.value ?? 0).filter((v): v is number => v !== undefined);
-    
+
     if (values.length === 0) {
-      return { domain: [0, 1000] as [number, number], ticks: [0, 1000] };
+      return {
+        domain: [0, 1000] as [number, number],
+        ticks: [0, 250, 500, 750, 1000],
+        labelPrecision: { kMax: 1, mMax: 1 },
+      };
     }
-    
+
     const minValue = Math.min(...values);
     const maxValue = Math.max(...values);
-    const domain = calculateNiceDomain(minValue, maxValue);
-    const ticks = calculateNiceTicks(domain);
-    
-    return { domain, ticks };
+    return buildNetWorthYAxis(minValue, maxValue, {
+      targetTickCount: targetYTickCount,
+    });
+  }, [data, targetYTickCount]);
+
+  const formatYAxisTick = useCallback(
+    (value: number) =>
+      formatNetWorthYAxisTick(value, {
+        kMax: yLabelPrecision.kMax,
+        mMax: yLabelPrecision.mMax,
+      }),
+    [yLabelPrecision.kMax, yLabelPrecision.mMax]
+  );
+
+  const useDangerSeries = useMemo(() => {
+    if (!data || data.length === 0) return false;
+    return data.some(point => point.value < 0);
   }, [data]);
+  const seriesColor = useDangerSeries ? 'var(--danger)' : 'var(--chart-1)';
 
   // Handle loading state
   if (isLoading) {
-    return <Skeleton className="h-[200px] md:h-[300px] w-full" />;
+    return <div className="chart-skeleton h-[200px] md:h-[300px] w-full" />;
   }
 
   // Handle empty state
   if (isEmpty || !data || data.length === 0) {
     return (
       <div className="h-[200px] md:h-[300px] flex items-center justify-center">
-        <p className="text-body-sm text-muted-foreground">
-          {data && data.length === 0 && !isEmpty 
-            ? 'No data available for selected time period' 
-            : 'No historical data available'}
-        </p>
+        <div className="flex flex-col items-center justify-center gap-2 text-center">
+          <svg
+            width="32"
+            height="32"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            className="text-[var(--ink-4)]"
+            aria-hidden="true"
+          >
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+          </svg>
+          <p className="text-[13px] text-[var(--ink-3)]">
+            {data && data.length === 0 && !isEmpty
+              ? t('netWorth.noDataForPeriod')
+              : t('netWorth.noHistoricalData')}
+          </p>
+        </div>
       </div>
     );
   }
@@ -327,29 +249,29 @@ export const NetWorthChart = memo(function NetWorthChart({
         >
           <defs>
             <linearGradient id="netWorthGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="var(--chart-1)" stopOpacity={0.12} />
-              <stop offset="95%" stopColor="var(--chart-1)" stopOpacity={0} />
+              <stop offset="0%" stopColor={seriesColor} stopOpacity={0.12} />
+              <stop offset="100%" stopColor={seriesColor} stopOpacity={0} />
             </linearGradient>
           </defs>
           <CartesianGrid
             strokeDasharray="3 3"
-            stroke="var(--paper-3)"
+            stroke="hsl(var(--border))"
             vertical={false}
           />
           <XAxis
             dataKey="date"
             type="category"
-            tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
+            tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }}
             tickFormatter={formatXAxisTick}
-            stroke="var(--paper-3)"
+            stroke="transparent"
             ticks={xAxisTicks}
             interval={0}
           />
           {chartHeight >= 300 && (
             <YAxis
-              tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
+              tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }}
               tickFormatter={formatYAxisTick}
-              stroke="var(--paper-3)"
+              stroke="transparent"
               domain={yDomain}
               ticks={yTicks}
             />
@@ -358,9 +280,13 @@ export const NetWorthChart = memo(function NetWorthChart({
           <Area
             type="monotone"
             dataKey="value"
-            stroke="var(--chart-1)"
+            stroke={seriesColor}
             strokeWidth={2}
+            strokeLinecap="round"
+            strokeLinejoin="round"
             fill="url(#netWorthGradient)"
+            dot={false}
+            activeDot={{ r: 6, fill: seriesColor, stroke: seriesColor }}
             isAnimationActive={!prefersReducedMotion}
             animationDuration={prefersReducedMotion ? 0 : 750}
           />

@@ -50,7 +50,7 @@ export function ImportPreview({
             <CardTitle className="text-body font-medium">Total Rows</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-balance font-bold">{summary.totalRows}</div>
+            <div className="text-balance">{summary.totalRows}</div>
           </CardContent>
         </Card>
 
@@ -59,7 +59,7 @@ export function ImportPreview({
             <CardTitle className="text-body font-medium">Valid</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-balance font-bold text-success">
+            <div className="text-balance text-success">
               {summary.validRows}
             </div>
           </CardContent>
@@ -70,7 +70,7 @@ export function ImportPreview({
             <CardTitle className="text-body font-medium">Errors</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-balance font-bold text-destructive">
+            <div className="text-balance text-destructive">
               {summary.errorRows}
             </div>
           </CardContent>
@@ -81,7 +81,7 @@ export function ImportPreview({
             <CardTitle className="text-body font-medium">Duplicates</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-balance font-bold text-[var(--warning)]">
+            <div className="text-balance text-[var(--warning)]">
               {summary.duplicateRows}
             </div>
           </CardContent>
@@ -92,7 +92,7 @@ export function ImportPreview({
             <CardTitle className="text-body font-medium">Warnings</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-balance font-bold text-[var(--warning)]">
+            <div className="text-balance text-[var(--warning)]">
               {summary.warningRows}
             </div>
           </CardContent>

@@ -30,7 +30,7 @@ export function UploadOverlay({ files, error, onDismiss, onRemoveFile, disabled 
       <div className="absolute inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
         <div className="bg-card border border-border rounded-lg shadow-lg p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto pointer-events-auto">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-h3 font-semibold text-foreground">Upload Statement</h3>
+            <h3 className="text-h3 text-foreground">Upload Statement</h3>
             {onDismiss && (
               <Button
                 type="button"

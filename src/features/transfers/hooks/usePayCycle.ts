@@ -7,7 +7,8 @@ import type { PayCycleConfig } from '@/types/domain';
  * Uses user preferences system for persistence
  */
 export function usePayCycle() {
-  const { data: preferences, isLoading } = useUserPreferences();
+  const { data: preferences, isPreferencesReady } = useUserPreferences();
+  const isLoading = !isPreferencesReady;
   const updatePreferences = useUpdateUserPreferences();
   const queryClient = useQueryClient();
 

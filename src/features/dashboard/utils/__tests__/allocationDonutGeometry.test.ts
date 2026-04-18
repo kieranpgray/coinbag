@@ -4,7 +4,7 @@ import { getDonutRadii } from '../allocationDonutGeometry';
 describe('getDonutRadii', () => {
   it('clamps outer radius for small containers', () => {
     const { outerRadius } = getDonutRadii(120, 120);
-    expect(outerRadius).toBeGreaterThanOrEqual(48);
+    expect(outerRadius).toBeGreaterThanOrEqual(72);
     expect(outerRadius).toBeLessThanOrEqual(100);
   });
 

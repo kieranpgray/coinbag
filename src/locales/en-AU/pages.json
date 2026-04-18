@@ -3,14 +3,15 @@
   "overviewDocumentTitle": "Overview · Supafolio",
   "holdingsSubtitle": "What you own and what you owe",
   "holdingsDocumentTitle": "Holdings · Supafolio",
-  "activitySubtitle": "Your transaction history",
-  "activityDocumentTitle": "Activity · Supafolio",
+  "activitySubtitle": "Review transaction activity from each account detail",
+  "activityDocumentTitle": "Accounts · Supafolio",
   "recurringSubtitle": "Your regular money in and out",
   "recurringDocumentTitle": "Recurring · Supafolio",
   "allocateSubtitle": "Your pay day plan",
   "allocateSubtitleActive": "Here's your plan for {{date}}.",
   "allocateSubtitleUpcoming": "Your next plan is ready.",
   "allocateSubtitleEditing": "Adjusting your plan",
+  "allocateSubtitlePast": "Past plan",
   "allocateDocumentTitle": "Allocate · Supafolio",
   "allocate": {
     "editContextNote": "Changes here update this plan only. To make permanent changes, go to",
@@ -38,13 +39,78 @@
       "previewLabel": "Here's what's lined up",
       "helper": "Amounts based on your current Recurring setup."
     },
+    "past": {
+      "heading": "Past plan"
+    },
     "surplusDestination": {
       "unsetPrompt": "Where should this go?",
       "setHelper": "Your surplus will be allocated here in your plan. Change this any time."
+    },
+    "banner": {
+      "incomeFallback": "Income"
+    },
+    "committed": {
+      "emptyTitle": "No committed expenses",
+      "emptyMetaPrefix": "Add recurring expenses in",
+      "emptyMetaLink": "Recurring",
+      "emptyMetaSuffix": "."
+    },
+    "upcomingTransfers": {
+      "sectionLabel": "Upcoming transfers",
+      "title": "Upcoming transfers",
+      "total": "{{total}} total",
+      "allDone": "Transfers confirmed",
+      "markDoneAria": "Mark transfer for {{accountName}} as done",
+      "unmarkAria": "Unmark transfer for {{accountName}}"
+    },
+    "incomeCard": {
+      "label": "Income this cycle"
+    },
+    "surplus": {
+      "willAllocateTo": "Your surplus will be allocated to {{accountName}}.",
+      "changeDestination": "Change destination",
+      "setDestinationCta": "Set destination",
+      "detailTooltip": "Income {{income}} minus committed {{committed}}."
+    },
+    "destPicker": {
+      "title": "Where should this go?",
+      "listAria": "Surplus destination accounts",
+      "addAccount": "Add account…",
+      "confirmNote": "Confirming updates your plan for this pay cycle only."
+    },
+    "actions": {
+      "confirm": "Confirm",
+      "saving": "Saving…",
+      "cancel": "Cancel"
+    },
+    "repaymentDisclaimer": "Required repayments shown here may include card repayments that are not legally required minimums. Use this as a planning prompt only.",
+    "dateError": {
+      "title": "Could not read your next pay date.",
+      "description": "Update your pay cycle so we can show this plan correctly.",
+      "fixCta": "Fix pay date"
+    },
+    "shell": {
+      "title": "Set up your pay cycle",
+      "subtitle": "Choose your income account and next pay date to see your allocate plan."
+    },
+    "cashFlow": {
+      "title": "Cash flow by account",
+      "empty": "No activity for this cycle yet.",
+      "loadError": "Failed to load cash flow data. Please try again.",
+      "emptyStateTitle": "No activity yet",
+      "emptyStateBody": "Add income or recurring expenses — then assign them to accounts — to track cash flow here.",
+      "emptyStateCta": "Set up budget"
     }
   },
   "whatYouOwn": "What you own",
   "whatYouOwe": "What you owe",
+  "holdings": {
+    "accountBackedAssetsHeading": "Account-backed assets",
+    "accountBackedLiabilitiesHeading": "Account-backed liabilities",
+    "viewActivityCta": "View activity",
+    "viewActivityAriaLabel": "View activity for {{accountName}}",
+    "uncategorizedAccountType": "Uncategorized account"
+  },
   "budgetBreakdownTile": {
     "title": "This pay cycle",
     "incomeArriving": "Income arriving",
@@ -54,7 +120,33 @@
     "openAllocate": "Open Allocate →",
     "emptyDescription": "Add income and expenses to see your pay cycle breakdown."
   },
+  "allocationBreakdown": {
+    "assetTitle": "Asset allocation",
+    "liabilityTitle": "Liability allocation",
+    "subtitle": "By category",
+    "totalAssets": "Total assets",
+    "totalLiabilities": "Total liabilities",
+    "legendCaptionAssets": "Asset allocation breakdown",
+    "legendCaptionLiabilities": "Liability allocation breakdown",
+    "viewAllAssets": "View all assets →",
+    "viewAllLiabilities": "View all liabilities →",
+    "moreCategories": "+ {{count}} more categories →",
+    "emptyAssetsBody": "Add your first asset to see a breakdown.",
+    "emptyLiabilitiesBody": "Add your first liability to see a breakdown.",
+    "addAsset": "Add asset",
+    "addLiability": "Add liability",
+    "chartAriaAssets": "Asset allocation chart showing portfolio breakdown",
+    "chartAriaLiabilities": "Liability allocation chart showing portfolio breakdown"
+  },
   "netWorth": {
+    "title": "Net worth",
+    "timeRangeAria": "Select time period for net worth chart",
+    "timeRange30d": "Last 30 days",
+    "timeRange90d": "Last 90 days",
+    "timeRange1y": "Last 12 months",
+    "timeRange5y": "Last 5 calendar years",
+    "noDataForPeriod": "No data for this period",
+    "noHistoricalData": "No data available",
     "holdingSteady": "Holding steady this month",
     "upThisMonth": "+{{amount}} this month",
     "downThisMonth": "−{{amount}} this month",

@@ -1,9 +1,10 @@
 import { useState, useMemo, useEffect } from 'react';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
-import { useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAssets, useCreateAsset, useUpdateAsset, useDeleteAsset } from '@/features/assets/hooks';
 import { useLiabilities, useCreateLiability, useUpdateLiability, useDeleteLiability } from '@/features/liabilities/hooks';
+import { useAccounts } from '@/features/accounts/hooks';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { RefreshCw, AlertTriangle } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -21,6 +22,9 @@ import { DeleteLiabilityDialog } from '@/features/liabilities/components/DeleteL
 import { useDisconnectBrokerageSync } from '@/features/snaptrade/hooks/useDisconnectBrokerageSync';
 import type { Asset } from '@/types/domain';
 import type { Liability } from '@/types/domain';
+import { ROUTES } from '@/lib/constants/routes';
+import { classifyAccountHolding } from '@/features/wealth/utils/accountClassification';
+import { isFeatureEnabled } from '@/lib/featureFlags';
 
 const ASSET_TYPES_FROM_QUERY: readonly Asset['type'][] = [
   'Property',
@@ -55,7 +59,9 @@ function normalizeAssetTypeFromQueryParam(type: string | null): Asset['type'] | 
  */
 export function WealthPage() {
   const { t } = useTranslation(['pages', 'navigation']);
+  const navigate = useNavigate();
   const disconnectBrokerageMutation = useDisconnectBrokerageSync();
+  const holdingsAccountMigrationEnabled = isFeatureEnabled('holdings_account_activity_migration');
 
   useEffect(() => {
     document.title = t('holdingsDocumentTitle', { ns: 'pages' });
@@ -70,6 +76,7 @@ export function WealthPage() {
   // Data hooks
   const { data: assets = [], isLoading: assetsLoading, error: assetsError, refetch: refetchAssets } = useAssets();
   const { data: liabilities = [], isLoading: liabilitiesLoading, error: liabilitiesError, refetch: refetchLiabilities } = useLiabilities();
+  const { data: accounts = [] } = useAccounts();
 
   // Mutations
   const createAssetMutation = useCreateAsset();
@@ -110,14 +117,31 @@ export function WealthPage() {
     }
   }, [searchParams, setSearchParams]);
 
+  const accountHoldings = useMemo(
+    () => (holdingsAccountMigrationEnabled ? accounts.map(classifyAccountHolding) : []),
+    [accounts, holdingsAccountMigrationEnabled]
+  );
+  const assetAccountHoldings = useMemo(
+    () => accountHoldings.filter((holding) => holding.bucket === 'asset'),
+    [accountHoldings]
+  );
+  const liabilityAccountHoldings = useMemo(
+    () => accountHoldings.filter((holding) => holding.bucket === 'liability'),
+    [accountHoldings]
+  );
+
   // Calculate totals (memoized)
   const totalAssets = useMemo(() => {
-    return assets.reduce((sum, asset) => sum + asset.value, 0);
-  }, [assets]);
+    const directAssetsTotal = assets.reduce((sum, asset) => sum + asset.value, 0);
+    const accountAssetsTotal = assetAccountHoldings.reduce((sum, holding) => sum + holding.holdingValue, 0);
+    return directAssetsTotal + accountAssetsTotal;
+  }, [assets, assetAccountHoldings]);
 
   const totalLiabilities = useMemo(() => {
-    return liabilities.reduce((sum, liability) => sum + liability.balance, 0);
-  }, [liabilities]);
+    const directLiabilitiesTotal = liabilities.reduce((sum, liability) => sum + liability.balance, 0);
+    const accountLiabilitiesTotal = liabilityAccountHoldings.reduce((sum, holding) => sum + holding.holdingValue, 0);
+    return directLiabilitiesTotal + accountLiabilitiesTotal;
+  }, [liabilities, liabilityAccountHoldings]);
 
   const netWorth = useMemo(() => {
     return totalAssets - totalLiabilities;
@@ -273,9 +297,11 @@ export function WealthPage() {
         <AssetsSection
           totalAssets={totalAssets}
           assets={assets}
+          accountHoldings={assetAccountHoldings}
           onCreate={() => setCreateAssetModalOpen(true)}
           onEdit={handleEditAsset}
           onDelete={handleDeleteAsset}
+          onViewActivity={(accountId) => navigate(ROUTES.app.accountsDetail(accountId))}
           viewMode={viewMode}
         />
       )}
@@ -306,9 +332,11 @@ export function WealthPage() {
         <LiabilitiesSection
           totalLiabilities={totalLiabilities}
           liabilities={liabilities}
+          accountHoldings={liabilityAccountHoldings}
           onCreate={() => setCreateLiabilityModalOpen(true)}
           onEdit={handleEditLiability}
           onDelete={handleDeleteLiability}
+          onViewActivity={(accountId) => navigate(ROUTES.app.accountsDetail(accountId))}
           viewMode={viewMode}
         />
       )}

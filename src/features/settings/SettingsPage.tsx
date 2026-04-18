@@ -39,7 +39,8 @@ type ProfileFormData = z.infer<typeof profileSchema>;
 
 export function SettingsPage() {
   const { user: clerkUser, isLoaded: isClerkLoaded } = useClerkUser();
-  const { data: prefs, isLoading: isPrefsLoading } = useUserPreferences();
+  const { data: prefs, isPreferencesReady } = useUserPreferences();
+  const isPrefsLoading = !isPreferencesReady;
   const updatePrefs = useUpdateUserPreferences();
   const { locale, setLocale: setLocaleContext } = useLocale();
   const { t } = useTranslation(['settings', 'common']);
@@ -236,7 +237,7 @@ export function SettingsPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-h1-sm sm:text-h1-md lg:text-h1-lg font-bold">Settings</h1>
+      <h1 className="page-title">Settings</h1>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList>

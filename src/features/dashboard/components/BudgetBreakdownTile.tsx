@@ -7,7 +7,6 @@ import { Link } from 'react-router-dom';
 import { PrivacyWrapper } from '@/components/shared/PrivacyWrapper';
 import { StatusIndicator } from '@/components/shared/StatusIndicator';
 import { ROUTES } from '@/lib/constants/routes';
-import { SurplusCard } from '@/components/ui/surplus-card';
 import { EmptyState } from '@/components/ui/empty-state';
 
 interface BudgetBreakdownTileProps {
@@ -59,7 +58,9 @@ export const BudgetBreakdownTile = memo(function BudgetBreakdownTile({
     return (
       <Card className="border border-border">
         <CardContent className="p-0">
+          {/* DS extended empty state: padding comes from outer container, not .empty-state itself */}
           <EmptyState
+            className="!py-8 !px-5"
             title="No income tracked"
             body="Add your salary or other income to see your cashflow."
             action={
@@ -70,6 +71,7 @@ export const BudgetBreakdownTile = memo(function BudgetBreakdownTile({
           />
           <div className="border-t border-border" />
           <EmptyState
+            className="!py-8 !px-5"
             title="No recurring expenses"
             body="Add bills, subscriptions and regular payments."
             action={
@@ -87,9 +89,7 @@ export const BudgetBreakdownTile = memo(function BudgetBreakdownTile({
     <Card className="border border-border">
       <CardContent className="p-0">
         <div className="p-4">
-          <h2 className="text-h2-sm sm:text-h2-md lg:text-h2-lg font-medium text-foreground">
-            {t('budgetBreakdownTile.title')}
-          </h2>
+          <h2 className="display-sm">{t('budgetBreakdownTile.title')}</h2>
           {showPayCycleFallback ? (
             <p className="text-sm text-muted-foreground mt-1">{t('budgetBreakdownTile.setUpIncomeHint')}</p>
           ) : null}
@@ -115,7 +115,21 @@ export const BudgetBreakdownTile = memo(function BudgetBreakdownTile({
             </div>
           </div>
 
-          <SurplusCard amount={remaining} />
+          <div className="metric-tile">
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0">
+                <div className="metric-label">{t('budgetBreakdownTile.surplus')}</div>
+                <div className="num-balance">
+                  <PrivacyWrapper value={remaining} />
+                </div>
+              </div>
+              <StatusIndicator
+                status={remaining >= 0 ? 'positive' : 'negative'}
+                label="Surplus status"
+                className="shrink-0 mt-1"
+              />
+            </div>
+          </div>
 
           <div className="pt-1">
             <Button variant="link" className="h-auto p-0 text-muted-foreground" asChild>

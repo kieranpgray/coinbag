@@ -3,6 +3,8 @@ import { responseLooksLikeDesignSystem } from './validateDesignSystemHtml';
 
 const FETCH_TIMEOUT_MS = 15_000;
 
+const LOAD_FAILED_MESSAGE = 'Could not load the design system.';
+
 /** Join Vite `base` with a public asset path (handles `/` and `/subpath/`). */
 function designSystemAssetUrl(): string {
   const base = import.meta.env.BASE_URL;
@@ -12,14 +14,14 @@ function designSystemAssetUrl(): string {
 
 export function DesignSystemPage() {
   const assetUrl = useMemo(() => designSystemAssetUrl(), []);
-  const [docHtml, setDocHtml] = useState<string | null>(null);
+  const [validatedReady, setValidatedReady] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
     setLoadError(null);
-    setDocHtml(null);
+    setValidatedReady(false);
 
     const controller = new AbortController();
     const timeoutId = window.setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
@@ -36,14 +38,14 @@ export function DesignSystemPage() {
         if (!responseLooksLikeDesignSystem(html)) {
           throw new Error('Unexpected document');
         }
-        setDocHtml(html);
+        setValidatedReady(true);
       })
       .catch((err: unknown) => {
         if (cancelled) return;
         const message =
           err instanceof DOMException && err.name === 'AbortError'
             ? 'The design system took too long to load.'
-            : 'Could not load the design system.';
+            : LOAD_FAILED_MESSAGE;
         setLoadError(message);
       })
       .finally(() => {
@@ -72,6 +74,11 @@ export function DesignSystemPage() {
     };
   }, []);
 
+  function handleIframeError() {
+    setLoadError(LOAD_FAILED_MESSAGE);
+    setValidatedReady(false);
+  }
+
   if (loadError) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-background px-6 text-center">
@@ -97,7 +104,7 @@ export function DesignSystemPage() {
     );
   }
 
-  if (!docHtml) {
+  if (!validatedReady) {
     return (
       <div
         className="flex min-h-screen items-center justify-center bg-background"
@@ -108,11 +115,16 @@ export function DesignSystemPage() {
   }
 
   return (
-    <iframe
-      title="Supafolio design system"
-      srcDoc={docHtml}
-      className="block h-[100dvh] w-full border-0"
-      sandbox="allow-scripts allow-same-origin"
-    />
+    <>
+      {/* Load via `src` (not `srcDoc`) so in-page #fragment links scroll reliably inside the iframe. */}
+      <iframe
+        key={attempt}
+        title="Supafolio design system"
+        src={assetUrl}
+        onError={handleIframeError}
+        className="block h-[100dvh] w-full border-0"
+        sandbox="allow-scripts allow-same-origin"
+      />
+    </>
   );
 }

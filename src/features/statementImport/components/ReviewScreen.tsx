@@ -153,19 +153,19 @@ export function ReviewScreen({
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div>
               <p className="text-body text-muted-foreground">Selected</p>
-              <p className="text-balance font-bold">{summary.total}</p>
+              <p className="text-balance">{summary.total}</p>
             </div>
             <div>
               <p className="text-body text-muted-foreground">Income</p>
-              <p className="text-balance font-bold text-success">{formatCurrency(summary.income)}</p>
+              <p className="text-balance text-success">{formatCurrency(summary.income)}</p>
             </div>
             <div>
               <p className="text-body text-muted-foreground">Expenses</p>
-              <p className="text-balance font-bold text-error">{formatCurrency(summary.expenses)}</p>
+              <p className="text-balance text-error">{formatCurrency(summary.expenses)}</p>
             </div>
             <div>
               <p className="text-body text-muted-foreground">Net</p>
-              <p className={`text-balance font-bold ${summary.net >= 0 ? 'text-success' : 'text-error'}`}>
+              <p className={`text-balance ${summary.net >= 0 ? 'text-success' : 'text-error'}`}>
                 {formatCurrency(summary.net)}
               </p>
             </div>

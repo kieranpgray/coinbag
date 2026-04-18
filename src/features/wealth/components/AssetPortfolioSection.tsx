@@ -15,15 +15,19 @@ import { AccountSelectionModal } from '@/features/snaptrade/components/AccountSe
 import { useSnaptradePortal } from '@/features/snaptrade/hooks/useSnaptradePortal';
 import { useSnaptradeConnections } from '@/features/snaptrade/hooks/useSnaptradeConnections';
 import type { Asset } from '@/types/domain';
+import type { ClassifiedAccountHolding } from '@/features/wealth/utils/accountClassification';
+import { formatCurrency } from '@/lib/utils';
 
 // SnapTradeReact: only loaded when flag is on (tree-shaken when flag is off)
 import { SnapTradeReact } from 'snaptrade-react';
 
 interface AssetPortfolioSectionProps {
   assets: Asset[];
+  accountHoldings?: ClassifiedAccountHolding[];
   onCreate: () => void;
   onEdit: (asset: Asset) => void;
   onDelete: (asset: Asset) => void;
+  onViewActivity?: (accountId: string) => void;
 }
 
 /**
@@ -47,9 +51,11 @@ const ASSET_CATEGORIES: Array<Asset['type']> = [
  */
 export function AssetPortfolioSection({
   assets,
+  accountHoldings = [],
   onCreate,
   onEdit,
   onDelete,
+  onViewActivity,
 }: AssetPortfolioSectionProps) {
   const { t } = useTranslation('pages');
   const snaptradeEnabled = isFeatureEnabled('snaptrade_integration');
@@ -129,7 +135,7 @@ export function AssetPortfolioSection({
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <div className="flex items-center gap-3 mb-2">
-            <h2 className="text-foreground text-h2-sm sm:text-h2-md lg:text-h2-lg font-medium">
+            <h2 className="display-sm">
               {t('whatYouOwn')}
             </h2>
           </div>
@@ -242,7 +248,7 @@ export function AssetPortfolioSection({
         <Card>
           <CardContent className="py-12 text-center">
             <div className="space-y-4">
-              <h3 className="text-h3 font-medium text-foreground">
+              <h3 className="display-sm">
                 {t('emptyStates.holdingsNoAssets.headline')}
               </h3>
               <p className="text-muted-foreground text-balance max-w-lg mx-auto">
@@ -283,6 +289,39 @@ export function AssetPortfolioSection({
               accountToBrokerageAuthId={accountToBrokerageAuthId}
             />
           ))}
+        </div>
+      )}
+
+      {accountHoldings.length > 0 && (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between border-l-2 border-[var(--accent-light)] pl-3">
+            <h3 className="display-sm">{t('holdings.accountBackedAssetsHeading')}</h3>
+          </div>
+          <div className="detail-list">
+            {accountHoldings.map((holding) => (
+              <div key={holding.account.id} className="detail-item">
+                <div className="flex min-w-0 flex-col">
+                  <span className="text-body font-medium text-foreground truncate">{holding.account.accountName}</span>
+                  <span className="text-body-sm text-muted-foreground">
+                    {holding.isUnknownType ? t('holdings.uncategorizedAccountType') : holding.normalizedType}
+                  </span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="tabular-nums text-body font-medium text-foreground">
+                    {formatCurrency(holding.holdingValue)}
+                  </span>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => onViewActivity?.(holding.account.id)}
+                    aria-label={t('holdings.viewActivityAriaLabel', { accountName: holding.account.accountName })}
+                  >
+                    {t('holdings.viewActivityCta')}
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </section>

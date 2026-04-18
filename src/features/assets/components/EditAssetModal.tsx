@@ -99,7 +99,7 @@ export function EditAssetModal({
           isLoading={isDisconnectingBrokerage}
         />
         <div className="mt-6 pt-6 border-t border-border">
-          <h3 className="text-body font-semibold mb-3">Change History</h3>
+          <h3 className="text-body font-medium mb-3">Change History</h3>
           <AssetChangeLog assetId={asset.id} />
         </div>
       </DialogContent>

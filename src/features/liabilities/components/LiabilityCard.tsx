@@ -45,7 +45,7 @@ export function LiabilityCard({ liability, onEdit, onDelete }: LiabilityCardProp
         <div className="space-y-2">
           <div className="flex justify-between">
             <span className="text-body text-muted-foreground">Balance</span>
-            <span className="font-semibold">{formatCurrency(liability.balance)}</span>
+            <span className="font-medium">{formatCurrency(liability.balance)}</span>
           </div>
           {liability.interestRate !== undefined && (
             <div className="flex justify-between">

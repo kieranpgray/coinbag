@@ -13,6 +13,26 @@ function getRelatedData(queryClient: QueryClient) {
 }
 
 /**
+ * Prefer the accounts query cache only when its length matches the dashboard's
+ * authoritative count; otherwise use dashboard payload so we never drop rows
+ * after a partial or stale cache fill.
+ */
+function resolveAccountsBase(data: DashboardData, cachedAccounts: Account[]): Account[] {
+  const dashboardAccounts = data.accounts ?? [];
+  const serverCount = data.dataSources.accountsCount;
+  if (
+    cachedAccounts.length > 0 &&
+    cachedAccounts.length === serverCount
+  ) {
+    return cachedAccounts;
+  }
+  if (dashboardAccounts.length > 0) {
+    return dashboardAccounts;
+  }
+  return cachedAccounts;
+}
+
+/**
  * Optimistically update dashboard cache without refetching
  * This dramatically improves mutation response time by avoiding full dashboard refetch
  */
@@ -218,8 +238,9 @@ export function addAccountOptimistically(
   newAccount: Account
 ): void {
   updateDashboardOptimistically(queryClient, (data) => {
-    const { accounts, expenses, incomes } = getRelatedData(queryClient);
-    const updatedAccounts = [...accounts, newAccount];
+    const { accounts: cachedAccounts, expenses, incomes } = getRelatedData(queryClient);
+    const baseAccounts = resolveAccountsBase(data, cachedAccounts);
+    const updatedAccounts = [...baseAccounts, newAccount];
     const calculated = calculateDashboardData(
       data.assets,
       data.liabilities,
@@ -231,6 +252,7 @@ export function addAccountOptimistically(
     return {
       ...data,
       ...calculated,
+      accounts: updatedAccounts,
       dataSources: {
         ...data.dataSources,
         accountsCount: updatedAccounts.length,
@@ -247,8 +269,14 @@ export function updateAccountOptimistically(
   updatedAccount: Account
 ): void {
   updateDashboardOptimistically(queryClient, (data) => {
-    const { accounts, expenses, incomes } = getRelatedData(queryClient);
-    const updatedAccounts = accounts.map(a => a.id === updatedAccount.id ? updatedAccount : a);
+    const { accounts: cachedAccounts, expenses, incomes } = getRelatedData(queryClient);
+    const baseAccounts = resolveAccountsBase(data, cachedAccounts);
+    if (!baseAccounts.some((a) => a.id === updatedAccount.id)) {
+      return data;
+    }
+    const updatedAccounts = baseAccounts.map((a) =>
+      a.id === updatedAccount.id ? updatedAccount : a
+    );
     const calculated = calculateDashboardData(
       data.assets,
       data.liabilities,
@@ -260,6 +288,11 @@ export function updateAccountOptimistically(
     return {
       ...data,
       ...calculated,
+      accounts: updatedAccounts,
+      dataSources: {
+        ...data.dataSources,
+        accountsCount: updatedAccounts.length,
+      },
     };
   });
 }
@@ -272,8 +305,9 @@ export function removeAccountOptimistically(
   accountId: string
 ): void {
   updateDashboardOptimistically(queryClient, (data) => {
-    const { accounts, expenses, incomes } = getRelatedData(queryClient);
-    const updatedAccounts = accounts.filter(a => a.id !== accountId);
+    const { accounts: cachedAccounts, expenses, incomes } = getRelatedData(queryClient);
+    const baseAccounts = resolveAccountsBase(data, cachedAccounts);
+    const updatedAccounts = baseAccounts.filter((a) => a.id !== accountId);
     const calculated = calculateDashboardData(
       data.assets,
       data.liabilities,
@@ -285,6 +319,7 @@ export function removeAccountOptimistically(
     return {
       ...data,
       ...calculated,
+      accounts: updatedAccounts,
       dataSources: {
         ...data.dataSources,
         accountsCount: updatedAccounts.length,

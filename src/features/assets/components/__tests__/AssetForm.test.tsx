@@ -1,15 +1,32 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import type { ReactNode } from 'react';
 import { LocaleProvider } from '@/contexts/LocaleContext';
 import { AssetForm } from '../AssetForm';
 import type { Asset } from '@/types/domain';
 
 // Mock useLocale
 vi.mock('@/hooks/useUserPreferences', () => ({
-  useUserPreferences: () => ({ data: { locale: 'en-US' }, isLoading: false }),
+  useUserPreferences: () => ({
+    data: { locale: 'en-US' },
+    isLoading: false,
+    isPreferencesReady: true,
+  }),
   useUpdateUserPreferences: () => ({ mutateAsync: vi.fn() }),
 }));
+
+function TestWrapper({ children }: { children: ReactNode }) {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
+  return (
+    <QueryClientProvider client={queryClient}>
+      <LocaleProvider>{children}</LocaleProvider>
+    </QueryClientProvider>
+  );
+}
 
 describe('AssetForm', () => {
   const mockAsset: Asset = {
@@ -29,14 +46,13 @@ describe('AssetForm', () => {
     const onCancel = vi.fn();
     
     render(
-      <LocaleProvider>
+      <TestWrapper>
         <AssetForm onSubmit={onSubmit} onCancel={onCancel} />
-      </LocaleProvider>
+      </TestWrapper>
     );
     
-    expect(screen.getByLabelText(/name/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/type/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/value/i)).toBeInTheDocument();
+    expect(screen.getByRole('combobox', { name: /type/i })).toBeInTheDocument();
+    expect(screen.getByLabelText(/balance/i)).toBeInTheDocument();
   });
 
   it('pre-fills form when editing asset', () => {
@@ -44,9 +60,9 @@ describe('AssetForm', () => {
     const onCancel = vi.fn();
     
     render(
-      <LocaleProvider>
+      <TestWrapper>
         <AssetForm asset={mockAsset} onSubmit={onSubmit} onCancel={onCancel} />
-      </LocaleProvider>
+      </TestWrapper>
     );
     
     expect(screen.getByDisplayValue('Test Asset')).toBeInTheDocument();
@@ -58,9 +74,9 @@ describe('AssetForm', () => {
     const user = userEvent.setup();
     
     render(
-      <LocaleProvider>
+      <TestWrapper>
         <AssetForm onSubmit={onSubmit} onCancel={onCancel} />
-      </LocaleProvider>
+      </TestWrapper>
     );
     
     const submitButton = screen.getByRole('button', { name: /create/i });
@@ -78,13 +94,12 @@ describe('AssetForm', () => {
     const user = userEvent.setup();
     
     render(
-      <LocaleProvider>
+      <TestWrapper>
         <AssetForm onSubmit={onSubmit} onCancel={onCancel} />
-      </LocaleProvider>
+      </TestWrapper>
     );
     
-    await user.type(screen.getByLabelText(/name/i), 'New Asset');
-    await user.type(screen.getByLabelText(/value/i), '50000');
+    await user.type(screen.getByLabelText(/balance/i), '50000');
 
     const submitButton = screen.getByRole('button', { name: /create/i });
     await user.click(submitButton);
@@ -99,9 +114,9 @@ describe('AssetForm', () => {
     const user = userEvent.setup();
     
     render(
-      <LocaleProvider>
+      <TestWrapper>
         <AssetForm onSubmit={onSubmit} onCancel={onCancel} />
-      </LocaleProvider>
+      </TestWrapper>
     );
     
     const cancelButton = screen.getByRole('button', { name: /cancel/i });

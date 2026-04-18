@@ -93,10 +93,10 @@ export function CardBasedFlow() {
         </div>
 
         {/* Main Heading */}
-        <h2 className="text-h2-sm sm:text-h2-md lg:text-h2-lg font-medium mb-3">Let's get your finances organized</h2>
+        <h2 className="display-md mb-3">Let's get your finances organized</h2>
 
         {/* Subheading */}
-        <p className="text-muted-foreground max-w-md mx-auto">
+        <p className="page-subtitle max-w-md mx-auto text-center">
           Choose any action below to start tracking your wealth and building better financial habits
         </p>
       </motion.div>
@@ -146,7 +146,7 @@ export function CardBasedFlow() {
 
                   {/* Text Content */}
                   <div className="flex-1 text-left">
-                    <h3 className="text-h3 mb-1 text-foreground">{card.title}</h3>
+                    <h3 className="display-sm mb-1">{card.title}</h3>
                     <p className="text-body text-muted-foreground mb-4">{card.description}</p>
 
                     {/* Action Button */}

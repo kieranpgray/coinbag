@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter } from 'react-router-dom';
-import { ClerkProvider } from '@clerk/clerk-react';
+import { LocaleProvider } from '@/contexts/LocaleContext';
 import { TransactionList } from '../components/TransactionList';
 import type { TransactionEntity } from '@/contracts/transactions';
 import { createTransactionsRepository } from '@/data/transactions/repo';
@@ -12,18 +12,14 @@ vi.mock('@/data/transactions/repo', () => ({
   createTransactionsRepository: vi.fn(),
 }));
 
-// Mock Clerk
-const _mockClerkProvider = ({ children }: { children: React.ReactNode }) => {
-  return (
-    <ClerkProvider
-      publishableKey="pk_test_mock"
-      afterSignInUrl="/"
-      afterSignUpUrl="/"
-    >
-      {children}
-    </ClerkProvider>
-  );
-};
+vi.mock('@/hooks/useUserPreferences', () => ({
+  useUserPreferences: () => ({
+    data: { locale: 'en-US' },
+    isLoading: false,
+    isPreferencesReady: true,
+  }),
+  useUpdateUserPreferences: () => ({ mutateAsync: vi.fn() }),
+}));
 
 function wrapper({ children }: { children: React.ReactNode }) {
   const queryClient = new QueryClient({
@@ -33,22 +29,17 @@ function wrapper({ children }: { children: React.ReactNode }) {
   });
 
   return (
-    <ClerkProvider
-      publishableKey="pk_test_mock"
-      afterSignInUrl="/"
-      afterSignUpUrl="/"
-    >
-      <QueryClientProvider client={queryClient}>
+    <QueryClientProvider client={queryClient}>
+      <LocaleProvider>
         <BrowserRouter>{children}</BrowserRouter>
-      </QueryClientProvider>
-    </ClerkProvider>
+      </LocaleProvider>
+    </QueryClientProvider>
   );
 }
 
 describe('Transaction Provenance Tests', () => {
   const accountId = 'account-123';
   const statementImportId = 'statement-import-123';
-  const mockGetToken = vi.fn(() => Promise.resolve('mock-token'));
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -111,7 +102,11 @@ describe('Transaction Provenance Tests', () => {
       await screen.findByText('Transaction with statement_import_id');
 
       // Verify repository was called with statementImportId
-      expect(mockRepository.list).toHaveBeenCalledWith(accountId, mockGetToken, statementImportId);
+      expect(mockRepository.list).toHaveBeenCalledWith(
+        accountId,
+        expect.any(Function),
+        statementImportId
+      );
 
       // Verify transaction with statement_import_id is shown
       expect(screen.getByText('Transaction with statement_import_id')).toBeInTheDocument();

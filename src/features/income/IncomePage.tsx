@@ -237,9 +237,9 @@ export function IncomePage() {
       <div className="space-y-8">
         <div className="flex items-start justify-between">
           <div className="space-y-1">
-            <h1 className="text-h1-sm sm:text-h1-md lg:text-h1-lg font-bold tracking-tight">Income</h1>
+            <h1 className="page-title">Income</h1>
             <div className="space-y-0.5">
-              <div className="text-display-sm sm:text-display-md lg:text-display-lg font-bold mb-4">
+              <div className="text-display-sm sm:text-display-md lg:text-display-lg mb-4">
                 {formatCurrency(totalMonthlyIncome)}
               </div>
               <p className="text-body text-muted-foreground">Total monthly income</p>
@@ -294,9 +294,9 @@ export function IncomePage() {
       {/* Header with Total Value */}
       <div className="flex items-start justify-between">
         <div className="space-y-1">
-          <h1 className="text-h1-sm sm:text-h1-md lg:text-h1-lg font-bold tracking-tight">Income</h1>
+          <h1 className="page-title">Income</h1>
           <div className="space-y-0.5">
-            <div className="text-display-sm sm:text-display-md lg:text-display-lg font-bold mb-4">
+            <div className="text-display-sm sm:text-display-md lg:text-display-lg mb-4">
               {formatCurrency(totalMonthlyIncome)}
             </div>
             <p className="text-body text-muted-foreground">Total monthly income</p>

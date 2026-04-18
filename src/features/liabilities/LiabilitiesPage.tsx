@@ -242,9 +242,9 @@ export function LiabilitiesPage() {
       {/* Header with Total Value */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="space-y-1">
-          <h1 className="text-h1-sm sm:text-h1-md lg:text-h1-lg font-bold tracking-tight">Liabilities</h1>
+          <h1 className="page-title">Liabilities</h1>
           <div className="space-y-0.5">
-            <div className="text-data-lg-sm sm:text-data-lg-md lg:text-data-lg-lg font-bold mb-4">
+            <div className="text-data-lg-sm sm:text-data-lg-md lg:text-data-lg-lg mb-4">
               {formatCurrency(totalLiabilityBalance)}
             </div>
             <p className="text-sm text-muted-foreground">Total debt balance</p>

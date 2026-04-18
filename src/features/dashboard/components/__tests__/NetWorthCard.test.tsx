@@ -8,7 +8,11 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 // Mock useLocale
 vi.mock('@/hooks/useUserPreferences', () => ({
-  useUserPreferences: () => ({ data: { locale: 'en-US' }, isLoading: false }),
+  useUserPreferences: () => ({
+    data: { locale: 'en-US' },
+    isLoading: false,
+    isPreferencesReady: true,
+  }),
   useUpdateUserPreferences: () => ({ mutateAsync: vi.fn() }),
 }));
 
@@ -61,7 +65,7 @@ describe('NetWorthCard', () => {
       />,
       { wrapper: Wrapper }
     );
-    expect(screen.getAllByText('Net Worth').length).toBeGreaterThan(0);
+    expect(screen.getByText('Net worth')).toBeInTheDocument();
   });
 
   it('displays loading state', () => {
@@ -76,8 +80,7 @@ describe('NetWorthCard', () => {
       />,
       { wrapper: Wrapper }
     );
-    const skeletons = document.querySelectorAll('.animate-skeleton-shimmer');
-    expect(skeletons.length).toBeGreaterThan(0);
+    expect(document.querySelector('.chart-skeleton')).toBeInTheDocument();
   });
 
   it('shows chart period tabs and summary with positive net worth status', () => {
@@ -91,6 +94,7 @@ describe('NetWorthCard', () => {
       { wrapper: Wrapper }
     );
     expect(screen.getByRole('tab', { name: '30d' })).toBeInTheDocument();
+    expect(screen.getByText('Last 90 days')).toBeInTheDocument();
     expect(screen.getAllByLabelText('Positive status').length).toBeGreaterThan(0);
   });
 

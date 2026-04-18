@@ -1,31 +1,14 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { isAdmin } from '../adminCheck';
 import type { User } from '@clerk/clerk-react';
 
 describe('adminCheck', () => {
-  const originalEnv = import.meta.env.VITE_ADMIN_USER_IDS;
-
   beforeEach(() => {
-    // Reset env var
-    Object.defineProperty(import.meta, 'env', {
-      value: {
-        ...import.meta.env,
-        VITE_ADMIN_USER_IDS: undefined,
-      },
-      writable: true,
-      configurable: true,
-    });
+    vi.unstubAllEnvs();
   });
 
   afterEach(() => {
-    Object.defineProperty(import.meta, 'env', {
-      value: {
-        ...import.meta.env,
-        VITE_ADMIN_USER_IDS: originalEnv,
-      },
-      writable: true,
-      configurable: true,
-    });
+    vi.unstubAllEnvs();
   });
 
   it('returns false for null user', () => {
@@ -94,14 +77,7 @@ describe('adminCheck', () => {
   });
 
   it('returns true if user ID is in VITE_ADMIN_USER_IDS', () => {
-    Object.defineProperty(import.meta, 'env', {
-      value: {
-        ...import.meta.env,
-        VITE_ADMIN_USER_IDS: 'user_123,user_456',
-      },
-      writable: true,
-      configurable: true,
-    });
+    vi.stubEnv('VITE_ADMIN_USER_IDS', 'user_123,user_456');
 
     const user = {
       id: 'user_123',
@@ -111,14 +87,7 @@ describe('adminCheck', () => {
   });
 
   it('returns false if user ID is not in VITE_ADMIN_USER_IDS', () => {
-    Object.defineProperty(import.meta, 'env', {
-      value: {
-        ...import.meta.env,
-        VITE_ADMIN_USER_IDS: 'user_123,user_456',
-      },
-      writable: true,
-      configurable: true,
-    });
+    vi.stubEnv('VITE_ADMIN_USER_IDS', 'user_123,user_456');
 
     const user = {
       id: 'user_789',
@@ -128,14 +97,7 @@ describe('adminCheck', () => {
   });
 
   it('handles whitespace in VITE_ADMIN_USER_IDS', () => {
-    Object.defineProperty(import.meta, 'env', {
-      value: {
-        ...import.meta.env,
-        VITE_ADMIN_USER_IDS: 'user_123 , user_456 ',
-      },
-      writable: true,
-      configurable: true,
-    });
+    vi.stubEnv('VITE_ADMIN_USER_IDS', 'user_123 , user_456 ');
 
     const user = {
       id: 'user_456',

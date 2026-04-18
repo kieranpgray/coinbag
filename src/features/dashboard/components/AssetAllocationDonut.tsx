@@ -1,17 +1,11 @@
 import { memo, useMemo } from 'react';
-import {
-  PieChart,
-  Pie,
-  Cell,
-  ResponsiveContainer,
-  Tooltip,
-  Label,
-} from 'recharts';
-import type { Props as RechartsLabelProps } from 'recharts/types/component/Label';
+import { useTranslation } from 'react-i18next';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import type { ChartData } from '../utils/assetAllocation';
 import {
-  AllocationDonutCenterLabel,
+  AllocationDonutHtmlCenter,
   AllocationDonutTooltip,
+  allocationDonutTooltipProps,
   useAllocationDonutSizing,
 } from './AllocationDonutShared';
 
@@ -24,6 +18,7 @@ export const AssetAllocationDonut = memo(function AssetAllocationDonut({
   data,
   totalValue,
 }: AssetAllocationDonutProps) {
+  const { t } = useTranslation('pages');
   const prefersReducedMotion = useMemo(() => {
     if (typeof window === 'undefined') return false;
     return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -38,9 +33,9 @@ export const AssetAllocationDonut = memo(function AssetAllocationDonut({
   return (
     <div
       ref={ref}
-      className="w-full box-border min-h-[200px] h-[220px] sm:h-[240px] md:h-[260px] p-2 sm:p-3"
+      className="donut-outer aspect-square w-full min-h-[180px] min-w-[180px] max-w-[220px] mx-auto shrink-0"
       role="img"
-      aria-label="Asset allocation chart showing portfolio breakdown"
+      aria-label={t('allocationBreakdown.chartAriaAssets')}
     >
       <ResponsiveContainer width="100%" height="100%">
         <PieChart>
@@ -52,7 +47,7 @@ export const AssetAllocationDonut = memo(function AssetAllocationDonut({
             outerRadius={outerRadius}
             innerRadius={innerRadius}
             dataKey="value"
-            stroke="hsl(var(--border))"
+            stroke="var(--paper-3)"
             strokeWidth={1}
             isAnimationActive={!prefersReducedMotion}
             animationDuration={prefersReducedMotion ? 0 : 0}
@@ -60,21 +55,15 @@ export const AssetAllocationDonut = memo(function AssetAllocationDonut({
             {data.map((entry, index) => (
               <Cell key={`cell-${index}`} fill={entry.color} />
             ))}
-            <Label
-              content={(props: RechartsLabelProps) => (
-                <AllocationDonutCenterLabel
-                  viewBox={props.viewBox}
-                  total={totalValue}
-                  variant="assets"
-                  tier={tier}
-                />
-              )}
-              position="center"
-            />
           </Pie>
-          <Tooltip content={<AllocationDonutTooltip />} />
+          <Tooltip content={<AllocationDonutTooltip />} {...allocationDonutTooltipProps} />
         </PieChart>
       </ResponsiveContainer>
+      <AllocationDonutHtmlCenter
+        total={totalValue}
+        tier={tier}
+        subLabel={t('allocationBreakdown.totalAssets')}
+      />
     </div>
   );
 });

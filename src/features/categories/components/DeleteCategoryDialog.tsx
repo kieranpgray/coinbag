@@ -27,12 +27,14 @@ export function DeleteCategoryDialog({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>This category is in use</DialogTitle>
-          <DialogDescription>
-            This category is currently used by the following items:
-            <ul className="mt-2 list-disc list-inside">
-              {/* Note: In real impl, list actual subscription names */}
-              <li>{dependentSubscriptionsCount} subscription(s)</li>
-            </ul>
+          <DialogDescription asChild>
+            <div className="text-body text-muted-foreground">
+              This category is currently used by the following items:
+              <ul className="mt-2 list-disc list-inside">
+                {/* Note: In real impl, list actual subscription names */}
+                <li>{dependentSubscriptionsCount} subscription(s)</li>
+              </ul>
+            </div>
           </DialogDescription>
         </DialogHeader>
 

@@ -1,18 +1,10 @@
-import { memo } from 'react';
+import { memo, useMemo } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { PrivacyWrapper } from '@/components/shared/PrivacyWrapper';
-import { cn } from '@/lib/utils';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
 import type { ListData } from '../utils/assetAllocation';
 
-interface AssetAllocationListProps {
-  data: ListData[];
-}
+const MAX_VISIBLE_ROWS = 8;
 
 function formatPercentage(percentage: number): string {
   if (percentage > 0 && percentage < 1) {
@@ -21,66 +13,70 @@ function formatPercentage(percentage: number): string {
   return `${Math.round(percentage)}%`;
 }
 
-function AllocationRow({ item }: { item: ListData }) {
-  const Icon = item.icon;
-
-  return (
-    <Tooltip delayDuration={200}>
-      <TooltipTrigger asChild>
-        <div
-          tabIndex={0}
-          className={cn(
-            'flex min-h-11 items-center gap-3 rounded-md px-2 py-3 transition-colors cursor-default',
-            'hover:bg-muted/50',
-            'outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background'
-          )}
-          aria-label={`${item.category}, ${formatPercentage(item.percentage)}`}
-        >
-          <Icon className="h-5 w-5 flex-shrink-0 text-muted-foreground dark:text-iconAccent" />
-
-          <div className="min-w-0 flex-1">
-            <span className="text-body font-medium text-foreground block truncate">
-              {item.category}
-            </span>
-          </div>
-
-          <span className="min-w-[80px] flex-shrink-0 text-right text-body font-medium text-foreground">
-            <PrivacyWrapper value={item.value} />
-          </span>
-        </div>
-      </TooltipTrigger>
-      <TooltipContent side="top" className="max-w-xs">
-        <p className="font-medium text-foreground">{item.category}</p>
-        <p className="text-sm text-muted-foreground">{formatPercentage(item.percentage)}</p>
-        <p className="text-sm text-foreground">
-          <PrivacyWrapper value={item.value} />
-        </p>
-      </TooltipContent>
-    </Tooltip>
-  );
+interface AssetAllocationListProps {
+  data: ListData[];
 }
 
 export const AssetAllocationList = memo(function AssetAllocationList({
   data,
 }: AssetAllocationListProps) {
+  const { t } = useTranslation('pages');
+
+  const { visibleRows, overflowCount } = useMemo(() => {
+    if (!data?.length) {
+      return { visibleRows: [], overflowCount: 0 };
+    }
+    return {
+      visibleRows: data.slice(0, MAX_VISIBLE_ROWS),
+      overflowCount: Math.max(0, data.length - MAX_VISIBLE_ROWS),
+    };
+  }, [data]);
+
   if (!data || data.length === 0) {
     return null;
   }
 
   return (
-    <TooltipProvider>
-      <div className="space-y-3">
-        {data.map((item) => (
-          <AllocationRow key={item.category} item={item} />
-        ))}
+    <div>
+      <table className="chart-legend-table">
+        <caption className="sr-only">{t('allocationBreakdown.legendCaptionAssets')}</caption>
+        <tbody>
+          {visibleRows.map((item) => (
+            <tr key={item.category}>
+              <td className="w-[10px] align-middle">
+                <div
+                  className="chart-legend-swatch"
+                  style={{ background: item.color }}
+                  aria-hidden
+                />
+              </td>
+              <td className="chart-legend-name min-w-0" title={item.category}>
+                {item.category}
+              </td>
+              <td className="chart-legend-pct">{formatPercentage(item.percentage)}</td>
+              <td>
+                <PrivacyWrapper value={item.value} />
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
 
+      {overflowCount > 0 ? (
         <Link
           to="/app/wealth"
-          className="mt-4 inline-block text-body text-primary hover:underline"
+          className="mt-3 inline-block text-body text-primary hover:underline"
         >
-          View all assets →
+          {t('allocationBreakdown.moreCategories', { count: overflowCount })}
         </Link>
-      </div>
-    </TooltipProvider>
+      ) : null}
+
+      <Link
+        to="/app/wealth"
+        className={`${overflowCount > 0 ? 'mt-2' : 'mt-3'} inline-block text-body text-primary hover:underline`}
+      >
+        {t('allocationBreakdown.viewAllAssets')}
+      </Link>
+    </div>
   );
 });

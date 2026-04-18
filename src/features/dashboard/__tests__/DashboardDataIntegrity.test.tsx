@@ -14,6 +14,8 @@ import { seedMockAssets, clearMockAssets } from '@/data/assets/mockRepo';
 import { seedMockLiabilities, clearMockLiabilities } from '@/data/liabilities/mockRepo';
 import { seedMockAccounts, clearMockAccounts } from '@/data/accounts/mockRepo';
 import { seedMockSubscriptions, clearMockSubscriptions } from '@/data/subscriptions/mockRepo';
+import { clearMockIncome } from '@/data/income/mockRepo';
+import { TEST_EXPENSE_CATEGORY_ID } from '@/test/testIds';
 
 // Mock environment to use mock repositories
 vi.mock('import.meta.env', () => ({
@@ -88,6 +90,7 @@ describe('Dashboard Data Integrity', () => {
     clearMockLiabilities();
     clearMockAccounts();
     clearMockSubscriptions();
+    clearMockIncome();
     queryClient.clear();
   });
 
@@ -97,6 +100,7 @@ describe('Dashboard Data Integrity', () => {
     clearMockLiabilities();
     clearMockAccounts();
     clearMockSubscriptions();
+    clearMockIncome();
     queryClient.clear();
   });
 
@@ -129,7 +133,7 @@ describe('Dashboard Data Integrity', () => {
         frequency: 'monthly',
         chargeDate: '2024-01-01',
         nextDueDate: '2024-02-01',
-        categoryId: 'cat-1',
+        categoryId: TEST_EXPENSE_CATEGORY_ID,
         created_at: '2024-01-01T00:00:00Z',
         updated_at: '2024-01-01T00:00:00Z',
       };
@@ -154,7 +158,7 @@ describe('Dashboard Data Integrity', () => {
       const { result: createAssetResult } = renderHook(() => useCreateAsset(), { wrapper });
       createAssetResult.current.mutate({
         name: 'Investment Portfolio',
-        type: 'Investments',
+        type: 'Other asset',
         value: 50000,
         change1D: 0.5,
         change1W: 2.0,
@@ -344,7 +348,6 @@ describe('Dashboard Data Integrity', () => {
         expect(dashboardResult.current.data).toBeDefined();
       });
 
-      // Create a new subscription (without categoryId to avoid validation issues)
       const { result: createSubscriptionResult } = renderHook(() => useCreateSubscription(), { wrapper });
       createSubscriptionResult.current.mutate({
         name: 'Spotify',
@@ -352,6 +355,7 @@ describe('Dashboard Data Integrity', () => {
         frequency: 'monthly',
         chargeDate: '2024-01-15',
         nextDueDate: '2024-02-15',
+        categoryId: TEST_EXPENSE_CATEGORY_ID,
       });
 
       await waitFor(() => {
@@ -415,7 +419,7 @@ describe('Dashboard Data Integrity', () => {
         frequency: 'monthly',
         chargeDate: '2024-01-01',
         nextDueDate: '2024-02-01',
-        categoryId: 'cat-1',
+        categoryId: TEST_EXPENSE_CATEGORY_ID,
         created_at: '2024-01-01T00:00:00Z',
         updated_at: '2024-01-01T00:00:00Z',
       };
@@ -444,7 +448,7 @@ describe('Dashboard Data Integrity', () => {
       const { result: createAssetResult } = renderHook(() => useCreateAsset(), { wrapper });
       createAssetResult.current.mutate({
         name: 'Stock Portfolio',
-        type: 'Investments',
+        type: 'Other asset',
         value: 100000,
         change1D: 0.5,
         change1W: 2.0,

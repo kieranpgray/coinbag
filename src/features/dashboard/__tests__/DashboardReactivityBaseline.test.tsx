@@ -14,6 +14,7 @@ import { clearMockLiabilities } from '@/data/liabilities/mockRepo';
 import { clearMockAccounts } from '@/data/accounts/mockRepo';
 import { clearMockSubscriptions } from '@/data/subscriptions/mockRepo';
 import { clearMockDashboardData } from '@/lib/api';
+import { TEST_EXPENSE_CATEGORY_ID } from '@/test/testIds';
 
 // Mock environment to use mock repositories
 vi.mock('import.meta.env', () => ({
@@ -190,7 +191,7 @@ describe('Dashboard Reactivity Baseline', () => {
         frequency: 'monthly',
         chargeDate: '2024-01-01',
         nextDueDate: '2024-02-01',
-        categoryId: 'cat-1',
+        categoryId: TEST_EXPENSE_CATEGORY_ID,
       });
 
       await waitFor(() => {

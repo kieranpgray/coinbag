@@ -24,7 +24,7 @@ function CustomTooltip({ active, payload }: any) {
         <p className="text-body text-muted-foreground mb-1">
           {formatDate(data.date)}
         </p>
-        <p className="text-body font-bold text-foreground">
+        <p className="text-body font-medium text-foreground">
           {formatCurrency(data.balance)}
         </p>
       </div>

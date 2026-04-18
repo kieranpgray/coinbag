@@ -8,13 +8,16 @@ import { formatCurrency } from '@/lib/utils';
 import { AssetCard } from '@/features/assets/components/AssetCard';
 import { AssetPortfolioSection } from './AssetPortfolioSection';
 import type { Asset } from '@/types/domain';
+import type { ClassifiedAccountHolding } from '@/features/wealth/utils/accountClassification';
 
 interface AssetsSectionProps {
   totalAssets: number;
   assets: Asset[];
+  accountHoldings?: ClassifiedAccountHolding[];
   onCreate: () => void;
   onEdit: (asset: Asset) => void;
   onDelete: (asset: Asset) => void;
+  onViewActivity?: (accountId: string) => void;
   viewMode?: 'list' | 'cards';
 }
 
@@ -26,9 +29,11 @@ interface AssetsSectionProps {
 export function AssetsSection({
   totalAssets,
   assets,
+  accountHoldings = [],
   onCreate,
   onEdit,
   onDelete,
+  onViewActivity,
   viewMode = 'cards',
 }: AssetsSectionProps) {
   const { t } = useTranslation('pages');
@@ -58,9 +63,11 @@ export function AssetsSection({
     return (
       <AssetPortfolioSection
         assets={assets}
+        accountHoldings={accountHoldings}
         onCreate={onCreate}
         onEdit={onEdit}
         onDelete={onDelete}
+        onViewActivity={onViewActivity}
       />
     );
   }
@@ -72,7 +79,7 @@ export function AssetsSection({
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <div className="flex items-center gap-3 mb-2">
-            <h2 className="text-foreground text-h2-sm sm:text-h2-md lg:text-h2-lg font-medium">{t('whatYouOwn')}</h2>
+            <h2 className="display-sm">{t('whatYouOwn')}</h2>
           </div>
           <div className="flex items-baseline gap-2">
             <span className="text-lg font-medium">
@@ -111,7 +118,7 @@ export function AssetsSection({
                   <div className="space-y-4">
                     {category.value === 'all' || assets.length === 0 ? (
                       <>
-                        <h3 className="text-h3 font-medium text-foreground">
+                        <h3 className="display-sm">
                           {t('emptyStates.holdingsNoAssets.headline')}
                         </h3>
                         <p className="text-muted-foreground text-balance max-w-lg mx-auto">

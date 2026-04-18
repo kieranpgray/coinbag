@@ -14,9 +14,19 @@ import { render, screen, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter } from 'react-router-dom';
 import type { ReactNode } from 'react';
+import { LocaleProvider } from '@/contexts/LocaleContext';
 import { AssetsPage } from '@/features/assets/AssetsPage';
 import { seedMockAssets, clearMockAssets } from '@/data/assets/mockRepo';
 import type { Asset } from '@/types/domain';
+
+vi.mock('@/hooks/useUserPreferences', () => ({
+  useUserPreferences: () => ({
+    data: { locale: 'en-US' },
+    isLoading: false,
+    isPreferencesReady: true,
+  }),
+  useUpdateUserPreferences: () => ({ mutateAsync: vi.fn() }),
+}));
 
 // Mock environment to use mock repositories
 vi.mock('import.meta.env', () => ({
@@ -84,7 +94,7 @@ function wrapper({ children }: { children: ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
-        {children}
+        <LocaleProvider>{children}</LocaleProvider>
       </BrowserRouter>
     </QueryClientProvider>
   );
@@ -143,9 +153,11 @@ describe('P0: Dashboard Add Investment Flow', () => {
       expect(screen.getByText('My Car')).toBeInTheDocument();
     });
 
-    // Step 4: Verify modal is open (from query params)
+    // Step 4: Verify modal is open (from query params) — title + button both say "Add an asset"
     await waitFor(() => {
-      expect(screen.getByText('Add an asset')).toBeInTheDocument();
+      expect(
+        screen.getByRole('heading', { name: /Add an asset/i })
+      ).toBeInTheDocument();
     });
 
     // Step 5: Create investment via form (simulate form submission)
@@ -218,9 +230,10 @@ describe('P0: Dashboard Add Investment Flow', () => {
     window.history.pushState({}, '', '/assets?create=1&type=Investments');
     const { rerender } = render(<AssetsPage />, { wrapper });
 
-    // Wait for modal to open
     await waitFor(() => {
-      expect(screen.getByText('Add an asset')).toBeInTheDocument();
+      expect(
+        screen.getByRole('heading', { name: /Add an asset/i })
+      ).toBeInTheDocument();
     });
 
     // Verify query params were cleared (effect ran)
@@ -245,7 +258,9 @@ describe('P0: Dashboard Add Investment Flow', () => {
     // Verify modal state is stable (not reset)
     // If effect ran again, modal might close/reopen
     // This test verifies the fix prevents unnecessary re-execution
-    expect(screen.queryByText('Add an asset')).toBeInTheDocument();
+    expect(
+      screen.queryByRole('heading', { name: /Add an asset/i })
+    ).toBeInTheDocument();
   });
 });
 

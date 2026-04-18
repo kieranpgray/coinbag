@@ -15,6 +15,7 @@ import { seedMockLiabilities, clearMockLiabilities } from '@/data/liabilities/mo
 import { seedMockAccounts, clearMockAccounts } from '@/data/accounts/mockRepo';
 import { seedMockSubscriptions, clearMockSubscriptions } from '@/data/subscriptions/mockRepo';
 import { clearMockDashboardData } from '@/lib/api';
+import { TEST_EXPENSE_CATEGORY_ID } from '@/test/testIds';
 
 // Mock environment
 vi.mock('import.meta.env', () => ({
@@ -369,7 +370,7 @@ describe('P0 Dashboard Verification', () => {
         frequency: 'monthly',
         chargeDate: '2024-01-01',
         nextDueDate: '2024-02-01',
-        categoryId: '00000000-0000-4000-8000-000000000001', // Valid UUID v4 format
+        categoryId: TEST_EXPENSE_CATEGORY_ID,
       });
 
       await waitFor(() => {
@@ -440,7 +441,7 @@ describe('P0 Dashboard Verification', () => {
         frequency: 'monthly',
         chargeDate: '2024-01-01',
         nextDueDate: '2024-02-01',
-        categoryId: 'cat-1',
+        categoryId: TEST_EXPENSE_CATEGORY_ID,
         created_at: '2024-01-01T00:00:00Z',
         updated_at: '2024-01-01T00:00:00Z',
       };
@@ -486,11 +487,11 @@ describe('P0 Dashboard Verification', () => {
         expect(createIncomeResult.current.isSuccess).toBe(true);
       });
 
-      // Create investment (asset with type='Investments')
+      // Create investment-style asset (counts toward holdings)
       const { result: createAssetResult } = renderHook(() => useCreateAsset(), { wrapper });
       createAssetResult.current.mutate({
         name: 'Stock Portfolio',
-        type: 'Investments',
+        type: 'Other asset',
         value: 100000,
         change1D: 0.5,
         change1W: 2.0,

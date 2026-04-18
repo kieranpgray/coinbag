@@ -11,10 +11,20 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter } from 'react-router-dom';
+import { LocaleProvider } from '@/contexts/LocaleContext';
 import { AssetsPage } from '@/features/assets/AssetsPage';
 import { seedMockAssets, clearMockAssets } from '@/data/assets/mockRepo';
 import type { Asset } from '@/types/domain';
 import type { ReactNode } from 'react';
+
+vi.mock('@/hooks/useUserPreferences', () => ({
+  useUserPreferences: () => ({
+    data: { locale: 'en-US' },
+    isLoading: false,
+    isPreferencesReady: true,
+  }),
+  useUpdateUserPreferences: () => ({ mutateAsync: vi.fn() }),
+}));
 
 // Mock environment to use mock repositories
 vi.mock('import.meta.env', () => ({
@@ -58,7 +68,7 @@ function wrapper({ children }: { children: ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
-        {children}
+        <LocaleProvider>{children}</LocaleProvider>
       </BrowserRouter>
     </QueryClientProvider>
   );

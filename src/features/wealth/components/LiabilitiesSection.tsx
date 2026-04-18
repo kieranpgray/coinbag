@@ -8,13 +8,16 @@ import { formatCurrency } from '@/lib/utils';
 import { LiabilityCard } from '@/features/liabilities/components/LiabilityCard';
 import { LiabilityPortfolioSection } from './LiabilityPortfolioSection';
 import type { Liability } from '@/types/domain';
+import type { ClassifiedAccountHolding } from '@/features/wealth/utils/accountClassification';
 
 interface LiabilitiesSectionProps {
   totalLiabilities: number;
   liabilities: Liability[];
+  accountHoldings?: ClassifiedAccountHolding[];
   onCreate: () => void;
   onEdit: (liability: Liability) => void;
   onDelete: (liability: Liability) => void;
+  onViewActivity?: (accountId: string) => void;
   viewMode?: 'list' | 'cards';
 }
 
@@ -26,9 +29,11 @@ interface LiabilitiesSectionProps {
 export function LiabilitiesSection({
   totalLiabilities,
   liabilities,
+  accountHoldings = [],
   onCreate,
   onEdit,
   onDelete,
+  onViewActivity,
   viewMode = 'cards',
 }: LiabilitiesSectionProps) {
   const { t } = useTranslation('pages');
@@ -57,9 +62,11 @@ export function LiabilitiesSection({
       <LiabilityPortfolioSection
         totalLiabilities={totalLiabilities}
         liabilities={liabilities}
+        accountHoldings={accountHoldings}
         onCreate={onCreate}
         onEdit={onEdit}
         onDelete={onDelete}
+        onViewActivity={onViewActivity}
       />
     );
   }
@@ -71,7 +78,7 @@ export function LiabilitiesSection({
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <div className="flex items-center gap-3 mb-2">
-            <h2 className="text-foreground text-h2-sm sm:text-h2-md lg:text-h2-lg font-medium">{t('whatYouOwe')}</h2>
+            <h2 className="display-sm">{t('whatYouOwe')}</h2>
           </div>
           <div className="flex items-baseline gap-2">
             <span className="text-lg font-medium">

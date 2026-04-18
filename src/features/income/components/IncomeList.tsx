@@ -12,7 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DatePicker } from '@/components/ui/date-picker';
 import { formatCurrency } from '@/lib/utils';
-import { Pencil, Trash2, Plus, Check, Loader2, AlertCircle } from 'lucide-react';
+import { Pencil, Trash2, Plus, Check, Loader2, AlertCircle, LayoutGrid } from 'lucide-react';
 import { format } from 'date-fns';
 import type { Income } from '@/types/domain';
 import { useUpdateIncome } from '@/features/income/hooks/useIncome';
@@ -341,38 +341,38 @@ export function IncomeList({ incomes, accountMap, onEdit, onDelete, onCreate }: 
   }, [fieldErrors]);
 
   return (
-    <div className="rounded-md border border-border">
-      <Table className="table-fixed">
-        <TableHeader>
+    <Table variant="ds" className="table-fixed">
+      <TableHeader>
+        <TableRow>
+          <TableHead className="w-[20%]">Name</TableHead>
+          <TableHead className="w-[15%]">Source</TableHead>
+          <TableHead className="w-[12%] text-right">Amount</TableHead>
+          <TableHead className="w-[12%]">Frequency</TableHead>
+          <TableHead className="w-[15%]">Next Payment</TableHead>
+          <TableHead className="w-[15%]">Paid To</TableHead>
+          <TableHead className="w-[10%] text-right">Actions</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {incomes.length === 0 ? (
           <TableRow>
-            <TableHead className="w-[20%]">Name</TableHead>
-            <TableHead className="w-[15%]">Source</TableHead>
-            <TableHead className="w-[12%] text-right">Amount</TableHead>
-            <TableHead className="w-[12%]">Frequency</TableHead>
-            <TableHead className="w-[15%]">Next Payment</TableHead>
-            <TableHead className="w-[15%]">Paid To</TableHead>
-            <TableHead className="w-[10%] text-right">Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {incomes.length === 0 ? (
-            <TableRow>
-              <TableCell colSpan={7} className="text-center py-12">
-                <div className="flex flex-col items-center gap-4">
-                  <div className="text-muted-foreground">
-                    No income sources found. Add your first income source to track your earnings.
-                  </div>
-                  <Button
-                    onClick={onCreate}
-                    size="sm"
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Your First Income Source
-                  </Button>
+            <TableCell colSpan={7} className="p-0">
+              <div className="empty-state-table">
+                <div className="empty-state-icon">
+                  <LayoutGrid className="h-5 w-5 text-[var(--ink-3)]" strokeWidth={1.5} aria-hidden />
                 </div>
-              </TableCell>
-            </TableRow>
-          ) : (
+                <div className="empty-state-title">No income sources yet.</div>
+                <div className="empty-state-body">
+                  Add your first income source to track your earnings.
+                </div>
+                <Button onClick={onCreate} size="sm" className="mx-auto flex">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Your First Income Source
+                </Button>
+              </div>
+            </TableCell>
+          </TableRow>
+        ) : (
             incomes.map((income) => {
               const isRowEditing = editingCell?.incomeId === income.id;
               
@@ -387,17 +387,13 @@ export function IncomeList({ incomes, accountMap, onEdit, onDelete, onCreate }: 
               return (
                 <TableRow
                   key={income.id}
-                  className={cn(
-                    "hover:bg-muted/50",
-                    isRowEditing && "bg-muted/20"
-                  )}
+                  className={cn(isRowEditing && 'selected')}
                 >
                   {/* Name Cell */}
                   <TableCell
                     className={cn(
-                      "font-medium px-3 py-2 cursor-pointer transition-colors",
-                      "hover:bg-muted/30",
-                      isEditing(income.id, 'name') && "bg-primary/5 ring-2 ring-primary/30 transition-all duration-150"
+                      'cursor-pointer transition-colors',
+                      isEditing(income.id, 'name') && 'bg-primary/5 ring-2 ring-primary/30 ring-inset transition-all duration-150'
                     )}
                     onClick={(e) => handleCellClick(income.id, 'name', e)}
                   >
@@ -427,7 +423,7 @@ export function IncomeList({ incomes, accountMap, onEdit, onDelete, onCreate }: 
                       </div>
                     ) : (
                       <div className="flex items-center gap-2 min-w-0">
-                        <span className="truncate">{currentName}</span>
+                        <span className="truncate font-medium text-[color:var(--ink)]">{currentName}</span>
                         {isSaving(income.id, 'name') && <Loader2 className="h-3 w-3 animate-spin text-muted-foreground flex-shrink-0" />}
                         {isSaved(income.id, 'name') && <Check className="h-3 w-3 text-green-600 flex-shrink-0" />}
                       </div>
@@ -437,9 +433,8 @@ export function IncomeList({ incomes, accountMap, onEdit, onDelete, onCreate }: 
                   {/* Source Cell */}
                   <TableCell
                     className={cn(
-                      "px-3 py-2 cursor-pointer transition-colors",
-                      "hover:bg-muted/30",
-                      isEditing(income.id, 'source') && "bg-primary/5 ring-2 ring-primary/30 transition-all duration-150"
+                      'cursor-pointer transition-colors',
+                      isEditing(income.id, 'source') && 'bg-primary/5 ring-2 ring-primary/30 ring-inset transition-all duration-150'
                     )}
                     onClick={(e) => handleCellClick(income.id, 'source', e)}
                   >
@@ -485,9 +480,8 @@ export function IncomeList({ incomes, accountMap, onEdit, onDelete, onCreate }: 
                   {/* Amount Cell */}
                   <TableCell
                     className={cn(
-                      "text-right px-3 py-2 cursor-pointer transition-colors",
-                      "hover:bg-muted/30",
-                      isEditing(income.id, 'amount') && "bg-primary/5 ring-2 ring-primary/30 transition-all duration-150"
+                      'num cursor-pointer transition-colors',
+                      isEditing(income.id, 'amount') && 'bg-primary/5 ring-2 ring-primary/30 ring-inset transition-all duration-150'
                     )}
                     onClick={(e) => handleCellClick(income.id, 'amount', e)}
                   >
@@ -529,9 +523,8 @@ export function IncomeList({ incomes, accountMap, onEdit, onDelete, onCreate }: 
                   {/* Frequency Cell */}
                   <TableCell
                     className={cn(
-                      "px-3 py-2 cursor-pointer transition-colors",
-                      "hover:bg-muted/30",
-                      isEditing(income.id, 'frequency') && "bg-primary/5 ring-2 ring-primary/30 transition-all duration-150"
+                      'cursor-pointer transition-colors',
+                      isEditing(income.id, 'frequency') && 'bg-primary/5 ring-2 ring-primary/30 ring-inset transition-all duration-150'
                     )}
                     onClick={(e) => handleCellClick(income.id, 'frequency', e)}
                   >
@@ -577,9 +570,8 @@ export function IncomeList({ incomes, accountMap, onEdit, onDelete, onCreate }: 
                   {/* Next Payment Date Cell */}
                   <TableCell
                     className={cn(
-                      "px-3 py-2 cursor-pointer transition-colors",
-                      "hover:bg-muted/30",
-                      isEditing(income.id, 'nextPaymentDate') && "bg-primary/5 ring-2 ring-primary/30 transition-all duration-150"
+                      'cursor-pointer transition-colors',
+                      isEditing(income.id, 'nextPaymentDate') && 'bg-primary/5 ring-2 ring-primary/30 ring-inset transition-all duration-150'
                     )}
                     onClick={(e) => handleCellClick(income.id, 'nextPaymentDate', e)}
                   >
@@ -618,9 +610,8 @@ export function IncomeList({ incomes, accountMap, onEdit, onDelete, onCreate }: 
                   {/* Paid To Cell */}
                   <TableCell
                     className={cn(
-                      "px-3 py-2 cursor-pointer transition-colors",
-                      "hover:bg-muted/30",
-                      isEditing(income.id, 'paidToAccountId') && "bg-primary/5 ring-2 ring-primary/30 transition-all duration-150"
+                      'cursor-pointer transition-colors',
+                      isEditing(income.id, 'paidToAccountId') && 'bg-primary/5 ring-2 ring-primary/30 ring-inset transition-all duration-150'
                     )}
                     onClick={(e) => handleCellClick(income.id, 'paidToAccountId', e)}
                   >
@@ -654,24 +645,24 @@ export function IncomeList({ incomes, accountMap, onEdit, onDelete, onCreate }: 
                   </TableCell>
 
                   {/* Actions Cell */}
-                  <TableCell className="text-right px-3 py-2" onClick={(e) => e.stopPropagation()}>
-                    <div className="flex justify-end gap-2">
-                      <Button
-                        variant="ghost"
-                        size="icon"
+                  <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
+                    <div className="table-row-actions">
+                      <button
+                        type="button"
+                        className="table-action-btn"
                         onClick={() => onEdit(income)}
                         aria-label={`Edit ${income.name}`}
                       >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
+                        <Pencil className="h-3 w-3" strokeWidth={2} aria-hidden />
+                      </button>
+                      <button
+                        type="button"
+                        className="table-action-btn danger"
                         onClick={() => onDelete(income)}
                         aria-label={`Delete ${income.name}`}
                       >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                        <Trash2 className="h-3 w-3" strokeWidth={2} aria-hidden />
+                      </button>
                     </div>
                   </TableCell>
               </TableRow>
@@ -679,7 +670,6 @@ export function IncomeList({ incomes, accountMap, onEdit, onDelete, onCreate }: 
             })
           )}
         </TableBody>
-      </Table>
-    </div>
+    </Table>
   );
 }

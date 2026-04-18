@@ -34,7 +34,9 @@ describe('DesignSystemPage', () => {
     expect(screen.getByLabelText('Loading design system')).toBeInTheDocument();
 
     await waitFor(() => {
-      expect(screen.getByTitle('Supafolio design system')).toBeInTheDocument();
+      const iframe = screen.getByTitle('Supafolio design system');
+      expect(iframe).toBeInTheDocument();
+      expect(iframe).toHaveAttribute('src', expect.stringContaining('design-system-v2.html'));
     });
   });
 

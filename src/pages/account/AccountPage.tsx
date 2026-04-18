@@ -17,10 +17,10 @@ export function AccountPage() {
     <div className="min-h-screen flex items-center justify-center bg-background py-8 px-4">
       <div className="w-full max-w-4xl">
         <div className="mb-6">
-          <h1 className="font-serif text-h1-sm sm:text-h1-md lg:text-h1-lg font-bold tracking-tight">
+          <h1 className="page-title">
             Account Settings
           </h1>
-          <p className="text-muted-foreground mt-2">
+          <p className="page-subtitle">
             Manage your account, security, and authentication settings
           </p>
         </div>

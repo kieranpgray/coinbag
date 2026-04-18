@@ -44,7 +44,7 @@ export function IncomeCard({ income, onEdit, onDelete }: IncomeCardProps) {
         <div className="space-y-2">
           <div className="flex justify-between">
             <span className="text-sm text-muted-foreground">Amount</span>
-            <span className="font-semibold">{formatCurrency(income.amount)}</span>
+            <span className="font-medium">{formatCurrency(income.amount)}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-sm text-muted-foreground">Frequency</span>

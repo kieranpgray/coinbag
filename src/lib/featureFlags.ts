@@ -22,7 +22,8 @@ export type FeatureFlag =
   | 'workspace_collaboration'
   | 'account_menu_v2'
   | 'explicit_repayment_transfers'
-  | 'snaptrade_integration';
+  | 'snaptrade_integration'
+  | 'holdings_account_activity_migration';
 
 interface FeatureFlagConfig {
   enabled: boolean;
@@ -71,6 +72,10 @@ const FEATURE_FLAGS: Record<FeatureFlag, FeatureFlagConfig> = {
   snaptrade_integration: {
     enabled: import.meta.env.VITE_ENABLE_SNAPTRADE === 'true',
     description: 'Enable SnapTrade brokerage connection flow on the Wealth page',
+  },
+  holdings_account_activity_migration: {
+    enabled: import.meta.env.VITE_ENABLE_HOLDINGS_ACCOUNT_ACTIVITY_MIGRATION !== 'false',
+    description: 'Show account-backed holdings in Wealth and keep activity contextual to account detail',
   },
 };
 

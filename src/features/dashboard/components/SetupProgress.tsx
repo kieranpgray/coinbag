@@ -71,15 +71,15 @@ const CHECKLIST_METADATA: Record<string, { icon: LucideIcon; benefit: string; li
 export function SetupProgress({ progress, checklist, isLoading }: SetupProgressProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [expandedItem, setExpandedItem] = useState<string | null>(null);
-  const { data: preferences } = useUserPreferences();
+  const { data: preferences, isPreferencesReady } = useUserPreferences();
   const updatePreferences = useUpdateUserPreferences();
+
+  if (isLoading || !isPreferencesReady) {
+    return <Skeleton className="h-12 w-full rounded-lg" />;
+  }
 
   if (preferences?.hideSetupChecklist) {
     return null;
-  }
-
-  if (isLoading) {
-    return <Skeleton className="h-12 w-full rounded-lg" />;
   }
 
   const completedCount = checklist.filter(i => i.completed).length;

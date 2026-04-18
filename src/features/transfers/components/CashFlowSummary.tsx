@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useCashFlowByAccount } from '../hooks';
 import { AccountCashFlowRow } from './AccountCashFlowRow';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -17,6 +18,7 @@ interface CashFlowSummaryProps {
  * Default closed; uses native <details>/<summary> for accessibility.
  */
 export function CashFlowSummary({ viewMode }: CashFlowSummaryProps) {
+  const { t } = useTranslation('pages');
   const { data: cashFlow = [], isLoading, error } = useCashFlowByAccount();
 
   const accountsWithActivity = cashFlow.filter(
@@ -26,13 +28,13 @@ export function CashFlowSummary({ viewMode }: CashFlowSummaryProps) {
 
   return (
     <details
-      className="group rounded-lg border bg-card text-card-foreground"
+      className="group rounded-lg border bg-card text-card-foreground allocate-cash-flow-disclosure"
       open={false}
-      aria-label="Account cash flow by account"
+      aria-label={t('allocate.cashFlow.title')}
     >
       <summary className="flex cursor-pointer list-none items-center gap-2 p-4 font-medium text-body focus-visible:outline focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-lg [&::-webkit-details-marker]:hidden">
         <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-90" aria-hidden />
-        <h2 className="text-h2-sm font-medium">Account cash flow</h2>
+        <h2 className="text-h2-sm font-medium">{t('allocate.cashFlow.title')}</h2>
       </summary>
       <div className="px-4 pb-4 pt-0">
         {isLoading && (
@@ -47,17 +49,17 @@ export function CashFlowSummary({ viewMode }: CashFlowSummaryProps) {
         {error && (
           <Alert className="border-destructive bg-destructive/10">
             <AlertDescription>
-              Failed to load cash flow data. Please try again.
+              {t('allocate.cashFlow.loadError')}
             </AlertDescription>
           </Alert>
         )}
         {!isLoading && !error && !hasAccounts && (
           <EmptyState
-            title="No accounts connected"
-            body="Link a bank account to see where your money is going."
+            title={t('allocate.cashFlow.emptyStateTitle')}
+            body={t('allocate.cashFlow.emptyStateBody')}
             action={
               <Button asChild size="sm">
-                <Link to={ROUTES.app.accounts}>Connect account</Link>
+                <Link to={ROUTES.app.budget}>{t('allocate.cashFlow.emptyStateCta')}</Link>
               </Button>
             }
           />

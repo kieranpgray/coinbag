@@ -240,7 +240,7 @@ export function TeamSection() {
             <Skeleton className="h-24 w-full" />
           ) : members.length === 0 ? (
             <div className="space-y-4 py-4 text-center">
-              <p className="text-body-lg font-semibold text-foreground">One picture. Two people.</p>
+              <p className="text-body-lg text-foreground">One picture. Two people.</p>
               <p className="text-body text-muted-foreground max-w-lg mx-auto">
                 Invite your partner or financial advisor to see the same Holdings, Allocate plan, and net worth — with
                 the right level of access for each person.

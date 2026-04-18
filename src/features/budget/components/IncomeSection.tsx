@@ -39,7 +39,7 @@ export function IncomeSection({
       {/* Header: total-first, no icon. Add Income = secondary */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-foreground text-h2-sm sm:text-h2-md lg:text-h2-lg font-medium mb-1">Income</h2>
+          <h2 className="display-sm mb-1">Income</h2>
           <div className="flex flex-col sm:flex-row sm:items-baseline gap-2">
             <span className="text-balance font-medium text-foreground">
               {formatCurrency(displayIncome)}

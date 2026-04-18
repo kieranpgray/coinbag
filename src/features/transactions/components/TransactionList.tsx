@@ -185,7 +185,7 @@ export function TransactionList({
     return (
       <div className="bg-card border border-border rounded-lg shadow-sm">
         <div className="px-8 py-4 border-b border-border flex justify-between items-center">
-          <h2 className="text-h2-sm sm:text-h2-md lg:text-h2-lg font-semibold text-foreground">Transactions</h2>
+          <h2 className="text-h2-sm sm:text-h2-md lg:text-h2-lg text-foreground">Transactions</h2>
           <Skeleton className="h-8 w-24" />
         </div>
         <div className="p-8 space-y-8">
@@ -212,7 +212,7 @@ export function TransactionList({
     <div className="bg-card border border-border rounded-lg shadow-sm overflow-hidden relative">
       {/* Card Header */}
       <div className="px-8 py-4 border-b border-border flex justify-between items-center bg-card">
-        <h2 className="text-h2-sm sm:text-h2-md lg:text-h2-lg font-semibold text-foreground">Transactions</h2>
+        <h2 className="text-h2-sm sm:text-h2-md lg:text-h2-lg text-foreground">Transactions</h2>
         <Button
           variant="ghost"
           size="sm"
@@ -234,7 +234,7 @@ export function TransactionList({
               <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-6">
                 <ArrowLeftRight className="h-8 w-8 text-muted-foreground" />
               </div>
-              <h3 className="text-h3 font-semibold text-foreground mb-3">
+              <h3 className="text-h3 text-foreground mb-3">
                 {t('emptyState.headline', { ns: 'transactions' })}
               </h3>
               <p className="text-body text-muted-foreground max-w-md mx-auto mb-8 leading-relaxed">
@@ -253,7 +253,7 @@ export function TransactionList({
             /* Upload/Processing state - show inline */
             <div className="max-w-2xl mx-auto space-y-6">
               <div className="text-center mb-6">
-                <h3 className="text-h3 font-semibold text-foreground mb-2">Upload Statement</h3>
+                <h3 className="text-h3 text-foreground mb-2">Upload Statement</h3>
                 <p className="text-body text-muted-foreground">
                   Upload your bank statement files to import transactions.
                 </p>
@@ -329,7 +329,7 @@ export function TransactionList({
                         </p>
                       </div>
                       <div className="text-right">
-                        <p className={`text-body font-semibold ${color}`}>
+                        <p className={`text-body font-medium ${color}`}>
                           {isCredit ? '+' : '-'}
                           {formatCurrency(displayAmount, locale)}
                         </p>

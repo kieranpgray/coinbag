@@ -1,8 +1,13 @@
 import '@testing-library/jest-dom';
 import '@/lib/i18n';
-import { afterEach, vi } from 'vitest';
+import { afterEach, beforeEach, vi } from 'vitest';
 import { cleanup } from '@testing-library/react';
 import type { ReactNode } from 'react';
+
+// Repository selection reads import.meta.env.VITE_DATA_SOURCE; stub so tests use in-memory mocks
+beforeEach(() => {
+  vi.stubEnv('VITE_DATA_SOURCE', 'mock');
+});
 
 // Mock Clerk globally to prevent initialization during tests
 vi.mock('@clerk/clerk-react', () => ({
@@ -32,10 +37,10 @@ vi.mock('@clerk/clerk-react', () => ({
   }),
 }));
 
-// Cleanup after each test
 afterEach(() => {
   cleanup();
   vi.clearAllMocks();
+  vi.unstubAllEnvs();
 });
 
 // Mock window.matchMedia

@@ -39,14 +39,14 @@ vi.mock('@clerk/clerk-react', () => ({
   }),
 }));
 
-// Mock market API and income API
-const mockIncomeApi = {
-  getAll: vi.fn().mockResolvedValue([]),
-};
-
-const mockTransactionsApi = {
-  getAll: vi.fn().mockResolvedValue({ data: [], total: 0 }),
-};
+const { mockIncomeApi, mockTransactionsApi } = vi.hoisted(() => ({
+  mockIncomeApi: {
+    getAll: vi.fn().mockResolvedValue([]),
+  },
+  mockTransactionsApi: {
+    getAll: vi.fn().mockResolvedValue({ data: [], total: 0 }),
+  },
+}));
 
 vi.mock('@/lib/api', async () => {
   const actual = await vi.importActual('@/lib/api');

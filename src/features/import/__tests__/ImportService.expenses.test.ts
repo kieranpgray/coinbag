@@ -28,6 +28,10 @@ vi.mock('@/data/categories/ensureDefaults', () => ({
   ensureDefaultCategories: mockEnsureDefaultCategories,
 }));
 
+const CAT_ENTERTAINMENT_ID = '11111111-1111-4111-8111-111111111111';
+const CAT_HEALTH_ID = '22222222-2222-4222-8222-222222222222';
+const CAT_UNCATEGORISED_ID = '33333333-3333-4333-8333-333333333333';
+
 describe('ImportService - Expenses', () => {
   let importService: ImportService;
   let mockGetToken: () => Promise<string | null>;
@@ -61,12 +65,12 @@ describe('ImportService - Expenses', () => {
       ];
 
       const categoryMap = new Map<string, string>([
-        ['entertainment', 'cat-1'],
+        ['entertainment', CAT_ENTERTAINMENT_ID],
       ]);
 
       // Setup category resolution
       mockCategoriesRepo.list.mockResolvedValue({
-        data: [{ id: 'cat-1', name: 'Entertainment' }],
+        data: [{ id: CAT_ENTERTAINMENT_ID, name: 'Entertainment' }],
       });
 
       // Setup expense creation
@@ -78,7 +82,7 @@ describe('ImportService - Expenses', () => {
           frequency: 'monthly',
           chargeDate: '2024-01-15',
           nextDueDate: '2024-02-15',
-          categoryId: 'cat-1',
+          categoryId: CAT_ENTERTAINMENT_ID,
           paidFromAccountId: undefined,
           notes: 'Monthly subscription',
         },
@@ -100,14 +104,14 @@ describe('ImportService - Expenses', () => {
           frequency: 'monthly',
           chargeDate: '2024-01-15',
           nextDueDate: '2024-02-15',
-          categoryId: 'cat-1',
+          categoryId: CAT_ENTERTAINMENT_ID,
           notes: 'Monthly subscription',
         },
-        'mock-token'
+        mockGetToken
       );
     });
 
-    it('should handle category resolution for new categories', async () => {
+    it('imports expense when category map contains resolved id (after resolveCategories)', async () => {
       const mockRows: ParsedImportData['expenses'] = [
         {
           rowNumber: 2,
@@ -121,24 +125,17 @@ describe('ImportService - Expenses', () => {
         },
       ];
 
-      const categoryMap = new Map<string, string>();
+      const categoryMap = new Map<string, string>([
+        ['health & fitness', CAT_HEALTH_ID],
+      ]);
 
-      // Mock existing categories (empty)
-      mockCategoriesRepo.list.mockResolvedValue({ data: [] });
-
-      // Mock creating new category
-      mockCategoriesRepo.create.mockResolvedValue({
-        data: { id: 'cat-2', name: 'Health & Fitness' },
-      });
-
-      // Mock expense creation
       mockExpensesRepo.create.mockResolvedValue({
         data: {
           id: 'exp-2',
           name: 'Gym Membership',
           amount: 50,
           frequency: 'monthly',
-          categoryId: 'cat-2',
+          categoryId: CAT_HEALTH_ID,
         },
       });
 
@@ -147,11 +144,14 @@ describe('ImportService - Expenses', () => {
         dryRun: false,
       });
 
-      expect(mockCategoriesRepo.create).toHaveBeenCalledWith(
-        { name: 'Health & Fitness' },
-        'mock-token'
+      expect(mockCategoriesRepo.create).not.toHaveBeenCalled();
+      expect(mockExpensesRepo.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'Gym Membership',
+          categoryId: CAT_HEALTH_ID,
+        }),
+        mockGetToken
       );
-      expect(categoryMap.get('health & fitness')).toBe('cat-2');
       expect(result.successes).toHaveLength(1);
     });
 
@@ -170,12 +170,12 @@ describe('ImportService - Expenses', () => {
       ];
 
       const categoryMap = new Map<string, string>([
-        ['uncategorised', 'uncat-1'],
+        ['uncategorised', CAT_UNCATEGORISED_ID],
       ]);
 
       // Mock existing categories (empty)
       mockCategoriesRepo.list.mockResolvedValue({
-        data: [{ id: 'uncat-1', name: 'Uncategorised' }],
+        data: [{ id: CAT_UNCATEGORISED_ID, name: 'Uncategorised' }],
       });
 
       // Mock category creation failure
@@ -190,7 +190,7 @@ describe('ImportService - Expenses', () => {
           name: 'Test Expense',
           amount: 100,
           frequency: 'monthly',
-          categoryId: 'uncat-1',
+          categoryId: CAT_UNCATEGORISED_ID,
         },
       });
 
@@ -205,9 +205,9 @@ describe('ImportService - Expenses', () => {
 
       expect(mockExpensesRepo.create).toHaveBeenCalledWith(
         expect.objectContaining({
-          categoryId: 'uncat-1',
+          categoryId: CAT_UNCATEGORISED_ID,
         }),
-        'mock-token'
+        mockGetToken
       );
     });
 
@@ -226,7 +226,7 @@ describe('ImportService - Expenses', () => {
       ];
 
       const categoryMap = new Map<string, string>([
-        ['test', 'cat-1'],
+        ['test', CAT_ENTERTAINMENT_ID],
       ]);
 
       // Mock categories
@@ -257,7 +257,7 @@ describe('ImportService - Expenses', () => {
       ];
 
       const categoryMap = new Map<string, string>([
-        ['test', 'cat-1'],
+        ['test', CAT_ENTERTAINMENT_ID],
       ]);
 
       // Mock categories
@@ -290,7 +290,7 @@ describe('ImportService - Expenses', () => {
       ];
 
       const categoryMap = new Map<string, string>([
-        ['test', 'cat-1'],
+        ['test', CAT_ENTERTAINMENT_ID],
       ]);
 
       // Mock categories
@@ -322,7 +322,7 @@ describe('ImportService - Expenses', () => {
       ];
 
       const categoryMap = new Map<string, string>([
-        ['test', 'cat-1'],
+        ['test', CAT_ENTERTAINMENT_ID],
       ]);
 
       // Mock categories
@@ -335,7 +335,7 @@ describe('ImportService - Expenses', () => {
           name: 'Expense with Notes',
           amount: 50,
           frequency: 'weekly',
-          categoryId: 'cat-1',
+          categoryId: CAT_ENTERTAINMENT_ID,
           notes: 'Important notes here',
         },
       });
@@ -349,7 +349,7 @@ describe('ImportService - Expenses', () => {
         expect.objectContaining({
           notes: 'Important notes here',
         }),
-        'mock-token'
+        mockGetToken
       );
       expect(result.successes).toHaveLength(1);
     });
@@ -369,7 +369,7 @@ describe('ImportService - Expenses', () => {
       ];
 
       const categoryMap = new Map<string, string>([
-        ['test', 'cat-1'],
+        ['test', CAT_ENTERTAINMENT_ID],
       ]);
 
       // Mock categories
@@ -387,7 +387,7 @@ describe('ImportService - Expenses', () => {
 
       expect(result.successes).toHaveLength(0);
       expect(result.errors).toHaveLength(1);
-      expect(result.errors[0].fields[0].message).toBe('Database error');
+      expect(result.errors[0].error.error).toBe('Row 2: Database error');
     });
   });
 });

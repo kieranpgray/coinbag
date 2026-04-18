@@ -24,6 +24,11 @@ export const ROUTES = {
     scenarios: '/app/scenarios',
     budget: '/app/budget',
     transfers: '/app/transfers',
+    /**
+     * Allocate with inline edit open (`?edit=1`). Use only for explicit “adjust plan” CTAs
+     * (e.g. Recurring “Plan transfers”); default navigation uses `transfers`.
+     */
+    transfersEdit: (): string => '/app/transfers?edit=1',
     debug: '/app/debug',
 
     // Legacy redirects (for backward compatibility)
@@ -51,7 +56,6 @@ export const ROUTES = {
  */
 export const NAVIGATION_ITEMS = [
   { name: 'Overview', path: ROUTES.app.dashboard },
-  { name: 'Activity', path: ROUTES.app.accounts },
   { name: 'Holdings', path: ROUTES.app.wealth },
   { name: 'Recurring', path: ROUTES.app.budget },
   { name: 'Allocate', path: ROUTES.app.transfers },

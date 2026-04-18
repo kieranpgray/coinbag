@@ -12,7 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DatePicker } from '@/components/ui/date-picker';
 import { formatCurrency } from '@/lib/utils';
-import { Pencil, Trash2, Plus, Check, Loader2, AlertCircle, ArrowDown, ArrowUp } from 'lucide-react';
+import { Pencil, Trash2, Plus, Check, Loader2, AlertCircle, ArrowDown, ArrowUp, LayoutGrid } from 'lucide-react';
 import { format } from 'date-fns';
 import type { Expense, ExpenseFrequency } from '@/types/domain';
 import { convertToFrequency, normalizeToFrequency, type Frequency } from '../utils/frequencyConversion';
@@ -482,122 +482,194 @@ export function ExpenseList({
   }, [expenses, sortColumn, sortDirection, sortExpenses]);
 
   return (
-    <div className="rounded-md border border-border">
-      <Table className="table-fixed">
-        <TableHeader>
+    <Table variant="ds" className="table-fixed">
+      <TableHeader>
+        <TableRow>
+          <TableHead
+            className={cn(
+              'w-[20%] sortable',
+              sortColumn === 'name' && (sortDirection === 'asc' ? 'sort-asc' : 'sort-desc')
+            )}
+            aria-sort={sortColumn === 'name' ? (sortDirection === 'asc' ? 'ascending' : 'descending') : 'none'}
+          >
+            <button
+              type="button"
+              className="data-table-sort-btn"
+              onClick={() => handleSort('name')}
+              aria-label={`Sort by Name${sortColumn === 'name' ? (sortDirection === 'asc' ? ' (ascending)' : ' (descending)') : ''}`}
+            >
+              Name
+              <span
+                className={cn(
+                  'sort-icon',
+                  sortColumn === 'name' && sortDirection === 'asc' && 'asc',
+                  sortColumn === 'name' && sortDirection === 'desc' && 'desc'
+                )}
+              >
+                {sortColumn === 'name' && sortDirection === 'desc' && <ArrowDown className="h-3 w-3" aria-hidden />}
+                {sortColumn === 'name' && sortDirection === 'asc' && <ArrowUp className="h-3 w-3" aria-hidden />}
+              </span>
+            </button>
+          </TableHead>
+          <TableHead
+            className={cn(
+              'w-[15%] sortable',
+              sortColumn === 'category' && (sortDirection === 'asc' ? 'sort-asc' : 'sort-desc')
+            )}
+            aria-sort={sortColumn === 'category' ? (sortDirection === 'asc' ? 'ascending' : 'descending') : 'none'}
+          >
+            <button
+              type="button"
+              className="data-table-sort-btn"
+              onClick={() => handleSort('category')}
+              aria-label={`Sort by Category${sortColumn === 'category' ? (sortDirection === 'asc' ? ' (ascending)' : ' (descending)') : ''}`}
+            >
+              Category
+              <span
+                className={cn(
+                  'sort-icon',
+                  sortColumn === 'category' && sortDirection === 'asc' && 'asc',
+                  sortColumn === 'category' && sortDirection === 'desc' && 'desc'
+                )}
+              >
+                {sortColumn === 'category' && sortDirection === 'desc' && <ArrowDown className="h-3 w-3" aria-hidden />}
+                {sortColumn === 'category' && sortDirection === 'asc' && <ArrowUp className="h-3 w-3" aria-hidden />}
+              </span>
+            </button>
+          </TableHead>
+          <TableHead
+            className={cn(
+              'w-[12%] min-w-[6rem] text-right sortable',
+              sortColumn === 'amount' && (sortDirection === 'asc' ? 'sort-asc' : 'sort-desc')
+            )}
+            aria-sort={sortColumn === 'amount' ? (sortDirection === 'asc' ? 'ascending' : 'descending') : 'none'}
+          >
+            <button
+              type="button"
+              className="data-table-sort-btn"
+              onClick={() => handleSort('amount')}
+              aria-label={`Sort by Amount${sortColumn === 'amount' ? (sortDirection === 'asc' ? ' (ascending)' : ' (descending)') : ''}`}
+            >
+              Amount
+              <span
+                className={cn(
+                  'sort-icon',
+                  sortColumn === 'amount' && sortDirection === 'asc' && 'asc',
+                  sortColumn === 'amount' && sortDirection === 'desc' && 'desc'
+                )}
+              >
+                {sortColumn === 'amount' && sortDirection === 'desc' && <ArrowDown className="h-3 w-3" aria-hidden />}
+                {sortColumn === 'amount' && sortDirection === 'asc' && <ArrowUp className="h-3 w-3" aria-hidden />}
+              </span>
+            </button>
+          </TableHead>
+          <TableHead
+            className={cn(
+              'w-[12%] sortable',
+              sortColumn === 'frequency' && (sortDirection === 'asc' ? 'sort-asc' : 'sort-desc')
+            )}
+            aria-sort={sortColumn === 'frequency' ? (sortDirection === 'asc' ? 'ascending' : 'descending') : 'none'}
+          >
+            <button
+              type="button"
+              className="data-table-sort-btn"
+              onClick={() => handleSort('frequency')}
+              aria-label={`Sort by Frequency${sortColumn === 'frequency' ? (sortDirection === 'asc' ? ' (ascending)' : ' (descending)') : ''}`}
+            >
+              Frequency
+              <span
+                className={cn(
+                  'sort-icon',
+                  sortColumn === 'frequency' && sortDirection === 'asc' && 'asc',
+                  sortColumn === 'frequency' && sortDirection === 'desc' && 'desc'
+                )}
+              >
+                {sortColumn === 'frequency' && sortDirection === 'desc' && <ArrowDown className="h-3 w-3" aria-hidden />}
+                {sortColumn === 'frequency' && sortDirection === 'asc' && <ArrowUp className="h-3 w-3" aria-hidden />}
+              </span>
+            </button>
+          </TableHead>
+          <TableHead
+            className={cn(
+              'w-[15%] sortable',
+              sortColumn === 'nextDueDate' && (sortDirection === 'asc' ? 'sort-asc' : 'sort-desc')
+            )}
+            aria-sort={sortColumn === 'nextDueDate' ? (sortDirection === 'asc' ? 'ascending' : 'descending') : 'none'}
+          >
+            <button
+              type="button"
+              className="data-table-sort-btn"
+              onClick={() => handleSort('nextDueDate')}
+              aria-label={`Sort by Next Due Date${sortColumn === 'nextDueDate' ? (sortDirection === 'asc' ? ' (ascending)' : ' (descending)') : ''}`}
+            >
+              Next Due Date
+              <span
+                className={cn(
+                  'sort-icon',
+                  sortColumn === 'nextDueDate' && sortDirection === 'asc' && 'asc',
+                  sortColumn === 'nextDueDate' && sortDirection === 'desc' && 'desc'
+                )}
+              >
+                {sortColumn === 'nextDueDate' && sortDirection === 'desc' && <ArrowDown className="h-3 w-3" aria-hidden />}
+                {sortColumn === 'nextDueDate' && sortDirection === 'asc' && <ArrowUp className="h-3 w-3" aria-hidden />}
+              </span>
+            </button>
+          </TableHead>
+          <TableHead
+            className={cn(
+              'w-[15%] sortable',
+              sortColumn === 'paidFromAccountId' && (sortDirection === 'asc' ? 'sort-asc' : 'sort-desc')
+            )}
+            aria-sort={
+              sortColumn === 'paidFromAccountId' ? (sortDirection === 'asc' ? 'ascending' : 'descending') : 'none'
+            }
+          >
+            <button
+              type="button"
+              className="data-table-sort-btn"
+              onClick={() => handleSort('paidFromAccountId')}
+              aria-label={`Sort by Paid From${sortColumn === 'paidFromAccountId' ? (sortDirection === 'asc' ? ' (ascending)' : ' (descending)') : ''}`}
+            >
+              Paid From
+              <span
+                className={cn(
+                  'sort-icon',
+                  sortColumn === 'paidFromAccountId' && sortDirection === 'asc' && 'asc',
+                  sortColumn === 'paidFromAccountId' && sortDirection === 'desc' && 'desc'
+                )}
+              >
+                {sortColumn === 'paidFromAccountId' && sortDirection === 'desc' && (
+                  <ArrowDown className="h-3 w-3" aria-hidden />
+                )}
+                {sortColumn === 'paidFromAccountId' && sortDirection === 'asc' && (
+                  <ArrowUp className="h-3 w-3" aria-hidden />
+                )}
+              </span>
+            </button>
+          </TableHead>
+          <TableHead className="w-[10%] text-right">Actions</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {expenses.length === 0 ? (
           <TableRow>
-            <TableHead className="w-[20%]">
-              <button
-                type="button"
-                onClick={() => handleSort('name')}
-                className="flex items-center gap-2 hover:bg-muted/50 px-2 py-1 rounded transition-colors w-full text-left"
-                aria-label={`Sort by Name${sortColumn === 'name' ? (sortDirection === 'asc' ? ' (ascending)' : ' (descending)') : ''}`}
-                aria-sort={sortColumn === 'name' ? (sortDirection === 'asc' ? 'ascending' : 'descending') : 'none'}
-              >
-                Name
-                <span className="w-4 h-4 flex items-center justify-center flex-shrink-0">
-                  {sortColumn === 'name' && sortDirection === 'desc' && <ArrowDown className="w-3 h-3" />}
-                  {sortColumn === 'name' && sortDirection === 'asc' && <ArrowUp className="w-3 h-3" />}
-                </span>
-              </button>
-            </TableHead>
-            <TableHead className="w-[15%]">
-              <button
-                type="button"
-                onClick={() => handleSort('category')}
-                className="flex items-center gap-2 hover:bg-muted/50 px-2 py-1 rounded transition-colors w-full text-left"
-                aria-label={`Sort by Category${sortColumn === 'category' ? (sortDirection === 'asc' ? ' (ascending)' : ' (descending)') : ''}`}
-                aria-sort={sortColumn === 'category' ? (sortDirection === 'asc' ? 'ascending' : 'descending') : 'none'}
-              >
-                Category
-                <span className="w-4 h-4 flex items-center justify-center flex-shrink-0">
-                  {sortColumn === 'category' && sortDirection === 'desc' && <ArrowDown className="w-3 h-3" />}
-                  {sortColumn === 'category' && sortDirection === 'asc' && <ArrowUp className="w-3 h-3" />}
-                </span>
-              </button>
-            </TableHead>
-            <TableHead className="w-[12%] text-right min-w-[6rem]">
-              <button
-                type="button"
-                onClick={() => handleSort('amount')}
-                className="flex items-center gap-2 hover:bg-muted/50 px-2 py-1 rounded transition-colors w-full text-right justify-end"
-                aria-label={`Sort by Amount${sortColumn === 'amount' ? (sortDirection === 'asc' ? ' (ascending)' : ' (descending)') : ''}`}
-                aria-sort={sortColumn === 'amount' ? (sortDirection === 'asc' ? 'ascending' : 'descending') : 'none'}
-              >
-                Amount
-                <span className="w-4 h-4 flex items-center justify-center flex-shrink-0">
-                  {sortColumn === 'amount' && sortDirection === 'desc' && <ArrowDown className="w-3 h-3" />}
-                  {sortColumn === 'amount' && sortDirection === 'asc' && <ArrowUp className="w-3 h-3" />}
-                </span>
-              </button>
-            </TableHead>
-            <TableHead className="w-[12%]">
-              <button
-                type="button"
-                onClick={() => handleSort('frequency')}
-                className="flex items-center gap-2 hover:bg-muted/50 px-2 py-1 rounded transition-colors w-full text-left"
-                aria-label={`Sort by Frequency${sortColumn === 'frequency' ? (sortDirection === 'asc' ? ' (ascending)' : ' (descending)') : ''}`}
-                aria-sort={sortColumn === 'frequency' ? (sortDirection === 'asc' ? 'ascending' : 'descending') : 'none'}
-              >
-                Frequency
-                <span className="w-4 h-4 flex items-center justify-center flex-shrink-0">
-                  {sortColumn === 'frequency' && sortDirection === 'desc' && <ArrowDown className="w-3 h-3" />}
-                  {sortColumn === 'frequency' && sortDirection === 'asc' && <ArrowUp className="w-3 h-3" />}
-                </span>
-              </button>
-            </TableHead>
-            <TableHead className="w-[15%]">
-              <button
-                type="button"
-                onClick={() => handleSort('nextDueDate')}
-                className="flex items-center gap-2 hover:bg-muted/50 px-2 py-1 rounded transition-colors w-full text-left"
-                aria-label={`Sort by Next Due Date${sortColumn === 'nextDueDate' ? (sortDirection === 'asc' ? ' (ascending)' : ' (descending)') : ''}`}
-                aria-sort={sortColumn === 'nextDueDate' ? (sortDirection === 'asc' ? 'ascending' : 'descending') : 'none'}
-              >
-                Next Due Date
-                <span className="w-4 h-4 flex items-center justify-center flex-shrink-0">
-                  {sortColumn === 'nextDueDate' && sortDirection === 'desc' && <ArrowDown className="w-3 h-3" />}
-                  {sortColumn === 'nextDueDate' && sortDirection === 'asc' && <ArrowUp className="w-3 h-3" />}
-                </span>
-              </button>
-            </TableHead>
-            <TableHead className="w-[15%]">
-              <button
-                type="button"
-                onClick={() => handleSort('paidFromAccountId')}
-                className="flex items-center gap-2 hover:bg-muted/50 px-2 py-1 rounded transition-colors w-full text-left"
-                aria-label={`Sort by Paid From${sortColumn === 'paidFromAccountId' ? (sortDirection === 'asc' ? ' (ascending)' : ' (descending)') : ''}`}
-                aria-sort={sortColumn === 'paidFromAccountId' ? (sortDirection === 'asc' ? 'ascending' : 'descending') : 'none'}
-              >
-                Paid From
-                <span className="w-4 h-4 flex items-center justify-center flex-shrink-0">
-                  {sortColumn === 'paidFromAccountId' && sortDirection === 'desc' && <ArrowDown className="w-3 h-3" />}
-                  {sortColumn === 'paidFromAccountId' && sortDirection === 'asc' && <ArrowUp className="w-3 h-3" />}
-                </span>
-              </button>
-            </TableHead>
-            <TableHead className="w-[10%] text-right">Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {expenses.length === 0 ? (
-            <TableRow>
-              <TableCell colSpan={7} className="text-center py-12">
-                <div className="flex flex-col items-center gap-4">
-                  <div className="text-muted-foreground">
-                    No expenses found. Add your first expense to start tracking your spending.
-                  </div>
-                  <Button
-                    onClick={onCreate}
-                    size="sm"
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Your First Expense
-                  </Button>
+            <TableCell colSpan={7} className="p-0">
+              <div className="empty-state-table">
+                <div className="empty-state-icon">
+                  <LayoutGrid className="h-5 w-5 text-[var(--ink-3)]" strokeWidth={1.5} aria-hidden />
                 </div>
-              </TableCell>
-            </TableRow>
-          ) : (
+                <div className="empty-state-title">No expenses yet.</div>
+                <div className="empty-state-body">
+                  Add your first expense to start tracking your spending.
+                </div>
+                <Button onClick={onCreate} size="sm" className="mx-auto flex">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Your First Expense
+                </Button>
+              </div>
+            </TableCell>
+          </TableRow>
+        ) : (
             sortedExpenses.map((expense: Expense) => {
               const isRowEditing = editingCell?.expenseId === expense.id;
               const displayAmount = displayFrequency
@@ -615,19 +687,12 @@ export function ExpenseList({
               const currentPaidFromAccountId = getCellValue(expense, 'paidFromAccountId') as string | undefined;
               
               return (
-                <TableRow
-                  key={expense.id}
-                  className={cn(
-                    "hover:bg-muted/50",
-                    isRowEditing && "bg-muted/20"
-                  )}
-                >
+                <TableRow key={expense.id} className={cn(isRowEditing && 'selected')}>
                   {/* Name Cell */}
                   <TableCell
                     className={cn(
-                      "font-medium px-3 py-2 cursor-pointer transition-colors",
-                      "hover:bg-muted/30",
-                      isEditing(expense.id, 'name') && "bg-primary/5 ring-2 ring-primary/30 transition-all duration-150"
+                      'cursor-pointer transition-colors',
+                      isEditing(expense.id, 'name') && 'bg-primary/5 ring-2 ring-primary/30 ring-inset transition-all duration-150'
                     )}
                     onClick={(e) => handleCellClick(expense.id, 'name', e)}
                   >
@@ -657,7 +722,7 @@ export function ExpenseList({
                       </div>
                     ) : (
                       <div className="flex items-center gap-2 min-w-0">
-                        <span className="truncate">{currentName}</span>
+                        <span className="truncate font-medium text-[color:var(--ink)]">{currentName}</span>
                         {isSaving(expense.id, 'name') && <Loader2 className="h-3 w-3 animate-spin text-muted-foreground flex-shrink-0" />}
                         {isSaved(expense.id, 'name') && <Check className="h-3 w-3 text-green-600 flex-shrink-0" />}
                       </div>
@@ -667,9 +732,8 @@ export function ExpenseList({
                   {/* Category Cell */}
                   <TableCell
                     className={cn(
-                      "px-3 py-2 cursor-pointer transition-colors",
-                      "hover:bg-muted/30",
-                      isEditing(expense.id, 'categoryId') && "bg-primary/5 ring-2 ring-primary/30 transition-all duration-150"
+                      'cursor-pointer transition-colors',
+                      isEditing(expense.id, 'categoryId') && 'bg-primary/5 ring-2 ring-primary/30 ring-inset transition-all duration-150'
                     )}
                     onClick={(e) => handleCellClick(expense.id, 'categoryId', e)}
                   >
@@ -715,9 +779,8 @@ export function ExpenseList({
                   {/* Amount Cell */}
                   <TableCell
                     className={cn(
-                      "text-right px-3 py-2 cursor-pointer transition-colors",
-                      "hover:bg-muted/30",
-                      isEditing(expense.id, 'amount') && "bg-primary/5 ring-2 ring-primary/30 transition-all duration-150"
+                      'num cursor-pointer transition-colors',
+                      isEditing(expense.id, 'amount') && 'bg-primary/5 ring-2 ring-primary/30 ring-inset transition-all duration-150'
                     )}
                     onClick={(e) => handleCellClick(expense.id, 'amount', e)}
                   >
@@ -759,9 +822,8 @@ export function ExpenseList({
                   {/* Frequency Cell */}
                   <TableCell
                     className={cn(
-                      "px-3 py-2 cursor-pointer transition-colors",
-                      "hover:bg-muted/30",
-                      isEditing(expense.id, 'frequency') && "bg-primary/5 ring-2 ring-primary/30 transition-all duration-150"
+                      'cursor-pointer transition-colors',
+                      isEditing(expense.id, 'frequency') && 'bg-primary/5 ring-2 ring-primary/30 ring-inset transition-all duration-150'
                     )}
                     onClick={(e) => handleCellClick(expense.id, 'frequency', e)}
                   >
@@ -807,9 +869,8 @@ export function ExpenseList({
                   {/* Next Due Date Cell */}
                   <TableCell
                     className={cn(
-                      "px-3 py-2 cursor-pointer transition-colors",
-                      "hover:bg-muted/30",
-                      isEditing(expense.id, 'nextDueDate') && "bg-primary/5 ring-2 ring-primary/30 transition-all duration-150"
+                      'cursor-pointer transition-colors',
+                      isEditing(expense.id, 'nextDueDate') && 'bg-primary/5 ring-2 ring-primary/30 ring-inset transition-all duration-150'
                     )}
                     onClick={(e) => handleCellClick(expense.id, 'nextDueDate', e)}
                   >
@@ -848,9 +909,8 @@ export function ExpenseList({
                   {/* Paid From Cell */}
                   <TableCell
                     className={cn(
-                      "px-3 py-2 cursor-pointer transition-colors",
-                      "hover:bg-muted/30",
-                      isEditing(expense.id, 'paidFromAccountId') && "bg-primary/5 ring-2 ring-primary/30 transition-all duration-150"
+                      'cursor-pointer transition-colors',
+                      isEditing(expense.id, 'paidFromAccountId') && 'bg-primary/5 ring-2 ring-primary/30 ring-inset transition-all duration-150'
                     )}
                     onClick={(e) => handleCellClick(expense.id, 'paidFromAccountId', e)}
                   >
@@ -884,24 +944,24 @@ export function ExpenseList({
                   </TableCell>
 
                   {/* Actions Cell */}
-                  <TableCell className="text-right px-3 py-2" onClick={(e) => e.stopPropagation()}>
-                    <div className="flex justify-end gap-2">
-                      <Button
-                        variant="ghost"
-                        size="icon"
+                  <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
+                    <div className="table-row-actions">
+                      <button
+                        type="button"
+                        className="table-action-btn"
                         onClick={() => onEdit(expense)}
                         aria-label={`Edit ${expense.name}`}
                       >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
+                        <Pencil className="h-3 w-3" strokeWidth={2} aria-hidden />
+                      </button>
+                      <button
+                        type="button"
+                        className="table-action-btn danger"
                         onClick={() => onDelete(expense)}
                         aria-label={`Delete ${expense.name}`}
                       >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                        <Trash2 className="h-3 w-3" strokeWidth={2} aria-hidden />
+                      </button>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -909,7 +969,6 @@ export function ExpenseList({
             })
           )}
         </TableBody>
-      </Table>
-    </div>
+    </Table>
   );
 }

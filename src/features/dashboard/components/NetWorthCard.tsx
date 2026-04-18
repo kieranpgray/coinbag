@@ -4,7 +4,6 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Link } from 'react-router-dom';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { parseISO, subDays, startOfYear } from 'date-fns';
 import { 
   useNetWorthHistory, 
@@ -171,6 +170,13 @@ export const NetWorthCard = memo(function NetWorthCard({
     return sampleByTimePeriod(filtered, timePeriod);
   }, [historyData, timePeriod]);
 
+  const timePeriodSubtitle = useMemo(() => {
+    if (timePeriod === '30d') return t('netWorth.timeRange30d');
+    if (timePeriod === '90d') return t('netWorth.timeRange90d');
+    if (timePeriod === '5y') return t('netWorth.timeRange5y');
+    return t('netWorth.timeRange1y');
+  }, [timePeriod, t]);
+
   if (isLoading) {
     return (
       <Card className="border border-border">
@@ -179,7 +185,7 @@ export const NetWorthCard = memo(function NetWorthCard({
             <Skeleton className="h-6 w-32 mb-4" />
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div className="md:col-span-3">
-                <Skeleton className="h-[300px] w-full" />
+                <div className="chart-skeleton h-[200px] md:h-[300px] w-full" />
               </div>
               <div className="md:col-span-1">
                 <Skeleton className="h-32 w-full" />
@@ -196,7 +202,7 @@ export const NetWorthCard = memo(function NetWorthCard({
       <Card className="border border-border">
         <CardContent className="p-0">
           <div className="p-4">
-            <h2 className="text-h2-sm sm:text-h2-md lg:text-h2-lg font-medium text-foreground mb-2">Net Worth</h2>
+            <h2 className="display-sm mb-2">{t('netWorth.title')}</h2>
             <p className="text-body font-medium text-foreground mb-2">
               {t('emptyStates.netWorthNoHoldings.headline')}
             </p>
@@ -217,25 +223,54 @@ export const NetWorthCard = memo(function NetWorthCard({
       <CardContent className="p-0">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4">
           <div className="md:col-span-3 order-2 md:order-1">
-            <div className="rounded-[var(--rl)] bg-[var(--paper-2)] chart-container">
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between mb-4 chart-header">
+            <div className="chart-container chart-container--in-card">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between chart-header">
                 <div>
-                  <h2 className="text-h2-sm sm:text-h2-md lg:text-h2-lg font-medium text-foreground">
-                    Net Worth
-                  </h2>
+                  <div className="chart-title">{t('netWorth.title')}</div>
+                  <div className="chart-subtitle">{timePeriodSubtitle}</div>
                 </div>
-                <Tabs
-                  value={timePeriod}
-                  onValueChange={(value) => setTimePeriod(value as NetWorthTimePeriod)}
-                  aria-label="Select time period for net worth chart"
+                <div
+                  className="chart-time-tabs"
+                  role="tablist"
+                  aria-label={t('netWorth.timeRangeAria')}
                 >
-                  <TabsList className="w-full sm:w-auto">
-                    <TabsTrigger value="30d">30d</TabsTrigger>
-                    <TabsTrigger value="90d">90d</TabsTrigger>
-                    <TabsTrigger value="1y">1y</TabsTrigger>
-                    <TabsTrigger value="5y">5y</TabsTrigger>
-                  </TabsList>
-                </Tabs>
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={timePeriod === '30d'}
+                    className={`chart-time-tab ${timePeriod === '30d' ? 'active' : ''}`}
+                    onClick={() => setTimePeriod('30d')}
+                  >
+                    30d
+                  </button>
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={timePeriod === '90d'}
+                    className={`chart-time-tab ${timePeriod === '90d' ? 'active' : ''}`}
+                    onClick={() => setTimePeriod('90d')}
+                  >
+                    90d
+                  </button>
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={timePeriod === '1y'}
+                    className={`chart-time-tab ${timePeriod === '1y' ? 'active' : ''}`}
+                    onClick={() => setTimePeriod('1y')}
+                  >
+                    1y
+                  </button>
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={timePeriod === '5y'}
+                    className={`chart-time-tab ${timePeriod === '5y' ? 'active' : ''}`}
+                    onClick={() => setTimePeriod('5y')}
+                  >
+                    5y
+                  </button>
+                </div>
               </div>
               <NetWorthChart
                 data={filteredHistoryData}

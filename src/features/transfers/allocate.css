@@ -1,0 +1,1274 @@
+/*
+ * Allocate page styles — scoped under `.allocate-page`
+ *
+ * Source of truth: design-system-v3.html Allocate section
+ * (all DS v3 component rules ported and prefixed here for isolation).
+ *
+ * Timezone rule: cycle dates use local calendar (date-fns, start-of-day in user's TZ).
+ * Opacity 0.72 for plan-stack applies to BOTH upcoming and past states (DS v3 spec).
+ * Mobile breakpoint: ≤768px — prev/next date slots and badge hidden.
+ */
+
+/* ── Page shell ────────────────────────────────────────────────────────────── */
+
+.allocate-page {
+  background: var(--paper-2, #f2f0eb);
+  min-height: 100%;
+}
+
+/* Sticky header (Layer 1) */
+.allocate-page .page-header {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sticky, 10);
+  background: rgba(250, 249, 247, 0.94);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--paper-3, #e8e5de);
+  padding: 0 32px;
+  height: var(--nav-h, 64px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.allocate-page .page-header-left {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.allocate-page .page-title {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--ink, #0f0e0c);
+  line-height: 1.3;
+}
+
+.allocate-page .page-sub {
+  font-size: 13px;
+  color: var(--ink-3, #7a776e);
+  font-weight: 300;
+}
+
+.allocate-page .page-sub-edit {
+  font-size: 13px;
+  color: var(--color-primary);
+  font-weight: 400;
+  display: none;
+}
+
+.allocate-page .page-sub-edit.visible {
+  display: block;
+}
+
+.allocate-page .page-sub.hidden {
+  display: none;
+}
+
+.allocate-page .page-header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ── Button variants (scoped — do not leak globally) ──────────────────────── */
+
+.allocate-page .btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink-2, #3d3b36);
+  background: none;
+  border: 1px solid var(--paper-3, #e8e5de);
+  border-radius: 100px;
+  padding: 7px 14px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.15s;
+  white-space: nowrap;
+  font-family: var(--sans);
+}
+
+.allocate-page .btn-ghost:hover {
+  border-color: var(--ink-4, #b5b2aa);
+  color: var(--ink, #0f0e0c);
+}
+
+.allocate-page .btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #fff;
+  background: var(--color-primary);
+  border: none;
+  border-radius: 100px;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: background 0.15s;
+  font-family: var(--sans);
+}
+
+.allocate-page .btn-primary:hover {
+  background: var(--color-primary-gradient-end);
+}
+
+.allocate-page .btn-sm {
+  padding: 6px 14px !important;
+  font-size: 12px !important;
+}
+
+/* ── Cycle strip (Layer 2) ────────────────────────────────────────────────── */
+
+.allocate-page .cycle-strip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 32px;
+  background: var(--paper, #faf9f7);
+  border-bottom: 1px solid var(--paper-3, #e8e5de);
+  height: 52px;
+  position: relative;
+}
+
+.allocate-page .cycle-strip-nav {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.allocate-page .cycle-strip-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid var(--paper-3, #e8e5de);
+  background: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink-3, #7a776e);
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+
+.allocate-page .cycle-strip-btn:hover {
+  border-color: var(--ink-4, #b5b2aa);
+  color: var(--ink, #0f0e0c);
+}
+
+.allocate-page .cycle-strip-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.allocate-page .cycle-dates {
+  display: flex;
+  align-items: center;
+}
+
+.allocate-page .cycle-date-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  padding: 0 20px;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.allocate-page .cycle-date-item.prev,
+.allocate-page .cycle-date-item.next {
+  opacity: 0.38;
+}
+
+.allocate-page .cycle-date-item.prev:hover,
+.allocate-page .cycle-date-item.next:hover {
+  opacity: 0.62;
+}
+
+.allocate-page .cycle-date-divider {
+  width: 1px;
+  height: 28px;
+  background: var(--paper-3, #e8e5de);
+  flex-shrink: 0;
+}
+
+.allocate-page .cycle-date-label {
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-4, #b5b2aa);
+}
+
+.allocate-page .cycle-date-item.current .cycle-date-label {
+  color: var(--color-primary);
+}
+
+.allocate-page .cycle-date-value {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--ink-3, #7a776e);
+}
+
+.allocate-page .cycle-date-item.current .cycle-date-value {
+  font-weight: 500;
+  color: var(--ink, #0f0e0c);
+}
+
+.allocate-page .cycle-strip-badge {
+  position: absolute;
+  right: 32px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 3px 10px;
+  border-radius: 100px;
+}
+
+.allocate-page .cycle-strip-badge.active {
+  background: var(--accent-light, #e8f2ec);
+  color: var(--color-primary);
+}
+
+.allocate-page .cycle-strip-badge.muted {
+  background: var(--paper-2, #f2f0eb);
+  color: var(--ink-3, #7a776e);
+  border: 1px solid var(--paper-3, #e8e5de);
+}
+
+.allocate-page .badge-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.allocate-page .badge-dot.green {
+  background: var(--color-primary);
+}
+
+.allocate-page .badge-dot.grey {
+  background: var(--ink-4, #b5b2aa);
+}
+
+/* ── Page content column (Layer 3) ───────────────────────────────────────── */
+
+.allocate-page .page-content {
+  padding: 28px 32px 80px;
+}
+
+.allocate-page .plan-col {
+  max-width: 620px;
+  margin: 0 auto;
+}
+
+/* ── Edit panel ───────────────────────────────────────────────────────────── */
+
+.allocate-page .edit-panel {
+  background: var(--accent-light, #e8f2ec);
+  border: 1px solid rgba(26, 92, 58, 0.18);
+  border-radius: var(--rl, 12px);
+  padding: 20px;
+  margin-bottom: 16px;
+  display: none;
+}
+
+.allocate-page .edit-panel.open {
+  display: block;
+}
+
+.allocate-page .edit-panel-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-primary);
+  margin-bottom: 16px;
+}
+
+.allocate-page .edit-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.allocate-page .edit-field-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink-2, #3d3b36);
+  margin-bottom: 5px;
+}
+
+.allocate-page .edit-field-input {
+  width: 100%;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-family: var(--sans);
+  color: var(--ink, #0f0e0c);
+  background: #fff;
+  border: 1px solid rgba(26, 92, 58, 0.2);
+  border-radius: var(--rl, 12px);
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  appearance: none;
+}
+
+.allocate-page .edit-field-input:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--focus-ring, rgba(26, 92, 58, 0.22));
+}
+
+.allocate-page .edit-note {
+  font-size: 12px;
+  color: var(--ink-3, #7a776e);
+  font-weight: 300;
+  margin-bottom: 14px;
+  line-height: 1.6;
+}
+
+.allocate-page .edit-note a {
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+.allocate-page .edit-note a:hover {
+  text-decoration: underline;
+}
+
+.allocate-page .edit-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+/* ── Edit panel — form control overrides ─────────────────────────────────── */
+/* Non-layered CSS wins over Tailwind @layer utilities without !important.
+   Rules are split by element type: inputs preserve component right-padding
+   (e.g. DatePicker adds pr-20 for the calendar button clearance), while
+   button triggers are fully overridden. */
+
+.allocate-page .edit-panel .edit-fields label {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink-2, #3d3b36);
+  margin-bottom: 5px;
+  line-height: 1.4;
+}
+
+/* Text inputs — intentionally NOT overriding padding-inline-end so that
+   DatePicker's conditional pr-20 (calendar button clearance) is preserved. */
+.allocate-page .edit-panel .edit-fields input {
+  min-height: unset;
+  height: auto;
+  width: 100%;
+  padding-block: 8px;
+  padding-inline-start: 12px;
+  font-size: 13px;
+  font-family: var(--sans, 'DM Sans', system-ui, sans-serif);
+  color: var(--ink, #0f0e0c);
+  background: #fff;
+  border: 1px solid rgba(26, 92, 58, 0.2);
+  border-radius: var(--rl, 12px);
+  box-shadow: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  appearance: none;
+}
+
+/* Select / combobox triggers (shadcn SelectTrigger + AccountSelect button) */
+.allocate-page .edit-panel .edit-fields button[role="combobox"] {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: unset;
+  height: auto;
+  width: 100%;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-family: var(--sans, 'DM Sans', system-ui, sans-serif);
+  color: var(--ink, #0f0e0c);
+  background: #fff;
+  border: 1px solid rgba(26, 92, 58, 0.2);
+  border-radius: var(--rl, 12px);
+  box-shadow: none;
+  text-align: left;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+/* Fix Radix SelectValue span: [&>span]:line-clamp-1 on SelectTrigger forces
+   display:-webkit-box which can misalign the placeholder text vertically.
+   Reset to standard block with flex truncation instead. */
+.allocate-page .edit-panel .edit-fields button[role="combobox"] > span:first-child {
+  display: block;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.allocate-page .edit-panel .edit-fields input:focus,
+.allocate-page .edit-panel .edit-fields button[role="combobox"]:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--focus-ring, rgba(26, 92, 58, 0.22));
+  outline: none;
+}
+
+/* ── Upcoming banner ──────────────────────────────────────────────────────── */
+
+.allocate-page .upcoming-banner {
+  background: var(--paper, #faf9f7);
+  border: 1px solid var(--paper-3, #e8e5de);
+  border-radius: var(--rl, 12px);
+  padding: 16px 18px;
+  display: none;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.allocate-page .upcoming-banner.show {
+  display: flex;
+}
+
+.allocate-page .upcoming-banner-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--paper-2, #f2f0eb);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--ink-3, #7a776e);
+}
+
+.allocate-page .upcoming-banner-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink, #0f0e0c);
+}
+
+.allocate-page .upcoming-banner-sub {
+  font-size: 12px;
+  color: var(--ink-3, #7a776e);
+  font-weight: 300;
+  margin-top: 2px;
+}
+
+.allocate-page .upcoming-banner-sub-preview {
+  font-size: 11px;
+  color: var(--ink-4, #b5b2aa);
+  font-weight: 300;
+  margin-top: 3px;
+}
+
+/* ── Plan stack ───────────────────────────────────────────────────────────── */
+
+.allocate-page .plan-stack {
+  border-radius: var(--rl, 12px);
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgba(15, 14, 12, 0.06), 0 1px 3px rgba(15, 14, 12, 0.04);
+  transition: opacity 0.2s ease;
+}
+
+.allocate-page .plan-stack.dimmed {
+  opacity: 0.72;
+}
+
+/* Reset child border-radius so stack controls outer corners */
+.allocate-page .plan-stack > * {
+  border-radius: 0 !important;
+}
+
+.allocate-page .plan-stack > *:last-child {
+  border-radius: 0 0 var(--rl, 12px) var(--rl, 12px) !important;
+}
+
+/* ── Income card ──────────────────────────────────────────────────────────── */
+
+.allocate-page .income-card {
+  background: var(--color-primary);
+  padding: 20px 22px 22px;
+  color: #fff;
+  position: relative;
+  overflow: hidden;
+  border-radius: 0;
+}
+
+.allocate-page .income-card::before {
+  content: '';
+  position: absolute;
+  top: -50px;
+  right: -50px;
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.04);
+  pointer-events: none;
+}
+
+.allocate-page .income-card::after {
+  content: '';
+  position: absolute;
+  bottom: -30px;
+  left: 30%;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.02);
+  pointer-events: none;
+}
+
+.allocate-page .income-card-label {
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: rgba(255, 255, 255, 0.6);
+  margin-bottom: 6px;
+}
+
+.allocate-page .income-card-amount-lg {
+  font-family: var(--serif, 'Instrument Serif', Georgia, serif);
+  font-size: 38px;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  margin-bottom: 8px;
+  font-variant-numeric: tabular-nums;
+}
+
+.allocate-page .income-card-source {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.68);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.allocate-page .income-card-source-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.4);
+  flex-shrink: 0;
+}
+
+.allocate-page .income-card-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.52);
+  margin-top: 6px;
+  padding-left: 11px;
+  text-decoration: none;
+  transition: color 0.15s;
+  cursor: pointer;
+}
+
+.allocate-page .income-card-secondary:hover {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.allocate-page .income-card-secondary svg {
+  flex-shrink: 0;
+  opacity: 0.6;
+}
+
+/* ── Plan section ─────────────────────────────────────────────────────────── */
+
+.allocate-page .plan-section {
+  background: #fff;
+  border: 1px solid var(--paper-3, #e8e5de);
+  border-top: none;
+  overflow: hidden;
+}
+
+.allocate-page .plan-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 18px 11px;
+  border-bottom: 1px solid var(--paper-3, #e8e5de);
+  background: var(--paper, #faf9f7);
+}
+
+.allocate-page .plan-section-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-3, #7a776e);
+}
+
+.allocate-page .plan-section-total {
+  font-family: var(--serif, 'Instrument Serif', Georgia, serif);
+  font-size: 16px;
+  letter-spacing: -0.01em;
+  color: var(--ink, #0f0e0c);
+  font-variant-numeric: tabular-nums;
+}
+
+.allocate-page .plan-section-total.surplus-total {
+  color: var(--color-primary);
+  font-size: 19px;
+}
+
+.allocate-page .plan-section-total.shortfall-total {
+  color: var(--danger, #c0392b);
+  font-size: 19px;
+}
+
+/* ── Tooltip icon ─────────────────────────────────────────────────────────── */
+
+.allocate-page .tooltip-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 1px solid var(--paper-3, #e8e5de);
+  color: var(--ink-4, #b5b2aa);
+  font-size: 9px;
+  font-weight: 500;
+  font-style: normal;
+  cursor: default;
+  font-family: var(--sans);
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.allocate-page .tooltip-icon:hover {
+  border-color: var(--ink-3, #7a776e);
+  color: var(--ink-3, #7a776e);
+}
+
+/* ── Commitment rows ──────────────────────────────────────────────────────── */
+
+.allocate-page .commitment-row {
+  display: grid;
+  grid-template-columns: 34px 1fr minmax(90px, 120px) auto;
+  gap: 12px;
+  padding: 13px 18px;
+  align-items: center;
+  border-bottom: 1px solid var(--paper-3, #e8e5de);
+  transition: background 0.1s;
+}
+
+.allocate-page .commitment-row:last-child {
+  border-bottom: none;
+}
+
+.allocate-page .commitment-row:hover {
+  background: var(--paper, #faf9f7);
+}
+
+.allocate-page .commitment-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  flex-shrink: 0;
+}
+
+/* Category icon backgrounds */
+.allocate-page .commitment-icon-housing {
+  background: var(--danger-light, #fdecea);
+}
+
+.allocate-page .commitment-icon-savings {
+  background: var(--accent-light, #e8f2ec);
+}
+
+.allocate-page .commitment-icon-investments {
+  background: #e8f0fe;
+}
+
+.allocate-page .commitment-icon-utilities {
+  background: var(--gold-light, #f7f0e0);
+}
+
+.allocate-page .commitment-icon-transport {
+  background: var(--paper-2, #f2f0eb);
+  border: 1px solid var(--paper-3, #e8e5de);
+}
+
+.allocate-page .commitment-icon-repayments {
+  background: var(--danger-light, #fdecea);
+}
+
+.allocate-page .commitment-icon-default {
+  background: var(--paper-2, #f2f0eb);
+  border: 1px solid var(--paper-3, #e8e5de);
+}
+
+.allocate-page .commitment-icon-subscriptions {
+  background: #e8f0fe;
+}
+
+.allocate-page .commitment-icon-health {
+  background: #fce8f3;
+}
+
+.allocate-page .commitment-info {
+  min-width: 0;
+}
+
+.allocate-page .commitment-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink, #0f0e0c);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.allocate-page .commitment-meta {
+  font-size: 11px;
+  color: var(--ink-4, #b5b2aa);
+  font-weight: 300;
+  margin-top: 1px;
+}
+
+.allocate-page .commitment-amount {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink-2, #3d3b36);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.allocate-page .commitment-amount.muted {
+  color: var(--ink-4, #b5b2aa);
+  font-weight: 300;
+}
+
+/* ── Commitment progress bars ─────────────────────────────────────────────── */
+/* fillBar keyframe name matches DS v3 naming convention.                      */
+/* Defined top-level — @keyframes cannot be scoped to a parent selector.       */
+@keyframes fillBar { from { width: 0; } to { width: var(--pct, 0%); } }
+
+.allocate-page .alloc-bar-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.allocate-page .alloc-bar {
+  height: 4px;
+  background: var(--paper-3, #e8e5de);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.allocate-page .alloc-bar-fill {
+  height: 100%;
+  border-radius: 2px;
+  background: var(--color-primary);
+  width: 0;
+  animation: fillBar 1.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  animation-delay: var(--d, 0s);
+}
+
+.allocate-page .alloc-bar-fill.muted {
+  background: var(--paper-3, #e8e5de);
+  animation: none;
+  width: var(--pct, 0%);
+}
+
+.allocate-page .alloc-bar-pct {
+  font-size: 10px;
+  color: var(--ink-4, #b5b2aa);
+  white-space: nowrap;
+}
+
+/* ── Surplus section ──────────────────────────────────────────────────────── */
+
+.allocate-page .surplus-section {
+  background: #fff;
+  border: 1px solid var(--paper-3, #e8e5de);
+  border-top: none;
+  border-radius: 0 0 var(--rl, 12px) var(--rl, 12px) !important;
+  overflow: hidden;
+}
+
+/* Shortfall alert */
+.allocate-page .shortfall-alert {
+  margin: 14px 18px;
+  padding: 10px 13px;
+  background: var(--danger-light, #fdecea);
+  border: 1px solid rgba(192, 57, 43, 0.18);
+  border-radius: var(--rl, 12px);
+  font-size: 13px;
+  color: var(--danger, #c0392b);
+  line-height: 1.6;
+}
+
+.allocate-page .shortfall-alert a {
+  color: var(--danger, #c0392b);
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.allocate-page .shortfall-alert a:hover {
+  text-decoration: underline;
+}
+
+/* Sub-state: Destination set */
+.allocate-page .surplus-destination-row {
+  padding: 16px 18px 18px;
+}
+
+.allocate-page .surplus-dest-label {
+  font-size: 13px;
+  color: var(--ink-2, #3d3b36);
+  font-weight: 400;
+  margin-bottom: 8px;
+}
+
+.allocate-page .surplus-dest-label strong {
+  color: var(--ink, #0f0e0c);
+  font-weight: 500;
+}
+
+.allocate-page .surplus-dest-amount-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.allocate-page .surplus-destination-row .surplus-amount {
+  font-family: var(--serif, 'Instrument Serif', Georgia, serif);
+  font-size: 28px;
+  letter-spacing: -0.02em;
+  color: var(--color-primary);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.allocate-page .surplus-destination-row .surplus-amount.shortfall {
+  color: var(--danger, #c0392b);
+}
+
+.allocate-page .surplus-helper {
+  font-size: 11px;
+  color: var(--ink-4, #b5b2aa);
+  font-weight: 300;
+  text-align: right;
+  padding-bottom: 2px;
+  line-height: 1.5;
+  max-width: 200px;
+}
+
+.allocate-page .surplus-change-link {
+  font-size: 12px;
+  color: var(--color-primary);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 10px;
+  transition: opacity 0.15s;
+}
+
+.allocate-page .surplus-change-link:hover {
+  opacity: 0.7;
+}
+
+/* Sub-state: No destination */
+.allocate-page .surplus-no-destination-wrap {
+  padding: 16px 18px 18px;
+}
+
+.allocate-page .surplus-prompt {
+  background: var(--paper, #faf9f7);
+  border: 1px dashed var(--paper-3, #e8e5de);
+  border-radius: var(--rl, 12px);
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.allocate-page .surplus-prompt-question {
+  font-size: 13px;
+  color: var(--ink-3, #7a776e);
+  font-weight: 300;
+}
+
+.allocate-page .surplus-prompt-amount {
+  font-family: var(--serif, 'Instrument Serif', Georgia, serif);
+  font-size: 26px;
+  color: var(--ink, #0f0e0c);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  margin-top: 4px;
+}
+
+.allocate-page .surplus-prompt-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--accent-light, #e8f2ec);
+  color: var(--color-primary);
+  border: 1px solid rgba(26, 92, 58, 0.2);
+  border-radius: 100px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: var(--sans);
+  transition: background 0.15s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.allocate-page .surplus-prompt-cta:hover {
+  background: #d4ead9;
+}
+
+/* ── Destination picker ───────────────────────────────────────────────────── */
+
+.allocate-page .dest-picker {
+  border-top: 1px solid var(--paper-3, #e8e5de);
+  padding: 16px 18px 18px;
+  display: none;
+}
+
+.allocate-page .dest-picker.open {
+  display: block;
+}
+
+.allocate-page .dest-picker-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink-3, #7a776e);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 10px;
+}
+
+.allocate-page .dest-options {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.allocate-page .dest-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 14px;
+  border: 1px solid var(--paper-3, #e8e5de);
+  border-radius: var(--rl, 12px);
+  cursor: pointer;
+  background: var(--paper, #faf9f7);
+  transition: all 0.15s;
+}
+
+.allocate-page .dest-option:hover,
+.allocate-page .dest-option.selected {
+  border-color: var(--color-primary);
+  background: var(--accent-light, #e8f2ec);
+}
+
+.allocate-page .dest-option-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: #fff;
+  border: 1px solid var(--paper-3, #e8e5de);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.allocate-page .dest-option-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink, #0f0e0c);
+}
+
+.allocate-page .dest-option-type {
+  font-size: 11px;
+  color: var(--ink-3, #7a776e);
+  font-weight: 300;
+  margin-top: 1px;
+}
+
+.allocate-page .dest-add-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 14px;
+  font-size: 13px;
+  color: var(--color-primary);
+  text-decoration: none;
+  transition: opacity 0.15s;
+  margin-bottom: 10px;
+}
+
+.allocate-page .dest-add-link:hover {
+  opacity: 0.7;
+}
+
+.allocate-page .dest-confirm-note {
+  font-size: 12px;
+  color: var(--ink-4, #b5b2aa);
+  font-weight: 300;
+  line-height: 1.6;
+  margin-bottom: 12px;
+}
+
+.allocate-page .dest-picker-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+/* ── Section label (used above upcoming-card) ─────────────────────────────── */
+
+.allocate-page .alloc-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.allocate-page .alloc-section-title {
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--ink-3, #7a776e);
+}
+
+.allocate-page .alloc-section-total {
+  font-size: 12px;
+  color: var(--ink-3, #7a776e);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Upcoming transfers card ───────────────────────────────────────────────── */
+
+.allocate-page .upcoming-card {
+  background: #fff;
+  border: 1px solid var(--paper-3, #e8e5de);
+  border-radius: var(--rl, 12px);
+  overflow: hidden;
+}
+
+.allocate-page .upcoming-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 11px 18px;
+  border-bottom: 1px solid var(--paper-3, #e8e5de);
+  transition: background 0.12s;
+}
+
+.allocate-page .upcoming-row:last-child {
+  border-bottom: none;
+}
+
+.allocate-page .upcoming-row:hover {
+  background: var(--paper, #faf9f7);
+}
+
+.allocate-page .upcoming-row.done {
+  opacity: 0.5;
+}
+
+.allocate-page .upcoming-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.allocate-page .upcoming-dot-wrap {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  cursor: pointer;
+  border: none;
+  padding: 0;
+  font: inherit;
+  line-height: 1;
+  transition: background 0.15s, transform 0.1s;
+}
+
+.allocate-page .upcoming-dot-wrap:focus-visible {
+  outline: 2px solid var(--accent, #1a5c3a);
+  outline-offset: 2px;
+}
+
+.allocate-page .upcoming-dot-wrap.checked {
+  background: var(--accent, #1a5c3a);
+}
+
+.allocate-page .upcoming-dot-wrap.green {
+  background: var(--accent-light, #e8f2ec);
+}
+
+.allocate-page .upcoming-dot-wrap.amber {
+  background: var(--gold-light, #f7f0e0);
+}
+
+.allocate-page .upcoming-dot-wrap.grey {
+  background: var(--paper-2, #f2f0eb);
+}
+
+.allocate-page .upcoming-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink, #0f0e0c);
+}
+
+.allocate-page .upcoming-date {
+  font-size: 11px;
+  color: var(--ink-3, #7a776e);
+  font-weight: 300;
+  margin-top: 1px;
+}
+
+.allocate-page .upcoming-right {
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.allocate-page .upcoming-amount {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink, #0f0e0c);
+  font-variant-numeric: tabular-nums;
+}
+
+.allocate-page .upcoming-amount.done {
+  color: var(--ink-3, #7a776e);
+}
+
+/* ── Allocate footer ──────────────────────────────────────────────────────── */
+
+.allocate-page .allocate-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 16px 18px;
+  background: var(--paper-2, #f2f0eb);
+  border: 1px solid var(--paper-3, #e8e5de);
+  border-radius: var(--rl, 12px);
+}
+
+.allocate-page .allocate-footer-summary {
+  font-size: 13px;
+  color: var(--ink-2, #3d3b36);
+}
+
+.allocate-page .allocate-footer-summary strong {
+  color: var(--ink, #0f0e0c);
+}
+
+.allocate-page .btn-allocate {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--color-primary);
+  color: #fff;
+  border: none;
+  border-radius: 100px;
+  padding: 10px 22px;
+  font-size: 14px;
+  font-weight: 500;
+  font-family: var(--sans);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.allocate-page .btn-allocate:hover:not(:disabled) {
+  background: var(--color-primary-gradient-end);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px var(--accent-glow, rgba(26, 92, 58, 0.12));
+}
+
+.allocate-page .btn-allocate:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.allocate-page .btn-allocate.confirmed {
+  background: #2e7d52;
+}
+
+/* ── Responsive (≤768px) ──────────────────────────────────────────────────── */
+
+@media (max-width: 768px) {
+  .allocate-page .page-header {
+    padding: 0 16px;
+  }
+
+  .allocate-page .cycle-strip {
+    padding: 0 16px;
+  }
+
+  .allocate-page .cycle-strip-badge {
+    display: none;
+  }
+
+  .allocate-page .cycle-date-item.prev,
+  .allocate-page .cycle-date-item.next {
+    display: none;
+  }
+
+  .allocate-page .cycle-date-divider {
+    display: none;
+  }
+
+  .allocate-page .edit-fields {
+    grid-template-columns: 1fr;
+  }
+
+  .allocate-page .plan-col {
+    max-width: 100%;
+  }
+
+  .allocate-page .page-content {
+    padding: 16px 16px 40px;
+  }
+
+  .allocate-page .commitment-row {
+    grid-template-columns: 34px 1fr auto;
+  }
+
+  .allocate-page .alloc-bar-wrap {
+    display: none;
+  }
+}

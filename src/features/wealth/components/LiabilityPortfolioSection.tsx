@@ -6,13 +6,16 @@ import { Card, CardContent } from '@/components/ui/card';
 import { formatCurrency } from '@/lib/utils';
 import { LiabilityCategoryGroup } from './LiabilityCategoryGroup';
 import type { Liability } from '@/types/domain';
+import type { ClassifiedAccountHolding } from '@/features/wealth/utils/accountClassification';
 
 interface LiabilityPortfolioSectionProps {
   totalLiabilities: number;
   liabilities: Liability[];
+  accountHoldings?: ClassifiedAccountHolding[];
   onCreate: () => void;
   onEdit: (liability: Liability) => void;
   onDelete: (liability: Liability) => void;
+  onViewActivity?: (accountId: string) => void;
 }
 
 /**
@@ -34,9 +37,11 @@ const LIABILITY_CATEGORIES: Array<Liability['type']> = [
 export function LiabilityPortfolioSection({
   totalLiabilities,
   liabilities,
+  accountHoldings = [],
   onCreate,
   onEdit,
   onDelete,
+  onViewActivity,
 }: LiabilityPortfolioSectionProps) {
   const { t } = useTranslation('pages');
 
@@ -63,7 +68,7 @@ export function LiabilityPortfolioSection({
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <div className="flex items-center gap-3 mb-2">
-            <h2 className="text-foreground text-h2-sm sm:text-h2-md lg:text-h2-lg font-medium">
+            <h2 className="display-sm">
               {t('whatYouOwe')}
             </h2>
           </div>
@@ -111,6 +116,39 @@ export function LiabilityPortfolioSection({
               onDelete={onDelete}
             />
           ))}
+        </div>
+      )}
+
+      {accountHoldings.length > 0 && (
+        <div className="space-y-3">
+          <div className="flex items-center gap-2">
+            <h3 className="display-sm">{t('holdings.accountBackedLiabilitiesHeading')}</h3>
+          </div>
+          <div className="detail-list">
+            {accountHoldings.map((holding) => (
+              <div key={holding.account.id} className="detail-item">
+                <div className="flex min-w-0 flex-col">
+                  <span className="text-body font-medium text-foreground truncate">{holding.account.accountName}</span>
+                  <span className="text-body-sm text-muted-foreground">
+                    {holding.isUnknownType ? t('holdings.uncategorizedAccountType') : holding.normalizedType}
+                  </span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="tabular-nums text-body font-medium text-foreground">
+                    {formatCurrency(holding.holdingValue)}
+                  </span>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => onViewActivity?.(holding.account.id)}
+                    aria-label={t('holdings.viewActivityAriaLabel', { accountName: holding.account.accountName })}
+                  >
+                    {t('holdings.viewActivityCta')}
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </section>

@@ -33,26 +33,30 @@ function safeLocalStorageSetItem(key: string, value: string): void {
  * Custom hook to manage view mode (list/cards) with localStorage persistence
  *
  * @param defaultMode - Default view mode if none is stored ('cards' by default)
+ * @param storageKey - Optional key (e.g. per-page preference); defaults to shared app preference
  * @returns [viewMode, setViewMode] tuple
  */
-export function useViewMode(defaultMode: ViewMode = 'cards'): [ViewMode, (mode: ViewMode) => void] {
+export function useViewMode(
+  defaultMode: ViewMode = 'cards',
+  storageKey: string = VIEW_MODE_STORAGE_KEY
+): [ViewMode, (mode: ViewMode) => void] {
   const [viewMode, setViewModeState] = useState<ViewMode>(defaultMode);
 
   // Load from localStorage on mount
   useEffect(() => {
-    const stored = safeLocalStorageGetItem(VIEW_MODE_STORAGE_KEY);
+    const stored = safeLocalStorageGetItem(storageKey);
     if (stored === 'list' || stored === 'cards') {
       setViewModeState(stored);
     } else {
       // If no valid stored preference, use the default and store it
-      safeLocalStorageSetItem(VIEW_MODE_STORAGE_KEY, defaultMode);
+      safeLocalStorageSetItem(storageKey, defaultMode);
     }
-  }, [defaultMode]);
+  }, [defaultMode, storageKey]);
 
   // Setter that updates state and persists to localStorage
   const setViewMode = (mode: ViewMode) => {
     setViewModeState(mode);
-    safeLocalStorageSetItem(VIEW_MODE_STORAGE_KEY, mode);
+    safeLocalStorageSetItem(storageKey, mode);
   };
 
   return [viewMode, setViewMode];

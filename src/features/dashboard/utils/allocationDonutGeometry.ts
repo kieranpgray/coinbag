@@ -9,7 +9,8 @@ export const DONUT_LAYOUT_PAD = 8;
 
 export type DonutRadiusTier = 'sm' | 'md' | 'lg';
 
-const MIN_OUTER = 48;
+/** Floor so the ring stays legible vs design-system-v2.html ~180px donut (not a thin sliver). */
+const MIN_OUTER = 72;
 const MAX_OUTER = 100;
 
 export function getDonutRadii(width: number, height: number): {

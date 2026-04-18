@@ -101,7 +101,10 @@ describe('LandingPage reference parity guard', () => {
     expect(screen.getByText(/You're not trying/i)).toBeInTheDocument();
     expect(screen.getByText(/From your complete picture to your next move/i)).toBeInTheDocument();
     expect(screen.getByText(/Not another budgeting app/i)).toBeInTheDocument();
-    expect(screen.getByText(/Start free\. Upgrade when you're ready/i)).toBeInTheDocument();
+    const heroCtas = screen.getAllByRole('link', {
+      name: /Start building — it's free/i,
+    });
+    expect(heroCtas.length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText(/Your financial life has outgrown a spreadsheet/i)).toBeInTheDocument();
   });
 

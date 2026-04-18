@@ -24,7 +24,7 @@ import { ROUTES } from '@/lib/constants/routes';
 import { calculateMonthlyIncome } from './utils/calculations';
 import { filterByExpenseType } from './utils/filtering';
 import { calculateMonthlyEquivalent } from '@/features/expenses/utils';
-import { type Frequency, FREQUENCY_OPTIONS } from './utils/frequencyConversion';
+import { type Frequency, FREQUENCY_OPTIONS, convertToFrequency } from './utils/frequencyConversion';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { Income } from '@/types/domain';
 import type { Expense } from '@/types/domain';
@@ -51,7 +51,6 @@ import type { ExpenseType } from './utils/expenseTypeMapping';
 import { getExpenseType } from './utils/expenseTypeMapping';
 import { findUncategorisedCategoryId } from '@/data/categories/ensureDefaults';
 import { logger } from '@/lib/logger';
-import { SurplusCard } from '@/components/ui/surplus-card';
 
 const incomeSchema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -392,6 +391,8 @@ export function BudgetPage() {
 
   // Calculate remaining budget (income - all expenses)
   const remaining = totalMonthlyIncome - totalMonthlyExpenses;
+  // Frequency-scaled remaining for display — consistent with BudgetBreakdown
+  const remainingDisplay = convertToFrequency(remaining, 'monthly', frequency);
 
   return (
     <AnimatePresence mode="wait">
@@ -419,136 +420,130 @@ export function BudgetPage() {
           animate={{ opacity: 1 }}
           transition={{ duration: 0.3 }}
         >
-    <div className="space-y-12">
-      {/* Budget Header: title + frequency control */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="page-title">
-            {t('budget', { ns: 'navigation' })}
-          </h1>
-          <p className="text-sm text-muted-foreground mt-1">{t('recurringSubtitle', { ns: 'pages' })}</p>
-        </div>
-        <div className="flex items-center gap-3">
-          <Select value={frequency} onValueChange={(value) => setFrequency(value as Frequency)}>
-            <SelectTrigger className="w-[140px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {FREQUENCY_OPTIONS.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
+          <div className="space-y-12">
+            {/* Budget Header: title + frequency control */}
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="page-title">
+                  {t('budget', { ns: 'navigation' })}
+                </h1>
+                <p className="text-sm text-muted-foreground mt-1">{t('recurringSubtitle', { ns: 'pages' })}</p>
+              </div>
+              <div className="flex items-center gap-3">
+                <Select value={frequency} onValueChange={(value) => setFrequency(value as Frequency)}>
+                  <SelectTrigger className="w-[140px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {FREQUENCY_OPTIONS.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
 
-      {/* Optional Remaining strip — reduces busyness, not hero */}
-      {repaymentNotice && (
-        <Alert className="border-[var(--warning)] bg-[var(--warning-light)] text-[var(--warning)]">
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Repayment setup required</AlertTitle>
-          <AlertDescription>{repaymentNotice}</AlertDescription>
-        </Alert>
-      )}
+            {/* Repayment enforcement notice */}
+            {repaymentNotice && (
+              <Alert className="border-[var(--warning)] bg-[var(--warning-light)] text-[var(--warning)]">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Repayment setup required</AlertTitle>
+                <AlertDescription>{repaymentNotice}</AlertDescription>
+              </Alert>
+            )}
 
-      <SurplusCard amount={remaining} label="Remaining per month" />
+            {/* In and Out */}
+            <BudgetBreakdown
+              totalIncome={totalMonthlyIncome}
+              totalExpenses={totalMonthlyExpenses}
+              totalSavings={totalMonthlySavings}
+              totalRepayments={totalMonthlyRepayments}
+              remaining={remaining}
+              frequency={frequency}
+            />
 
-      {/* In and Out */}
-      <BudgetBreakdown
-        totalIncome={totalMonthlyIncome}
-        totalExpenses={totalMonthlyExpenses}
-        totalSavings={totalMonthlySavings}
-        totalRepayments={totalMonthlyRepayments}
-        remaining={remaining}
-        frequency={frequency}
-      />
+            {/* budget-compact-sections: tightens section header → list/tab-panel gap */}
+            <div className="budget-compact-sections">
+              {/* Income Section */}
+              {hasIncomesError ? (
+                <Alert>
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertTitle>Unable to load income</AlertTitle>
+                  <AlertDescription className="mt-2">
+                    We couldn't load your income sources. Please try again.
+                  </AlertDescription>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => refetchIncomes()}
+                    className="mt-4"
+                    disabled={incomesLoading}
+                  >
+                    <RefreshCw className={`h-4 w-4 mr-2 ${incomesLoading ? 'animate-spin' : ''}`} />
+                    Try again
+                  </Button>
+                </Alert>
+              ) : (
+                <IncomeSection
+                  totalIncome={totalMonthlyIncome}
+                  incomeSources={incomes}
+                  accountMap={accountMap}
+                  onCreate={() => setCreateIncomeModalOpen(true)}
+                  onEdit={handleEditIncome}
+                  onDelete={handleDeleteIncome}
+                  frequency={frequency}
+                />
+              )}
 
-      {/* PRO-21: tighten section header → first list / tab panel spacing without forking section components */}
-      <div className="[&_section]:!space-y-3 [&_[role=tabpanel]]:!mt-3">
-        {/* Income Section */}
-        {hasIncomesError ? (
-          <Alert>
-            <AlertTriangle className="h-4 w-4" />
-            <AlertTitle>Unable to load income</AlertTitle>
-            <AlertDescription className="mt-2">
-              We couldn't load your income sources. Please try again.
-            </AlertDescription>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => refetchIncomes()}
-              className="mt-4"
-              disabled={incomesLoading}
-            >
-              <RefreshCw className={`h-4 w-4 mr-2 ${incomesLoading ? 'animate-spin' : ''}`} />
-              Try again
-            </Button>
-          </Alert>
-        ) : (
-          <IncomeSection
-            totalIncome={totalMonthlyIncome}
-            incomeSources={incomes}
-            accountMap={accountMap}
-            onCreate={() => setCreateIncomeModalOpen(true)}
-            onEdit={handleEditIncome}
-            onDelete={handleDeleteIncome}
-            frequency={frequency}
-          />
-        )}
+              {/* Visual Divider */}
+              <VisualDivider />
 
-        {/* Visual Divider */}
-        <VisualDivider />
+              {/* Expenses Section */}
+              {hasExpensesError ? (
+                <Alert>
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertTitle>Unable to load expenses</AlertTitle>
+                  <AlertDescription className="mt-2">
+                    We couldn't load your expenses. Please try again.
+                  </AlertDescription>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => refetchExpenses()}
+                    className="mt-4"
+                    disabled={expensesLoading}
+                  >
+                    <RefreshCw className={`h-4 w-4 mr-2 ${expensesLoading ? 'animate-spin' : ''}`} />
+                    Try again
+                  </Button>
+                </Alert>
+              ) : (
+                <ExpensesSection
+                  expenses={expenses}
+                  categoryMap={categoryMap}
+                  accountMap={accountMap}
+                  uncategorisedId={uncategorisedId}
+                  hasIncome={incomes.length > 0}
+                  onAddIncome={() => setCreateIncomeModalOpen(true)}
+                  onCreate={handleCreateExpense}
+                  onEdit={handleEditExpense}
+                  onDelete={handleDeleteExpense}
+                  onCategoryChanged={handleExpenseCategoryChanged}
+                  frequency={frequency}
+                />
+              )}
+            </div>
 
-        {/* Expenses Section */}
-        {hasExpensesError ? (
-          <Alert>
-            <AlertTriangle className="h-4 w-4" />
-            <AlertTitle>Unable to load expenses</AlertTitle>
-            <AlertDescription className="mt-2">
-              We couldn't load your expenses. Please try again.
-            </AlertDescription>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => refetchExpenses()}
-              className="mt-4"
-              disabled={expensesLoading}
-            >
-              <RefreshCw className={`h-4 w-4 mr-2 ${expensesLoading ? 'animate-spin' : ''}`} />
-              Try again
-            </Button>
-          </Alert>
-        ) : (
-          <ExpensesSection
-            expenses={expenses}
-            categoryMap={categoryMap}
-            accountMap={accountMap}
-            uncategorisedId={uncategorisedId}
-            hasIncome={incomes.length > 0}
-            onAddIncome={() => setCreateIncomeModalOpen(true)}
-            onCreate={handleCreateExpense}
-            onEdit={handleEditExpense}
-            onDelete={handleDeleteExpense}
-            onCategoryChanged={handleExpenseCategoryChanged}
-            frequency={frequency}
-          />
-        )}
-      </div>
-
-      {/* Plan transfers CTA — contextual surplus + action */}
-      <div className="mt-6">
-        <SurplusCard
-          amount={remaining}
-          label="Remaining this pay cycle"
-        />
-        <Button variant="outline" asChild className="w-full mt-3">
-          <Link to={ROUTES.app.transfers}>
-            {remaining >= 0 ? 'Plan transfers →' : 'Review your plan →'}
-          </Link>
-        </Button>
-      </div>
+            {/* Plan transfers CTA */}
+            <div className="mt-6">
+              <Button variant="outline" asChild className="w-full">
+                <Link to={ROUTES.app.transfersEdit()}>
+                  {remainingDisplay >= 0 ? 'Plan transfers →' : 'Review your plan →'}
+                </Link>
+              </Button>
+            </div>
 
       {/* Income Create Modal */}
       <Dialog
@@ -954,7 +949,7 @@ export function BudgetPage() {
           }}
         />
       )}
-    </div>
+          </div>
         </motion.div>
       )}
     </AnimatePresence>

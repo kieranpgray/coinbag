@@ -2,13 +2,14 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useDashboard } from '../hooks/useDashboard';
-import { useCreateAsset } from '@/features/assets/hooks/useAssets';
-import { useCreateLiability } from '@/features/liabilities/hooks/useLiabilities';
+import { useCreateAsset, useUpdateAsset, useDeleteAsset } from '@/features/assets/hooks/useAssets';
+import { useCreateLiability, useDeleteLiability } from '@/features/liabilities/hooks/useLiabilities';
 import { useCreateAccount } from '@/features/accounts/hooks/useAccounts';
 import { useCreateSubscription } from '@/features/subscriptions/hooks';
 import { useCreateIncome } from '@/features/income/hooks/useIncome';
 import type { ReactNode } from 'react';
 import type { Asset, Liability } from '@/types/domain';
+import { TEST_EXPENSE_CATEGORY_ID } from '@/test/testIds';
 
 // Import seed/clear functions for mock repositories
 import { seedMockAssets, clearMockAssets } from '@/data/assets/mockRepo';
@@ -273,7 +274,7 @@ describe('Dashboard Reactivity', () => {
         frequency: 'monthly',
         chargeDate: '2024-01-01',
         nextDueDate: '2024-02-01',
-        categoryId: 'cat-1',
+        categoryId: TEST_EXPENSE_CATEGORY_ID,
       });
 
       await waitFor(() => {

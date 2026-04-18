@@ -38,7 +38,7 @@ export function AssetCategoryGroup({
     <div className="mb-6 last:mb-0">
       {/* Section header */}
       <div className="flex items-center justify-between mb-2 border-l-2 border-[var(--accent-light)] pl-3">
-        <h3 className="text-h3 font-medium text-foreground">{categoryName}</h3>
+        <h3 className="display-sm">{categoryName}</h3>
       </div>
 
       {/* Asset rows */}

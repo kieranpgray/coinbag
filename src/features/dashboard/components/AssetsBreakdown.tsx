@@ -1,5 +1,6 @@
 import { memo, useMemo } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useTranslation } from 'react-i18next';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Link } from 'react-router-dom';
@@ -10,6 +11,7 @@ import {
   transformBreakdownForChart,
   transformBreakdownForList,
 } from '../utils/assetAllocation';
+
 interface AssetsBreakdownProps {
   breakdown: AssetBreakdown[];
   totalValue: number;
@@ -23,7 +25,8 @@ export const AssetsBreakdown = memo(function AssetsBreakdown({
   isLoading,
   isEmpty,
 }: AssetsBreakdownProps) {
-  // Transform data for chart and list
+  const { t } = useTranslation('pages');
+
   const chartData = useMemo(
     () => transformBreakdownForChart(breakdown),
     [breakdown]
@@ -36,11 +39,23 @@ export const AssetsBreakdown = memo(function AssetsBreakdown({
   if (isLoading) {
     return (
       <Card>
-        <CardHeader>
-          <Skeleton className="h-6 w-32" />
-        </CardHeader>
-        <CardContent>
-          <Skeleton className="h-32 w-full" />
+        <CardContent className="p-0">
+          <div className="chart-container chart-container--in-card">
+            <div className="chart-header">
+              <div>
+                <Skeleton className="h-4 w-36 mb-2" />
+                <Skeleton className="h-3 w-28" />
+              </div>
+            </div>
+            <div className="flex flex-col md:flex-row flex-wrap items-center gap-8 pt-2">
+              <Skeleton className="aspect-square min-h-[180px] min-w-[180px] max-w-[220px] w-full rounded-full mx-auto shrink-0" />
+              <div className="allocation-legend-wrap space-y-2 w-full">
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-full" />
+              </div>
+            </div>
+          </div>
         </CardContent>
       </Card>
     );
@@ -49,16 +64,21 @@ export const AssetsBreakdown = memo(function AssetsBreakdown({
   if (isEmpty) {
     return (
       <Card>
-        <CardHeader>
-          <CardTitle>Asset allocation</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-body text-muted-foreground mb-4">
-            Add your first asset to see a breakdown.
-          </p>
-          <Button asChild size="sm">
-            <Link to="/wealth?create=asset">Add asset</Link>
-          </Button>
+        <CardContent className="p-0">
+          <div className="chart-container chart-container--in-card">
+            <div className="chart-header">
+              <div>
+                <div className="chart-title">{t('allocationBreakdown.assetTitle')}</div>
+                <div className="chart-subtitle">{t('allocationBreakdown.subtitle')}</div>
+              </div>
+            </div>
+            <p className="text-body text-muted-foreground mb-4">
+              {t('allocationBreakdown.emptyAssetsBody')}
+            </p>
+            <Button asChild size="sm">
+              <Link to="/wealth?create=asset">{t('allocationBreakdown.addAsset')}</Link>
+            </Button>
+          </div>
         </CardContent>
       </Card>
     );
@@ -66,24 +86,24 @@ export const AssetsBreakdown = memo(function AssetsBreakdown({
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Asset allocation</CardTitle>
-      </CardHeader>
-      <CardContent>
-        {/* Responsive grid: md 2/5, lg 5/12 chart vs 7/12 list for more list width */}
-        <div className="grid grid-cols-1 md:grid-cols-5 lg:grid-cols-12 gap-4 lg:gap-6">
-          <div className="md:col-span-2 lg:col-span-5">
-            <div className="chart-container flex h-full min-h-[200px] items-center justify-center">
-              <AssetAllocationDonut data={chartData} totalValue={totalValue} />
+      <CardContent className="p-0">
+        <div className="chart-container chart-container--in-card">
+          <div className="chart-header">
+            <div>
+              <div className="chart-title">{t('allocationBreakdown.assetTitle')}</div>
+              <div className="chart-subtitle">{t('allocationBreakdown.subtitle')}</div>
             </div>
           </div>
-
-          <div className="md:col-span-3 lg:col-span-7">
-            <AssetAllocationList data={listData} />
+          <div className="flex flex-col md:flex-row flex-wrap items-center gap-8 pt-2">
+            <div className="shrink-0 flex justify-center w-full md:w-auto">
+              <AssetAllocationDonut data={chartData} totalValue={totalValue} />
+            </div>
+            <div className="allocation-legend-wrap w-full md:w-auto min-w-0">
+              <AssetAllocationList data={listData} />
+            </div>
           </div>
         </div>
       </CardContent>
     </Card>
   );
 });
-
